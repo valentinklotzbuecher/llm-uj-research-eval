@@ -33,18 +33,18 @@ from openai import OpenAI
 # model = "o3"
 
 
-# # ------------------------------
-# # PDF → plain‑text utility
-# # ------------------------------
-# import pdfplumber  
+# ------------------------------
+# PDF → plain‑text utility
+# ------------------------------
+import pdfplumber  
 
-# def pdf_to_string(path: str | pathlib.Path, max_chars: int = 800_000) -> str:
-#     with pdfplumber.open(path) as pdf:
-#         pages = [p.extract_text() or "" for p in pdf.pages]
-#     text = " ".join(pages)
-#     # Normalise whitespace and truncate for token safety
-#     text = " ".join(text.split())
-#     return text[:max_chars]
+def pdf_to_string(path: str | pathlib.Path, max_chars: int = 800_000) -> str:
+    with pdfplumber.open(path) as pdf:
+        pages = [p.extract_text() or "" for p in pdf.pages]
+    text = " ".join(pages)
+    # Normalise whitespace and truncate for token safety
+    text = " ".join(text.split())
+    return text[:max_chars]
 
 
 ```
