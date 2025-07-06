@@ -1,0 +1,51 @@
+
+# Quantitative metrics
+
+ 
+First we set up the OpenAI API (key saved under `key/openai_key.txt`) and prepare a tool to extract text from PDFs.
+
+```{python}
+#| label: "API setup"
+
+# Install the SDK if it isn’t present 
+# %py -3.13 -m pip install --upgrade openai
+import os, pathlib, json, textwrap, pdfplumber, pandas as pd
+from typing import Dict, Any
+from openai import OpenAI
+
+# # -------------------------------------------------------------------
+# # Locate API key: env var ➜ key/openai_key.txt
+# # -------------------------------------------------------------------
+# key_path = pathlib.Path("key/openai_key.txt")
+
+# if os.getenv("OPENAI_API_KEY") is None and key_path.exists():
+#     os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
+
+# if not os.getenv("OPENAI_API_KEY"):
+#     raise ValueError(
+#         "No API key found.\n"
+#         "Create key/openai_key.txt (single line) or export OPENAI_API_KEY in your shell."
+#     )
+
+# client = OpenAI()  # SDK reads the key from the env var
+
+
+# model = "o3"
+
+
+# # ------------------------------
+# # PDF → plain‑text utility
+# # ------------------------------
+# import pdfplumber  
+
+# def pdf_to_string(path: str | pathlib.Path, max_chars: int = 800_000) -> str:
+#     with pdfplumber.open(path) as pdf:
+#         pages = [p.extract_text() or "" for p in pdf.pages]
+#     text = " ".join(pages)
+#     # Normalise whitespace and truncate for token safety
+#     text = " ".join(text.split())
+#     return text[:max_chars]
+
+
+```
+

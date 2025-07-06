@@ -1,0 +1,12 @@
+{
+  "hash": "3bbe4ac7a2be03a70b5b862bca5c61c8",
+  "result": {
+    "engine": "jupyter",
+    "markdown": "# Quantitative metrics\n\n \nFirst we set up the OpenAI API (key saved under `key/openai_key.txt`) and prepare a tool to extract text from PDFs.\n\n::: {#api-setup .cell execution_count=1}\n``` {.python .cell-code}\n# Install the SDK if it isn’t present \n# %py -3.13 -m pip install --upgrade openai\nimport os, pathlib, json, textwrap, pdfplumber, pandas as pd\nfrom typing import Dict, Any\nfrom openai import OpenAI\n\n# # -------------------------------------------------------------------\n# # Locate API key: env var ➜ key/openai_key.txt\n# # -------------------------------------------------------------------\n# key_path = pathlib.Path(\"key/openai_key.txt\")\n\n# if os.getenv(\"OPENAI_API_KEY\") is None and key_path.exists():\n#     os.environ[\"OPENAI_API_KEY\"] = key_path.read_text().strip()\n\n# if not os.getenv(\"OPENAI_API_KEY\"):\n#     raise ValueError(\n#         \"No API key found.\\n\"\n#         \"Create key/openai_key.txt (single line) or export OPENAI_API_KEY in your shell.\"\n#     )\n\n# client = OpenAI()  # SDK reads the key from the env var\n\n\n# model = \"o3\"\n\n\n# # ------------------------------\n# # PDF → plain‑text utility\n# # ------------------------------\n# import pdfplumber  \n\n# def pdf_to_string(path: str | pathlib.Path, max_chars: int = 800_000) -> str:\n#     with pdfplumber.open(path) as pdf:\n#         pages = [p.extract_text() or \"\" for p in pdf.pages]\n#     text = \" \".join(pages)\n#     # Normalise whitespace and truncate for token safety\n#     text = \" \".join(text.split())\n#     return text[:max_chars]\n\n```\n:::\n\n\n",
+    "supporting": [
+      "numerical_ratings_files"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

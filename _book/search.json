@@ -1,0 +1,22 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Comparing LLM-Generated Reviews to Human Evaluations in Social Science Research",
+    "section": "",
+    "text": "Project Overview\nWe are exploring whether large language models (LLMs) can generate research paper evaluations comparable to expert human reviews. In this project, we use an AI (OpenAI’s o3 model, Google’s Gemini 2.5 Pro) to review social science research papers under the same criteria used by human reviewers in The Unjournal.\nEach paper is assessed on specific dimensions – for example, the strength of its evidence, rigor of methods, clarity of communication, openness/reproducibility, relevance to global priorities, and overall quality. The LLM will provide quantitative scores (with uncertainty intervals) on these criteria and produce a written evaluation\nOur initial dataset will include research papers that have existing human evaluations. For each paper, the AI will generate: (1) numeric ratings on the defined criteria, (2) identification of the paper’s key claims, and (3) a detailed review discussing the paper’s contributions and weaknesses. We will then compare the AI-generated evaluations to the published human evaluations.\nNext, we will focus on papers currently under evaluation, ie where no human evaluation exists yet and we can rule out any contamination.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Project Overview</span>"
+    ]
+  },
+  {
+    "objectID": "numerical_ratings.html",
+    "href": "numerical_ratings.html",
+    "title": "Quantitative metrics",
+    "section": "",
+    "text": "First we set up the OpenAI API (key saved under key/openai_key.txt) and prepare a tool to extract text from PDFs.\n\n\nShow code\n# Install the SDK if it isn’t present \n# %py -3.13 -m pip install --upgrade openai\nimport os, pathlib, json, textwrap, pdfplumber, pandas as pd\nfrom typing import Dict, Any\nfrom openai import OpenAI\n\n# # -------------------------------------------------------------------\n# # Locate API key: env var ➜ key/openai_key.txt\n# # -------------------------------------------------------------------\n# key_path = pathlib.Path(\"key/openai_key.txt\")\n\n# if os.getenv(\"OPENAI_API_KEY\") is None and key_path.exists():\n#     os.environ[\"OPENAI_API_KEY\"] = key_path.read_text().strip()\n\n# if not os.getenv(\"OPENAI_API_KEY\"):\n#     raise ValueError(\n#         \"No API key found.\\n\"\n#         \"Create key/openai_key.txt (single line) or export OPENAI_API_KEY in your shell.\"\n#     )\n\n# client = OpenAI()  # SDK reads the key from the env var\n\n\n# model = \"o3\"\n\n\n# # ------------------------------\n# # PDF → plain‑text utility\n# # ------------------------------\n# import pdfplumber  \n\n# def pdf_to_string(path: str | pathlib.Path, max_chars: int = 800_000) -&gt; str:\n#     with pdfplumber.open(path) as pdf:\n#         pages = [p.extract_text() or \"\" for p in pdf.pages]\n#     text = \" \".join(pages)\n#     # Normalise whitespace and truncate for token safety\n#     text = \" \".join(text.split())\n#     return text[:max_chars]",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Quantitative metrics</span>"
+    ]
+  }
+]

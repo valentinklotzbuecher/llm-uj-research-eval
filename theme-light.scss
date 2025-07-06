@@ -1,0 +1,64 @@
+/*--------------------------------------------------------------------
+  Unjournal theme  (SCSS)
+  ------------------------------------------------------------------*/
+
+/*-- scss:defaults --*/
+
+/* ─── Palette ──────────────────────────────────────────────────────*/
+$unjournal-green:  #99bb66;     // main brand green
+$unjournal-orange: #f19e4b;     // accent / call-to-action
+
+/* ─── Base colours ────────────────────────────────────────────────*/
+$body-bg:    #ffffff;
+$body-color: #222222;           // darker text, better contrast
+
+$link-color:        $unjournal-green;
+$link-hover-color:  darken($unjournal-green, 12%);
+$url-color:         $unjournal-green;
+
+/* ─── Buttons ─────────────────────────────────────────────────────*/
+$btn-bg:                   $unjournal-green;
+$btn-border-color:         darken($unjournal-green, 10%);
+$btn-hover-bg:             $unjournal-orange;
+$btn-hover-border-color:   darken($unjournal-orange, 10%);
+$btn-color:                #ffffff;     // white text always
+
+/* fallback if build ignores variables above */
+.btn {
+  background-color: $btn-bg !important;
+  color:            $btn-color !important;
+  border-color:     $btn-border-color !important;
+}
+.btn:hover,
+.btn:focus {
+  background-color: $btn-hover-bg !important;
+  border-color:     $btn-hover-border-color !important;
+  color:            $btn-color !important;
+}
+
+/* ─── Figure captions ─────────────────────────────────────────────*/
+.fig-cap {
+  color:       $unjournal-green;
+  font-weight: bold;
+  font-size:   0.9em;
+}
+
+/* ─── Inline code colour (“o3”, etc.) ─────────────────────────────*/
+/* Any <code> not inside <pre> */
+:not(pre) > code {
+  color:            $unjournal-orange;                 // text hue
+  background-color: rgba($unjournal-orange, 0.12);     // faint pill bg
+  padding:          0 0.2em;
+  border-radius:    3px;
+  font-weight:      600;
+}
+
+/* Preserve normal colours inside fenced code blocks */
+pre code,
+.sourceCode code {
+  color: inherit;
+  background: inherit;
+}
+
+/* ─── Code blocks (optional background alpha tweak) ───────────────*/
+$code-block-bg-alpha: -.8;   // keep as-is; override if you change block theme
