@@ -280,62 +280,49 @@ tidy.to_csv(OUT / "metrics_long.csv", index=False)
 
 ```
 
-
-
 ```{python}
-#| label: fig-coefplot
+#| label: fig-ridgeline
 #| echo: false
-#| fig-cap: "LLM-based quantitative ratings (mid-points and 90 % intervals)"
- 
+#| fig-cap: "Distribution of LLM ratings (kernel density)"
 
-JITTER   = 0.35
-PLOT_W   = 650
-PLOT_H   = 40 * len(METRICS)
+import altair as alt
 
-tidy_plot = tidy.copy()
-tidy_plot["metric"] = pd.Categorical(
-    tidy_plot.metric, categories=METRICS[::-1], ordered=True
+ridgeline = (
+    alt.Chart(tidy)
+      # compute KDE per metric
+      .transform_density(
+          density='midpoint',
+          groupby=['metric'],
+          as_=['midpoint', 'density'],
+          extent=[0, 100],
+          bandwidth=2         # tweak smoothness
+      )
+      .transform_joinaggregate(
+          maxD='max(density)', groupby=['metric']
+      )
+      # normalise so each ridge has equal height
+      .transform_calculate(
+          norm='datum.density / datum.maxD'
+      )
+      .mark_area(opacity=.7)
+      .encode(
+          x=alt.X('midpoint:Q', title='Percentile score', axis=alt.Axis(tickMinStep=10)),
+          y=alt.Y('norm:Q',
+                  stack=None,              # don’t stack across metrics
+                  title=None),
+          row=alt.Row('metric:N',
+                      sort=METRICS[::-1],
+                      header=alt.Header(labelAngle=0, labelAlign='left')),
+          color=alt.value('#99bb66')       # constant colour
+      )
+      .properties(height=60, width=650)
 )
 
-# numeric y-position + random wiggle
-# numeric y-position + random wiggle
-metric_to_num = {m: i for i, m in enumerate(METRICS[::-1])}
-
-tidy_plot["ypos"] = (
-    tidy_plot["metric"].map(metric_to_num).astype(float)      # ← cast
-    + np.random.uniform(-JITTER/2, JITTER/2, size=len(tidy_plot))
-)
-
-
-base = alt.Chart(tidy_plot).encode(
-    x=alt.X("midpoint:Q", scale=alt.Scale(domain=[0, 100]),
-            title="Percentile score"),
-    y=alt.Y("ypos:Q", axis=None)
-)
-
-rules = (base.mark_rule(size=2, opacity=0.6)
-              .encode(x="lower_bound:Q", x2="upper_bound:Q",
-                      color=alt.Color("paper:N", legend=None)))
-
-points = (base.mark_point(filled=True, size=70)
-               .encode(color=alt.Color("paper:N", legend=alt.Legend(title="Paper")),
-                       tooltip=["paper", "metric", "midpoint",
-                                "lower_bound", "upper_bound"]))
-
-# custom y-axis labels
-labels = alt.Chart(pd.DataFrame({
-    "metric": METRICS[::-1],
-    "ypos": range(len(METRICS))
-})).mark_text(align="right", dx=-6).encode(
-    y="ypos:Q",
-    text="metric:N"
-)
-
-((rules + points + labels)
- .properties(width=PLOT_W, height=PLOT_H))
-
+ridgeline
 
 ```
+
+
 
 
 ```{python}
