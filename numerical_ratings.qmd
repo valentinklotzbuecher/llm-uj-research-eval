@@ -7,16 +7,18 @@ First we set up the OpenAI API (key saved under `key/openai_key.txt`) and prepar
 ```{python}
 #| label: "API setup"
 
-# Install the SDK if it isn’t present 
-# %py -3.13 -m pip install --upgrade openai
 import os, pathlib, json, textwrap, pdfplumber, pandas as pd, numpy as np
 from typing import Dict, Any
 from openai import OpenAI
 import altair as alt
 alt.renderers.enable("html") 
+import plotly.io as pio
 import plotly.graph_objects as go
 
-
+# 
+# Install if it isn’t present 
+# %py -3.13 -m pip install --upgrade openai
+# 
 # -------------------------------------------------------------------
 # Locate API key: env var ➜ key/openai_key.txt
 # -------------------------------------------------------------------
@@ -280,6 +282,60 @@ tidy.to_csv(OUT / "metrics_long.csv", index=False)
 
 ```
 
+
+```{python}
+
+UNJ_GREEN  = "#99bb66"   # brand green
+UNJ_ORANGE = "#f19e4b"   # accent
+
+# ── 1 ▸ Altair theme ────────────────────────────────────────────
+def unj_theme():
+    return {
+        "config": {
+            "view":  {"stroke": "transparent"},
+            "background": "white",
+            "title": {"font": "Source Sans Pro", "fontSize": 16, "color": "#222"},
+            "axis":  {"labelFont": "Source Sans Pro", "titleFont": "Source Sans Pro",
+                      "labelColor": "#222", "titleColor": "#222",
+                      "gridOpacity": 0.15},
+            "legend": {"labelFont": "Source Sans Pro", "titleFont": "Source Sans Pro"},
+            # continuous colourbars (heatmaps etc.)
+            "range": {
+                "heatmap": [
+                    "#f6fbf3", "#e2f1d7", "#cfe7ba", "#badc9c",
+                    "#a6d27f", "#92c861", "#7dbd43", "#69b325",
+                    "#55a807", "#477b13"   # darker end
+                ],
+                # default nominal palette starts with green→orange
+                "category": [
+                    UNJ_GREEN, UNJ_ORANGE,
+                    "#6bb0f3", "#d9534f", "#636363", "#ffb400",
+                    "#53354a", "#2780e3", "#3fb618", "#8e6c8a"
+                ]
+            }
+        }
+    }
+
+alt.themes.register("unj", unj_theme)
+alt.themes.enable("unj")   # ← every Altair chart now uses it
+
+# ── 2 ▸ Plotly template ─────────────────────────────────────────
+pio.templates["unj"] = go.layout.Template(
+    layout = dict(
+        font=dict(family="Source Sans Pro, Helvetica, Arial, sans-serif",
+                  size=14, color="#222"),
+        colorway=[UNJ_GREEN, UNJ_ORANGE, "#6bb0f3", "#d9534f", "#636363"],
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        xaxis=dict(gridcolor="rgba(0,0,0,0.15)"),
+        yaxis=dict(gridcolor="rgba(0,0,0,0.15)")
+    )
+)
+pio.templates.default = "unj"
+
+```
+
+
 ```{python}
 #| label: fig-ridgeline
 #| echo: false
@@ -325,17 +381,55 @@ ridgeline
 
 ```{python}
 #| label: heatmap
+#| echo: false
 
-heat = tidy.pivot(index='metric', columns='paper', values='midpoint').loc[METRICS[::-1]]
-heat = heat.reset_index().melt(id_vars='metric', var_name='paper', value_name='midpoint')
 
+import re
+
+
+if "short" not in tidy.columns:
+    def make_short(name: str) -> str:
+        if re.fullmatch(r"w\d{5}", name, re.I):
+            return name.upper()                         # e.g. W30539
+        parts = re.split(r"[_\-\s]+", name)
+        year  = next((p for p in parts if re.fullmatch(r"\d{4}", p)), "")
+        auth  = next((p for p in parts if p and p[0].isalpha()), name)[:12]
+        return f"{auth.title()} ({year})" if year else auth.title()
+
+    tidy["short"] = tidy["paper"].apply(make_short)
+
+# ── 1 ▸ reshape & attach short labels ──────────────────────────────
+heat = (tidy
+        .pivot(index='metric', columns='paper', values='midpoint')
+        .loc[METRICS[::-1]])               # keep row order
+heat = (heat
+        .reset_index()
+        .melt(id_vars='metric', var_name='paper', value_name='midpoint')
+        .merge(tidy[['paper','short']].drop_duplicates(), on='paper'))
+
+# ── 2 ▸ order papers by overall mean score (best → worst) ─────────
+order = (tidy.groupby('paper')['midpoint']
+              .mean()
+              .sort_values(ascending=False)
+              .index.to_list())
+order_short = (tidy[['paper','short']]
+               .drop_duplicates()
+               .set_index('paper')
+               .loc[order]['short']
+               .to_list())
+
+# ── 3 ▸ build chart ────────────────────────────────────────────────
 alt.Chart(heat).mark_rect().encode(
-    y=alt.Y('metric:N', sort=None, title=None),
-    x=alt.X('paper:N', sort='-x', title=None),
-    color=alt.Color('midpoint:Q', scale=alt.Scale(scheme='blues', domain=[0,100]),
-                    legend=alt.Legend(title='Score')),
-    tooltip=['paper','metric','midpoint']
-).properties(height=40*len(METRICS), width=14*heat.paper.nunique())
+    y = alt.Y('metric:N', sort=None, title=None),
+    x = alt.X('short:N', sort=order_short, title=None),
+    color = alt.Color('midpoint:Q',
+                      scale = alt.Scale(domain=[0,100]),   # uses theme’s green gradient
+                      legend = alt.Legend(title='Score')),
+    tooltip = ['short','metric','midpoint']
+).properties(
+    height = 40 * len(METRICS),
+    width  = 14 * heat['short'].nunique()
+)
 
 ```
 
