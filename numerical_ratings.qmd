@@ -13,41 +13,419 @@ import os, pathlib, json, textwrap, pdfplumber, pandas as pd
 from typing import Dict, Any
 from openai import OpenAI
 
-# # -------------------------------------------------------------------
-# # Locate API key: env var ➜ key/openai_key.txt
-# # -------------------------------------------------------------------
-# key_path = pathlib.Path("key/openai_key.txt")
+# -------------------------------------------------------------------
+# Locate API key: env var ➜ key/openai_key.txt
+# -------------------------------------------------------------------
+key_path = pathlib.Path("key/openai_key.txt")
 
-# if os.getenv("OPENAI_API_KEY") is None and key_path.exists():
-#     os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
+if os.getenv("OPENAI_API_KEY") is None and key_path.exists():
+    os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
 
-# if not os.getenv("OPENAI_API_KEY"):
-#     raise ValueError(
-#         "No API key found.\n"
-#         "Create key/openai_key.txt (single line) or export OPENAI_API_KEY in your shell."
-#     )
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError(
+        "No API key found.\n"
+        "Create key/openai_key.txt (single line) or export OPENAI_API_KEY in your shell."
+    )
 
-# client = OpenAI()  # SDK reads the key from the env var
+client = OpenAI()  # SDK reads the key from the env var
 
 
-# model = "o3"
+model = "o3"
+# model = "o3-pro"
+
 
 
 # ------------------------------
 # PDF → plain‑text utility
 # ------------------------------
-import pdfplumber  
+import re, pdfplumber
 
-def pdf_to_string(path: str | pathlib.Path, max_chars: int = 800_000) -> str:
+def pdf_to_string(path, max_tokens=180_000, model="o3-pro"):
+    """Extract text, drop refs, hard-cap by tokens."""
+    import tiktoken
+    enc = tiktoken.encoding_for_model(model)
+
     with pdfplumber.open(path) as pdf:
-        pages = [p.extract_text() or "" for p in pdf.pages]
-    text = " ".join(pages)
-    # Normalise whitespace and truncate for token safety
-    text = " ".join(text.split())
-    return text[:max_chars]
+        text = " ".join(p.extract_text() or "" for p in pdf.pages)
+
+    # kill excessive whitespace
+    text = re.sub(r"\s+", " ", text)
+
+    # drop everything after References / Bibliography
+    m = re.search(r"\b(References|Bibliography)\b", text, flags=re.I)
+    if m:
+        text = text[: m.start()]
+
+    # token-trim
+    tokens = enc.encode(text)
+    if len(tokens) > max_tokens:
+        text = enc.decode(tokens[:max_tokens])
+
+    return text
 
 
 ```
 
+
+
+
+
+#### Response schema and system prompt
+
+Below we define the response schema, provide the system prompt (based on the instructions given to human evaluators at The Unjournal), and define the funtion `evaluate_paper` that takes a pdf, sends it to the LLM, and returns JSON output containing strictly numerical ratings and a <100 words rationale.
+ 
+
+```{python}
+#| label: "Response schema and system prompt"
+
+
+# -----------------------------
+# 1.  Metric list
+# -----------------------------
+METRICS = [
+    "overall",
+    "claims_evidence",
+    "methods",
+    "advancing_knowledge",
+    "logic_communication",
+    "open_science",
+    "global_relevance"
+]
+
+# -----------------------------
+# 2.  JSON schema
+# -----------------------------
+metric_schema = {
+    "type": "object",
+    "properties": {
+        "midpoint":    {"type": "integer", "minimum": 0, "maximum": 100},
+        "lower_bound": {"type": "integer", "minimum": 0, "maximum": 100},
+        "upper_bound": {"type": "integer", "minimum": 0, "maximum": 100},
+        "rationale":   {"type": "string"}
+    },
+    "required": ["midpoint", "lower_bound", "upper_bound", "rationale"],
+    "additionalProperties": False
+}
+
+response_format = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "paper_assessment_v1",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "metrics": {
+                    "type": "object",
+                    "properties": {m: metric_schema for m in METRICS},
+                    "required": METRICS,
+                    "additionalProperties": False
+                }
+            },
+            "required": ["metrics"],
+            "additionalProperties": False
+        }
+    }
+}
+
+
+# --------------------------------------------------------
+# 3.  System prompt
+# --------------------------------------------------------
+# -----------------------------
+# 3.  System prompt
+# -----------------------------
+SYSTEM_PROMPT = textwrap.dedent(f"""
+You are an expert evaluator.
+
+We ask for a set of nine quantitative metrics. For each metric, we ask for a score and a 90% credible interval.
+
+Percentile rankings
+We ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on.
+The population of papers should be all serious research in the same area that you have encountered in the last three years.
+
+Midpoint rating and credible intervals 
+For each metric, we ask you to provide a 'midpoint rating' and a 90% credible interval as a measure of your uncertainty. 
+We want policymakers, researchers, funders, and managers to be able to use evaluations to update their beliefs and make better decisions. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. 
+You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.
+
+Overall assessment
+- Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness.importance to knowledge production, and importance to practice. 
+
+
+Claims, strength and characterization of evidence
+- Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
+
+Methods: Justification, reasonableness, validity, robustness
+- Are the methods used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? 
+- Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this?
+- Avoiding bias and questionable research practices (QRP): Did the authors take steps to reduce bias from opportunistic reporting and QRP? For example, did they do a strong pre-registration and pre-analysis plan, incorporate multiple hypothesis testing corrections, and report flexible specifications? 
+
+Advancing our knowledge and practice
+- To what extent does the project contribute to the field or to practice, particularly in ways that are relevant to global priorities and impactful interventions?
+- Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions? 
+- Does the project add useful value to other impactful research? We don't require surprising results; sound and well-presented null results can also be valuable.
+
+
+Logic and communication
+- Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced?
+- Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow?
+- Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? 
+- Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?
+
+Open, collaborative, replicable research
+- Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided?
+- Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained?? 
+- Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?
+- Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?
+
+Relevance to global priorities, usefulness for practitioners
+- Are the paper’s chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? 
+- Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? 
+- Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? 
+- Do they communicate (at least in the abstract or introduction)  in ways policymakers and decision-makers can understand, without misleading or oversimplifying?
+
+Return STRICT JSON matching the supplied schema.
+
+Fill every key in the object `metrics`:
+
+  {', '.join(METRICS)}
+
+Definitions are percentile scores (0 – 100) versus serious work in the field from the last 3 years.
+For `overall`:
+  • Default = arithmetic mean of the other six midpoints (rounded).  
+  • If, in your judgment, another value is better (e.g. one metric is far more decision-relevant), choose it **and explain why** in `overall.rationale`.
+
+Field meanings
+  midpoint      → best-guess percentile
+  lower_bound   → 5th-percentile plausible value
+  upper_bound   → 95th-percentile plausible value
+  rationale     → ≤100 words; terse but informative.
+
+Do **not** wrap the JSON in markdown fences or add extra text.
+""").strip()
+
+
+def evaluate_paper(pdf_path: str | pathlib.Path,
+                   model: str = model) -> dict:
+    paper_text = pdf_to_string(pdf_path)
+
+    chat = client.chat.completions.create(
+        model=model,
+        # temperature=temperature,
+        response_format=response_format,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": paper_text}
+        ]
+    )
+
+    raw_json = chat.choices[0].message.content
+    return json.loads(raw_json)
+
+
+```
+
+
+
 ## Load papers
 
+
+
+```{python}
+#| label: eval-many-metrics
+#| echo: false
+import pathlib, json, time, pandas as pd
+from tqdm import tqdm                # progress bar; pip install tqdm
+
+ROOT = pathlib.Path("papers")          # put your PDFs here
+OUT  = pathlib.Path("results")
+OUT.mkdir(exist_ok=True)
+
+pdfs = sorted(ROOT.glob("*.pdf"))
+
+records = []
+for pdf in tqdm(pdfs, desc="Metrics"):
+    try:
+        res = evaluate_paper(pdf)     # <-- your helper defined earlier :contentReference[oaicite:0]{index=0}
+        res["paper"] = pdf.stem
+        records.append(res)
+        time.sleep(1.1)               # gentle 90 req/min pacing
+    except Exception as e:
+        print(f"⚠️ {pdf.name}: {e}")
+
+
+```
+
+
+
+```{python}
+# flatten to long format
+tidy_rows = []
+for rec in records:
+    paper_id = rec["paper"]
+    for metric, vals in rec["metrics"].items():
+        tidy_rows.append({
+            "paper":   paper_id,
+            "metric":  metric,
+            **vals     # midpoint, lower_bound, upper_bound, rationale
+        })
+
+tidy = pd.DataFrame(tidy_rows)
+tidy.to_csv(OUT / "metrics_long.csv", index=False)
+# tidy.head()
+
+
+
+```
+
+
+
+```{python}
+#| label: fig-coefplot
+#| echo: false
+#| fig-cap: "LLM-based quantitative ratings (mid-points and 90 % intervals)"
+ 
+
+import altair as alt, numpy as np, pandas as pd
+
+JITTER   = 0.35
+PLOT_W   = 650
+PLOT_H   = 40 * len(METRICS)
+
+tidy_plot = tidy.copy()
+tidy_plot["metric"] = pd.Categorical(
+    tidy_plot.metric, categories=METRICS[::-1], ordered=True
+)
+
+# numeric y-position + random wiggle
+# numeric y-position + random wiggle
+metric_to_num = {m: i for i, m in enumerate(METRICS[::-1])}
+
+tidy_plot["ypos"] = (
+    tidy_plot["metric"].map(metric_to_num).astype(float)      # ← cast
+    + np.random.uniform(-JITTER/2, JITTER/2, size=len(tidy_plot))
+)
+
+
+base = alt.Chart(tidy_plot).encode(
+    x=alt.X("midpoint:Q", scale=alt.Scale(domain=[0, 100]),
+            title="Percentile score"),
+    y=alt.Y("ypos:Q", axis=None)
+)
+
+rules = (base.mark_rule(size=2, opacity=0.6)
+              .encode(x="lower_bound:Q", x2="upper_bound:Q",
+                      color=alt.Color("paper:N", legend=None)))
+
+points = (base.mark_point(filled=True, size=70)
+               .encode(color=alt.Color("paper:N", legend=alt.Legend(title="Paper")),
+                       tooltip=["paper", "metric", "midpoint",
+                                "lower_bound", "upper_bound"]))
+
+# custom y-axis labels
+labels = alt.Chart(pd.DataFrame({
+    "metric": METRICS[::-1],
+    "ypos": range(len(METRICS))
+})).mark_text(align="right", dx=-6).encode(
+    y="ypos:Q",
+    text="metric:N"
+)
+
+((rules + points + labels)
+ .properties(width=PLOT_W, height=PLOT_H))
+
+
+```
+
+
+```{python}
+#| label: heatmap
+#| echo: false
+heat = tidy.pivot(index='metric', columns='paper', values='midpoint').loc[METRICS[::-1]]
+heat = heat.reset_index().melt(id_vars='metric', var_name='paper', value_name='midpoint')
+
+alt.Chart(heat).mark_rect().encode(
+    y=alt.Y('metric:N', sort=None, title=None),
+    x=alt.X('paper:N', sort='-x', title=None),
+    color=alt.Color('midpoint:Q', scale=alt.Scale(scheme='blues', domain=[0,100]),
+                    legend=alt.Legend(title='Score')),
+    tooltip=['paper','metric','midpoint']
+).properties(height=40*len(METRICS), width=14*heat.paper.nunique())
+
+```
+
+
+```{python}
+#| label: fig-paper-widget
+#| echo: false
+#| fig-cap: "Interactive paper inspector (mid-points ± intervals)"
+
+import plotly.graph_objects as go
+import pandas as pd
+
+# 1 ─── data prep ----------------------------------------------------
+METRICS_REV = METRICS[::-1]          # want first metric on top
+tidy_sorted = (tidy
+               .assign(metric=pd.Categorical(tidy.metric, categories=METRICS_REV, ordered=True))
+               .sort_values("metric"))
+
+papers = ["All"] + sorted(tidy.paper.unique())
+
+# 2 ─── build one trace per paper -----------------------------------
+fig = go.Figure()
+
+for pap in tidy.paper.unique():
+    dfp = tidy_sorted[tidy_sorted.paper == pap]
+    fig.add_trace(go.Scatter(
+        x=dfp.midpoint,
+        y=dfp.metric,
+        mode="markers",
+        marker=dict(size=10),
+        error_x=dict(
+            type="data",
+            symmetric=False,
+            array=dfp.upper_bound - dfp.midpoint,
+            arrayminus=dfp.midpoint - dfp.lower_bound),
+        name=pap,
+        visible=False      # show later via dropdown
+    ))
+
+# 3 ─── dropdown logic ----------------------------------------------
+buttons = []
+
+# individual papers
+for i, pap in enumerate(tidy.paper.unique()):
+    vis = [False] * len(tidy.paper.unique())
+    vis[i] = True
+    buttons.append(dict(
+        label=pap,
+        method="update",
+        args=[{"visible": vis},
+              {"title": f"Ratings for paper: {pap}"}]
+    ))
+
+# 'All' view (dots overlaid)
+buttons.insert(0, dict(
+    label="All",
+    method="update",
+    args=[{"visible": [True]*len(tidy.paper.unique())},
+          {"title": "Ratings for all papers"}]
+))
+
+fig.update_layout(
+    updatemenus=[dict(
+        buttons=buttons,
+        direction="down",
+        showactive=True,
+        x=0.01, y=1.15
+    )],
+    yaxis=dict(categoryorder="array", categoryarray=METRICS_REV, title=None),
+    xaxis=dict(range=[0, 100], title="Percentile score"),
+    height=40*len(METRICS) + 120,
+    title="Ratings for all papers"
+)
+
+fig
+
+```
