@@ -1,6 +1,15 @@
 
 # Quantitative metrics
 
+### Setup
+
+The block below
+
+* loads the main libraries (OpenAI SDK, Altair, Plotly, …)
+* looks for your OpenAI key in **key/openai_key.txt** 
+* initialises a client (`o3` by default – flip to `o3-pro` for >128 k-token papers)
+* defines `pdf_to_string()`  
+  – drops the reference section and truncates at 180 k tokens so we stay in-context.
  
 
 ```{python}
@@ -72,12 +81,16 @@ def pdf_to_string(path, max_tokens=180_000, model="o3-pro"):
 ```
 
 
+### Response schema & system prompt
 
+* `METRICS` lists the seven Unjournal criteria.  
+* `response_format` is a JSON-Schema guard so the model can’t hallucinate keys.  
+* `SYSTEM_PROMPT` is the rubric we give the LLM.  
+  Notes:  
+  • Scores are percentiles vs serious work in the last 3 years.  
+  • `overall` defaults to the mean of the other six but the model may override.
+* `evaluate_paper()` wraps everything: PDF → text → chat completion → `dict`.
 
-
-#### Response schema and system prompt
-
-Below we define the response schema, provide the system prompt (based on the instructions given to human evaluators at The Unjournal), and define the funtion `evaluate_paper` that takes a pdf, sends it to the LLM, and returns JSON output containing strictly numerical ratings and a <100 words rationale.
  
 
 ```{python}
@@ -230,8 +243,10 @@ def evaluate_paper(pdf_path: str | pathlib.Path,
 
 
 
-## Load papers
+### Batch-evaluate all PDFs
 
+Below we iterate over every file in **papers/**, call `evaluate_paper()`, sleep 1.1 s
+(rate-limit padding), and store the full JSON per paper in **results/**.
 
 
 ```{python}
@@ -260,9 +275,27 @@ for pdf in tqdm(pdfs, desc="Metrics"):
 ```
 
 
+### Results
+
+* Flattens the nested JSON into long format:  
+  one row = (paper, metric, midpoint, lower, upper, rationale).  
+* Saves **results/metrics_long.csv** for quick downstream use.
+
+* Registers an Altair + Plotly “Unjournal” theme so all charts use  
+  – brand green `#99bb66` and accent orange `#f19e4b`  
+  <!-- – Source Sans Pro font (loaded via _quarto.yml → googlefonts) -->
+
+* Ridgeline density plot: Kernel-density of mid-points for each metric. Height is normalised, x-axis
+is 0-100 %. Green fill matches the site palette.
+
+* Heat-map
+
+* Interactive Plotly widget
 
 ```{python}
-# flatten to long format
+#| label: theme-def
+
+
 tidy_rows = []
 for rec in records:
     paper_id = rec["paper"]
@@ -277,12 +310,6 @@ tidy = pd.DataFrame(tidy_rows)
 tidy.to_csv(OUT / "metrics_long.csv", index=False)
 # tidy.head()
 
-
-
-```
-
-
-```{python}
 
 UNJ_GREEN  = "#99bb66"   # brand green
 UNJ_ORANGE = "#f19e4b"   # accent
@@ -338,7 +365,7 @@ pio.templates.default = "unj"
 ```{python}
 #| label: fig-ridgeline
 #| echo: false
-#| fig-cap: "Distribution of LLM ratings (kernel density)"
+#| fig-cap: "Mid-point score distributions for every metric. Each density is scaled to unit height; x-axis is the percentile scale (0 – 100 %)."
 
 ridgeline = (
     alt.Chart(tidy)
@@ -348,7 +375,7 @@ ridgeline = (
           groupby=['metric'],
           as_=['midpoint', 'density'],
           extent=[0, 100],
-          bandwidth=3         
+          bandwidth=2         # tweak smoothness
       )
       .transform_joinaggregate(
           maxD='max(density)', groupby=['metric']
@@ -379,8 +406,8 @@ ridgeline
 
 
 ```{python}
-#| label: heatmap
-#| echo: false
+#| label: fig-heatmap
+#| fig-cap: "Per-paper mid-point scores across all metrics. Darker green → higher percentile. Columns ordered by each paper’s overall average."
 
 
 if "short" not in tidy.columns:
@@ -432,7 +459,7 @@ alt.Chart(heat).mark_rect().encode(
 
 ```{python}
 #| label: fig-paper-widget
-#| fig-cap: "Interactive paper inspector (mid-points ± intervals)"
+#| fig-cap: "Interactive inspector: select a single paper to show its mid-point (dot) and 90 % credible interval (whisker) for every metric."
 
 # 1 ─── data prep ----------------------------------------------------
 METRICS_REV = METRICS[::-1]          # want first metric on top
