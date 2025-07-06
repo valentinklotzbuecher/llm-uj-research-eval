@@ -2,7 +2,6 @@
 # Quantitative metrics
 
  
-First we set up the OpenAI API (key saved under `key/openai_key.txt`) and prepare a tool to extract text from PDFs.
 
 ```{python}
 #| label: "API setup"
@@ -349,7 +348,7 @@ ridgeline = (
           groupby=['metric'],
           as_=['midpoint', 'density'],
           extent=[0, 100],
-          bandwidth=2         # tweak smoothness
+          bandwidth=3         
       )
       .transform_joinaggregate(
           maxD='max(density)', groupby=['metric']
