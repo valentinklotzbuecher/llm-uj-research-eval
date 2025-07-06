@@ -7,7 +7,7 @@ First we set up the OpenAI API (key saved under `key/openai_key.txt`) and prepar
 ```{python}
 #| label: "API setup"
 
-import os, pathlib, json, textwrap, pdfplumber, pandas as pd, numpy as np
+import os, pathlib, json, textwrap, pdfplumber, re, pandas as pd, numpy as np
 from typing import Dict, Any
 from openai import OpenAI
 import altair as alt
@@ -382,9 +382,6 @@ ridgeline
 ```{python}
 #| label: heatmap
 #| echo: false
-
-
-import re
 
 
 if "short" not in tidy.columns:
