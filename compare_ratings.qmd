@@ -1,0 +1,209 @@
+---
+title: "LLM vs. Human Ratings"
+---
+
+::: {.callout-tip}
+**Prereq** – `quarto render numerical_ratings.qmd` must have created  
+`results/metrics_long.csv`.  
+Add your hand-coded spreadsheet of human scores as
+`results/human_ratings.csv` with columns:  
+
+`paper, metric, midpoint_human`
+:::
+
+```{python}
+#| label: data-load
+#| echo: false
+
+
+import pandas as pd, altair as alt, numpy as np
+
+llm  = pd.read_csv("results/metrics_long.csv")        # from previous chapter
+
+
+human = pd.read_csv("UJ_ratings/rsx_evalr_rating (7).csv") 
+ 
+# ---- 1  load the lookup table ------------------------------------
+mapdf = pd.read_csv("UJ_ratings/UJ_map.csv")   # or pd.read_excel("id_map.xlsx")
+
+# ---- 2  attach map to the human sheet ----------------------------
+human = (human
+         .merge(mapdf, left_on="research", right_on="research", how="left")
+         .rename(columns={"research": "paper_id"}))
+
+
+# keep only the rows that matched
+human = human.dropna(subset=["paper"])
+
+
+
+```
+
+
+
+
+
+
+```{python}
+#| label: load-and-merge
+#| echo: false
+
+# 1 ── Load the three source files ----------------------------------
+llm   = pd.read_csv("results/metrics_long.csv")          # from model run
+human = pd.read_csv("UJ_ratings/rsx_evalr_rating (7).csv")
+imap  = pd.read_csv("UJ_ratings/UJ_map.csv")                        # 2-column lookup
+
+# 2 ── Rename human metric labels to match the LLM schema ----------
+crit_map = {
+    "overall":          "overall",
+    "claims":           "claims_evidence",
+    "methods":          "methods",
+    "adv_knowledge":    "advancing_knowledge",
+    "logic_comms":      "logic_communication",
+    "open_sci":         "open_science",
+    "gp_relevance":     "global_relevance",
+    "real_world":       "global_relevance"      # if you want to fold it in
+}
+human["metric"] = human["criteria"].map(crit_map)
+
+# 3 ── Attach the LLM-style paper id to the human sheet -------------
+human = (human
+         .merge(imap, left_on="research", right_on="research", how="left"))
+
+# 4 ── Diagnostic: what’s still unmapped? ---------------------------
+missing_id  = human[human.paper.isna()]["research"].unique()
+missing_llm = sorted(set(llm.paper) - set(human.paper.dropna()))
+
+if len(missing_id):
+    print("⚠️  Human titles without LLM id (add rows to UJ_map.csv):")
+    for t in missing_id: print("   •", t)
+if len(missing_llm):
+    print("\n⚠️  LLM papers lacking a human match:")
+    for p in missing_llm: print("   •", p)
+
+# 5 ── Keep only fully mapped rows & select numeric columns ---------
+use_cols = ["paper","metric","middle_rating","lower_CI","upper_CI"]
+human = (human.dropna(subset=["paper","metric","middle_rating"])
+               [use_cols]
+               .rename(columns={"middle_rating":"midpoint_human",
+                                "lower_CI":"lower_human",
+                                "upper_CI":"upper_human"}))
+
+# 6 ── Merge with LLM long table ------------------------------------
+merged = (llm.merge(human, on=["paper","metric"], how="inner")
+               .rename(columns={"midpoint":"midpoint_llm",
+                                "lower_bound":"lower_llm",
+                                "upper_bound":"upper_llm"}))
+
+print(f"✅ merged rows: {len(merged)}  "
+      f"({merged.paper.nunique()} papers × {merged.metric.nunique()} metrics)")
+
+# merged is now ready for correlation, scatter, ridge-error, etc.
+
+
+df = merged.copy()
+
+```
+
+
+
+## Overall correlation
+
+```{python}
+#| label: corr-table
+#| echo: false
+#| tbl-cap: "Pearson r between LLM and human mid-points (per metric)."
+
+# 1 ▸ collapse duplicates by mean -----------------------------------
+agg = (df.groupby(["paper","metric"])
+         .agg(midpoint_llm   = ("midpoint_llm","mean"),
+              midpoint_human = ("midpoint_human","mean"))
+         .reset_index())
+
+# 2 ▸ compute r for each metric -------------------------------------
+r = (agg.groupby("metric")
+         .apply(lambda g:
+                g["midpoint_llm"].corr(g["midpoint_human"]))
+         .rename("r")
+         .to_frame())
+
+r.style.format("{:.2f}")
+
+df = agg.copy()  
+
+```
+
+
+```{python}
+#| label: tbl-summary 
+#| echo: false
+#| tbl-cap: "Sample size and mean absolute difference (MAD) by metric."
+
+tbl = (df.assign(abs_delta=lambda d: (d.midpoint_llm - d.midpoint_human).abs())
+         .groupby("metric")
+         .agg(N=("paper","size"),
+              MAD=("abs_delta","mean"))
+         .style.format({"MAD":"{:.1f}", "N":"{:d}"})
+)
+tbl
+
+
+```
+
+
+```{python}
+#| label: fig-scatter
+#| echo: false
+#| fig-cap: "LLM mid-points vs. human mid-points. Dashed 45° = exact agreement."
+
+import altair as alt, pandas as pd, numpy as np
+
+# ── build the dots ────────────────────────────────────────────────
+scatter = (
+    alt.Chart(df)
+      .mark_point(filled=True, size=60, opacity=.65)
+      .encode(
+          x=alt.X("midpoint_human:Q", title="Human percentile"),
+          y=alt.Y("midpoint_llm:Q", title="LLM percentile"),
+          color=alt.Color("metric:N", legend=alt.Legend(title="Metric")),
+          tooltip=["paper","metric","midpoint_human","midpoint_llm"]
+      ).properties(width=450, height=450)
+)
+
+# dashed 45° reference line
+line45 = (
+    alt.Chart(pd.DataFrame({"x":[0,100],"y":[0,100]}))
+      .mark_line(strokeDash=[4,4], color="#444")
+      .encode(x="x:Q", y="y:Q")
+)
+
+# ── correlation annotation ────────────────────────────────────────
+by_metric = False     # set True → annotate each metric separately
+
+if by_metric:
+    # compute r per metric and overlay one text per group
+    ann_data = (df.groupby("metric")
+                  .apply(lambda g: pd.Series({"r": g.midpoint_llm.corr(g.midpoint_human)}))
+                  .reset_index())
+    annotation = (
+        alt.Chart(ann_data)
+          .mark_text(align="left", baseline="top", dx=5, dy=5, fontSize=13)
+          .encode(
+              x=alt.value(0),      # fixed offsets inside plotting area
+              y=alt.value(0),
+              text=alt.Text("r:Q", format=".2f"),
+              color="metric:N"
+          )
+    )
+else:
+    r_all = df.midpoint_llm.corr(df.midpoint_human)
+    ann_data = pd.DataFrame({"x":[5],"y":[95],"label":[f"r = {r_all:.2f}"]})
+    annotation = (
+        alt.Chart(ann_data)
+          .mark_text(align="left", baseline="top", fontSize=14)
+          .encode(x="x:Q", y="y:Q", text="label:N", color=alt.value("#222"))
+    )
+
+(scatter + line45 + annotation)
+
+```
