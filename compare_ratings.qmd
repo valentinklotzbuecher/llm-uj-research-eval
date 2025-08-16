@@ -140,7 +140,7 @@ df = agg.copy()
 #| tbl-cap: "Sample size and mean absolute difference (MAD) by metric."
 
 tbl = (df.assign(abs_delta=lambda d: (d.midpoint_llm - d.midpoint_human).abs())
-         .groupby("metric")
+         .groupby("metric", "")
          .agg(N=("paper","size"),
               MAD=("abs_delta","mean"))
          .style.format({"MAD":"{:.1f}", "N":"{:d}"})
