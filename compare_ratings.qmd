@@ -3,12 +3,70 @@ title: "LLM vs. Human Ratings"
 ---
 
 ::: {.callout-tip}
-**Prereq** – `quarto render numerical_ratings.qmd` must have created  
+Prereq – `quarto render numerical_ratings.qmd` must have created  
 `results/metrics_long.csv`.  
 Add your hand-coded spreadsheet of human scores as
 `UJ_ratings/rsx_evalr_rating (7).csv` with columns:  
 `paper, metric, midpoint_human`; as well as the mapping `UJ_map.csv`.
 :::
+
+## Overview
+
+This page compares LLM‑generated ratings with human evaluations across the Unjournal criteria. We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
+The overlaid histograms in @fig-hist-static show how the two raters spread scores within each metric; the agreement table @tbl-agreement reports correlation, bias, and κ‑statistics; and the heatmap @fig-heatmap-static visualizes where the LLM scores run higher or lower than humans at the paper level.
+
+---
+
+## Data & Harmonization (Methods)
+
+- Sources. LLM ratings come from `results/metrics_long.csv` (rendered in the previous chapter). Human ratings are imported from your hand‑coded spreadsheet and mapped to LLM paper IDs via `UJ_map.csv`.  
+- Metric alignment. Human criteria are recoded to the LLM schema (e.g., `claims` → `claims_evidence`, `adv_knowledge` → `advancing_knowledge`, etc.). If humans provided both `gp_relevance` and `real_world`, we fold these into the single LLM metric `global_relevance`.  
+- Pairing. For each *(paper, metric)*, multiple human entries (if any) are averaged to one human midpoint. We then pair that with the corresponding LLM midpoint, yielding one (LLM, Human) pair per *(paper, metric)* used throughout the analyses.  
+- Uncertainty fields. Where available, we carry lower/upper bounds for both LLM and humans; these are used in optional uncertainty checks but do not affect the mid‑point comparisons below.
+
+---
+
+## What the Figures and Tables Show
+
+### Distributional comparisons — @fig-hist-static
+
+- Overlaid histograms of LLM (orange) and Human (green) scores for each metric.  
+  - A horizontal shift between the two colors indicates systematic level bias (e.g., LLM consistently higher).  
+  - Different spread (wider vs. narrower) indicates differences in use of the scale (LLM more/less compressed).  
+  - Bimodality or heavy tails may indicate rater‑specific clustering or heterogeneity across papers.
+
+### Agreement metrics — @tbl-agreement
+
+- Pearson & Spearman. Pearson \(r\) captures linear alignment of levels; Spearman \(ρ\) captures rank agreement (monotonic relationship), robust to scale differences.  
+- Bias. We report the mean and median of (LLM − Human) to summarize both average shift and central tendency of the differences.  
+- Cohen’s κ (unweighted & quadratic). Because scores are continuous, we discretize both LLM and Human using shared quantile cutpoints (default: 5 bins). We then compute:  
+  - Unweighted κ: exact category agreement beyond chance.  
+  - Quadratic‑weighted κ: penalizes larger disagreements more than smaller ones — appropriate for ordinal bins.  
+  _Note:_ κ depends on binning; we use joint quantiles to keep thresholds comparable across raters. (A sensitivity table can be added later if needed.)
+
+### Paper × metric differences — @fig-heatmap-static
+
+For each *(paper, metric)*, we plot LLM − Human. Green means the LLM is lower than the human midpoint; orange means higher.  
+  - Vertical stripes (by metric) suggest a metric‑specific bias (LLM systematically up/down on that metric).  
+  - Horizontal stripes (by paper) flag paper‑specific disagreement (LLM consistently above/below for that paper across metrics).  
+  - Isolated bright cells highlight individual outliers worth auditing qualitatively.
+
+---
+
+## Interpretation Notes
+
+- High correlations with small bias suggest the LLM largely preserves human rankings and levels.  
+- High correlations but visible bias imply that a simple calibration (e.g., linear rescaling) could align levels without changing relative ordering.  
+- Low κ but reasonable correlations can occur when raters use different granularity (κ is sensitive to binning).  
+- Disagreement localized to a few papers (horizontal stripes) is ideal for targeted review: inspect those papers’ text and prompts to understand the divergence.  
+- Metric‑specific gaps (vertical stripes) may indicate that prompts or rubrics emphasize different aspects than human raters do for that criterion.
+
+---
+
+## Limitations & Planned Extensions
+
+
+
 
 
 ```{python}
@@ -46,8 +104,24 @@ plt.rcParams.update({
     "legend.fontsize": 9
 })
 
-# A green–white–orange diverging colormap for differences
-UJ_DIV = LinearSegmentedColormap.from_list("uj_div", [UJ_GREEN, "#f7f7f7", UJ_ORANGE])
+
+
+from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap  # add TwoSlopeNorm
+
+# Smoother green↔white↔orange diverging map (with a bit more nuance around 0)
+UJ_DIV = LinearSegmentedColormap.from_list(
+    "uj_div",
+    [
+        (0.00, UJ_GREEN),
+        (0.45, "#cfeade"),  # pale green tint
+        (0.50, "#f7f7f7"),  # neutral center
+        (0.55, "#f7dcc2"),  # pale orange tint
+        (1.00, UJ_ORANGE),
+    ],
+    N=256
+)
+
+
 
 ```
 
@@ -208,7 +282,8 @@ def weighted_kappa(a, b, k=None, weights="quadratic"):
     elif weights == "linear":
         W = np.abs(I - J) / (k - 1 if k > 1 else 1)
     else:
-        W = (I != J).astype(float)  # unweighted
+        W = (I != J).astype(float)
+
 
     num = (W * M).sum()
     den = (W * E).sum()
@@ -342,26 +417,104 @@ agree_view
 ```{python}
 #| label: fig-heatmap-static
 #| echo: false
-#| fig-cap: "LLM − Human difference by paper × metric (green = LLM lower; orange = LLM higher)."
+#| fig-cap: "LLM − Human difference by paper × metric (robust, centered scale; green = lower than Human, orange = higher)."
 
 pair = pair_llm_human(merged)
-pair["diff"] = pair["LLM"] - pair["Human"]
-hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean").sort_index()
+pair["diff"] = pair["LLM"].astype(float) - pair["Human"].astype(float)
 
-fig, ax = plt.subplots(figsize=(max(6, 0.7*hm.shape[1]), max(6, 0.35*hm.shape[0])))
-im = ax.imshow(hm.values, aspect="auto", cmap=UJ_DIV, vmin=-abs(hm.values).max(), vmax=abs(hm.values).max())
+# Pivot and (optionally) reorder by mean bias for readability
+hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean")
+# Optional ordering (uncomment if you prefer ordered views):
+# row_order = np.argsort(np.nanmean(hm.values, axis=1))  # papers by avg diff
+# col_order = np.argsort(np.nanmean(hm.values, axis=0))  # metrics by avg diff
+# hm = hm.iloc[row_order, col_order]
+
+hm = hm.sort_index()  # or keep your original sort
+Z = hm.values.astype(float)
+
+# --- Robust, zero-centered normalization ---
+# Use percentile spans to prevent a single outlier from flattening the gradient.
+pos = Z[Z > 0]
+neg = -Z[Z < 0]
+p_hi = np.nanpercentile(pos, 97.5) if pos.size else 0.0
+n_hi = np.nanpercentile(neg, 97.5) if neg.size else 0.0
+span = max(p_hi, n_hi)
+if not np.isfinite(span) or span == 0:
+    span = float(np.nanmax(np.abs(Z))) if np.isfinite(np.nanmax(np.abs(Z))) else 1.0
+
+norm = TwoSlopeNorm(vmin=-span, vcenter=0.0, vmax=span)
+
+# --- Render ---
+fig_hm, ax = plt.subplots(
+    figsize=(max(6.5, 0.8*hm.shape[1]), max(6.0, 0.40*hm.shape[0]))
+)
+im = ax.imshow(
+    Z, cmap=UJ_DIV, norm=norm,
+    aspect="auto", interpolation="nearest"
+)
+
+# Pretty ticks
 ax.set_xticks(np.arange(hm.shape[1]), labels=[c.replace("_", " ").title() for c in hm.columns], rotation=40, ha="right")
 ax.set_yticks(np.arange(hm.shape[0]), labels=hm.index.tolist())
-cb = plt.colorbar(im, ax=ax, fraction=0.02, pad=0.02)
-cb.set_label("LLM − Human")
-ax.set_title("Heatmap: LLM − Human differences by paper × metric")
-plt.tight_layout()
 
-# fig
+# Light gridlines between cells
+ax.set_xticks(np.arange(-0.5, hm.shape[1], 1), minor=True)
+ax.set_yticks(np.arange(-0.5, hm.shape[0], 1), minor=True)
+ax.grid(which="minor", color="white", linewidth=0.6)
+ax.tick_params(which="minor", bottom=False, left=False)
+
+# Colorbar with symmetric ticks
+cb = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+cb.set_label("LLM − Human (points)")
+
+tick_vals = np.linspace(-span, span, 5)
+cb.set_ticks(tick_vals)
+cb.set_ticklabels([f"{t:.1f}" for t in tick_vals])
+
+ax.set_title("Heatmap: LLM − Human differences by paper × metric (robust scaling)")
+plt.tight_layout()
 
 ```
 
 
+
+```{python}
+#| label: fig-heatmap-standardized
+#| echo: false
+#| fig-cap: "Standardized differences (per metric z-scores) so each column has mean 0, sd 1."
+
+pair = pair_llm_human(merged)
+pair["diff"] = pair["LLM"].astype(float) - pair["Human"].astype(float)
+hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean").sort_index()
+
+# z-score by column (metric)
+hm_std = hm.apply(lambda col: (col - col.mean()) / (col.std(ddof=1) if col.std(ddof=1) else 1), axis=0)
+Zs = hm_std.values.astype(float)
+
+# Use symmetric span from robust percentiles of |Z|
+p_hi = np.nanpercentile(np.abs(Zs), 97.5)
+span = max(1.0, p_hi)  # minimum span
+norm = TwoSlopeNorm(vmin=-span, vcenter=0.0, vmax=span)
+
+fig_s, ax = plt.subplots(
+    figsize=(max(6.5, 0.8*hm_std.shape[1]), max(6.0, 0.40*hm_std.shape[0]))
+)
+im = ax.imshow(Zs, cmap=UJ_DIV, norm=norm, aspect="auto", interpolation="nearest")
+ax.set_xticks(np.arange(hm_std.shape[1]), labels=[c.replace("_", " ").title() for c in hm_std.columns], rotation=40, ha="right")
+ax.set_yticks(np.arange(hm_std.shape[0]), labels=hm_std.index.tolist())
+
+ax.set_xticks(np.arange(-0.5, hm_std.shape[1], 1), minor=True)
+ax.set_yticks(np.arange(-0.5, hm_std.shape[0], 1), minor=True)
+ax.grid(which="minor", color="white", linewidth=0.6)
+ax.tick_params(which="minor", bottom=False, left=False)
+
+cb = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+cb.set_label("Standardized (per-metric z-score)")
+
+ax.set_title("Heatmap: standardized LLM − Human differences (per metric)")
+plt.tight_layout()
+
+```
 
 ```{python}
 #| label: fig-scatter-selector
