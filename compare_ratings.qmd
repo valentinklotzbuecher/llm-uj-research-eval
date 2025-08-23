@@ -6,54 +6,66 @@ title: "LLM vs. Human Ratings"
 **Prereq** – `quarto render numerical_ratings.qmd` must have created  
 `results/metrics_long.csv`.  
 Add your hand-coded spreadsheet of human scores as
-`results/human_ratings.csv` with columns:  
-
-`paper, metric, midpoint_human`
+`UJ_ratings/rsx_evalr_rating (7).csv` with columns:  
+`paper, metric, midpoint_human`; as well as the mapping `UJ_map.csv`.
 :::
 
+
 ```{python}
-#| label: data-load
+#| label: setup
 #| echo: false
 
+import os, re, math
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from scipy.stats import pearsonr, spearmanr
 
-import pandas as pd, altair as alt, numpy as np
+# Glue for inline text (MyST)
+try:
+    from myst_nb import glue
+except Exception:
+    # Fallback: still define a function so doc runs; inline {{glue: ...}} needs myst-nb installed.
+    def glue(name, val, display=False):
+        globals()[name] = val
 
-llm  = pd.read_csv("results/metrics_long.csv")        # from previous chapter
+# Unjournal colors
+UJ_ORANGE = "#E69F00"   # LLM
+UJ_GREEN  = "#009E73"   # Human
 
+# Matplotlib defaults for a clean look
+plt.rcParams.update({
+    "figure.dpi": 120,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "axes.grid": True,
+    "grid.alpha": 0.25,
+    "axes.titlesize": 11,
+    "axes.labelsize": 10,
+    "legend.fontsize": 9
+})
 
-human = pd.read_csv("UJ_ratings/rsx_evalr_rating (7).csv") 
- 
-# ---- 1  load the lookup table ------------------------------------
-mapdf = pd.read_csv("UJ_ratings/UJ_map.csv")   # or pd.read_excel("id_map.xlsx")
-
-# ---- 2  attach map to the human sheet ----------------------------
-human = (human
-         .merge(mapdf, left_on="research", right_on="research", how="left")
-         .rename(columns={"research": "paper_id"}))
-
-
-# keep only the rows that matched
-human = human.dropna(subset=["paper"])
-
-
+# A green–white–orange diverging colormap for differences
+UJ_DIV = LinearSegmentedColormap.from_list("uj_div", [UJ_GREEN, "#f7f7f7", UJ_ORANGE])
 
 ```
-
-
-
-
 
 
 ```{python}
 #| label: load-and-merge
 #| echo: false
 
-# 1 ── Load the three source files ----------------------------------
-llm   = pd.read_csv("results/metrics_long.csv")          # from model run
-human = pd.read_csv("UJ_ratings/rsx_evalr_rating (7).csv")
-imap  = pd.read_csv("UJ_ratings/UJ_map.csv")                        # 2-column lookup
+# Files
+LLM_FILE   = "results/metrics_long.csv"
+HUMAN_FILE = "UJ_ratings/rsx_evalr_rating (7).csv"
+IMAP_FILE  = "UJ_ratings/UJ_map.csv"
 
-# 2 ── Rename human metric labels to match the LLM schema ----------
+llm   = pd.read_csv(LLM_FILE)
+human = pd.read_csv(HUMAN_FILE)
+imap  = pd.read_csv(IMAP_FILE)
+
+# 1) Map human 'criteria' → LLM metric names
 crit_map = {
     "overall":          "overall",
     "claims":           "claims_evidence",
@@ -62,148 +74,391 @@ crit_map = {
     "logic_comms":      "logic_communication",
     "open_sci":         "open_science",
     "gp_relevance":     "global_relevance",
-    "real_world":       "global_relevance"      # if you want to fold it in
+    "real_world":       "global_relevance",  # fold-in
+    "merits_journal":   None,
+    "journal_predict":  None
 }
 human["metric"] = human["criteria"].map(crit_map)
+human = human[human["metric"].notna()].copy()
 
-# 3 ── Attach the LLM-style paper id to the human sheet -------------
-human = (human
-         .merge(imap, left_on="research", right_on="research", how="left"))
+# 2) Normalize titles to join robustly
+def _norm_title(s: str) -> str:
+    s = str(s)
+    s = s.replace("’", "'").replace("–","-").replace("—","-")
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
-# 4 ── Diagnostic: what’s still unmapped? ---------------------------
-missing_id  = human[human.paper.isna()]["research"].unique()
-missing_llm = sorted(set(llm.paper) - set(human.paper.dropna()))
+human["research_norm"] = human["research"].map(_norm_title).str.lower()
+imap["research_norm"]  = imap["research"].map(_norm_title).str.lower()
 
-if len(missing_id):
-    print("⚠️  Human titles without LLM id (add rows to UJ_map.csv):")
+# 3) Attach LLM paper id to human rows
+human = human.merge(imap[["paper","research_norm"]], on="research_norm", how="left")
+
+# 4) Diagnostics
+missing_id  = sorted(human[human.paper.isna()]["research"].unique())
+missing_llm = sorted(set(llm.paper.unique()) - set(human.paper.dropna().unique()))
+if missing_id:
+    print("⚠️ Human titles without LLM id (fill 'paper' in UJ_map.csv):")
     for t in missing_id: print("   •", t)
-if len(missing_llm):
-    print("\n⚠️  LLM papers lacking a human match:")
+if missing_llm:
+    print("\n⚠️ LLM papers with no human match:")
     for p in missing_llm: print("   •", p)
 
-# 5 ── Keep only fully mapped rows & select numeric columns ---------
-use_cols = ["paper","metric","middle_rating","lower_CI","upper_CI"]
-human = (human.dropna(subset=["paper","metric","middle_rating"])
-               [use_cols]
-               .rename(columns={"middle_rating":"midpoint_human",
-                                "lower_CI":"lower_human",
-                                "upper_CI":"upper_human"}))
+# 5) Collapse human repeats to means (per paper×metric)
+human_use = (human
+    .dropna(subset=["paper","metric","middle_rating"])
+    .groupby(["paper","metric"], as_index=False)
+    .agg(midpoint_human=("middle_rating","mean"),
+         lower_human   =("lower_CI","mean"),
+         upper_human   =("upper_CI","mean"),
+         n_human       =("middle_rating","size"))
+)
 
-# 6 ── Merge with LLM long table ------------------------------------
-merged = (llm.merge(human, on=["paper","metric"], how="inner")
-               .rename(columns={"midpoint":"midpoint_llm",
-                                "lower_bound":"lower_llm",
-                                "upper_bound":"upper_llm"}))
+# 6) Select/rename LLM columns
+llm_use = (llm[["paper","metric","midpoint","lower_bound","upper_bound"]]
+           .rename(columns={"midpoint":"midpoint_llm",
+                            "lower_bound":"lower_llm",
+                            "upper_bound":"upper_llm"}))
+
+# 7) Merge pairs
+merged = llm_use.merge(human_use, on=["paper","metric"], how="inner")
 
 print(f"✅ merged rows: {len(merged)}  "
       f"({merged.paper.nunique()} papers × {merged.metric.nunique()} metrics)")
 
-# merged is now ready for correlation, scatter, ridge-error, etc.
-
-
-df = merged.copy()
-
-```
-
-
-
-## Overall correlation
-
-```{python}
-#| label: corr-table
-#| echo: false
-#| tbl-cap: "Pearson r between LLM and human mid-points (per metric)."
-
-# 1 ▸ collapse duplicates by mean -----------------------------------
-agg = (df.groupby(["paper","metric"])
-         .agg(midpoint_llm   = ("midpoint_llm","mean"),
-              midpoint_human = ("midpoint_human","mean"))
-         .reset_index())
-
-# 2 ▸ compute r for each metric -------------------------------------
-r = (agg.groupby("metric")
-         .apply(lambda g:
-                g["midpoint_llm"].corr(g["midpoint_human"]))
-         .rename("r")
-         .to_frame())
-
-r.style.format("{:.2f}")
-
-df = agg.copy()  
+# Long form for distribution plots
+ratings_long = pd.concat([
+    merged[["paper","metric","midpoint_llm"]]
+        .rename(columns={"midpoint_llm":"score"}).assign(rater="LLM"),
+    merged[["paper","metric","midpoint_human"]]
+        .rename(columns={"midpoint_human":"score"}).assign(rater="Human")
+], ignore_index=True)
 
 ```
 
 
+
 ```{python}
-#| label: tbl-summary 
+#| label: agreement-helpers
 #| echo: false
-#| tbl-cap: "Sample size and mean absolute difference (MAD) by metric."
 
-tbl = (df.assign(abs_delta=lambda d: (d.midpoint_llm - d.midpoint_human).abs())
-         .groupby("metric", "")
-         .agg(N=("paper","size"),
-              MAD=("abs_delta","mean"))
-         .style.format({"MAD":"{:.1f}", "N":"{:d}"})
-)
-tbl
+def pair_llm_human(df: pd.DataFrame) -> pd.DataFrame:
+    """Return (paper, metric, LLM, Human) single-row pairs."""
+    return (df[["paper","metric","midpoint_llm","midpoint_human"]]
+            .dropna()
+            .rename(columns={"midpoint_llm":"LLM","midpoint_human":"Human"}))
 
+def bin_together(a, b, n_bins=5, strategy="quantile"):
+    """
+    Bin two continuous arrays with shared edges (for κ).
+    - 'quantile' bins are robust to skew.
+    - fallback to equal-width if quantiles collapse.
+    """
+    both = pd.Series(np.r_[a, b]).dropna()
+    if both.nunique() <= max(3, n_bins):
+        # Already discrete-ish: map unique sorted values to 0..K-1
+        uniq = np.sort(both.unique())
+        mapping = {v:i for i,v in enumerate(uniq)}
+        return np.vectorize(mapping.get)(a), np.vectorize(mapping.get)(b), len(uniq)
+    if strategy == "quantile":
+        qs = both.quantile(np.linspace(0, 1, n_bins+1)).values
+        edges = np.unique(qs)
+        if len(edges) - 1 < 2:
+            strategy = "equal"
+    if strategy == "equal":
+        lo, hi = float(both.min()), float(both.max())
+        edges = np.linspace(lo, hi, n_bins+1)
+    edges[0] -= 1e-9; edges[-1] += 1e-9
+    a_bin = pd.cut(a, bins=edges, labels=False, include_lowest=True)
+    b_bin = pd.cut(b, bins=edges, labels=False, include_lowest=True)
+    k = int(np.nanmax([a_bin.max(), b_bin.max()]) + 1)
+    return np.asarray(a_bin), np.asarray(b_bin), k
+
+def weighted_kappa(a, b, k=None, weights="quadratic"):
+    """
+    Cohen's weighted kappa for ordinal labels 0..k-1.
+    weights: 'quadratic' (default), 'linear', or None (unweighted).
+    """
+    a = np.asarray(a, dtype=int)
+    b = np.asarray(b, dtype=int)
+    if k is None:
+        k = int(max(a.max(), b.max()) + 1)
+    if k <= 1:  # not enough categories
+        return np.nan
+
+    # Observed agreement matrix (proportions)
+    M = np.zeros((k, k), dtype=float)
+    for i, j in zip(a, b):
+        if np.isfinite(i) and np.isfinite(j):
+            M[i, j] += 1
+    if M.sum() == 0:
+        return np.nan
+    M = M / M.sum()
+
+    # Expected by marginals
+    r = M.sum(axis=1, keepdims=True)
+    c = M.sum(axis=0, keepdims=True)
+    E = r @ c
+
+    # Weight matrix
+    I = np.arange(k)[:, None]
+    J = np.arange(k)[None, :]
+    if weights == "quadratic":
+        W = ((I - J)**2) / ((k - 1)**2 if k > 1 else 1)
+    elif weights == "linear":
+        W = np.abs(I - J) / (k - 1 if k > 1 else 1)
+    else:
+        W = (I != J).astype(float)  # unweighted
+
+    num = (W * M).sum()
+    den = (W * E).sum()
+    return np.nan if den == 0 else 1.0 - num / den
+
+def agreement_summary(merged_df, n_bins=5, bin_strategy="quantile"):
+    """
+    Per-metric agreement: Pearson, Spearman, mean/median bias, κ (unweighted & quadratic).
+    """
+    pair = pair_llm_human(merged_df)
+    rows = []
+    for metric, g in pair.groupby("metric"):
+        llm = g["LLM"].to_numpy()
+        hum = g["Human"].to_numpy()
+
+        pr, pr_p = (np.nan, np.nan)
+        sr, sr_p = (np.nan, np.nan)
+        if len(g) >= 2:
+            try: pr, pr_p = pearsonr(llm, hum)
+            except Exception: pass
+            try: sr, sr_p = spearmanr(llm, hum)
+            except Exception: pass
+
+        diff = llm - hum
+        mb, medb = float(np.mean(diff)), float(np.median(diff))
+
+        a_bin, b_bin, k = bin_together(llm, hum, n_bins=n_bins, strategy=bin_strategy)
+        k_unw = weighted_kappa(a_bin, b_bin, k=k, weights=None)
+        k_quad = weighted_kappa(a_bin, b_bin, k=k, weights="quadratic")
+
+        rows.append(dict(
+            metric=metric, n=len(g),
+            pearson=pr, spearman=sr,
+            mean_bias=mb, median_bias=medb,
+            kappa_unw=k_unw, kappa_quad=k_quad
+        ))
+    out = pd.DataFrame(rows).sort_values("metric").reset_index(drop=True)
+    return out
+
+def overall_stats(merged_df, n_bins=5, bin_strategy="quantile"):
+    """
+    Overall (across all metrics) Pearson and κ (unweighted & quadratic),
+    plus overall MAD.
+    """
+    pair = pair_llm_human(merged_df)
+    llm = pair["LLM"].to_numpy()
+    hum = pair["Human"].to_numpy()
+    pr = pearsonr(llm, hum)[0] if len(pair) >= 2 else np.nan
+    mad = float(np.mean(np.abs(llm - hum))) if len(pair) else np.nan
+    a_bin, b_bin, k = bin_together(llm, hum, n_bins=n_bins, strategy=bin_strategy)
+    k_unw = weighted_kappa(a_bin, b_bin, k=k, weights=None)
+    k_quad = weighted_kappa(a_bin, b_bin, k=k, weights="quadratic")
+    return dict(pearson=pr, mad=mad, kappa_unw=k_unw, kappa_quad=k_quad, n=len(pair))
 
 ```
 
 
 ```{python}
-#| label: fig-scatter
+#| label: fig-hist-static
 #| echo: false
-#| fig-cap: "LLM mid-points vs. human mid-points. Dashed 45° = exact agreement."
+#| fig-cap: "Distributions by metric (orange = LLM, green = Human; overlaid histograms)."
 
-import altair as alt, pandas as pd, numpy as np
+metrics = sorted(ratings_long["metric"].unique())
+n = len(metrics)
+cols = 3
+rows = math.ceil(n / cols)
 
-# ── build the dots ────────────────────────────────────────────────
-scatter = (
-    alt.Chart(df)
-      .mark_point(filled=True, size=60, opacity=.65)
-      .encode(
-          x=alt.X("midpoint_human:Q", title="Human percentile"),
-          y=alt.Y("midpoint_llm:Q", title="LLM percentile"),
-          color=alt.Color("metric:N", legend=alt.Legend(title="Metric")),
-          tooltip=["paper","metric","midpoint_human","midpoint_llm"]
-      ).properties(width=450, height=450)
-)
-
-# dashed 45° reference line
-line45 = (
-    alt.Chart(pd.DataFrame({"x":[0,100],"y":[0,100]}))
-      .mark_line(strokeDash=[4,4], color="#444")
-      .encode(x="x:Q", y="y:Q")
-)
-
-# ── correlation annotation ────────────────────────────────────────
-by_metric = False     # set True → annotate each metric separately
-
-if by_metric:
-    # compute r per metric and overlay one text per group
-    ann_data = (df.groupby("metric")
-                  .apply(lambda g: pd.Series({"r": g.midpoint_llm.corr(g.midpoint_human)}))
-                  .reset_index())
-    annotation = (
-        alt.Chart(ann_data)
-          .mark_text(align="left", baseline="top", dx=5, dy=5, fontSize=13)
-          .encode(
-              x=alt.value(0),      # fixed offsets inside plotting area
-              y=alt.value(0),
-              text=alt.Text("r:Q", format=".2f"),
-              color="metric:N"
-          )
-    )
+# Choose sensible bins:
+smin, smax = ratings_long["score"].min(), ratings_long["score"].max()
+if 0 <= smin and smax <= 100:
+    bins = np.arange(0, 101, 5)
 else:
-    r_all = df.midpoint_llm.corr(df.midpoint_human)
-    ann_data = pd.DataFrame({"x":[5],"y":[95],"label":[f"r = {r_all:.2f}"]})
-    annotation = (
-        alt.Chart(ann_data)
-          .mark_text(align="left", baseline="top", fontSize=14)
-          .encode(x="x:Q", y="y:Q", text="label:N", color=alt.value("#222"))
-    )
+    bins = np.linspace(smin, smax, 21)
 
-(scatter + line45 + annotation)
+fig, axes = plt.subplots(rows, cols, figsize=(cols*4.6, rows*3.6), sharex=True)
+if rows == 1 and cols == 1:
+    axes = np.array([[axes]])
+elif rows == 1:
+    axes = np.array([axes])
+axes_flat = axes.flat
+
+for ax, m in zip(axes_flat, metrics):
+    g = ratings_long[ratings_long["metric"] == m]
+    ax.hist(g[g["rater"]=="LLM"]["score"], bins=bins, alpha=0.55, label="LLM", color=UJ_ORANGE, edgecolor="white")
+    ax.hist(g[g["rater"]=="Human"]["score"], bins=bins, alpha=0.55, label="Human", color=UJ_GREEN, edgecolor="white")
+    ax.set_title(m.replace("_", " ").title())
+    ax.set_xlabel("Score")
+    ax.set_ylabel("Count")
+
+# Remove empty subplots if any
+for ax in list(axes_flat)[n:]:
+    ax.axis("off")
+
+# One shared legend
+handles, labels = axes_flat[0].get_legend_handles_labels()
+fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
+plt.tight_layout(rect=(0,0,1,0.94))
+
+# fig
+
+```
+
+```{python}
+#| label: tbl-agreement
+#| echo: false
+#| tbl-cap: "Agreement metrics by metric (Pearson, Spearman, mean/median bias, κ unweighted/weighted)."
+
+# New static agreement summary (no sklearn needed)
+agree_cat = agreement_summary(merged, n_bins=5, bin_strategy="quantile")
+agree_cat.round({"pearson":3,"spearman":3,"mean_bias":2,"median_bias":2,
+                 "kappa_unw":3,"kappa_quad":3})
+
+ov = overall_stats(merged, n_bins=5, bin_strategy="quantile")
+
+
+agree_view = (agree_cat
+              .rename(columns={"kappa_unw":"kappa_unwtd","kappa_quad":"kappa_quad"})
+              .loc[:, ["metric","n","pearson","spearman","mean_bias","median_bias","kappa_unwtd","kappa_quad"]]
+              .sort_values("metric"))
+agree_view = agree_view.round({"pearson":3, "spearman":3, "mean_bias":2, "median_bias":2, "kappa_unwtd":3, "kappa_quad":3})
+agree_view
+
+```
+
+
+
+
+
+
+
+```{python}
+#| label: fig-heatmap-static
+#| echo: false
+#| fig-cap: "LLM − Human difference by paper × metric (green = LLM lower; orange = LLM higher)."
+
+pair = pair_llm_human(merged)
+pair["diff"] = pair["LLM"] - pair["Human"]
+hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean").sort_index()
+
+fig, ax = plt.subplots(figsize=(max(6, 0.7*hm.shape[1]), max(6, 0.35*hm.shape[0])))
+im = ax.imshow(hm.values, aspect="auto", cmap=UJ_DIV, vmin=-abs(hm.values).max(), vmax=abs(hm.values).max())
+ax.set_xticks(np.arange(hm.shape[1]), labels=[c.replace("_", " ").title() for c in hm.columns], rotation=40, ha="right")
+ax.set_yticks(np.arange(hm.shape[0]), labels=hm.index.tolist())
+cb = plt.colorbar(im, ax=ax, fraction=0.02, pad=0.02)
+cb.set_label("LLM − Human")
+ax.set_title("Heatmap: LLM − Human differences by paper × metric")
+plt.tight_layout()
+
+# fig
+
+```
+
+
+
+```{python}
+#| label: fig-scatter-selector
+#| echo: false
+#| fig-cap: "Interactive scatter: choose a metric to see LLM vs Human. Dashed line = perfect agreement; annotation shows Pearson r and Spearman ρ."
+
+import plotly.graph_objects as go
+
+# Build the paired data (paper, metric, LLM, Human)
+pair_all = pair_llm_human(merged)
+
+# If some metrics have <2 points, we keep them but annotate with NaN
+cats = sorted(pair_all["metric"].unique())
+
+# Global square axis range so the 45° line is visually meaningful
+x_min = float(pair_all["Human"].min())
+x_max = float(pair_all["Human"].max())
+y_min = float(pair_all["LLM"].min())
+y_max = float(pair_all["LLM"].max())
+lo = min(x_min, y_min)
+hi = max(x_max, y_max)
+pad = 0.05 * (hi - lo if hi > lo else 1.0)
+x0, x1 = lo - pad, hi + pad
+y0, y1 = lo - pad, hi + pad
+
+fig = go.Figure()
+annots = []
+
+for i, cat in enumerate(cats):
+    g = pair_all.loc[pair_all["metric"] == cat].copy()
+    # Correlations per metric (handle small n)
+    if len(g) >= 2:
+        r_p = pearsonr(g["Human"], g["LLM"])[0]
+        r_s = spearmanr(g["Human"], g["LLM"])[0]
+    else:
+        r_p = np.nan
+        r_s = np.nan
+
+    # Points
+    fig.add_trace(go.Scatter(
+        x=g["Human"], y=g["LLM"],
+        mode="markers",
+        name=cat,
+        text=g["paper"],
+        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
+        marker=dict(size=8, color=UJ_ORANGE, line=dict(color="rgba(50,50,50,0.5)", width=0.5)),
+        visible=(i == 0)
+    ))
+
+    # Per-metric annotation (updated by the dropdown)
+    annots.append(dict(
+        x=x0 + 0.05*(x1 - x0),
+        y=y1 - 0.05*(y1 - y0),
+        xref="x", yref="y",
+        showarrow=False,
+        text=f"Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
+        font=dict(size=12, color="#222")
+    ))
+
+# 45° agreement line
+fig.add_shape(
+    type="line", x0=x0, y0=x0, x1=x1, y1=y1,
+    line=dict(color="rgba(120,120,120,0.5)", dash="dot")
+)
+
+# Dropdown buttons: toggle which metric's points are visible and swap annotation
+buttons = []
+for i, cat in enumerate(cats):
+    vis = [False]*len(cats)
+    vis[i] = True
+    buttons.append(dict(
+        method="update",
+        label=cat.replace("_"," ").title(),
+        args=[
+            {"visible": vis},
+            {
+              "title": f"LLM vs Human by paper — {cat.replace('_',' ').title()}",
+              "annotations": [annots[i]]
+            }
+        ]
+    ))
+
+fig.update_layout(
+    template="plotly_white",
+    title=f"LLM vs Human by paper — {cats[0].replace('_',' ').title()}",
+    xaxis_title="Human score",
+    yaxis_title="LLM score",
+    xaxis=dict(range=[x0, x1]),
+    yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),  # keep 45° line at 45°
+    updatemenus=[dict(
+        type="dropdown",
+        x=1, xanchor="right",
+        y=1.15, yanchor="top",
+        showactive=True,
+        buttons=buttons
+    )]
+)
+fig
 
 ```
