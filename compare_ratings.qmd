@@ -12,7 +12,7 @@ Add hand-coded spreadsheet of human scores as
 
 ## Overview
 
-This page compares LLM‑generated ratings with human evaluations across the Unjournal criteria. We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
+This page compares LLM‑generated ratings (`gpt-5`) with human evaluations across the Unjournal criteria. We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
 
 ## Data & Harmonization
 
@@ -157,12 +157,12 @@ human = human.merge(imap[["paper","research_norm"]], on="research_norm", how="le
 # 4) Diagnostics
 missing_id  = sorted(human[human.paper.isna()]["research"].unique())
 missing_llm = sorted(set(llm.paper.unique()) - set(human.paper.dropna().unique()))
-if missing_id:
-    print("⚠️ Human titles without LLM id (fill 'paper' in UJ_map.csv):")
-    for t in missing_id: print("   •", t)
-if missing_llm:
-    print("\n⚠️ LLM papers with no human match:")
-    for p in missing_llm: print("   •", p)
+# if missing_id:
+#     print("⚠️ Human titles without LLM id (fill 'paper' in UJ_map.csv):")
+#     for t in missing_id: print("   •", t)
+# if missing_llm:
+#     print("\n⚠️ LLM papers with no human match:")
+#     for p in missing_llm: print("   •", p)
 
 # 5) Collapse human repeats to means (per paper×metric)
 human_use = (human
