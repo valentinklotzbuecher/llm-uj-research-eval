@@ -591,39 +591,89 @@ fig
 ```{python}
 #| label: fig-scatter-ellipses
 #| echo: false
-#| fig-cap: "LLM vs Human with CI ellipses. Each ellipse spans human (x) and LLM (y) CIs; center is at midpoints. Use the dropdown to change metric."
+#| fig-cap: "LLM vs Human with robust CI ellipses. Horizontal span covers the union of all human raters' CIs and point ratings; vertical span from LLM CI. Centers at midpoints. Dropdown selects metric."
 
 import plotly.graph_objects as go
 
-def _ellipse_xy(cx, cy, rx, ry, n=64):
+def _ellipse_xy(cx, cy, rx, ry, n=60):
     t = np.linspace(0, 2*np.pi, n)
     return cx + rx*np.cos(t), cy + ry*np.sin(t)
 
+def _fix_ci_bounds(df, lo_col, hi_col):
+    """Ensure lo <= hi; if not, swap."""
+    df = df.copy()
+    bad = df[lo_col] > df[hi_col]
+    if bad.any():
+        lo = df.loc[bad, lo_col].copy()
+        df.loc[bad, lo_col] = df.loc[bad, hi_col].values
+        df.loc[bad, hi_col] = lo.values
+    return df
+
 metrics = sorted(merged["metric"].unique())
 
-# Per-metric subset with needed CI columns; drop rows missing any CI
-metric_rows = {
-    m: merged.loc[
-        (merged["metric"]==m) &
-        merged[["midpoint_human","midpoint_llm","lower_human","upper_human","lower_llm","upper_llm"]].notna().all(axis=1),
-        ["paper","midpoint_human","midpoint_llm","lower_human","upper_human","lower_llm","upper_llm"]
-    ].copy()
-    for m in metrics
-}
+# -------- Build robust human horizontal bands and LLM vertical bands per metric --------
+ellipse_rows = {}   # per metric: DataFrame with columns: paper, cx, cy, rx, ry, hum_mid, llm_mid
+hum_points   = {}   # per metric: individual human dots with y=LLM midpoint
 
-# Correlations per metric (midpoints)
-r_stats = {}
-for m, J in metric_rows.items():
-    if len(J) >= 2:
-        r_p = pearsonr(J["midpoint_human"], J["midpoint_llm"])[0]
-        r_s = spearmanr(J["midpoint_human"], J["midpoint_llm"])[0]
-    else:
-        r_p = np.nan; r_s = np.nan
-    r_stats[m] = (r_p, r_s)
+for m in metrics:
+    # rater-level human rows for this metric
+    H = human_raw.loc[human_raw["metric"] == m,
+                      ["paper","middle_rating","lower_CI","upper_CI"]].copy()
+    # sanitize bounds if present
+    if {"lower_CI","upper_CI"}.issubset(H.columns):
+        H = _fix_ci_bounds(H, "lower_CI", "upper_CI")
 
-# Global square axis range across all metrics (robust to outliers)
-all_x = np.concatenate([j["midpoint_human"].to_numpy() for j in metric_rows.values() if len(j)])
-all_y = np.concatenate([j["midpoint_llm"].to_numpy()   for j in metric_rows.values() if len(j)])
+    # per-paper union across raters: use min(lower_CI, points) and max(upper_CI, points)
+    grp = H.groupby("paper", as_index=False).agg(
+        hum_mean=("middle_rating","mean"),
+        lo_pt=("middle_rating","min"),
+        hi_pt=("middle_rating","max"),
+        lo_ci=("lower_CI","min"),
+        hi_ci=("upper_CI","max")
+    )
+
+    # combine CIs + points into one union band
+    grp["lo_all"] = grp[["lo_pt","lo_ci"]].min(axis=1, skipna=True)
+    grp["hi_all"] = grp[["hi_pt","hi_ci"]].max(axis=1, skipna=True)
+
+    # if CIs missing entirely, fall back to point range
+    grp["lo_all"] = grp["lo_all"].fillna(grp["lo_pt"])
+    grp["hi_all"] = grp["hi_all"].fillna(grp["hi_pt"])
+
+    # clean any remaining inversions
+    bad = grp["lo_all"] > grp["hi_all"]
+    if bad.any():
+        swap_lo = grp.loc[bad, "lo_all"].copy()
+        grp.loc[bad, "lo_all"] = grp.loc[bad, "hi_all"].values
+        grp.loc[bad, "hi_all"] = swap_lo.values
+
+    grp["cx"] = 0.5*(grp["lo_all"] + grp["hi_all"])
+    grp["rx"] = (grp["hi_all"] - grp["lo_all"]).clip(lower=0) / 2.0
+
+    # Join LLM mid & CI (one row per paper×metric in merged)
+    L = (merged.loc[merged["metric"]==m,
+                    ["paper","midpoint_llm","lower_llm","upper_llm","midpoint_human"]]
+               .dropna(subset=["paper","midpoint_llm"]))
+    L = _fix_ci_bounds(L, "lower_llm", "upper_llm")
+
+    J = (grp.merge(L, on="paper", how="inner")
+             .rename(columns={"midpoint_llm":"llm_mid", "midpoint_human":"hum_mid"}))
+
+    # vertical radius from LLM CI half-width
+    J["ry"] = (J["upper_llm"] - J["lower_llm"]).clip(lower=0) / 2.0
+    J["cy"] = J["llm_mid"]
+    J["cx"] = J["cx"].astype(float)
+    J["cy"] = J["cy"].astype(float)
+
+    ellipse_rows[m] = J[["paper","cx","cy","rx","ry","hum_mid","llm_mid","lo_all","hi_all"]].copy()
+
+    # individual human dots (x) at the LLM y for that paper
+    hum_points[m] = (H.merge(J[["paper","cy"]], on="paper", how="inner")
+                       .rename(columns={"middle_rating":"human_x", "cy":"llm_y"}))
+
+# -------- Global square axis range across all metrics --------
+all_x = np.concatenate([df["cx"].to_numpy() for df in ellipse_rows.values() if len(df)])
+all_y = np.concatenate([df["cy"].to_numpy() for df in ellipse_rows.values() if len(df)])
 if all_x.size and all_y.size:
     lo = float(min(all_x.min(), all_y.min()))
     hi = float(max(all_x.max(), all_y.max()))
@@ -633,123 +683,111 @@ pad = 0.05 * (hi - lo if hi > lo else 1.0)
 x0, x1 = lo - pad, hi + pad
 y0, y1 = lo - pad, hi + pad
 
+# -------- Build the Plotly figure --------
 fig = go.Figure()
 annots = []
-trace_offsets = []  # starting index for each metric, to build the visibility mask
+trace_spans = []  # (start_idx, end_idx) per metric
 
 for m in metrics:
     start_idx = len(fig.data)
-    J = metric_rows[m].copy()
-    if J.empty:
-        # add a tiny placeholder so dropdown works
-        fig.add_trace(go.Scatter(x=[], y=[], mode="markers", showlegend=False))
-        annots.append(dict(
-            x=x0 + 0.05*(x1-x0), y=y1 - 0.05*(y1-y0),
-            xref="x", yref="y", showarrow=False,
-            text=f"{m.replace('_',' ').title()} — no rows with both CIs available",
-            font=dict(size=12, color="#444")))
-        trace_offsets.append((start_idx, len(fig.data)-1))
-        continue
 
-    # Radii from CIs (half widths); clamp tiny/negative to 0
-    rx = 0.5*(J["upper_human"] - J["lower_human"]).clip(lower=0).to_numpy()
-    ry = 0.5*(J["upper_llm"]   - J["lower_llm"]).clip(lower=0).to_numpy()
-    cx = J["midpoint_human"].to_numpy()
-    cy = J["midpoint_llm"].to_numpy()
+    J = ellipse_rows[m]
+    I = hum_points[m]
 
-    # (A) Ellipses per paper (semi‑transparent, no legend spam; legend stub added later)
-    for paper, xi, yi, rxi, ryi in zip(J["paper"], cx, cy, rx, ry):
-        if not (np.isfinite(xi) and np.isfinite(yi) and np.isfinite(rxi) and np.isfinite(ryi)):
-            continue
-        ex, ey = _ellipse_xy(xi, yi, rxi, ryi, n=60)
+    # Draw each ellipse as a filled polygon
+    for row in J.itertuples(index=False):
+        ex, ey = _ellipse_xy(row.cx, row.cy, row.rx, row.ry, n=60)
         fig.add_trace(go.Scatter(
             x=ex, y=ey, mode="lines",
             line=dict(color="rgba(0,158,115,0.55)", width=1),  # green outline
             fill="toself", fillcolor="rgba(230,159,0,0.10)",   # orange wash
             hovertemplate=(
-                f"<b>{paper}</b><br>"
-                "Human mid=%{customdata[0]:.1f}  (±%{customdata[2]:.1f})<br>"
-                "LLM   mid=%{customdata[1]:.1f}  (±%{customdata[3]:.1f})<extra></extra>"
+                "<b>%{text}</b><br>"
+                "Human band: [%{customdata[0]:.1f}, %{customdata[1]:.1f}]<br>"
+                "Center (Human, LLM) = (%{customdata[2]:.1f}, %{customdata[3]:.1f})<extra></extra>"
             ),
-            customdata=np.column_stack([np.repeat(xi, len(ex)),
-                                        np.repeat(yi, len(ex)),
-                                        np.repeat(rxi, len(ex)),
-                                        np.repeat(ryi, len(ex))]),
+            text=[row.paper]*len(ex),
+            customdata=np.column_stack([np.repeat(row.lo_all, len(ex)),
+                                        np.repeat(row.hi_all, len(ex)),
+                                        np.repeat(row.cx, len(ex)),
+                                        np.repeat(row.cy, len(ex))]),
             showlegend=False,
-            visible=False  # will be turned on by dropdown
+            visible=False
         ))
-    # (optional) Individual human dots on top of ellipses
-    I = human_raw.loc[human_raw["metric"]==m, ["paper","rater_id","middle_rating"]]
-    I = I.merge(J[["paper","midpoint_llm"]], on="paper", how="inner")
+
+    # Individual human dots (guaranteed to lie within [cx±rx] by construction)
     fig.add_trace(go.Scatter(
-        x=I["middle_rating"], y=I["midpoint_llm"],
+        x=I["human_x"], y=I["llm_y"],
         mode="markers", name="Human raters",
-        marker=dict(size=5, color=UJ_GREEN, opacity=0.45, line=dict(width=0.5, color="rgba(50,50,50,0.25)")),
-        text=[f"{p} — {r}" for p, r in zip(I["paper"], I["rater_id"])],
-        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
+        marker=dict(size=5, color=UJ_GREEN, opacity=0.50,
+                    line=dict(width=0.5, color="rgba(50,50,50,0.25)")),
+        text=I["paper"] + " — " + I["human_x"].round(1).astype(str),
+        hovertemplate="<b>%{text}</b><br>LLM=%{y:.1f}<extra></extra>",
         showlegend=True, visible=False
     ))
 
-    # (B) Centers (orange diamonds) — single trace per metric
+    # Centers (orange diamonds)
     fig.add_trace(go.Scatter(
-        x=J["midpoint_human"], y=J["midpoint_llm"],
+        x=J["hum_mid"], y=J["llm_mid"],
         mode="markers", name="Midpoints",
         marker=dict(size=9, color=UJ_ORANGE, symbol="diamond",
                     line=dict(color="rgba(50,50,50,0.35)", width=0.6)),
         text=J["paper"],
         hovertemplate="<b>%{text}</b><br>Human mid=%{x:.1f}<br>LLM mid=%{y:.1f}<extra></extra>",
-        showlegend=True,
-        visible=False
+        showlegend=True, visible=False
     ))
 
-    # (C) One dummy, invisible point to show a single legend item for the ellipses
+    # Single legend stub for ellipses
     fig.add_trace(go.Scatter(
-        x=[None], y=[None], mode="lines", name="CI ellipse (human × LLM)",
+        x=[None], y=[None], mode="lines", name="CI (human × LLM)",
         line=dict(color="rgba(0,158,115,0.70)"), fill="toself",
         showlegend=True, visible=False
     ))
 
-    r_p, r_s = r_stats[m]
-    annots.append(dict(
-        x=x0 + 0.05*(x1-x0), y=y1 - 0.05*(y1-y0),
-        xref="x", yref="y", showarrow=False,
-        text=f"{m.replace('_',' ').title()} — Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
-        font=dict(size=12, color="#222")
-    ))
+    # Correlations on midpoints for the caption
+    if len(J) >= 2:
+        r_p = pearsonr(J["hum_mid"], J["llm_mid"])[0]
+        r_s = spearmanr(J["hum_mid"], J["llm_mid"])[0]
+    else:
+        r_p = np.nan; r_s = np.nan
 
-    trace_offsets.append((start_idx, len(fig.data)-1))
+    annots.append(dict(
+        x=x0 + 0.05*(x1-x0), y=y1 - 0.05*(y1-y0), xref="x", yref="y",
+        showarrow=False, font=dict(size=12, color="#222"),
+        text=f"{m.replace('_',' ').title()} — Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}"
+    ))
+    trace_spans.append((start_idx, len(fig.data)-1))
 
 # 45° equality line
 fig.add_shape(type="line", x0=x0, y0=x0, x1=x1, y1=y1,
               line=dict(color="rgba(120,120,120,0.5)", dash="dot"))
 
-# Dropdown buttons: toggle traces belonging to the selected metric
+# Dropdown: one entry per metric
 buttons = []
-total_traces = len(fig.data)
+total = len(fig.data)
 for i, m in enumerate(metrics):
-    vis = [False]*total_traces
-    s, e = trace_offsets[i]
+    vis = [False]*total
+    s, e = trace_spans[i]
     for k in range(s, e+1):
         vis[k] = True
     buttons.append(dict(
-        method="update",
-        label=m.replace("_"," ").title(),
+        method="update", label=m.replace("_"," ").title(),
         args=[{"visible": vis},
-              {"title": f"LLM vs Human — CI ellipses — {m.replace('_',' ').title()}",
+              {"title": f"LLM vs Human — CI ellipses (union of human range/CI) — {m.replace('_',' ').title()}",
                "annotations": [annots[i]]}]
     ))
 
 # Initialize first metric visible
 init_vis = [False]*len(fig.data)
-s0, e0 = trace_offsets[0]
+s0, e0 = trace_spans[0]
 for k in range(s0, e0+1):
     init_vis[k] = True
 
 fig.update_layout(
     template="plotly_white",
-    title=f"LLM vs Human — CI ellipses — {metrics[0].replace('_',' ').title()}",
-    xaxis_title="Human midpoint (x)",
-    yaxis_title="LLM midpoint (y)",
+    title=f"LLM vs Human — CI ellipses (union of human range/CI) — {metrics[0].replace('_',' ').title()}",
+    xaxis_title="Human (x)",
+    yaxis_title="LLM (y)",
     xaxis=dict(range=[x0, x1]),
     yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),
     updatemenus=[dict(type="dropdown", x=1, xanchor="right", y=1.15, yanchor="top",
@@ -761,98 +799,82 @@ for k, v in enumerate(init_vis):
 
 fig
 
+
+
 ```
 
+For each paper (selected metric), the **ellipse** is centered at the pair of midpoints *(Human, LLM)*. The **horizontal radius** covers the *union* of all human evidence for that paper — combining individual raters’ point scores and their CIs — while the **vertical radius** reflects the LLM CI. This makes the ellipse wide enough to contain every human point horizontally (unless a point lies outside its own stated CI, which is flagged in a diagnostic check).
 
-
-```{python}
-#| label: fig-ellipses-static
-#| echo: false
-#| fig-cap: "Static CI ellipses for one metric (set metric_name). Center = midpoints; ellipse radii = CI half-widths."
-
-from matplotlib.patches import Ellipse
-
-metric_name = sorted(merged["metric"].unique())[0]  # <- choose
-J = merged.loc[
-    (merged["metric"]==metric_name) &
-    merged[["midpoint_human","midpoint_llm","lower_human","upper_human","lower_llm","upper_llm"]].notna().all(axis=1),
-    ["paper","midpoint_human","midpoint_llm","lower_human","upper_human","lower_llm","upper_llm"]
-].copy()
-
-if not J.empty:
-    x = J["midpoint_human"].to_numpy()
-    y = J["midpoint_llm"].to_numpy()
-    rx = 0.5*(J["upper_human"] - J["lower_human"]).clip(lower=0).to_numpy()
-    ry = 0.5*(J["upper_llm"]   - J["lower_llm"]).clip(lower=0).to_numpy()
-
-    lo = float(min(x.min(), y.min())); hi = float(max(x.max(), y.max()))
-    pad = 0.05*(hi - lo if hi > lo else 1.0)
-    lim0, lim1 = lo - pad, hi + pad
-
-    fig, ax = plt.subplots(figsize=(6.8, 6.4))
-    # Ellipses
-    for xi, yi, rxi, ryi in zip(x, y, rx, ry):
-        e = Ellipse((xi, yi), width=2*rxi, height=2*ryi,
-                    facecolor=(230/255,159/255,0,0.10),  # orange wash
-                    edgecolor=(0/255,158/255,115/255,0.65), linewidth=1)
-        ax.add_patch(e)
-    # Centers
-    ax.scatter(x, y, s=40, c=UJ_ORANGE, marker="D", edgecolor="white", linewidth=0.6, label="Midpoints")
-
-    ax.plot([lim0, lim1], [lim0, lim1], linestyle="--", color="#888", linewidth=1)
-    ax.set_xlim(lim0, lim1); ax.set_ylim(lim0, lim1)
-    ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("Human midpoint (x)"); ax.set_ylabel("LLM midpoint (y)")
-    ax.set_title(f"CI ellipses — {metric_name.replace('_',' ').title()}")
-    ax.legend(frameon=False)
-    plt.tight_layout()
-    fig
-
-```
 
 
 ```{python}
 #| label: fig-hist-static
 #| echo: false
-#| fig-cap: "Distributions by metric (orange = LLM, green = Human; overlaid histograms)."
+#| fig-cap: "Distributions by metric. Top: Overall (full width). Bottom: remaining metrics in a 2×3 grid."
 
-metrics = sorted(ratings_long["metric"].unique())
-n = len(metrics)
-cols = 3
-rows = math.ceil(n / cols)
+from matplotlib.gridspec import GridSpec
 
-# Choose sensible bins:
+def _plot_hist_for_metric(ax, df_long, metric, bins, title=None):
+    g = df_long[df_long["metric"] == metric]
+    ax.hist(g[g["rater"]=="LLM"]["score"],   bins=bins, alpha=0.55, label="LLM",
+            color=UJ_ORANGE, edgecolor="white")
+    ax.hist(g[g["rater"]=="Human"]["score"], bins=bins, alpha=0.55, label="Human",
+            color=UJ_GREEN,  edgecolor="white")
+    ax.set_title(title or metric.replace("_", " ").title())
+    ax.set_xlabel("Score"); ax.set_ylabel("Count")
+
+metrics_all = list(ratings_long["metric"].dropna().unique())
+has_overall = "overall" in metrics_all
+metrics_others = [m for m in sorted(metrics_all) if m != "overall"]
+
+# bins logic
 smin, smax = ratings_long["score"].min(), ratings_long["score"].max()
-if 0 <= smin and smax <= 100:
-    bins = np.arange(0, 101, 5)
+bins = np.arange(0, 101, 5) if (0 <= smin and smax <= 100) else np.linspace(smin, smax, 21)
+
+if has_overall:
+    cols = 3
+    rows_other = math.ceil(len(metrics_others) / cols) or 1
+    fig = plt.figure(figsize=(cols*4.6, 1.2*3.8 + rows_other*3.6))
+    gs = GridSpec(nrows=rows_other+1, ncols=cols, figure=fig,
+                  height_ratios=[1.3] + [1]*rows_other)
+
+    # Big top row: Overall spans all columns
+    ax0 = fig.add_subplot(gs[0, :])
+    _plot_hist_for_metric(ax0, ratings_long, "overall", bins, title="Overall")
+
+    # Bottom grid: remaining metrics
+    for idx, m in enumerate(metrics_others):
+        r = 1 + idx // cols
+        c = idx % cols
+        ax = fig.add_subplot(gs[r, c])
+        _plot_hist_for_metric(ax, ratings_long, m, bins)
+
+    # Turn off any empty slots
+    total_slots = rows_other * cols
+    for empty in range(len(metrics_others), total_slots):
+        r = 1 + empty // cols
+        c = empty % cols
+        fig.add_subplot(gs[r, c]).axis("off")
+
+    # Shared legend once (top center)
+    handles, labels = ax0.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
+    plt.tight_layout(rect=(0,0,1,0.94))
 else:
-    bins = np.linspace(smin, smax, 21)
+    # fallback to simple grid if no overall
+    metrics = sorted(metrics_all)
+    n = len(metrics); cols = 3; rows = math.ceil(n/cols)
+    fig, axes = plt.subplots(rows, cols, figsize=(cols*4.6, rows*3.6), sharex=True)
+    axes = np.atleast_2d(axes); axes_flat = axes.flat
+    for ax, m in zip(axes_flat, metrics):
+        _plot_hist_for_metric(ax, ratings_long, m, bins)
+    for ax in list(axes_flat)[n:]:
+        ax.axis("off")
+    handles, labels = axes_flat[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
+    plt.tight_layout(rect=(0,0,1,0.94))
 
-fig, axes = plt.subplots(rows, cols, figsize=(cols*4.6, rows*3.6), sharex=True)
-if rows == 1 and cols == 1:
-    axes = np.array([[axes]])
-elif rows == 1:
-    axes = np.array([axes])
-axes_flat = axes.flat
-
-for ax, m in zip(axes_flat, metrics):
-    g = ratings_long[ratings_long["metric"] == m]
-    ax.hist(g[g["rater"]=="LLM"]["score"], bins=bins, alpha=0.55, label="LLM", color=UJ_ORANGE, edgecolor="white")
-    ax.hist(g[g["rater"]=="Human"]["score"], bins=bins, alpha=0.55, label="Human", color=UJ_GREEN, edgecolor="white")
-    ax.set_title(m.replace("_", " ").title())
-    ax.set_xlabel("Score")
-    ax.set_ylabel("Count")
-
-# Remove empty subplots if any
-for ax in list(axes_flat)[n:]:
-    ax.axis("off")
-
-# One shared legend
-handles, labels = axes_flat[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
-plt.tight_layout(rect=(0,0,1,0.94))
-
-# fig
+fig
 
 ```
 
@@ -874,25 +896,25 @@ For each *(paper, metric)*, we plot LLM − Human difference in @fig-heatmap-sta
 ```{python}
 #| label: fig-heatmap-static
 #| echo: false
-#| fig-cap: "LLM − Human difference by paper × metric (robust, centered scale; green = lower than Human, orange = higher)."
+#| fig-cap: "LLM − Human difference by paper × metric (robust, centered scale; rows sorted by signed overall difference)."
 
 pair = pair_llm_human(merged)
 pair["diff"] = pair["LLM"].astype(float) - pair["Human"].astype(float)
 
-# Pivot and (optionally) reorder by mean bias for readability
-hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean")
-# Optional ordering (uncomment if you prefer ordered views):
-# row_order = np.argsort(np.nanmean(hm.values, axis=1))  # papers by avg diff
-# col_order = np.argsort(np.nanmean(hm.values, axis=0))  # metrics by avg diff
-# hm = hm.iloc[row_order, col_order]
+# Row order: sort by signed difference on the 'overall' metric (LLM−Human)
+order_overall = (pair.loc[pair["metric"]=="overall"]
+                   .groupby("paper")["diff"].mean()
+                   .sort_values())  # ascending: LLM lower (green) at top, higher (orange) at bottom
 
-hm = hm.sort_index()  # or keep your original sort
+hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean")
+# apply row order; append any papers lacking 'overall' at the bottom
+ordered_rows = list(order_overall.index) + [p for p in hm.index if p not in order_overall.index]
+hm = hm.loc[ordered_rows]
+
 Z = hm.values.astype(float)
 
-# --- Robust, zero-centered normalization ---
-# Use percentile spans to prevent a single outlier from flattening the gradient.
-pos = Z[Z > 0]
-neg = -Z[Z < 0]
+# Robust centered normalization (as before)
+pos = Z[Z > 0]; neg = -Z[Z < 0]
 p_hi = np.nanpercentile(pos, 97.5) if pos.size else 0.0
 n_hi = np.nanpercentile(neg, 97.5) if neg.size else 0.0
 span = max(p_hi, n_hi)
@@ -901,35 +923,27 @@ if not np.isfinite(span) or span == 0:
 
 norm = TwoSlopeNorm(vmin=-span, vcenter=0.0, vmax=span)
 
-# --- Render ---
 fig_hm, ax = plt.subplots(
     figsize=(max(6.5, 0.8*hm.shape[1]), max(6.0, 0.40*hm.shape[0]))
 )
-im = ax.imshow(
-    Z, cmap=UJ_DIV, norm=norm,
-    aspect="auto", interpolation="nearest"
-)
+im = ax.imshow(Z, cmap=UJ_DIV, norm=norm, aspect="auto", interpolation="nearest")
 
-# Pretty ticks
 ax.set_xticks(np.arange(hm.shape[1]), labels=[c.replace("_", " ").title() for c in hm.columns], rotation=40, ha="right")
 ax.set_yticks(np.arange(hm.shape[0]), labels=hm.index.tolist())
 
-# Light gridlines between cells
 ax.set_xticks(np.arange(-0.5, hm.shape[1], 1), minor=True)
 ax.set_yticks(np.arange(-0.5, hm.shape[0], 1), minor=True)
 ax.grid(which="minor", color="white", linewidth=0.6)
 ax.tick_params(which="minor", bottom=False, left=False)
 
-# Colorbar with symmetric ticks
 cb = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
 cb.set_label("LLM − Human (points)")
-
 tick_vals = np.linspace(-span, span, 5)
-cb.set_ticks(tick_vals)
-cb.set_ticklabels([f"{t:.1f}" for t in tick_vals])
+cb.set_ticks(tick_vals); cb.set_ticklabels([f"{t:.1f}" for t in tick_vals])
 
-ax.set_title("Heatmap: LLM − Human differences by paper × metric (robust scaling)")
+ax.set_title("Heatmap: LLM − Human differences by paper × metric (sorted by overall difference)")
 plt.tight_layout()
+
 
 ```
 
@@ -938,38 +952,69 @@ plt.tight_layout()
 ```{python}
 #| label: fig-heatmap-standardized
 #| echo: false
-#| fig-cap: "Standardized differences (per metric z-scores) so each column has mean 0, sd 1."
+#| fig-cap: "Standardized differences (per-metric z-scores), rows sorted by signed overall difference (LLM − Human)."
 
-pair = pair_llm_human(merged)
+# Build raw LLM−Human differences first
+pair = pair_llm_human(merged).copy()
 pair["diff"] = pair["LLM"].astype(float) - pair["Human"].astype(float)
-hm = pair.pivot_table(index="paper", columns="metric", values="diff", aggfunc="mean").sort_index()
 
-# z-score by column (metric)
-hm_std = hm.apply(lambda col: (col - col.mean()) / (col.std(ddof=1) if col.std(ddof=1) else 1), axis=0)
+# Pivot: rows=papers, cols=metrics, values=raw difference
+diff_mat = (pair.pivot_table(index="paper", columns="metric",
+                             values="diff", aggfunc="mean"))
+
+# Row order: by signed 'overall' difference (ascending → LLM lower at top)
+if "overall" in diff_mat.columns:
+    row_order = diff_mat["overall"].sort_values(ascending=True).index.tolist()
+else:
+    # Fallback: by mean raw difference across metrics
+    row_order = diff_mat.mean(axis=1, skipna=True).sort_values(ascending=True).index.tolist()
+
+diff_mat = diff_mat.loc[row_order]
+
+# Standardize *per column* (metric): z = (x - mean) / sd
+def _z(col):
+    sd = col.std(ddof=1)
+    return (col - col.mean()) / (sd if pd.notna(sd) and sd != 0 else 1.0)
+
+hm_std = diff_mat.apply(_z, axis=0)
 Zs = hm_std.values.astype(float)
 
-# Use symmetric span from robust percentiles of |Z|
-p_hi = np.nanpercentile(np.abs(Zs), 97.5)
-span = max(1.0, p_hi)  # minimum span
+# Robust, zero-centered color scaling
+from matplotlib.colors import TwoSlopeNorm
+p_hi = np.nanpercentile(np.abs(Zs), 97.5) if np.isfinite(Zs).any() else 1.0
+span = max(1.0, float(p_hi))
 norm = TwoSlopeNorm(vmin=-span, vcenter=0.0, vmax=span)
 
+# Render
 fig_s, ax = plt.subplots(
     figsize=(max(6.5, 0.8*hm_std.shape[1]), max(6.0, 0.40*hm_std.shape[0]))
 )
 im = ax.imshow(Zs, cmap=UJ_DIV, norm=norm, aspect="auto", interpolation="nearest")
-ax.set_xticks(np.arange(hm_std.shape[1]), labels=[c.replace("_", " ").title() for c in hm_std.columns], rotation=40, ha="right")
+
+# Labels & ticks
+ax.set_xticks(np.arange(hm_std.shape[1]),
+              labels=[c.replace("_", " ").title() for c in hm_std.columns],
+              rotation=40, ha="right")
 ax.set_yticks(np.arange(hm_std.shape[0]), labels=hm_std.index.tolist())
 
+# Light gridlines between cells
 ax.set_xticks(np.arange(-0.5, hm_std.shape[1], 1), minor=True)
 ax.set_yticks(np.arange(-0.5, hm_std.shape[0], 1), minor=True)
 ax.grid(which="minor", color="white", linewidth=0.6)
 ax.tick_params(which="minor", bottom=False, left=False)
 
+# Colorbar
 cb = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
 cb.set_label("Standardized (per-metric z-score)")
+tick_vals = np.linspace(-span, span, 5)
+cb.set_ticks(tick_vals)
+cb.set_ticklabels([f"{t:.1f}" for t in tick_vals])
 
-ax.set_title("Heatmap: standardized LLM − Human differences (per metric)")
+title_suffix = " (sorted by overall difference)" if "overall" in diff_mat.columns else " (sorted by mean difference)"
+ax.set_title(f"Heatmap: standardized LLM − Human differences{title_suffix}")
 plt.tight_layout()
+fig_s
+
 
 ```
 
