@@ -13,14 +13,12 @@ Add hand-coded spreadsheet of human scores as
 ## Overview
 
 This page compares LLM‑generated ratings with human evaluations across the Unjournal criteria. We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
-The scatter plot in @fig-scatter-selector and overlaid histograms in @fig-hist-static show how the two raters spread scores within each metric.
-
 
 ## Data & Harmonization
 
 - Sources. LLM ratings come from `results/metrics_long.csv` (rendered in the previous chapter). Human ratings are imported from your hand‑coded spreadsheet and mapped to LLM paper IDs via `UJ_map.csv`.  
 - Metric alignment. Human criteria are recoded to the LLM schema (e.g., `claims` → `claims_evidence`, `adv_knowledge` → `advancing_knowledge`, etc.). If humans provided both `gp_relevance` and `real_world`, we fold these into the single LLM metric `global_relevance`.  
-- Pairing. For each *(paper, metric)*, multiple human entries (if any) are averaged to one human midpoint. We then pair that with the corresponding LLM midpoint, yielding one (LLM, Human) pair per *(paper, metric)* used throughout the analyses.  
+<!-- - Pairing. For each *(paper, metric)*, multiple human entries (if any) are averaged to one human midpoint. We then pair that with the corresponding LLM midpoint, yielding one (LLM, Human) pair per *(paper, metric)* used throughout the analyses.   -->
 - Uncertainty fields. Where available, we carry lower/upper bounds for both LLM and humans; these are used in optional uncertainty checks but do not affect the mid‑point comparisons below.
 
 
@@ -44,9 +42,6 @@ except Exception:
     def glue(name, val, display=False):
         globals()[name] = val
 
-# Unjournal colors
-UJ_ORANGE = "#E69F00"   # LLM
-UJ_GREEN  = "#009E73"   # Human
 
 # Matplotlib defaults for a clean look
 plt.rcParams.update({
@@ -59,23 +54,58 @@ plt.rcParams.update({
     "axes.labelsize": 10,
     "legend.fontsize": 9
 })
+# ---- Unjournal brand palette (hex) --------------------------------
+# From theme SCSS:
+#   $unjournal-green:  #99bb66
+#   $unjournal-orange: #f19e4b
+UJ_ORANGE = "#f19e4b"   # LLM
+UJ_GREEN  = "#99bb66"   # Human
+
+# Helpers to make brand-consistent variants & Plotly-friendly RGBA
+import colorsys
+from matplotlib import colors as mcolors
+from matplotlib.colors import LinearSegmentedColormap
+
+def adjust_lightness(hex_color: str, factor: float = 0.80) -> str:
+    """
+    Darken/lighten a color by scaling lightness in HLS.
+    factor < 1 → darker; factor > 1 → lighter. 0.80 ≈ 20% darker.
+    """
+    r, g, b = mcolors.to_rgb(hex_color)
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    l = max(0, min(1, l * factor))
+    r2, g2, b2 = colorsys.hls_to_rgb(h, l, s)
+    return mcolors.to_hex((r2, g2, b2))
+
+def rgba_hex(hex_color: str, alpha: float) -> str:
+    """Convert hex '#rrggbb' → 'rgba(r,g,b,a)' for Plotly."""
+    r, g, b = mcolors.to_rgb(hex_color)
+    return f"rgba({int(round(255*r))},{int(round(255*g))},{int(round(255*b))},{alpha})"
+
+# Darker accents (same hue) for outlines & heatmap extremes
+UJ_ORANGE_D = adjust_lightness(UJ_ORANGE, 0.78)  # ~22% darker
+UJ_GREEN_D  = adjust_lightness(UJ_GREEN,  0.72)  # ~28% darker
+
+# Diverging map using brand colors with darker extremes and soft center
+def make_uj_div():
+    return LinearSegmentedColormap.from_list(
+        "uj_div_brand",
+        [
+            (0.00, UJ_GREEN_D),            # deep brand green
+            (0.40, UJ_GREEN),              # main brand green
+            (0.50, "#f7f7f7"),             # neutral center
+            (0.60, UJ_ORANGE),             # main brand orange
+            (1.00, UJ_ORANGE_D)            # deep brand orange
+        ],
+        N=256
+    )
+
+UJ_DIV = make_uj_div()  # used by both heatmaps
 
 
 
 from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap  # add TwoSlopeNorm
 
-# Smoother green↔white↔orange diverging map (with a bit more nuance around 0)
-UJ_DIV = LinearSegmentedColormap.from_list(
-    "uj_div",
-    [
-        (0.00, UJ_GREEN),
-        (0.45, "#cfeade"),  # pale green tint
-        (0.50, "#f7f7f7"),  # neutral center
-        (0.55, "#f7dcc2"),  # pale orange tint
-        (1.00, UJ_ORANGE),
-    ],
-    N=256
-)
 
 
 
@@ -153,8 +183,8 @@ llm_use = (llm[["paper","metric","midpoint","lower_bound","upper_bound"]]
 # 7) Merge pairs
 merged = llm_use.merge(human_use, on=["paper","metric"], how="inner")
 
-print(f"✅ merged rows: {len(merged)}  "
-      f"({merged.paper.nunique()} papers × {merged.metric.nunique()} metrics)")
+# print(f"✅ merged rows: {len(merged)}  "
+#       f"({merged.paper.nunique()} papers × {merged.metric.nunique()} metrics)")
 
 # Long form for distribution plots
 ratings_long = pd.concat([
@@ -347,6 +377,28 @@ def overall_stats(merged_df, n_bins=5, bin_strategy="quantile"):
 #| fig-cap: "LLM vs Human with robust CI ellipses. Horizontal span covers the union of all human raters' CIs and point ratings; vertical span from LLM CI. Centers at midpoints. Dropdown selects metric."
 
 import plotly.graph_objects as go
+import colorsys
+
+# --- Brand helpers (self-contained) --------------------------------
+def _hex_to_rgba_str(hex_color: str, alpha: float) -> str:
+    h = hex_color.lstrip("#")
+    r = int(h[0:2], 16); g = int(h[2:4], 16); b = int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+def _darken_hex(hex_color: str, factor: float = 0.78) -> str:
+    """Darken/lighten while preserving hue via HLS (factor<1 → darker)."""
+    h = hex_color.lstrip("#")
+    r = int(h[0:2], 16)/255.0; g = int(h[2:4], 16)/255.0; b = int(h[4:6], 16)/255.0
+    H, L, S = colorsys.rgb_to_hls(r, g, b)
+    L = max(0, min(1, L * factor))
+    r2, g2, b2 = colorsys.hls_to_rgb(H, L, S)
+    return "#{:02x}{:02x}{:02x}".format(int(round(r2*255)), int(round(g2*255)), int(round(b2*255)))
+
+# Brand colors from SCSS / setup
+# UJ_GREEN, UJ_ORANGE are defined in your setup chunk:
+# UJ_GREEN = "#99bb66"; UJ_ORANGE = "#f19e4b"
+UJ_GREEN_D = _darken_hex(UJ_GREEN, 0.75)   # slightly darker outline
+UJ_ORANGE_D = _darken_hex(UJ_ORANGE, 0.78) # optional (not required here)
 
 def _ellipse_xy(cx, cy, rx, ry, n=60):
     t = np.linspace(0, 2*np.pi, n)
@@ -447,13 +499,13 @@ for m in metrics:
     J = ellipse_rows[m]
     I = hum_points[m]
 
-    # Draw each ellipse as a filled polygon
+    # Draw each ellipse as a filled polygon (brand colors)
     for row in J.itertuples(index=False):
         ex, ey = _ellipse_xy(row.cx, row.cy, row.rx, row.ry, n=60)
         fig.add_trace(go.Scatter(
             x=ex, y=ey, mode="lines",
-            line=dict(color="rgba(0,158,115,0.55)", width=1),  # green outline
-            fill="toself", fillcolor="rgba(230,159,0,0.10)",   # orange wash
+            line=dict(color=_hex_to_rgba_str(UJ_GREEN_D, 0.65), width=1),
+            fill="toself", fillcolor=_hex_to_rgba_str(UJ_ORANGE, 0.12),
             hovertemplate=(
                 "<b>%{text}</b><br>"
                 "Human band: [%{customdata[0]:.1f}, %{customdata[1]:.1f}]<br>"
@@ -468,7 +520,7 @@ for m in metrics:
             visible=False
         ))
 
-    # Individual human dots (guaranteed to lie within [cx±rx] by construction)
+    # Individual human dots
     fig.add_trace(go.Scatter(
         x=I["human_x"], y=I["llm_y"],
         mode="markers", name="Human raters",
@@ -493,7 +545,7 @@ for m in metrics:
     # Single legend stub for ellipses
     fig.add_trace(go.Scatter(
         x=[None], y=[None], mode="lines", name="CI (human × LLM)",
-        line=dict(color="rgba(0,158,115,0.70)"), fill="toself",
+        line=dict(color=_hex_to_rgba_str(UJ_GREEN_D, 0.70)), fill="toself",
         showlegend=True, visible=False
     ))
 
@@ -558,7 +610,7 @@ fig.update_layout(
     # --- Dropdown below the legend ---
     updatemenus=[dict(
         type="dropdown",
-        direction="down",
+        direction="up",
         showactive=True,
         buttons=buttons,
         x=0.50, xanchor="center",
@@ -572,7 +624,6 @@ for k, v in enumerate(init_vis):
     fig.data[k].visible = v
 
 fig
-
 
 
 ```
