@@ -2,70 +2,26 @@
 title: "LLM vs. Human Ratings"
 ---
 
-::: {.callout-tip}
+<!-- ::: {.callout-tip}
 Prereq – `quarto render numerical_ratings.qmd` must have created  
 `results/metrics_long.csv`.  
-Add your hand-coded spreadsheet of human scores as
+Add hand-coded spreadsheet of human scores as
 `UJ_ratings/rsx_evalr_rating (7).csv` with columns:  
 `paper, metric, midpoint_human`; as well as the mapping `UJ_map.csv`.
-:::
+::: -->
 
 ## Overview
 
 This page compares LLM‑generated ratings with human evaluations across the Unjournal criteria. We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
-The overlaid histograms in @fig-hist-static show how the two raters spread scores within each metric; the agreement table @tbl-agreement reports correlation, bias, and κ‑statistics; and the heatmap @fig-heatmap-static visualizes where the LLM scores run higher or lower than humans at the paper level.
+The scatter plot in @fig-scatter-selector and overlaid histograms in @fig-hist-static show how the two raters spread scores within each metric.
 
----
 
-## Data & Harmonization (Methods)
+## Data & Harmonization
 
 - Sources. LLM ratings come from `results/metrics_long.csv` (rendered in the previous chapter). Human ratings are imported from your hand‑coded spreadsheet and mapped to LLM paper IDs via `UJ_map.csv`.  
 - Metric alignment. Human criteria are recoded to the LLM schema (e.g., `claims` → `claims_evidence`, `adv_knowledge` → `advancing_knowledge`, etc.). If humans provided both `gp_relevance` and `real_world`, we fold these into the single LLM metric `global_relevance`.  
 - Pairing. For each *(paper, metric)*, multiple human entries (if any) are averaged to one human midpoint. We then pair that with the corresponding LLM midpoint, yielding one (LLM, Human) pair per *(paper, metric)* used throughout the analyses.  
 - Uncertainty fields. Where available, we carry lower/upper bounds for both LLM and humans; these are used in optional uncertainty checks but do not affect the mid‑point comparisons below.
-
----
-
-## What the Figures and Tables Show
-
-### Distributional comparisons — @fig-hist-static
-
-- Overlaid histograms of LLM (orange) and Human (green) scores for each metric.  
-  - A horizontal shift between the two colors indicates systematic level bias (e.g., LLM consistently higher).  
-  - Different spread (wider vs. narrower) indicates differences in use of the scale (LLM more/less compressed).  
-  - Bimodality or heavy tails may indicate rater‑specific clustering or heterogeneity across papers.
-
-### Agreement metrics — @tbl-agreement
-
-- Pearson & Spearman. Pearson \(r\) captures linear alignment of levels; Spearman \(ρ\) captures rank agreement (monotonic relationship), robust to scale differences.  
-- Bias. We report the mean and median of (LLM − Human) to summarize both average shift and central tendency of the differences.  
-- Cohen’s κ (unweighted & quadratic). Because scores are continuous, we discretize both LLM and Human using shared quantile cutpoints (default: 5 bins). We then compute:  
-  - Unweighted κ: exact category agreement beyond chance.  
-  - Quadratic‑weighted κ: penalizes larger disagreements more than smaller ones — appropriate for ordinal bins.  
-  _Note:_ κ depends on binning; we use joint quantiles to keep thresholds comparable across raters. (A sensitivity table can be added later if needed.)
-
-### Paper × metric differences — @fig-heatmap-static
-
-For each *(paper, metric)*, we plot LLM − Human. Green means the LLM is lower than the human midpoint; orange means higher.  
-  - Vertical stripes (by metric) suggest a metric‑specific bias (LLM systematically up/down on that metric).  
-  - Horizontal stripes (by paper) flag paper‑specific disagreement (LLM consistently above/below for that paper across metrics).  
-  - Isolated bright cells highlight individual outliers worth auditing qualitatively.
-
----
-
-## Interpretation Notes
-
-- High correlations with small bias suggest the LLM largely preserves human rankings and levels.  
-- High correlations but visible bias imply that a simple calibration (e.g., linear rescaling) could align levels without changing relative ordering.  
-- Low κ but reasonable correlations can occur when raters use different granularity (κ is sensitive to binning).  
-- Disagreement localized to a few papers (horizontal stripes) is ideal for targeted review: inspect those papers’ text and prompts to understand the divergence.  
-- Metric‑specific gaps (vertical stripes) may indicate that prompts or rubrics emphasize different aspects than human raters do for that criterion.
-
----
-
-## Limitations & Planned Extensions
-
-
 
 
 
@@ -211,7 +167,6 @@ ratings_long = pd.concat([
 ```
 
 
-
 ```{python}
 #| label: agreement-helpers
 #| echo: false
@@ -341,6 +296,133 @@ def overall_stats(merged_df, n_bins=5, bin_strategy="quantile"):
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{python}
+#| label: fig-scatter-selector
+#| echo: false
+#| fig-cap: "Interactive scatter: choose a metric to see LLM vs Human. Dashed line = perfect agreement; annotation shows Pearson r and Spearman ρ."
+
+import plotly.graph_objects as go
+
+# Build the paired data (paper, metric, LLM, Human)
+pair_all = pair_llm_human(merged)
+
+# If some metrics have <2 points, we keep them but annotate with NaN
+cats = sorted(pair_all["metric"].unique())
+
+# Global square axis range so the 45° line is visually meaningful
+x_min = float(pair_all["Human"].min())
+x_max = float(pair_all["Human"].max())
+y_min = float(pair_all["LLM"].min())
+y_max = float(pair_all["LLM"].max())
+lo = min(x_min, y_min)
+hi = max(x_max, y_max)
+pad = 0.05 * (hi - lo if hi > lo else 1.0)
+x0, x1 = lo - pad, hi + pad
+y0, y1 = lo - pad, hi + pad
+
+fig = go.Figure()
+annots = []
+
+for i, cat in enumerate(cats):
+    g = pair_all.loc[pair_all["metric"] == cat].copy()
+    # Correlations per metric (handle small n)
+    if len(g) >= 2:
+        r_p = pearsonr(g["Human"], g["LLM"])[0]
+        r_s = spearmanr(g["Human"], g["LLM"])[0]
+    else:
+        r_p = np.nan
+        r_s = np.nan
+
+    # Points
+    fig.add_trace(go.Scatter(
+        x=g["Human"], y=g["LLM"],
+        mode="markers",
+        name=cat,
+        text=g["paper"],
+        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
+        marker=dict(size=8, color=UJ_ORANGE, line=dict(color="rgba(50,50,50,0.5)", width=0.5)),
+        visible=(i == 0)
+    ))
+
+    # Per-metric annotation (updated by the dropdown)
+    annots.append(dict(
+        x=x0 + 0.05*(x1 - x0),
+        y=y1 - 0.05*(y1 - y0),
+        xref="x", yref="y",
+        showarrow=False,
+        text=f"Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
+        font=dict(size=12, color="#222")
+    ))
+
+# 45° agreement line
+fig.add_shape(
+    type="line", x0=x0, y0=x0, x1=x1, y1=y1,
+    line=dict(color="rgba(120,120,120,0.5)", dash="dot")
+)
+
+# Dropdown buttons: toggle which metric's points are visible and swap annotation
+buttons = []
+for i, cat in enumerate(cats):
+    vis = [False]*len(cats)
+    vis[i] = True
+    buttons.append(dict(
+        method="update",
+        label=cat.replace("_"," ").title(),
+        args=[
+            {"visible": vis},
+            {
+              "title": f"LLM vs Human by paper — {cat.replace('_',' ').title()}",
+              "annotations": [annots[i]]
+            }
+        ]
+    ))
+
+fig.update_layout(
+    template="plotly_white",
+    title=f"LLM vs Human by paper — {cats[0].replace('_',' ').title()}",
+    xaxis_title="Human score",
+    yaxis_title="LLM score",
+    xaxis=dict(range=[x0, x1]),
+    yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),  # keep 45° line at 45°
+    updatemenus=[dict(
+        type="dropdown",
+        x=1, xanchor="right",
+        y=1.15, yanchor="top",
+        showactive=True,
+        buttons=buttons
+    )]
+)
+fig
+
+```
+
+
+
+
+
+
+
+
 ```{python}
 #| label: fig-hist-static
 #| echo: false
@@ -386,29 +468,16 @@ plt.tight_layout(rect=(0,0,1,0.94))
 
 ```
 
-```{python}
-#| label: tbl-agreement
-#| echo: false
-#| tbl-cap: "Agreement metrics by metric (Pearson, Spearman, mean/median bias, κ unweighted/weighted)."
-
-# New static agreement summary (no sklearn needed)
-agree_cat = agreement_summary(merged, n_bins=5, bin_strategy="quantile")
-agree_cat.round({"pearson":3,"spearman":3,"mean_bias":2,"median_bias":2,
-                 "kappa_unw":3,"kappa_quad":3})
-
-ov = overall_stats(merged, n_bins=5, bin_strategy="quantile")
 
 
-agree_view = (agree_cat
-              .rename(columns={"kappa_unw":"kappa_unwtd","kappa_quad":"kappa_quad"})
-              .loc[:, ["metric","n","pearson","spearman","mean_bias","median_bias","kappa_unwtd","kappa_quad"]]
-              .sort_values("metric"))
-agree_view = agree_view.round({"pearson":3, "spearman":3, "mean_bias":2, "median_bias":2, "kappa_unwtd":3, "kappa_quad":3})
-agree_view
-
-```
 
 
+
+For each *(paper, metric)*, we plot LLM − Human difference in @fig-heatmap-static. Green means the LLM is lower than the human midpoint; orange means higher.  
+
+  - Vertical stripes (by metric) suggest a metric‑specific bias (LLM systematically up/down on that metric).  
+  - Horizontal stripes (by paper) flag paper‑specific disagreement (LLM consistently above/below for that paper across metrics).  
+  - Isolated bright cells highlight individual outliers worth auditing qualitatively.
 
 
 
@@ -516,147 +585,55 @@ plt.tight_layout()
 
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+### Agreement metrics
+
+@tbl-agreement summarizes agreement: Pearson \(r\) captures linear alignment of levels; Spearman \(ρ\) captures rank agreement (monotonic relationship), robust to scale differences. 
+We report the mean and median of (LLM − Human) to summarize both average shift and central tendency of the differences and Cohen’s κ (unweighted & quadratic). Because scores are continuous, we discretize both LLM and Human using shared quantile cutpoints (5 bins) and compute the Unweighted κ (exact category agreement beyond chance) and the Quadratic‑weighted κ that penalizes larger disagreements more than smaller ones.
+
+As another indicator of agreement, we check whether each side's credible interval contain the other's point estimate, @tbl-coverage shows the shares across rating categories.
+
+@fig-uncert-vs-error plots the width of human raters CI against the difference in ratings; @tbl-outliers lists the papers with the largest aabsolute difference between LLM and human raters.
+
+
 ```{python}
-#| label: fig-scatter-selector
+#| label: tbl-agreement
 #| echo: false
-#| fig-cap: "Interactive scatter: choose a metric to see LLM vs Human. Dashed line = perfect agreement; annotation shows Pearson r and Spearman ρ."
+#| tbl-cap: "Agreement metrics by metric (Pearson, Spearman, mean/median bias, κ unweighted/weighted)."
 
-import plotly.graph_objects as go
+# New static agreement summary (no sklearn needed)
+agree_cat = agreement_summary(merged, n_bins=5, bin_strategy="quantile")
+agree_cat.round({"pearson":3,"spearman":3,"mean_bias":2,"median_bias":2,
+                 "kappa_unw":3,"kappa_quad":3})
 
-# Build the paired data (paper, metric, LLM, Human)
-pair_all = pair_llm_human(merged)
+ov = overall_stats(merged, n_bins=5, bin_strategy="quantile")
 
-# If some metrics have <2 points, we keep them but annotate with NaN
-cats = sorted(pair_all["metric"].unique())
 
-# Global square axis range so the 45° line is visually meaningful
-x_min = float(pair_all["Human"].min())
-x_max = float(pair_all["Human"].max())
-y_min = float(pair_all["LLM"].min())
-y_max = float(pair_all["LLM"].max())
-lo = min(x_min, y_min)
-hi = max(x_max, y_max)
-pad = 0.05 * (hi - lo if hi > lo else 1.0)
-x0, x1 = lo - pad, hi + pad
-y0, y1 = lo - pad, hi + pad
-
-fig = go.Figure()
-annots = []
-
-for i, cat in enumerate(cats):
-    g = pair_all.loc[pair_all["metric"] == cat].copy()
-    # Correlations per metric (handle small n)
-    if len(g) >= 2:
-        r_p = pearsonr(g["Human"], g["LLM"])[0]
-        r_s = spearmanr(g["Human"], g["LLM"])[0]
-    else:
-        r_p = np.nan
-        r_s = np.nan
-
-    # Points
-    fig.add_trace(go.Scatter(
-        x=g["Human"], y=g["LLM"],
-        mode="markers",
-        name=cat,
-        text=g["paper"],
-        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
-        marker=dict(size=8, color=UJ_ORANGE, line=dict(color="rgba(50,50,50,0.5)", width=0.5)),
-        visible=(i == 0)
-    ))
-
-    # Per-metric annotation (updated by the dropdown)
-    annots.append(dict(
-        x=x0 + 0.05*(x1 - x0),
-        y=y1 - 0.05*(y1 - y0),
-        xref="x", yref="y",
-        showarrow=False,
-        text=f"Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
-        font=dict(size=12, color="#222")
-    ))
-
-# 45° agreement line
-fig.add_shape(
-    type="line", x0=x0, y0=x0, x1=x1, y1=y1,
-    line=dict(color="rgba(120,120,120,0.5)", dash="dot")
-)
-
-# Dropdown buttons: toggle which metric's points are visible and swap annotation
-buttons = []
-for i, cat in enumerate(cats):
-    vis = [False]*len(cats)
-    vis[i] = True
-    buttons.append(dict(
-        method="update",
-        label=cat.replace("_"," ").title(),
-        args=[
-            {"visible": vis},
-            {
-              "title": f"LLM vs Human by paper — {cat.replace('_',' ').title()}",
-              "annotations": [annots[i]]
-            }
-        ]
-    ))
-
-fig.update_layout(
-    template="plotly_white",
-    title=f"LLM vs Human by paper — {cats[0].replace('_',' ').title()}",
-    xaxis_title="Human score",
-    yaxis_title="LLM score",
-    xaxis=dict(range=[x0, x1]),
-    yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),  # keep 45° line at 45°
-    updatemenus=[dict(
-        type="dropdown",
-        x=1, xanchor="right",
-        y=1.15, yanchor="top",
-        showactive=True,
-        buttons=buttons
-    )]
-)
-fig
+agree_view = (agree_cat
+              .rename(columns={"kappa_unw":"kappa_unwtd","kappa_quad":"kappa_quad"})
+              .loc[:, ["metric","n","pearson","spearman","mean_bias","median_bias","kappa_unwtd","kappa_quad"]]
+              .sort_values("metric"))
+agree_view = agree_view.round({"pearson":3, "spearman":3, "mean_bias":2, "median_bias":2, "kappa_unwtd":3, "kappa_quad":3})
+agree_view
 
 ```
 
 
 
-```{python}
-#| label: fig-bland-altman
-#| echo: false
-#| fig-cap: "Bland–Altman plots by metric (diff = LLM − Human). Dotted lines show mean bias ± 1.96·SD."
-
-pair = pair_llm_human(merged)
-pair["mean"] = (pair["LLM"] + pair["Human"]) / 2
-pair["diff"] = pair["LLM"] - pair["Human"]
-
-metrics = sorted(pair["metric"].unique())
-n, cols = len(metrics), 3
-rows = int(np.ceil(n/cols))
-
-fig, axes = plt.subplots(rows, cols, figsize=(cols*4.6, rows*3.6), sharex=False, sharey=False)
-axes = np.atleast_2d(axes)
-axes_flat = axes.flat
-
-for ax, m in zip(axes_flat, metrics):
-    g = pair[pair["metric"] == m]
-    mu = np.mean(g["diff"])
-    sd = np.std(g["diff"], ddof=1) if len(g) > 1 else np.nan
-
-    ax.scatter(g["mean"], g["diff"], s=26, alpha=.7, color=UJ_ORANGE, edgecolor="white")
-    ax.axhline(mu, color="#555", linestyle="--", linewidth=1)
-    if np.isfinite(sd):
-        ax.axhline(mu + 1.96*sd, color="#999", linestyle=":", linewidth=1)
-        ax.axhline(mu - 1.96*sd, color="#999", linestyle=":", linewidth=1)
-    ax.set_title(m.replace("_"," ").title())
-    ax.set_xlabel("Mean of LLM & Human")
-    ax.set_ylabel("LLM − Human")
-
-# turn off unused axes
-for ax in list(axes_flat)[n:]:
-    ax.axis("off")
-
-plt.tight_layout()
 
 
-```
+
 
 
 ```{python}
@@ -698,26 +675,6 @@ for c in ["slope","intercept","r2","MAD_pre","MAD_post","MAD_delta"]:
 calib_rounded
 
 ```
-
-
-
-```{python}
-#| label: glue-calibration
-#| echo: false
-
-# Build calibrated predictions for every row, then compute overall MAD_pre/post
-P = pair_llm_human(merged).merge(calib[["metric","slope","intercept"]], on="metric", how="left")
-P["LLM_calib"] = P["slope"]*P["LLM"] + P["intercept"]
-mad_pre_all  = float(np.mean(np.abs(P["LLM"]      - P["Human"])))
-mad_post_all = float(np.mean(np.abs(P["LLM_calib"]- P["Human"])))
-impr = mad_pre_all - mad_post_all
-
-glue("mad_pre_all", mad_pre_all)
-glue("mad_post_all", mad_post_all)
-glue("mad_improvement", impr)
-
-```
-
 
 
 
@@ -785,7 +742,6 @@ plt.tight_layout()
 ```
 
 
-
 ```{python}
 #| label: tbl-outliers
 #| echo: false
@@ -804,28 +760,3 @@ outliers
 ```
 
 
-
-```{python}
-#| label: tbl-kappa-sensitivity
-#| echo: false
-#| tbl-cap: "Quadratic weighted κ by metric across different bin counts (quantile bins)."
-
-def kappa_quad_with_bins(merged_df, bins_list=(4,5,7,10)):
-    P = pair_llm_human(merged_df)
-    out = []
-    for m, g in P.groupby("metric"):
-        row = {"metric": m}
-        llm = g["LLM"].to_numpy(); hum = g["Human"].to_numpy()
-        for nb in bins_list:
-            a, b, k = bin_together(llm, hum, n_bins=nb, strategy="quantile")
-            row[f"kappa_q_{nb}"] = weighted_kappa(a, b, k=k, weights="quadratic")
-        out.append(row)
-    df = pd.DataFrame(out).sort_values("metric").reset_index(drop=True)
-    for nb in bins_list:
-        df[f"kappa_q_{nb}"] = df[f"kappa_q_{nb}"].round(3)
-    return df
-
-kappa_sens = kappa_quad_with_bins(merged, bins_list=(4,5,7,10))
-kappa_sens
-
-```
