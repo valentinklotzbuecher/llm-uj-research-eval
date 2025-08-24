@@ -341,253 +341,6 @@ def overall_stats(merged_df, n_bins=5, bin_strategy="quantile"):
 
 ## Distribution of ratings
 
-
-
-```{python}
-#| label: fig-scatter-selector
-#| echo: false
-#| fig-cap: "Interactive scatter: choose a metric to see LLM vs Human. Dashed line = perfect agreement; annotation shows Pearson r and Spearman ρ."
-
-import plotly.graph_objects as go
-
-# Build the paired data (paper, metric, LLM, Human)
-pair_all = pair_llm_human(merged)
-
-# If some metrics have <2 points, we keep them but annotate with NaN
-cats = sorted(pair_all["metric"].unique())
-
-# Global square axis range so the 45° line is visually meaningful
-x_min = float(pair_all["Human"].min())
-x_max = float(pair_all["Human"].max())
-y_min = float(pair_all["LLM"].min())
-y_max = float(pair_all["LLM"].max())
-lo = min(x_min, y_min)
-hi = max(x_max, y_max)
-pad = 0.05 * (hi - lo if hi > lo else 1.0)
-x0, x1 = lo - pad, hi + pad
-y0, y1 = lo - pad, hi + pad
-
-fig = go.Figure()
-annots = []
-
-for i, cat in enumerate(cats):
-    g = pair_all.loc[pair_all["metric"] == cat].copy()
-    # Correlations per metric (handle small n)
-    if len(g) >= 2:
-        r_p = pearsonr(g["Human"], g["LLM"])[0]
-        r_s = spearmanr(g["Human"], g["LLM"])[0]
-    else:
-        r_p = np.nan
-        r_s = np.nan
-
-    # Points
-    fig.add_trace(go.Scatter(
-        x=g["Human"], y=g["LLM"],
-        mode="markers",
-        name=cat,
-        text=g["paper"],
-        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
-        marker=dict(size=8, color=UJ_ORANGE, line=dict(color="rgba(50,50,50,0.5)", width=0.5)),
-        visible=(i == 0)
-    ))
-
-    # Per-metric annotation (updated by the dropdown)
-    annots.append(dict(
-        x=x0 + 0.05*(x1 - x0),
-        y=y1 - 0.05*(y1 - y0),
-        xref="x", yref="y",
-        showarrow=False,
-        text=f"Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
-        font=dict(size=12, color="#222")
-    ))
-
-# 45° agreement line
-fig.add_shape(
-    type="line", x0=x0, y0=x0, x1=x1, y1=y1,
-    line=dict(color="rgba(120,120,120,0.5)", dash="dot")
-)
-
-# Dropdown buttons: toggle which metric's points are visible and swap annotation
-buttons = []
-for i, cat in enumerate(cats):
-    vis = [False]*len(cats)
-    vis[i] = True
-    buttons.append(dict(
-        method="update",
-        label=cat.replace("_"," ").title(),
-        args=[
-            {"visible": vis},
-            {
-              "title": f"LLM vs Human by paper — {cat.replace('_',' ').title()}",
-              "annotations": [annots[i]]
-            }
-        ]
-    ))
-
-fig.update_layout(
-    template="plotly_white",
-    title=f"LLM vs Human by paper — {cats[0].replace('_',' ').title()}",
-    xaxis_title="Human score",
-    yaxis_title="LLM score",
-    xaxis=dict(range=[x0, x1]),
-    yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),  # keep 45° line at 45°
-    updatemenus=[dict(
-        type="dropdown",
-        x=1, xanchor="right",
-        y=1.15, yanchor="top",
-        showactive=True,
-        buttons=buttons
-    )]
-)
-fig
-
-```
-
-
-
-```{python}
-#| label: fig-scatter-humans-range
-#| echo: false
-#| fig-cap: "LLM vs Human by paper (all human raters shown). For each paper: green dots are individual human ratings; orange diamond is LLM vs human mean with horizontal whiskers spanning the full human range."
-
-import plotly.graph_objects as go
-
-metrics = sorted(human_raw["metric"].unique())
-
-# Precompute per‑metric summaries: human mean/min/max merged with LLM
-summ_by_metric = {}
-indiv_by_metric = {}
-
-for m in metrics:
-    # per-paper human summary
-    hsum = (human_raw.loc[human_raw["metric"] == m]
-            .groupby("paper", as_index=False)
-            .agg(mean_human=("middle_rating","mean"),
-                 min_human =("middle_rating","min"),
-                 max_human =("middle_rating","max"),
-                 n_human   =("middle_rating","size")))
-    # join LLM
-    joined = (hsum.merge(llm_single[llm_single["metric"] == m][["paper","midpoint_llm"]],
-                         on="paper", how="inner"))
-    summ_by_metric[m] = joined
-
-    # individual human points with LLM on y
-    indiv = (human_raw.loc[human_raw["metric"] == m, ["paper","rater_id","middle_rating","metric"]]
-             .merge(llm_single[llm_single["metric"] == m][["paper","midpoint_llm"]],
-                    on="paper", how="inner"))
-    indiv_by_metric[m] = indiv
-
-# Global axis limits (pooled across metrics)
-all_h_means = np.concatenate([df["mean_human"].to_numpy() for df in summ_by_metric.values() if len(df)])
-all_h_mins  = np.concatenate([df["min_human"].to_numpy()  for df in summ_by_metric.values() if len(df)])
-all_h_maxs  = np.concatenate([df["max_human"].to_numpy()  for df in summ_by_metric.values() if len(df)])
-all_llm     = np.concatenate([df["midpoint_llm"].to_numpy() for df in summ_by_metric.values() if len(df)])
-
-if all_h_means.size:
-    x_lo = float(np.nanmin(np.concatenate([all_h_mins, all_h_means, all_h_maxs])))
-    x_hi = float(np.nanmax(np.concatenate([all_h_mins, all_h_means, all_h_maxs])))
-    y_lo = float(np.nanmin(all_llm))
-    y_hi = float(np.nanmax(all_llm))
-else:
-    x_lo = y_lo = 0.0
-    x_hi = y_hi = 100.0
-
-pad_x = 0.05*(x_hi - x_lo if x_hi > x_lo else 1.0)
-pad_y = 0.05*(y_hi - y_lo if y_hi > y_lo else 1.0)
-x0, x1 = x_lo - pad_x, x_hi + pad_x
-y0, y1 = y_lo - pad_y, y_hi + pad_y
-
-fig = go.Figure()
-annots = []
-traces_per_metric = 2  # (1) individual human dots, (2) LLM vs human mean + range
-
-for i, m in enumerate(metrics):
-    J = summ_by_metric[m]
-    I = indiv_by_metric[m]
-
-    # Correlations for the selected metric (LLM vs human mean)
-    if len(J) >= 2:
-        r_p = pearsonr(J["mean_human"], J["midpoint_llm"])[0]
-        r_s = spearmanr(J["mean_human"], J["midpoint_llm"])[0]
-    else:
-        r_p = np.nan
-        r_s = np.nan
-
-    # (1) Individual human dots (many)
-    fig.add_trace(go.Scatter(
-        x=I["middle_rating"], y=I["midpoint_llm"],
-        mode="markers",
-        name="Human raters",
-        marker=dict(size=6, color=UJ_GREEN, opacity=0.55,
-                    line=dict(width=0.5, color="rgba(50,50,50,0.35)")),
-        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
-        text=[f"{p} — {r}" for p, r in zip(I["paper"], I["rater_id"])],
-        visible=(i == 0)
-    ))
-
-    # Compute asymmetric error bars (min/max around mean)
-    err_plus  = (J["max_human"]  - J["mean_human"]).to_numpy()
-    err_minus = (J["mean_human"] - J["min_human"]).to_numpy()
-
-    # (2) LLM vs human mean (orange diamond) with human range whiskers (green)
-    fig.add_trace(go.Scatter(
-        x=J["mean_human"], y=J["midpoint_llm"],
-        mode="markers",
-        name="LLM vs human mean",
-        marker=dict(size=9, color=UJ_ORANGE, symbol="diamond",
-                    line=dict(width=0.6, color="rgba(50,50,50,0.4)")),
-        error_x=dict(type="data", symmetric=False, array=err_plus, arrayminus=err_minus,
-                     color=UJ_GREEN, thickness=1.25, width=0),
-        hovertemplate="<b>%{text}</b><br>Human mean=%{x:.1f}<br>LLM=%{y:.1f}<br>Human range=[%{customdata[0]:.1f}, %{customdata[1]:.1f}]<extra></extra>",
-        text=J["paper"],
-        customdata=np.stack([J["min_human"], J["max_human"]], axis=1),
-        visible=(i == 0)
-    ))
-
-    # Per‑metric annotation (updated by the dropdown)
-    annots.append(dict(
-        x=x0 + 0.05*(x1 - x0),
-        y=y1 - 0.05*(y1 - y0),
-        xref="x", yref="y",
-        showarrow=False,
-        text=f"{m.replace('_',' ').title()} — Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
-        font=dict(size=12, color="#222")
-    ))
-
-# 45° equality line
-fig.add_shape(type="line", x0=x0, y0=x0, x1=x1, y1=y1,
-              line=dict(color="rgba(120,120,120,0.5)", dash="dot"))
-
-# Dropdown logic: two traces per metric (human dots, mean+range)
-buttons = []
-for i, m in enumerate(metrics):
-    vis = [False] * (len(metrics) * traces_per_metric)
-    vis[2*i + 0] = True  # human dots
-    vis[2*i + 1] = True  # mean+range
-    buttons.append(dict(
-        method="update",
-        label=m.replace("_"," ").title(),
-        args=[
-            {"visible": vis},
-            {"title": f"LLM vs Human — all raters shown — {m.replace('_',' ').title()}",
-             "annotations": [annots[i]]}
-        ]
-    ))
-
-fig.update_layout(
-    template="plotly_white",
-    title=f"LLM vs Human — all raters shown — {metrics[0].replace('_',' ').title()}",
-    xaxis_title="Human score (x) — dots = individual raters; whiskers = full human range",
-    yaxis_title="LLM score (y)",
-    xaxis=dict(range=[x0, x1]),
-    yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),
-    updatemenus=[dict(type="dropdown", x=1, xanchor="right", y=1.15, yanchor="top",
-                      showactive=True, buttons=buttons)]
-)
-fig
-
-```
-
 ```{python}
 #| label: fig-scatter-ellipses
 #| echo: false
@@ -790,9 +543,30 @@ fig.update_layout(
     yaxis_title="LLM (y)",
     xaxis=dict(range=[x0, x1]),
     yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),
-    updatemenus=[dict(type="dropdown", x=1, xanchor="right", y=1.15, yanchor="top",
-                      showactive=True, buttons=buttons)]
+
+    # --- Legend below the plot ---
+    legend=dict(
+        orientation="h",
+        yanchor="top", y=-0.16,          # push below the plotting area
+        xanchor="center", x=0.50,        # centered
+        bgcolor="rgba(0,0,0,0)"
+    ),
+
+    # Leave enough space at bottom for legend + dropdown
+    margin=dict(l=60, r=20, t=70, b=160),
+
+    # --- Dropdown below the legend ---
+    updatemenus=[dict(
+        type="dropdown",
+        direction="down",
+        showactive=True,
+        buttons=buttons,
+        x=0.50, xanchor="center",
+        y=-0.30, yanchor="top",          # a bit further down than legend
+        pad={"t": 2, "b": 2}
+    )]
 )
+
 fig.update_traces(visible=False)
 for k, v in enumerate(init_vis):
     fig.data[k].visible = v
@@ -874,7 +648,7 @@ else:
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     plt.tight_layout(rect=(0,0,1,0.94))
 
-fig
+
 
 ```
 
@@ -946,82 +720,6 @@ plt.tight_layout()
 
 
 ```
-
-
-
-```{python}
-#| label: fig-heatmap-standardized
-#| echo: false
-#| fig-cap: "Standardized differences (per-metric z-scores), rows sorted by signed overall difference (LLM − Human)."
-
-# Build raw LLM−Human differences first
-pair = pair_llm_human(merged).copy()
-pair["diff"] = pair["LLM"].astype(float) - pair["Human"].astype(float)
-
-# Pivot: rows=papers, cols=metrics, values=raw difference
-diff_mat = (pair.pivot_table(index="paper", columns="metric",
-                             values="diff", aggfunc="mean"))
-
-# Row order: by signed 'overall' difference (ascending → LLM lower at top)
-if "overall" in diff_mat.columns:
-    row_order = diff_mat["overall"].sort_values(ascending=True).index.tolist()
-else:
-    # Fallback: by mean raw difference across metrics
-    row_order = diff_mat.mean(axis=1, skipna=True).sort_values(ascending=True).index.tolist()
-
-diff_mat = diff_mat.loc[row_order]
-
-# Standardize *per column* (metric): z = (x - mean) / sd
-def _z(col):
-    sd = col.std(ddof=1)
-    return (col - col.mean()) / (sd if pd.notna(sd) and sd != 0 else 1.0)
-
-hm_std = diff_mat.apply(_z, axis=0)
-Zs = hm_std.values.astype(float)
-
-# Robust, zero-centered color scaling
-from matplotlib.colors import TwoSlopeNorm
-p_hi = np.nanpercentile(np.abs(Zs), 97.5) if np.isfinite(Zs).any() else 1.0
-span = max(1.0, float(p_hi))
-norm = TwoSlopeNorm(vmin=-span, vcenter=0.0, vmax=span)
-
-# Render
-fig_s, ax = plt.subplots(
-    figsize=(max(6.5, 0.8*hm_std.shape[1]), max(6.0, 0.40*hm_std.shape[0]))
-)
-im = ax.imshow(Zs, cmap=UJ_DIV, norm=norm, aspect="auto", interpolation="nearest")
-
-# Labels & ticks
-ax.set_xticks(np.arange(hm_std.shape[1]),
-              labels=[c.replace("_", " ").title() for c in hm_std.columns],
-              rotation=40, ha="right")
-ax.set_yticks(np.arange(hm_std.shape[0]), labels=hm_std.index.tolist())
-
-# Light gridlines between cells
-ax.set_xticks(np.arange(-0.5, hm_std.shape[1], 1), minor=True)
-ax.set_yticks(np.arange(-0.5, hm_std.shape[0], 1), minor=True)
-ax.grid(which="minor", color="white", linewidth=0.6)
-ax.tick_params(which="minor", bottom=False, left=False)
-
-# Colorbar
-cb = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
-cb.set_label("Standardized (per-metric z-score)")
-tick_vals = np.linspace(-span, span, 5)
-cb.set_ticks(tick_vals)
-cb.set_ticklabels([f"{t:.1f}" for t in tick_vals])
-
-title_suffix = " (sorted by overall difference)" if "overall" in diff_mat.columns else " (sorted by mean difference)"
-ax.set_title(f"Heatmap: standardized LLM − Human differences{title_suffix}")
-plt.tight_layout()
-fig_s
-
-
-```
-
-
-
-
-
 
 
 
@@ -1140,9 +838,9 @@ overall_cov = dict(
     llm_in_human=float(cov["llm_in_human"].mean()),
     both=float(cov["both_cover"].mean())
 )
-glue("cov_both", overall_cov["both"])
-glue("cov_hinl", overall_cov["human_in_llm"])
-glue("cov_linh", overall_cov["llm_in_human"])
+# glue("cov_both", overall_cov["both"])
+# glue("cov_hinl", overall_cov["human_in_llm"])
+# glue("cov_linh", overall_cov["llm_in_human"])
 
 coverage_tbl
 
