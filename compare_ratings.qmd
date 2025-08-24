@@ -168,6 +168,33 @@ ratings_long = pd.concat([
 
 
 ```{python}
+#| label: human-raw
+#| echo: false
+
+# Keep per‑rater rows (after mapping; before averaging)
+human_raw = human.dropna(subset=["paper","metric","middle_rating"]).copy()
+
+# Try to detect a rater id column; otherwise make one per (paper, metric)
+cands = [c for c in human_raw.columns if c.lower() in
+         ["rater","reviewer","evaluator","coder","annotator","user","name",
+          "id","uid","user_id","evaluator_id","reviewer_id"]]
+if cands:
+    rid_col = cands[0]
+    human_raw["rater_id"] = human_raw[rid_col].astype(str)
+else:
+    human_raw["rater_id"] = (human_raw
+                             .groupby(["paper","metric"])
+                             .cumcount()
+                             .add(1)
+                             .map(lambda i: f"R{i}"))
+
+# One row per paper×metric with LLM midpoint (for joining)
+llm_single = llm_use[["paper","metric","midpoint_llm"]].drop_duplicates()
+
+```
+
+
+```{python}
 #| label: agreement-helpers
 #| echo: false
 
@@ -312,7 +339,7 @@ def overall_stats(merged_df, n_bins=5, bin_strategy="quantile"):
 
 
 
-
+## Distribution of ratings
 
 
 
@@ -418,7 +445,148 @@ fig
 
 
 
+```{python}
+#| label: fig-scatter-humans-range
+#| echo: false
+#| fig-cap: "LLM vs Human by paper (all human raters shown). For each paper: green dots are individual human ratings; orange diamond is LLM vs human mean with horizontal whiskers spanning the full human range."
 
+import plotly.graph_objects as go
+
+metrics = sorted(human_raw["metric"].unique())
+
+# Precompute per‑metric summaries: human mean/min/max merged with LLM
+summ_by_metric = {}
+indiv_by_metric = {}
+
+for m in metrics:
+    # per-paper human summary
+    hsum = (human_raw.loc[human_raw["metric"] == m]
+            .groupby("paper", as_index=False)
+            .agg(mean_human=("middle_rating","mean"),
+                 min_human =("middle_rating","min"),
+                 max_human =("middle_rating","max"),
+                 n_human   =("middle_rating","size")))
+    # join LLM
+    joined = (hsum.merge(llm_single[llm_single["metric"] == m][["paper","midpoint_llm"]],
+                         on="paper", how="inner"))
+    summ_by_metric[m] = joined
+
+    # individual human points with LLM on y
+    indiv = (human_raw.loc[human_raw["metric"] == m, ["paper","rater_id","middle_rating","metric"]]
+             .merge(llm_single[llm_single["metric"] == m][["paper","midpoint_llm"]],
+                    on="paper", how="inner"))
+    indiv_by_metric[m] = indiv
+
+# Global axis limits (pooled across metrics)
+all_h_means = np.concatenate([df["mean_human"].to_numpy() for df in summ_by_metric.values() if len(df)])
+all_h_mins  = np.concatenate([df["min_human"].to_numpy()  for df in summ_by_metric.values() if len(df)])
+all_h_maxs  = np.concatenate([df["max_human"].to_numpy()  for df in summ_by_metric.values() if len(df)])
+all_llm     = np.concatenate([df["midpoint_llm"].to_numpy() for df in summ_by_metric.values() if len(df)])
+
+if all_h_means.size:
+    x_lo = float(np.nanmin(np.concatenate([all_h_mins, all_h_means, all_h_maxs])))
+    x_hi = float(np.nanmax(np.concatenate([all_h_mins, all_h_means, all_h_maxs])))
+    y_lo = float(np.nanmin(all_llm))
+    y_hi = float(np.nanmax(all_llm))
+else:
+    x_lo = y_lo = 0.0
+    x_hi = y_hi = 100.0
+
+pad_x = 0.05*(x_hi - x_lo if x_hi > x_lo else 1.0)
+pad_y = 0.05*(y_hi - y_lo if y_hi > y_lo else 1.0)
+x0, x1 = x_lo - pad_x, x_hi + pad_x
+y0, y1 = y_lo - pad_y, y_hi + pad_y
+
+fig = go.Figure()
+annots = []
+traces_per_metric = 2  # (1) individual human dots, (2) LLM vs human mean + range
+
+for i, m in enumerate(metrics):
+    J = summ_by_metric[m]
+    I = indiv_by_metric[m]
+
+    # Correlations for the selected metric (LLM vs human mean)
+    if len(J) >= 2:
+        r_p = pearsonr(J["mean_human"], J["midpoint_llm"])[0]
+        r_s = spearmanr(J["mean_human"], J["midpoint_llm"])[0]
+    else:
+        r_p = np.nan
+        r_s = np.nan
+
+    # (1) Individual human dots (many)
+    fig.add_trace(go.Scatter(
+        x=I["middle_rating"], y=I["midpoint_llm"],
+        mode="markers",
+        name="Human raters",
+        marker=dict(size=6, color=UJ_GREEN, opacity=0.55,
+                    line=dict(width=0.5, color="rgba(50,50,50,0.35)")),
+        hovertemplate="<b>%{text}</b><br>Human=%{x:.1f}<br>LLM=%{y:.1f}<extra></extra>",
+        text=[f"{p} — {r}" for p, r in zip(I["paper"], I["rater_id"])],
+        visible=(i == 0)
+    ))
+
+    # Compute asymmetric error bars (min/max around mean)
+    err_plus  = (J["max_human"]  - J["mean_human"]).to_numpy()
+    err_minus = (J["mean_human"] - J["min_human"]).to_numpy()
+
+    # (2) LLM vs human mean (orange diamond) with human range whiskers (green)
+    fig.add_trace(go.Scatter(
+        x=J["mean_human"], y=J["midpoint_llm"],
+        mode="markers",
+        name="LLM vs human mean",
+        marker=dict(size=9, color=UJ_ORANGE, symbol="diamond",
+                    line=dict(width=0.6, color="rgba(50,50,50,0.4)")),
+        error_x=dict(type="data", symmetric=False, array=err_plus, arrayminus=err_minus,
+                     color=UJ_GREEN, thickness=1.25, width=0),
+        hovertemplate="<b>%{text}</b><br>Human mean=%{x:.1f}<br>LLM=%{y:.1f}<br>Human range=[%{customdata[0]:.1f}, %{customdata[1]:.1f}]<extra></extra>",
+        text=J["paper"],
+        customdata=np.stack([J["min_human"], J["max_human"]], axis=1),
+        visible=(i == 0)
+    ))
+
+    # Per‑metric annotation (updated by the dropdown)
+    annots.append(dict(
+        x=x0 + 0.05*(x1 - x0),
+        y=y1 - 0.05*(y1 - y0),
+        xref="x", yref="y",
+        showarrow=False,
+        text=f"{m.replace('_',' ').title()} — Pearson r = {r_p:.2f}; Spearman ρ = {r_s:.2f}",
+        font=dict(size=12, color="#222")
+    ))
+
+# 45° equality line
+fig.add_shape(type="line", x0=x0, y0=x0, x1=x1, y1=y1,
+              line=dict(color="rgba(120,120,120,0.5)", dash="dot"))
+
+# Dropdown logic: two traces per metric (human dots, mean+range)
+buttons = []
+for i, m in enumerate(metrics):
+    vis = [False] * (len(metrics) * traces_per_metric)
+    vis[2*i + 0] = True  # human dots
+    vis[2*i + 1] = True  # mean+range
+    buttons.append(dict(
+        method="update",
+        label=m.replace("_"," ").title(),
+        args=[
+            {"visible": vis},
+            {"title": f"LLM vs Human — all raters shown — {m.replace('_',' ').title()}",
+             "annotations": [annots[i]]}
+        ]
+    ))
+
+fig.update_layout(
+    template="plotly_white",
+    title=f"LLM vs Human — all raters shown — {metrics[0].replace('_',' ').title()}",
+    xaxis_title="Human score (x) — dots = individual raters; whiskers = full human range",
+    yaxis_title="LLM score (y)",
+    xaxis=dict(range=[x0, x1]),
+    yaxis=dict(range=[y0, y1], scaleanchor="x", scaleratio=1),
+    updatemenus=[dict(type="dropdown", x=1, xanchor="right", y=1.15, yanchor="top",
+                      showactive=True, buttons=buttons)]
+)
+fig
+
+```
 
 
 
@@ -471,7 +639,7 @@ plt.tight_layout(rect=(0,0,1,0.94))
 
 
 
-
+## Differences by paper and metric
 
 For each *(paper, metric)*, we plot LLM − Human difference in @fig-heatmap-static. Green means the LLM is lower than the human midpoint; orange means higher.  
 
@@ -597,14 +765,14 @@ plt.tight_layout()
 
 
 
-### Agreement metrics
+## Agreement metrics
 
 @tbl-agreement summarizes agreement: Pearson \(r\) captures linear alignment of levels; Spearman \(ρ\) captures rank agreement (monotonic relationship), robust to scale differences. 
 We report the mean and median of (LLM − Human) to summarize both average shift and central tendency of the differences and Cohen’s κ (unweighted & quadratic). Because scores are continuous, we discretize both LLM and Human using shared quantile cutpoints (5 bins) and compute the Unweighted κ (exact category agreement beyond chance) and the Quadratic‑weighted κ that penalizes larger disagreements more than smaller ones.
 
 As another indicator of agreement, we check whether each side's credible interval contain the other's point estimate, @tbl-coverage shows the shares across rating categories.
 
-@fig-uncert-vs-error plots the width of human raters CI against the difference in ratings; @tbl-outliers lists the papers with the largest aabsolute difference between LLM and human raters.
+@tbl-calibration shows "calibration" results based on a simple linear regression; @fig-uncert-vs-error plots the width of human raters CI against the difference in ratings; and @tbl-outliers lists the papers with the largest aabsolute difference between LLM and human raters.
 
 
 ```{python}
