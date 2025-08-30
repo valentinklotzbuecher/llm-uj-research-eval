@@ -1,6 +1,17 @@
 # Project Overview
 
-We are testing the capabilities of current large language models (LLMs), illustrating whether they can generate research paper evaluations comparable to expert human reviews. In this project, we use an AI (OpenAI's `GPT-5` model for now) to review social science research papers under the same criteria used by human reviewers in The Unjournal. 
+
+::: {.callout-warning}
+Work in progress. Pages, metrics, and comparisons are under active development. Expect rough edges and frequent updates.
+:::
+
+Motivation and questions
+
+Is AI good at peer-reviewing? Does it offer useful feedback? Can it predict how human experts will rate research across a range of categories? Where does it do surprisingly well (e.g., catching math errors) or poorly (e.g., judging real-world relevance)? What does its “research taste” look like compared to humans?
+
+If AI research evaluation works, it could free up substantial scientific resources (potentially on the order of billions of dollars annually) and enable more continual, structured feedback on research. It could also help characterize methodological strengths/weaknesses across papers, aiding training and research direction-setting. Understanding how AI evaluates research is also a window into its values, abilities, and limitations.
+
+In this project, we are testing the capabilities of current large language models (LLMs), illustrating whether they can generate research paper evaluations comparable to expert human reviews.  The Unjournal systematically prioritizes ‘impactful’ research  and pays for high-quality human evaluations, structured quantified ratings, claim identification and assessment, and predictions. In this project, we use an AI (OpenAI's `GPT-5` model for now) to review social science research papers under the same criteria used by human reviewers for The Unjournal.
 
 Each paper is assessed on specific dimensions – for example, the strength of its evidence, rigor of methods, clarity of communication, openness/reproducibility, relevance to global priorities, and overall quality. The LLM will provide quantitative scores (with uncertainty intervals) on these criteria and produce a written evaluation
 
@@ -8,3 +19,22 @@ Our initial dataset will include research papers that have existing human evalua
 
 Next, we will focus on papers currently under evaluation, ie where no human evaluation exists yet and we can rule out any contamination.
 
+## Related work
+
+
+ @Luo2025 survey LLM roles from idea generation to peer review, including experiment planning and automated scientific writing. They highlight opportunities (productivity, coverage of long documents) alongside governance needs (provenance, detection of LLM-generated content, standardizing tooling) and call for reliable evaluation frameworks. 
+
+ @eger2025 provide a broad review of LLMs in science and a focused discussion of AI‑assisted peer review. They emphasize: (i) peer‑review data is scarce and concentrated in CS/OpenReview venues; (ii) targeted assistance that preserves human autonomy is preferable to end‑to‑end reviewing; and (iii) ethics and governance (bias, provenance, detection of AI‑generated text) are first‑class constraints.
+ 
+@Zhang2025 propose deploying LLMs as quality checkers to surface critical problems instead of generating full narrative reviews. Using papers from WITHDRARXIV and an automatic evaluation framework that leverages “LLM-as-judge,” they find the best performance from top reasoning models but still recommend human oversight. 
+
+ <!-- **The Black Spatula Project.** A community effort to spot and document critical errors in scientific papers (see <https://the-black-spatula-project.github.io/>).  -->
+ 
+
+<!-- Our approach differs from prior work by (i) focusing on structured, percentile-based quantitative ratings with credible intervals that map to decision-relevant dimensions used by The Unjournal; (ii) comparing those ratings to published human evaluations rather than using LLM-as-judge; and (iii) curating contamination-aware inputs (paper text extraction with reference-section removal and token caps), with a roadmap to add multi-modal checks when we score figure- or table-dependent criteria. -->
+
+<!-- Methodological implications we (will) adopt from the literature:
+
+- Report stability (repeat runs / seeds) and calibration diagnostics alongside point scores.  
+- Keep error verification distinct from quality scoring; when we do verification, prefer author- or expert-validated ground truth over LLM-as-judge, or clearly disclose the judge and its limits.  
+- Track input format effects (PDF vs LaTeX vs extracted text) and costs/latency, since these affect reproducibility and deployment. -->

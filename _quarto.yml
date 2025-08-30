@@ -2,18 +2,18 @@ project:
   type: book
 
 book:
-  title: "Comparing LLM-Generated Reviews to Human Evaluations in Social Science Research"
+  title: "Comparing LLM and human peer reviews and ratings of social science research using data from Unjournal.org evaluations"
   author:
     - name: "David Reinstein"
-      # affiliation: "The Unjournal"
+      affiliation: "The Unjournal"
+      email: contact@unjournal.org
     # - name: "Alexander Herwix"
-    - name: "Valentin Klotzb&uuml;cher"
+    - name: "Valentin Klotzbücher"
       orcid: 0000-0001-9382-6757
       email: valentin.klotzbuecher@econ.uni-freiburg.de
       # affiliation: "University of Freiburg"
-    # - name: "Emmanuel Orkoh"
-    # - name: "Lorenzo Pacchiardi"
     # - name: "Casey Wimsatt"
+    # - name: "Lorenzo Pacchiardi"
   chapters:
     - index.qmd
     - numerical_ratings.qmd
@@ -25,6 +25,8 @@ book:
     # - compare_evals.qmd
     - references.qmd
   date: last-modified
+  abstract: |
+    We will build and refine LLM tools to generate peer-reviews and ratings of impactful research, and compare these with human experts' work (esp. from Unjournal.org): to benchmark performance, understand AI's research taste, and develop tools to improve research evaluation and dissemination.
  
 bibliography: 
   - "references.bib"
@@ -58,6 +60,7 @@ format:
       message: false
       freeze: auto
       cache: true
+    format-links: true 
     code-links:
       - text: Project files
         icon: github
@@ -69,5 +72,34 @@ format:
       - text: Shared notes
         icon: google
         href: https://docs.google.com/document/d/1F9bDUh1UuayQsPG2PpylwbPfDs5a-bRCOt1F-q2Qv5A/edit?usp=sharing
-        
+  pdf:
+    documentclass: scrreprt
+    fontsize: 11pt
+    geometry: margin=1in
+    toc: true
+    number-sections: true
+    link-citations: true
+    keep-tex: true
+    fig-cap-location: top
+    fig-align: left
+    df-print: kable
+    latex-engine: xelatex
+    execute:
+      warning: false
+      message: false
+      freeze: auto
+      cache: true 
+      prefer-html: true
+      echo: false
+  docx: 
+    toc: true
+    number-sections: true
+    link-citations: true
+    execute:
+      warning: false
+      message: false
+      freeze: auto
+      cache: true 
+      prefer-html: true
+      echo: false
  

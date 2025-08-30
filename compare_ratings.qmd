@@ -2,17 +2,10 @@
 title: "LLM vs. Human Ratings"
 ---
 
-<!-- ::: {.callout-tip}
-Prereq – `quarto render numerical_ratings.qmd` must have created  
-`results/metrics_long.csv`.  
-Add hand-coded spreadsheet of human scores as
-`UJ_ratings/rsx_evalr_rating (7).csv` with columns:  
-`paper, metric, midpoint_human`; as well as the mapping `UJ_map.csv`.
-::: -->
 
 ## Overview
 
-This page compares LLM‑generated ratings (`gpt-5`) with human evaluations across the Unjournal criteria. We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
+This page compares the LLM‑generated ratings (`gpt-5`) from the[(previous section](numerical_ratings.qmd) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). We (i) harmonize the two sources to a common set of metrics and paper IDs, (ii) compute paired scores per *(paper, metric)*, and (iii) summarize agreement using distributional views and reliability statistics.  
 
 ## Data & Harmonization
 
@@ -25,7 +18,6 @@ This page compares LLM‑generated ratings (`gpt-5`) with human evaluations acro
 
 ```{python}
 #| label: setup
-#| echo: false
 
 import os, re, math
 import numpy as np
@@ -114,7 +106,7 @@ from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap  # add TwoSl
 
 ```{python}
 #| label: load-and-merge
-#| echo: false
+
 
 # Files
 LLM_FILE   = "results/metrics_long.csv"
@@ -199,7 +191,7 @@ ratings_long = pd.concat([
 
 ```{python}
 #| label: human-raw
-#| echo: false
+
 
 # Keep per‑rater rows (after mapping; before averaging)
 human_raw = human.dropna(subset=["paper","metric","middle_rating"]).copy()
@@ -226,7 +218,7 @@ llm_single = llm_use[["paper","metric","midpoint_llm"]].drop_duplicates()
 
 ```{python}
 #| label: agreement-helpers
-#| echo: false
+
 
 def pair_llm_human(df: pd.DataFrame) -> pd.DataFrame:
     """Return (paper, metric, LLM, Human) single-row pairs."""
@@ -373,8 +365,8 @@ def overall_stats(merged_df, n_bins=5, bin_strategy="quantile"):
 
 ```{python}
 #| label: fig-scatter-ellipses
-#| echo: false
 #| fig-cap: "LLM vs Human with robust CI ellipses. Horizontal span covers the union of all human raters' CIs and point ratings; vertical span from LLM CI. Centers at midpoints. Dropdown selects metric."
+
 
 import plotly.graph_objects as go
 import colorsys
@@ -634,7 +626,6 @@ For each paper (selected metric), the **ellipse** is centered at the pair of mid
 
 ```{python}
 #| label: fig-hist-static
-#| echo: false
 #| fig-cap: "Distributions by metric. Top: Overall (full width). Bottom: remaining metrics in a 2×3 grid."
 
 from matplotlib.gridspec import GridSpec
@@ -720,7 +711,6 @@ For each *(paper, metric)*, we plot LLM − Human difference in @fig-heatmap-sta
 
 ```{python}
 #| label: fig-heatmap-static
-#| echo: false
 #| fig-cap: "LLM − Human difference by paper × metric (robust, centered scale; rows sorted by signed overall difference)."
 
 pair = pair_llm_human(merged)
@@ -791,10 +781,9 @@ As another indicator of agreement, we check whether each side's credible interva
 
 ```{python}
 #| label: tbl-agreement
-#| echo: false
 #| tbl-cap: "Agreement metrics by metric (Pearson, Spearman, mean/median bias, κ unweighted/weighted)."
 
-# New static agreement summary (no sklearn needed)
+
 agree_cat = agreement_summary(merged, n_bins=5, bin_strategy="quantile")
 agree_cat.round({"pearson":3,"spearman":3,"mean_bias":2,"median_bias":2,
                  "kappa_unw":3,"kappa_quad":3})
@@ -820,7 +809,6 @@ agree_view
 
 ```{python}
 #| label: tbl-calibration
-#| echo: false
 #| tbl-cap: "Calibration of LLM to Human by metric (Human ≈ intercept + slope·LLM). Includes pre-/post- MAD."
 
 from scipy.stats import linregress
@@ -863,7 +851,6 @@ calib_rounded
 
 ```{python}
 #| label: tbl-coverage
-#| echo: false
 #| tbl-cap: "CI coverage: does one interval contain the other’s point estimate?"
 
 cov = (merged.dropna(subset=["lower_llm","upper_llm","lower_human","upper_human",
@@ -901,7 +888,6 @@ coverage_tbl
 
 ```{python}
 #| label: fig-uncert-vs-error
-#| echo: false
 #| fig-cap: "Human uncertainty (CI width) vs |LLM − Human|. Spearman correlation reported."
 #| fig-height: 3
 
@@ -927,7 +913,6 @@ plt.tight_layout()
 
 ```{python}
 #| label: tbl-outliers
-#| echo: false
 #| tbl-cap: "Top absolute differences (LLM vs Human). Flags show whether each point lies within the other's CI."
 
 out = merged.copy()
