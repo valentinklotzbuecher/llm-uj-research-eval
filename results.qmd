@@ -1,0 +1,105 @@
+---
+title: Results
+format: 
+  html: default
+  pdf: default
+--- 
+
+
+
+```{r}
+
+# renv::install("dplyr")
+# renv::install("here")
+# renv::install("tidyverse")
+
+library("tidyverse")
+library("janitor")
+library("stringr")
+library("stringi")
+library("lubridate")
+library("readr")
+library("here") 
+
+ 
+
+metrics <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE)
+
+metrics <- metrics |> clean_names() |>
+  mutate(label_paper = paper,
+         middle_rating = midpoint,
+         lower_ci = lower_bound,
+         upper_ci = upper_bound,
+         criteria = metric) |>
+  mutate(criteria = if_else(criteria == "advancing_knowledge", "adv_knowledge", criteria)) |>
+  select(c("label_paper", "criteria", "middle_rating", "lower_ci", "upper_ci", "rationale"))
+  
+
+
+
+
+rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
+
+UJmap <- read_csv(here("data", "UJ_map.csv"), show_col_types = FALSE) |>
+  mutate(label_paper_title = research,
+         label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE)
+
+  
+rsx_collapsed = rsx |>
+  group_by(label_paper_title) |>
+  summarise(middle_rating = mean(middle_rating, na.rm = TRUE)) |>
+  left_join(UJmap, by = c("label_paper_title")) 
+
+ 
+research <- research |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>
+  left_join(UJmap,     by = c("label_paper_title")) |>
+  left_join(rsx_collapsed, by = c("label_paper_title", "label_paper")) 
+ 
+
+# jql_enriched_raw <- if (!is.na(jql_enriched_file)) read_clean(jql_enriched_file) else NULL
+# jql70_raw <- if (!is.na(jql70_file)) read_clean(jql70_file) else NULL
+ 
+ 
+
+
+
+
+
+
+
+
+
+  
+```
+
+
+
+
+
+
+
+
+
+
+On this page we present preliminray results, starting with a comparison of the LLM‑generated ratings (`gpt-5`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
