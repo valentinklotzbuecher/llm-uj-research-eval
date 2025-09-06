@@ -90,6 +90,16 @@
     ]
   },
   {
+    "objectID": "results.html",
+    "href": "results.html",
+    "title": "Results",
+    "section": "",
+    "text": "Show code\n# renv::install(\"here\")\n\n\nlibrary(\"tidyverse\")\nlibrary(\"janitor\")\nlibrary(\"stringr\")\nlibrary(\"stringi\")\nlibrary(\"lubridate\")\nlibrary(\"readr\")\nlibrary(\"here\") \nlibrary(\"knitr\") \nlibrary(\"reticulate\") \n\n \n\nmetrics &lt;- read_csv(here(\"data\", \"metrics_long.csv\"), show_col_types = FALSE)\n\nmetrics &lt;- metrics |&gt; clean_names() |&gt;\n  mutate(label_paper = paper,\n         middle_rating = midpoint,\n         lower_ci = lower_bound,\n         upper_ci = upper_bound,\n         criteria = metric) |&gt;\n  mutate(criteria = if_else(criteria == \"advancing_knowledge\", \"adv_knowledge\", criteria)) |&gt;\n  select(c(\"label_paper\", \"criteria\", \"middle_rating\", \"lower_ci\", \"upper_ci\", \"rationale\"))\n  \n\n\n\n\nrsx &lt;- read_csv(here(\"data\", \"rsx_evalr_rating.csv\"), show_col_types = FALSE) |&gt; \n  clean_names()  |&gt;\n  mutate(label_paper_title = research) |&gt;\n  select(-c(\"research\"))\n\nUJmap &lt;- read_csv(here(\"data\", \"UJ_map.csv\"), show_col_types = FALSE) |&gt;\n  mutate(label_paper_title = research,\n         label_paper = paper) |&gt;\n  select(c(\"label_paper_title\", \"label_paper\"))\n\n\nresearch &lt;- read_csv(here(\"data\", \"research.csv\"), show_col_types = FALSE)\n\n  \nrsx_collapsed = rsx |&gt;\n  group_by(label_paper_title) |&gt;\n  summarise(middle_rating = mean(middle_rating, na.rm = TRUE)) |&gt;\n  left_join(UJmap, by = c(\"label_paper_title\")) \n\n \nresearch &lt;- research |&gt;\n  clean_names() |&gt;\n  filter(status == \"50_published evaluations (on PubPub, by Unjournal)\") |&gt;\n  left_join(UJmap,     by = c(\"label_paper_title\")) |&gt;\n  left_join(rsx_collapsed, by = c(\"label_paper_title\", \"label_paper\")) \n \n\n# jql_enriched_raw &lt;- if (!is.na(jql_enriched_file)) read_clean(jql_enriched_file) else NULL\n# jql70_raw &lt;- if (!is.na(jql70_file)) read_clean(jql70_file) else NULL\n\n\nOn this page we present preliminray results, starting with a comparison of the LLM‑generated ratings (gpt-5, see the(previous section) with human evaluations across the Unjournal’s criteria.",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Results</span>"
+    ]
+  },
+  {
     "objectID": "references.html",
     "href": "references.html",
     "title": "References",

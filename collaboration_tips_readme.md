@@ -7,7 +7,7 @@ Thanks for contributing! To keep things smooth and reproducible, please follow t
 ## Getting started
 1. Clone the repo from GitHub.
 2. Open the project in RStudio by double-clicking the `.Rproj` file in the repo root.
-3. If it does not happen automatically, run:
+3. Run:
 ```r
    install.packages("renv")
    renv::restore()
