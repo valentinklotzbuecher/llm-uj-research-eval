@@ -1,5 +1,5 @@
 ---
-title: Results
+title: "Results"
 format: 
   html: default
   # pdf: default
@@ -7,12 +7,13 @@ engine: knitr
 --- 
 
 
-
 ```{r}
+#| label: setup
 
 
-# renv::install("here")
+# renv::install("ggforce")
 
+currentmodel = "GPT-5"
 
 library("tidyverse")
 library("janitor")
@@ -22,87 +23,623 @@ library("lubridate")
 library("readr")
 library("here") 
 library("knitr") 
-library("reticulate") 
-
- 
-
-metrics <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE)
-
-metrics <- metrics |> clean_names() |>
-  mutate(label_paper = paper,
-         middle_rating = midpoint,
-         lower_ci = lower_bound,
-         upper_ci = upper_bound,
-         criteria = metric) |>
-  mutate(criteria = if_else(criteria == "advancing_knowledge", "adv_knowledge", criteria)) |>
-  select(c("label_paper", "criteria", "middle_rating", "lower_ci", "upper_ci", "rationale"))
-  
+# library("reticulate") 
+library("ggforce") 
 
 
+# ---- Unjournal brand palette ----------------------------------------------
+UJ_ORANGE <- "#f19e4b"   # LLM
+UJ_GREEN  <- "#99bb66"   # Human
+
+theme_uj <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      legend.position = "bottom"
+    )
+}
+
+# ---- small helpers ---------------------------------------------------------
+fix_bounds <- function(df, lo, hi) {
+  lo2 <- suppressWarnings(as.numeric(df[[lo]]))
+  hi2 <- suppressWarnings(as.numeric(df[[hi]]))
+  swap <- !is.na(lo2) & !is.na(hi2) & (lo2 > hi2)
+  df[swap, c(lo, hi)] <- df[swap, c(hi, lo)]
+  df
+}
+
+safe_min <- function(ci, pts) {
+  if (length(ci) == 0 || all(is.na(ci))) suppressWarnings(min(pts, na.rm = TRUE)) else suppressWarnings(min(ci, na.rm = TRUE))
+}
+safe_max <- function(ci, pts) {
+  if (length(ci) == 0 || all(is.na(ci))) suppressWarnings(max(pts, na.rm = TRUE)) else suppressWarnings(max(ci, na.rm = TRUE))
+}
+
+# Quantile/equal binning shared by both raters (for κ)
+bin_together <- function(a, b, n_bins = 5, strategy = c("quantile","equal")) {
+  strategy <- match.arg(strategy)
+  x <- c(a, b)
+  x <- x[is.finite(x)]
+  # discrete-ish fallback
+  if (length(unique(x)) <= max(3, n_bins)) {
+    u <- sort(unique(x))
+    f <- function(v) match(v, u) - 1L
+    return(list(a_bin = f(a), b_bin = f(b), k = length(u)))
+  }
+  if (strategy == "quantile") {
+    qs <- unique(quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE))
+    if (length(qs) - 1L < 2L) {
+      strategy <- "equal"
+    } else {
+      edges <- qs
+    }
+  }
+  if (strategy == "equal") {
+    lo <- min(x, na.rm = TRUE); hi <- max(x, na.rm = TRUE)
+    edges <- seq(lo, hi, length.out = n_bins + 1)
+  }
+  # widen to include endpoints robustly
+  edges[1] <- edges[1] - 1e-9
+  edges[length(edges)] <- edges[length(edges)] + 1e-9
+  a_bin <- cut(a, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  b_bin <- cut(b, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  k <- max(c(a_bin, b_bin), na.rm = TRUE) + 1L
+  list(a_bin = a_bin, b_bin = b_bin, k = k)
+}
+
+# Cohen κ (unweighted, linear, quadratic) for labels 0..k-1
+weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","linear","unweighted")) {
+  weights <- match.arg(weights)
+  a <- as.integer(a_bin); b <- as.integer(b_bin)
+  keep <- is.finite(a) & is.finite(b)
+  a <- a[keep]; b <- b[keep]
+  if (!length(a)) return(NA_real_)
+  if (is.null(k)) k <- max(c(a,b)) + 1L
+
+  M <- matrix(0, nrow = k, ncol = k)
+  for (i in seq_along(a)) M[a[i]+1L, b[i]+1L] <- M[a[i]+1L, b[i]+1L] + 1
+  if (sum(M) == 0) return(NA_real_)
+  M <- M / sum(M)
+  r <- rowSums(M); csum <- colSums(M)
+  E <- r %*% t(csum)
+
+  I <- matrix(rep(0:(k-1), times = k), nrow = k)
+  J <- t(I)
+  if (weights == "quadratic") {
+    W <- ((I - J)^2) / ((k - 1)^2)
+  } else if (weights == "linear") {
+    W <- abs(I - J) / (k - 1)
+  } else {
+    W <- 1 - diag(1, k)  # 1 off-diagonal, 0 on diagonal
+  }
+  num <- sum(W * M); den <- sum(W * E)
+  if (den == 0) NA_real_ else 1 - num/den
+}
 
 
-rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
-  clean_names()  |>
-  mutate(label_paper_title = research) |>
-  select(-c("research"))
 
-UJmap <- read_csv(here("data", "UJ_map.csv"), show_col_types = FALSE) |>
+```
+
+
+On this page we present preliminray results, starting with a comparison of the LLM‑generated ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
+
+
+
+```{r}
+#| label: load-data
+
+# Mapping paper keys - short titles
+UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
   mutate(label_paper_title = research,
          label_paper = paper) |>
   select(c("label_paper_title", "label_paper"))
 
 
-research <- read_csv(here("data", "research.csv"), show_col_types = FALSE)
 
+# LLM generated ratings
+metrics <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE)
+
+metrics <- metrics |> clean_names() |>
+  mutate(evaluator = "GPT-5",
+         label_paper = paper,
+         middle_rating = midpoint,
+         lower_ci = lower_bound,
+         upper_ci = upper_bound,
+         criteria = metric) |>
+  mutate(criteria = if_else(criteria == "advancing_knowledge", "adv_knowledge", criteria)) |>
+  mutate(criteria = if_else(criteria == "open_science", "open_sci", criteria)) |>
+  mutate(criteria = if_else(criteria == "logic_communication", "logic_comms", criteria)) |>
+  mutate(criteria = if_else(criteria == "global_relevance", "gp_relevance", criteria)) |>
+  mutate(criteria = if_else(criteria == "claims_evidence", "claims", criteria)) |>
+  # mutate(criteria = factor(criteria)) |>
+  left_join(UJmap, by = c("label_paper")) |>
+  select(c("label_paper", "label_paper_title", "evaluator", "criteria", "middle_rating", "lower_ci", "upper_ci", "rationale"))
   
-rsx_collapsed = rsx |>
-  group_by(label_paper_title) |>
-  summarise(middle_rating = mean(middle_rating, na.rm = TRUE)) |>
-  left_join(UJmap, by = c("label_paper_title")) 
+  
+# Unjournal ratings
+rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
 
- 
-research <- research |>
+# More on evaluated research
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
   clean_names() |>
-  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>
-  left_join(UJmap,     by = c("label_paper_title")) |>
-  left_join(rsx_collapsed, by = c("label_paper_title", "label_paper")) 
- 
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)")
 
+# rsx_collapsed = rsx |>
+#   group_by(label_paper_title) |>
+#   summarise(g_middle_rating = mean(middle_rating, na.rm = TRUE)) |>
+#   left_join(UJmap, by = c("label_paper_title")) 
+
+# More journal rating info
 # jql_enriched_raw <- if (!is.na(jql_enriched_file)) read_clean(jql_enriched_file) else NULL
 # jql70_raw <- if (!is.na(jql70_file)) read_clean(jql70_file) else NULL
- 
- 
-
-
-
-
-
-
-
-
-
   
+
+# Merge Unjournal data and keys
+rsx_research <- rsx  |>
+  left_join(UJmap, by = c("label_paper_title")) |>
+  left_join(research, by = c("label_paper_title")) |>  
+  select(c("label_paper", "label_paper_title", "evaluator","criteria","middle_rating","lower_ci","upper_ci")) |>
+  mutate(rationale = "")
+ 
+# Merge Unjournal data and LLM metrics
+all_ratings <- rbind(rsx_research, metrics) |>
+  mutate(criteria = factor(criteria)) |>
+  mutate(evaluator = factor(evaluator)) |>
+  mutate(label_paper_title = factor(label_paper_title)) |>
+  mutate(label_paper = factor(label_paper))
+
+# clean up
+rm("metrics", "research", "rsx", "rsx_research", "UJmap")
+
+# write_csv(all_ratings, here("data", "all_ratings.csv"))
+write_rds(
+  all_ratings,
+  here("data", "all_ratings.rds"),
+  compress = "none"
+  )
+
+
+# Ensure numeric + fix any swapped CI bounds
+all_ratings <- all_ratings |>
+  mutate(across(c(middle_rating, lower_ci, upper_ci), as.numeric)) |>
+  fix_bounds("lower_ci","upper_ci")
+
+# Split: LLM vs Human raters (LLM = evaluator == 'GPT-5')
+human_raw <- all_ratings |>
+  filter(evaluator != "GPT-5") |>
+  filter(!is.na(middle_rating))
+
+llm_raw <- all_ratings |>
+  filter(evaluator == "GPT-5") |>
+  transmute(
+    label_paper, label_paper_title, criteria,
+    midpoint_llm = middle_rating,
+    lower_llm = lower_ci,
+    upper_llm = upper_ci
+  ) |>
+  distinct()
+ 
+
+
+
+
+human_use <- human_raw |>
+  group_by(label_paper, label_paper_title, criteria) |>
+  summarise(
+    midpoint_human   = mean(middle_rating, na.rm = TRUE),
+    # keep means of human CIs (used in one of the outlier tables)
+    lower_human      = mean(lower_ci, na.rm = TRUE),
+    upper_human      = mean(upper_ci, na.rm = TRUE),
+    # CI union (fallback to min/max of points where CI missing)
+    human_lo_union   = safe_min(lower_ci, middle_rating),
+    human_hi_union   = safe_max(upper_ci, middle_rating),
+    n_raters         = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  fix_bounds("human_lo_union","human_hi_union")
+
+# Merge to LLM
+merged <- llm_raw |>
+  inner_join(human_use, by = c("label_paper","label_paper_title","criteria")) |>
+  mutate(diff = midpoint_llm - midpoint_human)
+
+# Long form for distributions
+ratings_long <- merged |>
+  select(label_paper, label_paper_title, criteria, midpoint_llm, midpoint_human) |>
+  pivot_longer(starts_with("midpoint_"),
+               names_to = "rater", values_to = "score") |>
+  mutate(rater = recode(rater,
+                        midpoint_llm   = "LLM",
+                        midpoint_human = "Human"))
+
 ```
 
 
 
+## Overall ratings
 
 
 
 
 
 
+```{r}
+#| label: fig-forest
+#| fig-cap: "LLM and Human ratings (overall) with 90% credible intervals"
+#| fig-height: 8
 
-On this page we present preliminray results, starting with a comparison of the LLM‑generated ratings (`gpt-5`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
+
+metric_name <- "overall" 
+
+D <- merged |>
+  filter(criteria == metric_name) |>
+  mutate(paper_order = fct_reorder(label_paper, diff, .desc = FALSE))
+
+D_long <- bind_rows(
+  D |> transmute(paper_order, who = "Human",
+                 mid = midpoint_human, lo = human_lo_union, hi = human_hi_union),
+  D |> transmute(paper_order, who = "LLM",
+                 mid = midpoint_llm,  lo = lower_llm,     hi = upper_llm)
+)
+
+ggplot(D_long, aes(x = mid, y = paper_order, color = who)) +
+  geom_errorbarh(aes(xmin = lo, xmax = hi),
+                 height = 0, size = 0.7,
+                 position = position_dodge(width = 0.55), alpha = 0.9) +
+  geom_point(size = 2.6, position = position_dodge(width = 0.55)) +
+  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
+  labs(
+    title = paste0("Forest — ", str_to_title(gsub("_"," ", metric_name)),
+                   " (Human CI = union across raters)"),
+    x = "Score", y = NULL
+  ) +
+  theme_uj()
+
+```
+
+
+
+ 
+```{r}
+#| label: fig-rankslope
+#| fig-cap: "Relative ranking (overall) by LLM and Human evaluators"
+#| fig-height: 8
+
+
+
+make_s_bezier <- function(D, dx_base = 0.33, dx_min = 0.08) {
+  # adaptive horizontal control distance based on |Δrank|
+  dy <- abs(D$pos_right - D$pos_left)
+  k  <- max(2, stats::quantile(dy, 0.75, na.rm = TRUE))  # scale
+  dx_i <- pmax(dx_min, dx_base * exp(-dy / k))
+
+  pieces <- lapply(seq_len(nrow(D)), function(i) {
+    y0 <- D$pos_left[i]; y1 <- D$pos_right[i]
+    dx <- dx_i[i]
+    tibble::tibble(
+      group = i,
+      x = c(0, dx, 1 - dx, 1),
+      y = c(y0, y0, y1, y1),
+      col = dplyr::case_when(
+        D$delta[i] >  0 ~ "LLM higher",
+        D$delta[i] <  0 ~ "LLM lower",
+        TRUE            ~ "Tie"
+      )
+    )
+  })
+  dplyr::bind_rows(pieces)
+}
+
+
+# --- replace build_rank_positions ------------------------------------------
+build_rank_positions <- function(metric) {
+  D <- merged |>
+    filter(criteria == metric) |>
+    # keep BOTH labels; create a display label preferring the short code
+    mutate(
+      label_use = dplyr::if_else(
+        !is.na(label_paper) & nzchar(as.character(label_paper)),
+        as.character(label_paper),
+        as.character(label_paper_title)
+      )
+    ) |>
+    select(label_use, label_paper, label_paper_title, midpoint_human, midpoint_llm)
+
+  if (!nrow(D)) return(NULL)
+
+  left  <- D |> arrange(desc(midpoint_human), label_use) |> mutate(pos_left  = row_number())
+  right <- D |> arrange(desc(midpoint_llm),   label_use) |> mutate(pos_right = row_number())
+
+  D |> 
+    left_join(left  |> select(label_use, pos_left),  by = "label_use") |>
+    left_join(right |> select(label_use, pos_right), by = "label_use") |>
+    mutate(delta = midpoint_llm - midpoint_human)
+}
+
+# --- replace plot_rank_slope_S (only the labeling bits changed) ------------
+plot_rank_slope_S <- function(metric, D = NULL) {
+  if (is.null(D)) D <- build_rank_positions(metric)
+  if (is.null(D) || !nrow(D)) return(ggplot() + theme_void())
+
+  B <- make_s_bezier(D)
+
+  ggplot() +
+    ggforce::geom_bezier(
+      data = B,
+      aes(x = x, y = y, group = group, colour = col),
+      size = 0.9
+    ) +
+    geom_point(data = D, aes(x = 0, y = pos_left),
+               color = UJ_GREEN, size = 2.2) +
+    geom_point(data = D, aes(x = 1, y = pos_right),
+               color = UJ_ORANGE, shape = 18, size = 2.4) +
+    # LEFT labels: use label_use (label_paper if present, else title)
+    geom_text(data = D, aes(x = 0, y = pos_left, label = label_use),
+              hjust = 1.05, size = 3, color = "grey20") +
+    scale_color_manual(values = c("LLM higher" = UJ_ORANGE,
+                                  "LLM lower"  = UJ_GREEN,
+                                  "Tie"        = "grey55"),
+                       name = NULL) +
+    scale_x_continuous(limits = c(-0.7, 1.02),
+                       breaks = c(0, 1), labels = c("Human", "LLM"),
+                       expand = expansion(mult = 0)) +
+    scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
+    labs(
+      title = paste0("Rank slopegraph (S-curves) — ",
+                     stringr::str_to_title(gsub("_"," ", metric))),
+      x = NULL, y = NULL
+    ) +
+    theme_uj() +
+    theme(plot.margin = margin(t = 10, r = 30, b = 10, l = 140))
+}
+
+# Example:
+plot_rank_slope_S(metric_name)
+
+
+
+```
+
+## Individual metrics
+
+
+```{r}
+#| label: fig-heat
+#| fig-height: 7
+#| fig-cap: "LLM − Human differences by paper × metric"
+
+pair <- merged |>
+  transmute(paper = label_paper, metric = criteria,
+            diff = midpoint_llm - midpoint_human)
+
+# Row order by signed difference on 'overall' (if present)
+order_overall <- pair |>
+  filter(metric == "overall") |>
+  group_by(paper) |>
+  summarise(d = mean(diff, na.rm = TRUE), .groups = "drop") |>
+  arrange(d) |>
+  pull(paper)
+
+pair$paper <- factor(pair$paper, levels = unique(c(order_overall, pair$paper)))
+
+
+ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
+  geom_tile(color = "white", size = 0.4) +
+  scale_fill_gradient2(low = UJ_GREEN, mid = "grey95", high = UJ_ORANGE,
+                       midpoint = 0,
+                       name = "LLM − Human") +
+  labs(x = NULL, y = NULL) +
+  theme_uj() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+
+```
 
  
  
+```{r}
+#| label: fig-histogram
+
+smin <- min(ratings_long$score, na.rm = TRUE)
+smax <- max(ratings_long$score, na.rm = TRUE)
+bins <- if (smin >= 0 && smax <= 100) seq(0, 100, by = 5) else pretty(c(smin, smax), n = 20)
+
+ggplot(ratings_long, aes(x = score, fill = rater)) +
+  geom_histogram(position = "identity", alpha = 0.55, bins = max(length(bins) - 1, 10), color = "white") +
+  scale_fill_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
+  facet_wrap(~ criteria, scales = "free_y") +
+  labs(title = "Distributions by metric", x = "Score", y = "Count") +
+  theme_uj()
+
+```
+
+
+```{r}
+#| label: tbl-agreement
+#| tbl-cap: "Overall agreement across all metrics"
+
+agreement_summary <- function(df, n_bins = 5, bin_strategy = "quantile") {
+  df |>
+    group_by(criteria) |>
+    summarise(
+      n           = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
+      pearson     = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
+      spearman    = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
+      mean_bias   = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
+      median_bias = median(midpoint_llm - midpoint_human, na.rm = TRUE),
+      kappa_unwtd = {
+        bins <- bin_together(midpoint_llm, midpoint_human, n_bins = n_bins, strategy = bin_strategy)
+        weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "unweighted")
+      },
+      kappa_quad  = {
+        bins <- bin_together(midpoint_llm, midpoint_human, n_bins = n_bins, strategy = bin_strategy)
+        weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "quadratic")
+      },
+      .groups = "drop"
+    ) |>
+    arrange(criteria)
+}
+
+agree_view <- agreement_summary(merged, n_bins = 5, bin_strategy = "quantile") |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+kable(agree_view, caption = "Agreement by metric (Pearson, Spearman, mean/median bias, κ unweighted/weighted)")
+
+overall_stats <- function(df, n_bins = 5, bin_strategy = "quantile") {
+  llm <- df$midpoint_llm; hum <- df$midpoint_human
+  pr  <- suppressWarnings(cor(llm, hum, use = "pairwise.complete.obs", method = "pearson"))
+  mad <- mean(abs(llm - hum), na.rm = TRUE)
+  bins <- bin_together(llm, hum, n_bins = n_bins, strategy = bin_strategy)
+  tibble(
+    n = sum(is.finite(llm) & is.finite(hum)),
+    pearson = pr,
+    mad = mad,
+    kappa_unwtd = weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "unweighted"),
+    kappa_quad  = weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "quadratic")
+  )
+}
+
+kable(overall_stats(merged) |> mutate(across(where(is.numeric), ~ round(.x, 3))))
+
+```
+
+
+
+```{r}
+#| label: tbl-coverage
+#| tbl-cap: "CI coverage using Human CI = union across raters"
+
+calibrate_per_metric <- function(df) {
+  df |>
+    group_by(criteria) |>
+    summarise(
+      n = dplyr::n(),
+      slope = {
+        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
+        if (is.null(fit)) NA_real_ else unname(coef(fit)[2])
+      },
+      intercept = {
+        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
+        if (is.null(fit)) NA_real_ else unname(coef(fit)[1])
+      },
+      r2 = {
+        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
+        if (is.null(fit)) NA_real_ else summary(fit)$r.squared
+      },
+      MAD_pre = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+      MAD_post = {
+        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
+        if (is.null(fit)) NA_real_ else {
+          yhat <- predict(fit, newdata = cur_data())
+          mean(abs(yhat - midpoint_human), na.rm = TRUE)
+        }
+      },
+      MAD_delta = MAD_pre - MAD_post,
+      .groups = "drop"
+    )
+}
+
+kable(calibrate_per_metric(merged) |>
+        mutate(across(where(is.numeric), ~ round(.x, 3))),
+      caption = "Calibration: Human ≈ intercept + slope·LLM (per metric)")
+
+# Coverage: does each side's CI cover the other's midpoint?
+coverage_tbl <- merged |>
+  filter(is.finite(lower_llm), is.finite(upper_llm),
+         is.finite(human_lo_union), is.finite(human_hi_union)) |>
+  mutate(
+    human_in_llm = midpoint_human >= lower_llm & midpoint_human <= upper_llm,
+    llm_in_human = midpoint_llm   >= human_lo_union & midpoint_llm   <= human_hi_union,
+    both_cover   = human_in_llm & llm_in_human
+  ) |>
+  group_by(criteria) |>
+  summarise(
+    N = dplyr::n(),
+    human_in_llm = round(mean(human_in_llm), 2),
+    llm_in_human = round(mean(llm_in_human), 2),
+    both_cover   = round(mean(both_cover), 2),
+    .groups = "drop"
+  )
+
+kable(coverage_tbl)
+
+```
+
+
+
+```{r}
+#| label: fig-scatter
+#| eval: false
+
+# global axis limits (square)
+global_min <- min(c(merged$human_lo_union, merged$lower_llm,
+                    merged$midpoint_human, merged$midpoint_llm), na.rm = TRUE)
+global_max <- max(c(merged$human_hi_union, merged$upper_llm,
+                    merged$midpoint_human, merged$midpoint_llm), na.rm = TRUE)
+pad <- 0.05 * (global_max - global_min)
+lims <- c(global_min - pad, global_max + pad)
+
+plot_ellipses <- function(metric) {
+  J <- merged |>
+    filter(criteria == metric) |>
+    mutate(
+      cx = midpoint_human,
+      cy = midpoint_llm,
+      rx = pmax(cx - human_lo_union, human_hi_union - cx, 0, na.rm = TRUE),
+      ry = pmax((upper_llm - lower_llm)/2, 0, na.rm = TRUE)
+    )
+
+  # Individual human points at y = LLM midpoint
+  Hpts <- human_raw |>
+    filter(criteria == metric) |>
+    select(label_paper, label_paper_title, human_x = middle_rating) |>
+    inner_join(J |> select(label_paper, cy), by = "label_paper") |>
+    rename(llm_y = cy)
+
+  r_p <- suppressWarnings(cor(J$midpoint_human, J$midpoint_llm, use = "pairwise.complete.obs", method = "pearson"))
+  r_s <- suppressWarnings(cor(J$midpoint_human, J$midpoint_llm, use = "pairwise.complete.obs", method = "spearman"))
+  annot <- sprintf("Pearson r = %.2f; Spearman \u03C1 = %.2f", r_p, r_s)
+
+  ggplot() +
+    ggforce::geom_ellipse(
+      data = J,
+      aes(x0 = cx, y0 = cy, a = rx, b = ry, angle = 0),
+      color = alpha(UJ_GREEN, 0.65),
+      fill  = alpha(UJ_GREEN, 0.15),
+      size = 0.4
+    ) +
+    geom_point(data = Hpts, aes(x = human_x, y = llm_y),
+               color = UJ_GREEN, size = 1.6, alpha = 0.55) +
+    geom_point(data = J, aes(x = midpoint_human, y = midpoint_llm),
+               color = UJ_ORANGE, shape = 18, size = 2.6) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dotted", color = "grey50") +
+    coord_equal(xlim = lims, ylim = lims, expand = FALSE) +
+    labs(
+      title = paste0("LLM vs Human — CI ellipses — ",
+                     str_to_title(gsub("_"," ", metric))),
+      x = "Human (x)", y = "LLM (y)",
+      caption = annot
+    ) +
+    theme_uj()
+}
+
+# Example: draw for 'overall' (change metric to switch)
+plot_ellipses(metric_name)
+
+```
  
  
  
- 
- 
- 
- 
- 
- 
+<!-- ## Journal tier ratings -->
+
+
+<!-- ## Claim identification -->
+
+
+<!-- ## Full evaluations -->
+
+
+
