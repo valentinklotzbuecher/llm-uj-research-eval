@@ -22,6 +22,7 @@ library("readr")
 library("here") 
 library("knitr") 
 library("ggforce") 
+library("ggrepel")
 
  
 UJ_ORANGE <- "#f19e4b"   # LLM
@@ -146,7 +147,7 @@ metrics <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE)
 
 metrics <- metrics |> clean_names() |>
   mutate(evaluator = "GPT-5",
-         label_paper = paper,
+         label_paper = str_replace(paper, "et al ", "et al. "),
          middle_rating = midpoint,
          lower_ci = lower_bound,
          upper_ci = upper_bound,
@@ -647,6 +648,29 @@ This is what `r currentmodel` reports "overall" on @Williams2024: `r sprintf(rat
 
 
 ## Journal ranking tiers
+
+```{r}
+
+
+df <- read_csv(here("data", "journal_tiers.csv"), show_col_types = FALSE)
+
+gg <- ggplot(df, aes(x = should_score, y = will_score)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.3) +
+  geom_point(alpha = 0.85, size = 2) +
+  coord_equal(xlim = c(1, 5), ylim = c(1, 5)) +
+  scale_x_continuous(breaks = 1:5) +
+  scale_y_continuous(breaks = 1:5) +
+  labs(
+    x = "LLM ‘Should’ tier (1–5)",
+    y = "LLM ‘Will’ tier (1–5)"
+  ) +
+  theme_uj(base_size = 12)
+
+gg
+
+
+```
+
 
 
 ## Claim identification

@@ -6041,7 +6041,6 @@ window.onload = function() {
   <ul class="collapse">
   <li><a href="#quantitative-ratings" id="toc-quantitative-ratings" class="nav-link" data-scroll-target="#quantitative-ratings">Quantitative ratings</a></li>
   <li><a href="#journal-ranking-tiers" id="toc-journal-ranking-tiers" class="nav-link" data-scroll-target="#journal-ranking-tiers">Journal ranking tiers</a></li>
-  <li><a href="#claim-identification" id="toc-claim-identification" class="nav-link" data-scroll-target="#claim-identification">Claim identification</a></li>
   <li><a href="#qualitative-assessments" id="toc-qualitative-assessments" class="nav-link" data-scroll-target="#qualitative-assessments">Qualitative assessments</a></li>
   </ul></li>
   </ul>
@@ -6405,168 +6404,319 @@ window.onload = function() {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>TIER_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_should"</span>: {</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_will"</span>: {</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"tier_should"</span>, <span class="st">"tier_will"</span>]</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>RESPONSE_FORMAT <span class="op">=</span> {</span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"journal_tiers_v1"</span>,</span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: TIER_SCHEMA</span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a><span class="st">Return STRICT JSON that matches the schema supplied in the response_format.</span></span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a><span class="st">Journal‐tier scale: 0 – 5, where</span></span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="st">  5 = A-journal / top-five general,</span></span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="st">  4 = top field or marginal A,</span></span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a><span class="st">  3 = solid field,</span></span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a><span class="st">  2 = niche / low-tier field,</span></span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a><span class="st">  1 = working-paper outlet only,</span></span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a><span class="st">  0 = no publishable value.</span></span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="st">Fill both objects:</span></span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="st">• tier_should → where the paper *deserves* to publish if the process were fair</span></span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a><span class="st">  and quality-driven.</span></span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="st">• tier_will   → realistic prediction of where it will *actually* publish</span></span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a><span class="st">  (taking status, noise, connections, etc. into account).</span></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a><span class="st">For each, supply:</span></span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="st">  score       = best point estimate (allow halves, e.g. 3.5)</span></span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="st">  ci_lower    = 5th-percentile plausible tier</span></span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a><span class="st">  ci_upper    = 95th-percentile plausible tier</span></span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a><span class="st">  rationale   = ≤40 words explaining the judgement.</span></span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="st">No extra keys, no markdown fences.</span></span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> __future__ <span class="im">import</span> annotations</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os, pathlib, json, textwrap, re, time, math, random, hashlib, threading</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Any, Dict, Optional</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pdfplumber, tiktoken</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> concurrent.futures <span class="im">import</span> ThreadPoolExecutor, as_completed</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Reuse your existing OpenAI client + MODEL set earlier:</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># client = OpenAI()</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># MODEL = os.getenv("UJ_MODEL", "gpt-5")</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenizer + compact extractor for tiering  </span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>_enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">"o200k_base"</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _truncate_tokens(txt: <span class="bu">str</span>, max_tokens: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    toks <span class="op">=</span> _enc.encode(re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, txt))</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(toks) <span class="op">&gt;</span> max_tokens:</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        toks <span class="op">=</span> toks[:max_tokens]</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> _enc.decode(toks)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pdf_to_tier_text(path, max_tokens: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25_000</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co">    Cheaper extract: try to keep Abstract, Introduction, Results/Discussion, Conclusion.</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co">    Falls back gracefully to the whole (minus references) then truncates by tokens.</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> pdfplumber.<span class="bu">open</span>(path) <span class="im">as</span> pdf:</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>            full <span class="op">=</span> <span class="st">" "</span>.join(p.extract_text() <span class="kw">or</span> <span class="st">""</span> <span class="cf">for</span> p <span class="kw">in</span> pdf.pages)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Fall back to the generic extractor in your earlier chunk, if defined:</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> pdf_to_string(path, max_tokens<span class="op">=</span>max_tokens)  <span class="co"># type: ignore</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, full)</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Drop references/bibliography</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> re.search(<span class="vs">r"\b(References|Bibliography)\b"</span>, text, flags<span class="op">=</span>re.I)</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> m: text <span class="op">=</span> text[: m.start()]</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Heuristic section pulls</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>    chunks <span class="op">=</span> []</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _grab(label, next_labels<span class="op">=</span>(<span class="st">"Introduction"</span>,<span class="st">"1 "</span>,<span class="st">"I."</span>,<span class="st">"Background"</span>,<span class="st">"Data"</span>,<span class="st">"Model"</span>,<span class="st">"Method"</span>, <span class="st">"Methods"</span>, <span class="st">"Approach"</span>)):</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>        pat <span class="op">=</span> <span class="vs">rf"\b</span><span class="sc">{</span>label<span class="sc">}</span><span class="vs">\b"</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> re.search(pat, text, flags<span class="op">=</span>re.I)</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> m: <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> m.start()</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>        <span class="co"># stop at next section-ish header</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>        next_pat <span class="op">=</span> <span class="vs">r"|"</span>.join([<span class="vs">rf"\b</span><span class="sc">{</span>re<span class="sc">.</span>escape(nl)<span class="sc">}</span><span class="vs">\b"</span> <span class="cf">for</span> nl <span class="kw">in</span> next_labels])</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>        m2 <span class="op">=</span> re.search(next_pat, text[m.end():], flags<span class="op">=</span>re.I)</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> m.end() <span class="op">+</span> (m2.start() <span class="cf">if</span> m2 <span class="cf">else</span> <span class="dv">5000</span>)  <span class="co"># cap a bit if no clear end</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> text[start:end]</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Abstract"</span>, <span class="st">"Summary"</span>]:</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Introduction"</span>, <span class="st">"Motivation"</span>, <span class="st">"Overview"</span>]:</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Results"</span>, <span class="st">"Findings"</span>, <span class="st">"Discussion"</span>]:</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Conclusion"</span>, <span class="st">"Conclusions"</span>, <span class="st">"Policy Implications"</span>, <span class="st">"Implications"</span>]:</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> chunks:</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>        candidate <span class="op">=</span> text</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>        candidate <span class="op">=</span> <span class="st">" "</span>.join(chunks)</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> _truncate_tokens(candidate, max_tokens<span class="op">=</span>max_tokens)</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a><span class="co"># JSON schema + prompt (v2)</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>TIERS_PROMPT_VERSION <span class="op">=</span> <span class="st">"journal_tiers_v2_2025-09-14"</span></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>TIERS_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_should"</span>: {</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"maxLength"</span>: <span class="dv">400</span>}</span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_will"</span>: {</span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"maxLength"</span>: <span class="dv">400</span>}</span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"tier_should"</span>, <span class="st">"tier_will"</span>]</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>TIERS_RESPONSE_FORMAT <span class="op">=</span> {</span>
+<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
+<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"journal_tiers_v2"</span>,</span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: TIERS_SCHEMA</span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>TIERS_SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a><span class="st">You are an expert evaluator. Return STRICT JSON matching the provided schema.</span></span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a><span class="st">Scale (0–5; halves allowed):</span></span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a><span class="st">  5 = A-journal / top-five general</span></span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a><span class="st">  4 = top field or marginal A</span></span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a><span class="st">  3 = solid field</span></span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a><span class="st">  2 = niche / low-tier field</span></span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a><span class="st">  1 = working-paper outlet only</span></span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="st">  0 = not publishable</span></span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a><span class="st">Definitions:</span></span>
+<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a><span class="st">- tier_should = where the paper deserves to publish if quality-only decides.</span></span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a><span class="st">- tier_will   = realistic prediction given status/noise/connections.</span></span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a><span class="st">Rules:</span></span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a><span class="st">- Keep 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.</span></span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a><span class="st">- Round all scores to the nearest 0.5.</span></span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a><span class="st">- Rationale ≤ 40 words; focus on contribution, credibility, and fit.</span></span>
+<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a><span class="st">- No extra keys. No markdown. JSON only.</span></span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a><span class="co"># Helpers: rounding, clamping, validation, caching</span></span>
+<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _round_half(x: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">round</span>(<span class="bu">float</span>(x) <span class="op">*</span> <span class="fl">2.0</span>) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _clamp_0_5(x: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">max</span>(<span class="fl">0.0</span>, <span class="bu">min</span>(<span class="fl">5.0</span>, <span class="bu">float</span>(x)))</span>
+<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _normalize_block(block: Dict[<span class="bu">str</span>, Any]) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>    s  <span class="op">=</span> _round_half(_clamp_0_5(block.get(<span class="st">"score"</span>, <span class="fl">0.0</span>)))</span>
+<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>    lo <span class="op">=</span> _round_half(_clamp_0_5(block.get(<span class="st">"ci_lower"</span>, s)))</span>
+<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a>    hi <span class="op">=</span> _round_half(_clamp_0_5(block.get(<span class="st">"ci_upper"</span>, s)))</span>
+<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a>    <span class="co"># enforce ordering</span></span>
+<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> lo <span class="op">&gt;</span> s: lo, s <span class="op">=</span> s, lo</span>
+<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> hi <span class="op">&lt;</span> s: hi, s <span class="op">=</span> s, hi</span>
+<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> lo <span class="op">&gt;</span> hi: lo, hi <span class="op">=</span> hi, lo</span>
+<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a>    block[<span class="st">"score"</span>], block[<span class="st">"ci_lower"</span>], block[<span class="st">"ci_upper"</span>] <span class="op">=</span> s, lo, hi</span>
+<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Rationale hygiene</span></span>
+<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> <span class="bu">str</span>(block.get(<span class="st">"rationale"</span>, <span class="st">""</span>)).strip()</span>
+<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>    block[<span class="st">"rationale"</span>] <span class="op">=</span> re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, r)</span>
+<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> block</span>
+<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _normalize_tiers(payload: Dict[<span class="bu">str</span>, Any]) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">"tier_should"</span> <span class="kw">in</span> payload:</span>
+<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a>        payload[<span class="st">"tier_should"</span>] <span class="op">=</span> _normalize_block(payload[<span class="st">"tier_should"</span>])</span>
+<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">"tier_will"</span>   <span class="kw">in</span> payload:</span>
+<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>        payload[<span class="st">"tier_will"</span>]   <span class="op">=</span> _normalize_block(payload[<span class="st">"tier_will"</span>])</span>
+<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> payload</span>
+<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _file_hash_bytes(path: pathlib.Path) <span class="op">-&gt;</span> <span class="bu">bytes</span>:</span>
+<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> hashlib.sha1()</span>
+<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(path, <span class="st">"rb"</span>) <span class="im">as</span> f:</span>
+<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> chunk <span class="kw">in</span> <span class="bu">iter</span>(<span class="kw">lambda</span>: f.read(<span class="dv">1</span> <span class="op">&lt;&lt;</span> <span class="dv">20</span>), <span class="st">b""</span>):</span>
+<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a>            h.update(chunk)</span>
+<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> h.digest()</span>
+<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _cache_key_for_tiers(pdf_path: pathlib.Path, model: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>    base <span class="op">=</span> _file_hash_bytes(pdf_path)</span>
+<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a>    extra <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>model<span class="sc">}</span><span class="ss">|</span><span class="sc">{</span>TIERS_PROMPT_VERSION<span class="sc">}</span><span class="ss">"</span>.encode()</span>
+<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> hashlib.sha1(base <span class="op">+</span> extra).hexdigest()</span>
+<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a>CACHE_DIR <span class="op">=</span> pathlib.Path(<span class="st">"cache"</span>) <span class="op">/</span> <span class="st">"journal_tiers"</span></span>
+<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a>CACHE_DIR.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>_cache_lock <span class="op">=</span> threading.Lock()</span>
+<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_journal_tiers(pdf_path: <span class="bu">str</span> <span class="op">|</span> pathlib.Path,</span>
+<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a>                           model: <span class="bu">str</span> <span class="op">=</span> MODEL,</span>
+<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a>                           seed: Optional[<span class="bu">int</span>] <span class="op">=</span> <span class="dv">2025</span>,</span>
+<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a>                           max_tokens_extract: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25_000</span>,</span>
+<span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a>                           verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns: dict with keys: tier_should{score,ci_lower,ci_upper,rationale},</span></span>
+<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a><span class="co">    tier_will{...}, plus bookkeeping fields.</span></span>
+<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a><span class="co">    Uses caching keyed to (pdf bytes, model, prompt_version).</span></span>
+<span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a>    pdf_path <span class="op">=</span> pathlib.Path(pdf_path)</span>
+<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a>    key <span class="op">=</span> _cache_key_for_tiers(pdf_path, model)</span>
+<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a>    cache_file <span class="op">=</span> CACHE_DIR <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>key<span class="sc">}</span><span class="ss">.json"</span></span>
+<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Try cache</span></span>
+<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cache_file.exists():</span>
+<span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> verbose: <span class="bu">print</span>(<span class="ss">f"cache hit: </span><span class="sc">{</span>pdf_path<span class="sc">.</span>name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> json.loads(cache_file.read_text())</span>
+<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> data</span>
+<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract compact text for this task</span></span>
+<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a>    paper_text <span class="op">=</span> pdf_to_tier_text(pdf_path, max_tokens<span class="op">=</span>max_tokens_extract)</span>
+<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Call model with strict JSON schema</span></span>
+<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a>    backoff <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a>    last_err <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> attempt <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a>            chat <span class="op">=</span> client.chat.completions.create(</span>
+<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a>                model<span class="op">=</span>model,</span>
+<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a>                response_format<span class="op">=</span>TIERS_RESPONSE_FORMAT,</span>
+<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a>                seed<span class="op">=</span>seed,</span>
+<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a>                messages<span class="op">=</span>[</span>
+<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a>                    {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: TIERS_SYSTEM_PROMPT},</span>
+<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a>                    {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: paper_text}</span>
+<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a>                ],</span>
+<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a>            raw <span class="op">=</span> chat.choices[<span class="dv">0</span>].message.content</span>
+<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a>            payload <span class="op">=</span> json.loads(raw)</span>
+<span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a>            payload <span class="op">=</span> _normalize_tiers(payload)</span>
+<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a>            payload[<span class="st">"paper"</span>] <span class="op">=</span> pdf_path.stem</span>
+<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a>            payload[<span class="st">"model"</span>] <span class="op">=</span> model</span>
+<span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a>            payload[<span class="st">"prompt_version"</span>] <span class="op">=</span> TIERS_PROMPT_VERSION</span>
+<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a>            cache_file.write_text(json.dumps(payload, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> payload</span>
+<span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a>            last_err <span class="op">=</span> e</span>
+<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a>            <span class="co"># gentle jittered exponential backoff</span></span>
+<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a>            time.sleep(backoff <span class="op">+</span> random.random() <span class="op">*</span> <span class="fl">0.25</span>)</span>
+<span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a>            backoff <span class="op">*=</span> <span class="fl">1.8</span></span>
+<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-239"><a href="#cb6-239" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="ss">f"Tier evaluation failed for </span><span class="sc">{</span>pdf_path<span class="sc">.</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>last_err<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> batch_evaluate_journal_tiers(root: <span class="bu">str</span> <span class="op">|</span> pathlib.Path <span class="op">=</span> <span class="st">"papers"</span>,</span>
+<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a>                                 out_csv_wide: <span class="bu">str</span> <span class="op">|</span> pathlib.Path <span class="op">=</span> <span class="st">"results/journal_tiers.csv"</span>,</span>
+<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a>                                 out_csv_long: <span class="bu">str</span> <span class="op">|</span> pathlib.Path <span class="op">=</span> <span class="st">"results/journal_tiers_long.csv"</span>,</span>
+<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a>                                 model: <span class="bu">str</span> <span class="op">=</span> MODEL,</span>
+<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a>                                 max_workers: <span class="bu">int</span> <span class="op">=</span> <span class="dv">3</span>,</span>
+<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a>                                 verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>) <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a>    ROOT <span class="op">=</span> pathlib.Path(root)</span>
+<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a>    OUT  <span class="op">=</span> pathlib.Path(out_csv_wide)</span>
+<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a>    OUT.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a>    pdfs <span class="op">=</span> <span class="bu">sorted</span>(ROOT.glob(<span class="st">"*.pdf"</span>))</span>
+<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> verbose:</span>
+<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Tiering </span><span class="sc">{</span><span class="bu">len</span>(pdfs)<span class="sc">}</span><span class="ss"> papers with </span><span class="sc">{</span>max_workers<span class="sc">}</span><span class="ss"> workers..."</span>)</span>
+<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> []</span>
+<span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> ThreadPoolExecutor(max_workers<span class="op">=</span>max_workers) <span class="im">as</span> ex:</span>
+<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a>        futs <span class="op">=</span> {ex.submit(evaluate_journal_tiers, pdf, model): pdf <span class="cf">for</span> pdf <span class="kw">in</span> pdfs}</span>
+<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> fut <span class="kw">in</span> as_completed(futs):</span>
+<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a>            pdf <span class="op">=</span> futs[fut]</span>
+<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span>:</span>
+<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a>                res <span class="op">=</span> fut.result()</span>
+<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a>                rows.append({</span>
+<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"paper"</span>: pdf.stem,</span>
+<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"model"</span>: res.get(<span class="st">"model"</span>),</span>
+<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"prompt_version"</span>: res.get(<span class="st">"prompt_version"</span>),</span>
+<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_score"</span>:     res[<span class="st">"tier_should"</span>][<span class="st">"score"</span>],</span>
+<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_ci_lower"</span>:  res[<span class="st">"tier_should"</span>][<span class="st">"ci_lower"</span>],</span>
+<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_ci_upper"</span>:  res[<span class="st">"tier_should"</span>][<span class="st">"ci_upper"</span>],</span>
+<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_rationale"</span>: res[<span class="st">"tier_should"</span>][<span class="st">"rationale"</span>],</span>
+<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_score"</span>:       res[<span class="st">"tier_will"</span>][<span class="st">"score"</span>],</span>
+<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_ci_lower"</span>:    res[<span class="st">"tier_will"</span>][<span class="st">"ci_lower"</span>],</span>
+<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_ci_upper"</span>:    res[<span class="st">"tier_will"</span>][<span class="st">"ci_upper"</span>],</span>
+<span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_rationale"</span>:   res[<span class="st">"tier_will"</span>][<span class="st">"rationale"</span>],</span>
+<span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a>                })</span>
+<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> verbose: <span class="bu">print</span>(<span class="ss">f"✓ </span><span class="sc">{</span>pdf<span class="sc">.</span>name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a>            <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"⚠️ </span><span class="sc">{</span>pdf<span class="sc">.</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a>    wide <span class="op">=</span> pd.DataFrame(rows)</span>
+<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a>    wide.to_csv(OUT, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Long format (two rows per paper)</span></span>
+<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a>    long_rows <span class="op">=</span> []</span>
+<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> r <span class="kw">in</span> rows:</span>
+<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> kind <span class="kw">in</span> (<span class="st">"should"</span>, <span class="st">"will"</span>):</span>
+<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a>            long_rows.append({</span>
+<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a>                <span class="st">"paper"</span>: r[<span class="st">"paper"</span>],</span>
+<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a>                <span class="st">"model"</span>: r[<span class="st">"model"</span>],</span>
+<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a>                <span class="st">"prompt_version"</span>: r[<span class="st">"prompt_version"</span>],</span>
+<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a>                <span class="st">"tier_kind"</span>: kind,</span>
+<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_score"</span>],</span>
+<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_ci_lower"</span>],</span>
+<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_ci_upper"</span>],</span>
+<span id="cb6-294"><a href="#cb6-294" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_rationale"</span>],</span>
+<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb6-296"><a href="#cb6-296" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span> <span class="op">=</span> pd.DataFrame(long_rows)</span>
+<span id="cb6-297"><a href="#cb6-297" aria-hidden="true" tabindex="-1"></a>    pathlib.Path(out_csv_long).parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-298"><a href="#cb6-298" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span>.to_csv(out_csv_long, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb6-299"><a href="#cb6-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-300"><a href="#cb6-300" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> wide</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-</section>
-<section id="claim-identification" class="level3">
-<h3 class="anchored" data-anchor-id="claim-identification">Claim identification</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>CLAIM_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ── 1 ─────────────────────────────────────────────────────────</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"claim"</span>: {</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"text"</span>:     {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">"source"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                <span class="st">"evidence"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"text"</span>, <span class="st">"source"</span>, <span class="st">"evidence"</span>]</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ── 2  (was missing keys in required) ─────────────────────────</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"belief"</span>: {</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                <span class="st">"prob_true"</span>: {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"prob_true"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ── 3 ─────────────────────────────────────────────────────────</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>        <span class="st">"robustness_check"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>        <span class="st">"implication"</span>: {</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>                <span class="st">"description"</span>:     {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>                <span class="st">"belief_prob"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>                <span class="st">"policy_guidance"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"description"</span>, <span class="st">"belief_prob"</span>, <span class="st">"policy_guidance"</span>]</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"claim"</span>, <span class="st">"belief"</span>, <span class="st">"robustness_check"</span>, <span class="st">"implication"</span>]</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>RESPONSE_FORMAT <span class="op">=</span> {</span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"key_claim_v1"</span>,</span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: CLAIM_SCHEMA</span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a><span class="st">You are an expert evaluator.</span></span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="st">Return STRICT JSON that matches the schema supplied in the response format.</span></span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="st">Tasks:</span></span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="st">1. Identify the single most decision-relevant factual claim in the paper.</span></span>
-<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="st">2. Quote / paraphrase it precisely and quantitatively in `claim.text`.</span></span>
-<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="st">3. Fill `claim.source` with page / section / table reference; `claim.evidence`</span></span>
-<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="st">   with a ≤30-word note on what supports the claim.</span></span>
-<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a><span class="st">4. In `belief`, give your best estimate of the probability the claim is correct</span></span>
-<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="st">   (`prob_true` 0–1).  Optionally add a 90 % CI (`ci_lower`, `ci_upper`).</span></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="st">5. `robustness_check` : specify the *one* test / replication that would change</span></span>
-<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="st">   your confidence most, in ≤60 words.</span></span>
-<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="st">6. `implication` : state the key funding/policy implication, assign</span></span>
-<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="st">   `belief_prob`, and in `policy_guidance` explain (≤60 w) how a decision-maker</span></span>
-<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="st">   should act on it.</span></span>
-<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="st">Maximum 120 words per free-text field.  No extra keys, no markdown fences.</span></span>
-<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── main helper — same signature style as before ──────────────────</span></span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> identify_claim(pdf_path: <span class="bu">str</span> <span class="op">|</span> pathlib.Path,</span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>                   model: <span class="bu">str</span> <span class="op">=</span> model) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>    paper_txt <span class="op">=</span> pdf_to_string(pdf_path)</span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>    chat <span class="op">=</span> client.chat.completions.create(</span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>        model<span class="op">=</span>model,</span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>        response_format<span class="op">=</span>RESPONSE_FORMAT,</span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>        messages<span class="op">=</span>[</span>
-<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: SYSTEM_PROMPT},</span>
-<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: paper_txt}</span>
-<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>        ]</span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>    raw_json <span class="op">=</span> chat.choices[<span class="dv">0</span>].message.content</span>
-<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(raw_json)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>batch_evaluate_journal_tiers(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    root<span class="op">=</span><span class="st">"papers"</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    out_csv_wide<span class="op">=</span><span class="st">"results/journal_tiers.csv"</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    out_csv_long<span class="op">=</span><span class="st">"results/journal_tiers_long.csv"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>MODEL,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    max_workers<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">True</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -7467,251 +7617,404 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-393"><a href="#cb9-393" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: prompt-journaltiers</span></span>
+<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tiers-setup</span></span>
 <span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
 <span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
 <span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>TIER_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
-<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
-<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_should"</span>: {</span>
-<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
-<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_will"</span>: {</span>
-<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
-<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"tier_should"</span>, <span class="st">"tier_will"</span>]</span>
-<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>RESPONSE_FORMAT <span class="op">=</span> {</span>
-<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
-<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
-<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"journal_tiers_v1"</span>,</span>
-<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
-<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: TIER_SCHEMA</span>
-<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> __future__ <span class="im">import</span> annotations</span>
+<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os, pathlib, json, textwrap, re, time, math, random, hashlib, threading</span>
+<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Any, Dict, Optional</span>
+<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pdfplumber, tiktoken</span>
+<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> concurrent.futures <span class="im">import</span> ThreadPoolExecutor, as_completed</span>
+<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a><span class="co"># Reuse your existing OpenAI client + MODEL set earlier:</span></span>
+<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a><span class="co"># client = OpenAI()</span></span>
+<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a><span class="co"># MODEL = os.getenv("UJ_MODEL", "gpt-5")</span></span>
+<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenizer + compact extractor for tiering  </span></span>
+<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>_enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">"o200k_base"</span>)</span>
+<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _truncate_tokens(txt: <span class="bu">str</span>, max_tokens: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>    toks <span class="op">=</span> _enc.encode(re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, txt))</span>
+<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(toks) <span class="op">&gt;</span> max_tokens:</span>
+<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>        toks <span class="op">=</span> toks[:max_tokens]</span>
+<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> _enc.decode(toks)</span>
+<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pdf_to_tier_text(path, max_tokens: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25_000</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a><span class="co">    Cheaper extract: try to keep Abstract, Introduction, Results/Discussion, Conclusion.</span></span>
+<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a><span class="co">    Falls back gracefully to the whole (minus references) then truncates by tokens.</span></span>
+<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> pdfplumber.<span class="bu">open</span>(path) <span class="im">as</span> pdf:</span>
+<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>            full <span class="op">=</span> <span class="st">" "</span>.join(p.extract_text() <span class="kw">or</span> <span class="st">""</span> <span class="cf">for</span> p <span class="kw">in</span> pdf.pages)</span>
+<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Fall back to the generic extractor in your earlier chunk, if defined:</span></span>
+<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> pdf_to_string(path, max_tokens<span class="op">=</span>max_tokens)  <span class="co"># type: ignore</span></span>
+<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, full)</span>
+<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Drop references/bibliography</span></span>
+<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> re.search(<span class="vs">r"\b(References|Bibliography)\b"</span>, text, flags<span class="op">=</span>re.I)</span>
+<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> m: text <span class="op">=</span> text[: m.start()]</span>
 <span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
-<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a><span class="st">Return STRICT JSON that matches the schema supplied in the response_format.</span></span>
-<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a><span class="st">Journal‐tier scale: 0 – 5, where</span></span>
-<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a><span class="st">  5 = A-journal / top-five general,</span></span>
-<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a><span class="st">  4 = top field or marginal A,</span></span>
-<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a><span class="st">  3 = solid field,</span></span>
-<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a><span class="st">  2 = niche / low-tier field,</span></span>
-<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a><span class="st">  1 = working-paper outlet only,</span></span>
-<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a><span class="st">  0 = no publishable value.</span></span>
-<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a><span class="st">Fill both objects:</span></span>
+<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Heuristic section pulls</span></span>
+<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a>    chunks <span class="op">=</span> []</span>
+<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _grab(label, next_labels<span class="op">=</span>(<span class="st">"Introduction"</span>,<span class="st">"1 "</span>,<span class="st">"I."</span>,<span class="st">"Background"</span>,<span class="st">"Data"</span>,<span class="st">"Model"</span>,<span class="st">"Method"</span>, <span class="st">"Methods"</span>, <span class="st">"Approach"</span>)):</span>
+<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>        pat <span class="op">=</span> <span class="vs">rf"\b</span><span class="sc">{</span>label<span class="sc">}</span><span class="vs">\b"</span></span>
+<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> re.search(pat, text, flags<span class="op">=</span>re.I)</span>
+<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> m: <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> m.start()</span>
+<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>        <span class="co"># stop at next section-ish header</span></span>
+<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>        next_pat <span class="op">=</span> <span class="vs">r"|"</span>.join([<span class="vs">rf"\b</span><span class="sc">{</span>re<span class="sc">.</span>escape(nl)<span class="sc">}</span><span class="vs">\b"</span> <span class="cf">for</span> nl <span class="kw">in</span> next_labels])</span>
+<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>        m2 <span class="op">=</span> re.search(next_pat, text[m.end():], flags<span class="op">=</span>re.I)</span>
+<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> m.end() <span class="op">+</span> (m2.start() <span class="cf">if</span> m2 <span class="cf">else</span> <span class="dv">5000</span>)  <span class="co"># cap a bit if no clear end</span></span>
+<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> text[start:end]</span>
 <span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a><span class="st">• tier_should → where the paper *deserves* to publish if the process were fair</span></span>
-<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a><span class="st">  and quality-driven.</span></span>
-<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a><span class="st">• tier_will   → realistic prediction of where it will *actually* publish</span></span>
-<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a><span class="st">  (taking status, noise, connections, etc. into account).</span></span>
-<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a><span class="st">For each, supply:</span></span>
-<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a><span class="st">  score       = best point estimate (allow halves, e.g. 3.5)</span></span>
-<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a><span class="st">  ci_lower    = 5th-percentile plausible tier</span></span>
-<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a><span class="st">  ci_upper    = 95th-percentile plausible tier</span></span>
-<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a><span class="st">  rationale   = ≤40 words explaining the judgement.</span></span>
-<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a><span class="st">No extra keys, no markdown fences.</span></span>
-<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
-<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Abstract"</span>, <span class="st">"Summary"</span>]:</span>
+<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Introduction"</span>, <span class="st">"Motivation"</span>, <span class="st">"Overview"</span>]:</span>
+<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Results"</span>, <span class="st">"Findings"</span>, <span class="st">"Discussion"</span>]:</span>
+<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lab <span class="kw">in</span> [<span class="st">"Conclusion"</span>, <span class="st">"Conclusions"</span>, <span class="st">"Policy Implications"</span>, <span class="st">"Implications"</span>]:</span>
+<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> _grab(lab)</span>
+<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> s: chunks.append(s)</span>
+<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> chunks:</span>
+<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>        candidate <span class="op">=</span> text</span>
+<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>        candidate <span class="op">=</span> <span class="st">" "</span>.join(chunks)</span>
 <span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a><span class="fu">### Claim identification</span></span>
-<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: prompt-claimid</span></span>
-<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>CLAIM_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
-<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
-<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ── 1 ─────────────────────────────────────────────────────────</span></span>
-<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a>        <span class="st">"claim"</span>: {</span>
-<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>                <span class="st">"text"</span>:     {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a>                <span class="st">"source"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a>                <span class="st">"evidence"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"text"</span>, <span class="st">"source"</span>, <span class="st">"evidence"</span>]</span>
-<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ── 2  (was missing keys in required) ─────────────────────────</span></span>
-<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>        <span class="st">"belief"</span>: {</span>
-<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>                <span class="st">"prob_true"</span>: {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"prob_true"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
-<span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ── 3 ─────────────────────────────────────────────────────────</span></span>
-<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>        <span class="st">"robustness_check"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>        <span class="st">"implication"</span>: {</span>
-<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a>                <span class="st">"description"</span>:     {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>                <span class="st">"belief_prob"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
-<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a>                <span class="st">"policy_guidance"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"description"</span>, <span class="st">"belief_prob"</span>, <span class="st">"policy_guidance"</span>]</span>
-<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"claim"</span>, <span class="st">"belief"</span>, <span class="st">"robustness_check"</span>, <span class="st">"implication"</span>]</span>
-<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a>RESPONSE_FORMAT <span class="op">=</span> {</span>
-<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
-<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
-<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"key_claim_v1"</span>,</span>
-<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
-<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: CLAIM_SCHEMA</span>
-<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
-<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a><span class="st">You are an expert evaluator.</span></span>
+<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> _truncate_tokens(candidate, max_tokens<span class="op">=</span>max_tokens)</span>
+<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a><span class="co"># JSON schema + prompt (v2)</span></span>
+<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a>TIERS_PROMPT_VERSION <span class="op">=</span> <span class="st">"journal_tiers_v2_2025-09-14"</span></span>
+<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a>TIERS_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
+<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
+<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_should"</span>: {</span>
+<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
+<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"maxLength"</span>: <span class="dv">400</span>}</span>
+<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
+<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tier_will"</span>: {</span>
+<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
+<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>:     {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>:  {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"maxLength"</span>: <span class="dv">400</span>}</span>
+<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"score"</span>, <span class="st">"ci_lower"</span>, <span class="st">"ci_upper"</span>, <span class="st">"rationale"</span>]</span>
+<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"tier_should"</span>, <span class="st">"tier_will"</span>]</span>
+<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a>TIERS_RESPONSE_FORMAT <span class="op">=</span> {</span>
+<span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
+<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
+<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"journal_tiers_v2"</span>,</span>
+<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
+<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: TIERS_SCHEMA</span>
+<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>TIERS_SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
+<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a><span class="st">You are an expert evaluator. Return STRICT JSON matching the provided schema.</span></span>
+<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a><span class="st">Scale (0–5; halves allowed):</span></span>
+<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a><span class="st">  5 = A-journal / top-five general</span></span>
+<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a><span class="st">  4 = top field or marginal A</span></span>
+<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a><span class="st">  3 = solid field</span></span>
+<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a><span class="st">  2 = niche / low-tier field</span></span>
+<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a><span class="st">  1 = working-paper outlet only</span></span>
+<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a><span class="st">  0 = not publishable</span></span>
+<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a><span class="st">Definitions:</span></span>
+<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a><span class="st">- tier_should = where the paper deserves to publish if quality-only decides.</span></span>
+<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a><span class="st">- tier_will   = realistic prediction given status/noise/connections.</span></span>
+<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a><span class="st">Rules:</span></span>
+<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a><span class="st">- Keep 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.</span></span>
+<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a><span class="st">- Round all scores to the nearest 0.5.</span></span>
+<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a><span class="st">- Rationale ≤ 40 words; focus on contribution, credibility, and fit.</span></span>
+<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a><span class="st">- No extra keys. No markdown. JSON only.</span></span>
+<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
 <span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a><span class="st">Return STRICT JSON that matches the schema supplied in the response format.</span></span>
-<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a><span class="st">Tasks:</span></span>
-<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a><span class="st">1. Identify the single most decision-relevant factual claim in the paper.</span></span>
-<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a><span class="st">2. Quote / paraphrase it precisely and quantitatively in `claim.text`.</span></span>
-<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a><span class="st">3. Fill `claim.source` with page / section / table reference; `claim.evidence`</span></span>
-<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a><span class="st">   with a ≤30-word note on what supports the claim.</span></span>
-<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a><span class="st">4. In `belief`, give your best estimate of the probability the claim is correct</span></span>
-<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a><span class="st">   (`prob_true` 0–1).  Optionally add a 90 % CI (`ci_lower`, `ci_upper`).</span></span>
-<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a><span class="st">5. `robustness_check` : specify the *one* test / replication that would change</span></span>
-<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a><span class="st">   your confidence most, in ≤60 words.</span></span>
-<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a><span class="st">6. `implication` : state the key funding/policy implication, assign</span></span>
-<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a><span class="st">   `belief_prob`, and in `policy_guidance` explain (≤60 w) how a decision-maker</span></span>
-<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a><span class="st">   should act on it.</span></span>
-<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a><span class="st">Maximum 120 words per free-text field.  No extra keys, no markdown fences.</span></span>
-<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
-<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a><span class="co"># ─── main helper — same signature style as before ──────────────────</span></span>
-<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> identify_claim(pdf_path: <span class="bu">str</span> <span class="op">|</span> pathlib.Path,</span>
-<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a>                   model: <span class="bu">str</span> <span class="op">=</span> model) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
-<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a>    paper_txt <span class="op">=</span> pdf_to_string(pdf_path)</span>
-<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a>    chat <span class="op">=</span> client.chat.completions.create(</span>
-<span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a>        model<span class="op">=</span>model,</span>
-<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a>        response_format<span class="op">=</span>RESPONSE_FORMAT,</span>
-<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a>        messages<span class="op">=</span>[</span>
-<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: SYSTEM_PROMPT},</span>
-<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: paper_txt}</span>
-<span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a>        ]</span>
-<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a>    raw_json <span class="op">=</span> chat.choices[<span class="dv">0</span>].message.content</span>
-<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(raw_json)</span>
-<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-570"><a href="#cb9-570" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a><span class="fu">### Qualitative assessments</span></span>
-<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: prompt-fulleval</span></span>
-<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a><span class="co"># Helpers: rounding, clamping, validation, caching</span></span>
+<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a><span class="co"># ─────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _round_half(x: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">round</span>(<span class="bu">float</span>(x) <span class="op">*</span> <span class="fl">2.0</span>) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _clamp_0_5(x: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">max</span>(<span class="fl">0.0</span>, <span class="bu">min</span>(<span class="fl">5.0</span>, <span class="bu">float</span>(x)))</span>
+<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _normalize_block(block: Dict[<span class="bu">str</span>, Any]) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a>    s  <span class="op">=</span> _round_half(_clamp_0_5(block.get(<span class="st">"score"</span>, <span class="fl">0.0</span>)))</span>
+<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a>    lo <span class="op">=</span> _round_half(_clamp_0_5(block.get(<span class="st">"ci_lower"</span>, s)))</span>
+<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a>    hi <span class="op">=</span> _round_half(_clamp_0_5(block.get(<span class="st">"ci_upper"</span>, s)))</span>
+<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a>    <span class="co"># enforce ordering</span></span>
+<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> lo <span class="op">&gt;</span> s: lo, s <span class="op">=</span> s, lo</span>
+<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> hi <span class="op">&lt;</span> s: hi, s <span class="op">=</span> s, hi</span>
+<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> lo <span class="op">&gt;</span> hi: lo, hi <span class="op">=</span> hi, lo</span>
+<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a>    block[<span class="st">"score"</span>], block[<span class="st">"ci_lower"</span>], block[<span class="st">"ci_upper"</span>] <span class="op">=</span> s, lo, hi</span>
+<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Rationale hygiene</span></span>
+<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> <span class="bu">str</span>(block.get(<span class="st">"rationale"</span>, <span class="st">""</span>)).strip()</span>
+<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a>    block[<span class="st">"rationale"</span>] <span class="op">=</span> re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, r)</span>
+<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> block</span>
+<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _normalize_tiers(payload: Dict[<span class="bu">str</span>, Any]) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">"tier_should"</span> <span class="kw">in</span> payload:</span>
+<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a>        payload[<span class="st">"tier_should"</span>] <span class="op">=</span> _normalize_block(payload[<span class="st">"tier_should"</span>])</span>
+<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">"tier_will"</span>   <span class="kw">in</span> payload:</span>
+<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a>        payload[<span class="st">"tier_will"</span>]   <span class="op">=</span> _normalize_block(payload[<span class="st">"tier_will"</span>])</span>
+<span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> payload</span>
+<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _file_hash_bytes(path: pathlib.Path) <span class="op">-&gt;</span> <span class="bu">bytes</span>:</span>
+<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> hashlib.sha1()</span>
+<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(path, <span class="st">"rb"</span>) <span class="im">as</span> f:</span>
+<span id="cb9-570"><a href="#cb9-570" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> chunk <span class="kw">in</span> <span class="bu">iter</span>(<span class="kw">lambda</span>: f.read(<span class="dv">1</span> <span class="op">&lt;&lt;</span> <span class="dv">20</span>), <span class="st">b""</span>):</span>
+<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a>            h.update(chunk)</span>
+<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> h.digest()</span>
+<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _cache_key_for_tiers(pdf_path: pathlib.Path, model: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a>    base <span class="op">=</span> _file_hash_bytes(pdf_path)</span>
+<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a>    extra <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>model<span class="sc">}</span><span class="ss">|</span><span class="sc">{</span>TIERS_PROMPT_VERSION<span class="sc">}</span><span class="ss">"</span>.encode()</span>
+<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> hashlib.sha1(base <span class="op">+</span> extra).hexdigest()</span>
+<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a>CACHE_DIR <span class="op">=</span> pathlib.Path(<span class="st">"cache"</span>) <span class="op">/</span> <span class="st">"journal_tiers"</span></span>
+<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a>CACHE_DIR.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a>_cache_lock <span class="op">=</span> threading.Lock()</span>
 <span id="cb9-582"><a href="#cb9-582" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-583"><a href="#cb9-583" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-584"><a href="#cb9-584" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-587"><a href="#cb9-587" aria-hidden="true" tabindex="-1"></a>EVAL_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
-<span id="cb9-588"><a href="#cb9-588" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb9-589"><a href="#cb9-589" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
-<span id="cb9-590"><a href="#cb9-590" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
-<span id="cb9-591"><a href="#cb9-591" aria-hidden="true" tabindex="-1"></a>        <span class="st">"summary"</span>:           {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-592"><a href="#cb9-592" aria-hidden="true" tabindex="-1"></a>        <span class="st">"major_strengths"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-593"><a href="#cb9-593" aria-hidden="true" tabindex="-1"></a>        <span class="st">"major_weaknesses"</span>:  {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-594"><a href="#cb9-594" aria-hidden="true" tabindex="-1"></a>        <span class="st">"methodological_notes"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-595"><a href="#cb9-595" aria-hidden="true" tabindex="-1"></a>        <span class="st">"policy_relevance"</span>:  {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
-<span id="cb9-596"><a href="#cb9-596" aria-hidden="true" tabindex="-1"></a>        <span class="st">"recommendations"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb9-597"><a href="#cb9-597" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb9-598"><a href="#cb9-598" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"summary"</span>,</span>
-<span id="cb9-599"><a href="#cb9-599" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"major_strengths"</span>,</span>
-<span id="cb9-600"><a href="#cb9-600" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"major_weaknesses"</span>,</span>
-<span id="cb9-601"><a href="#cb9-601" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"methodological_notes"</span>,</span>
-<span id="cb9-602"><a href="#cb9-602" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"policy_relevance"</span>,</span>
-<span id="cb9-603"><a href="#cb9-603" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"recommendations"</span>]</span>
-<span id="cb9-604"><a href="#cb9-604" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-605"><a href="#cb9-605" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-606"><a href="#cb9-606" aria-hidden="true" tabindex="-1"></a>RESPONSE_FORMAT <span class="op">=</span> {</span>
-<span id="cb9-607"><a href="#cb9-607" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
-<span id="cb9-608"><a href="#cb9-608" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
-<span id="cb9-609"><a href="#cb9-609" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"written_evaluation_v1"</span>,</span>
-<span id="cb9-610"><a href="#cb9-610" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
-<span id="cb9-611"><a href="#cb9-611" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: EVAL_SCHEMA</span>
-<span id="cb9-612"><a href="#cb9-612" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb9-613"><a href="#cb9-613" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-614"><a href="#cb9-614" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-615"><a href="#cb9-615" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-616"><a href="#cb9-616" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
-<span id="cb9-617"><a href="#cb9-617" aria-hidden="true" tabindex="-1"></a><span class="st">You are writing a referee report for The Unjournal.</span></span>
-<span id="cb9-618"><a href="#cb9-618" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-619"><a href="#cb9-619" aria-hidden="true" tabindex="-1"></a><span class="st">Return STRICT JSON that matches the schema `written_evaluation_v1`.</span></span>
-<span id="cb9-620"><a href="#cb9-620" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-621"><a href="#cb9-621" aria-hidden="true" tabindex="-1"></a><span class="st">Audience → (i) research users &amp; policy-makers, (ii) departments &amp; funders,</span></span>
-<span id="cb9-622"><a href="#cb9-622" aria-hidden="true" tabindex="-1"></a><span class="st">(iii) authors.</span></span>
-<span id="cb9-623"><a href="#cb9-623" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-624"><a href="#cb9-624" aria-hidden="true" tabindex="-1"></a><span class="st">Sections (≤250 words each):</span></span>
-<span id="cb9-625"><a href="#cb9-625" aria-hidden="true" tabindex="-1"></a><span class="st">  • summary               → clear one-paragraph overview of purpose &amp; findings</span></span>
-<span id="cb9-626"><a href="#cb9-626" aria-hidden="true" tabindex="-1"></a><span class="st">  • major_strengths       → bullet list or short paragraph</span></span>
-<span id="cb9-627"><a href="#cb9-627" aria-hidden="true" tabindex="-1"></a><span class="st">  • major_weaknesses      → idem</span></span>
-<span id="cb9-628"><a href="#cb9-628" aria-hidden="true" tabindex="-1"></a><span class="st">  • methodological_notes  → focus on justification, assumptions, robustness,</span></span>
-<span id="cb9-629"><a href="#cb9-629" aria-hidden="true" tabindex="-1"></a><span class="st">                            open/science aspects</span></span>
-<span id="cb9-630"><a href="#cb9-630" aria-hidden="true" tabindex="-1"></a><span class="st">  • policy_relevance      → discuss how (and how strongly) results matter for</span></span>
-<span id="cb9-631"><a href="#cb9-631" aria-hidden="true" tabindex="-1"></a><span class="st">                            global priorities / practitioners</span></span>
-<span id="cb9-632"><a href="#cb9-632" aria-hidden="true" tabindex="-1"></a><span class="st">  • recommendations       → concrete, numbered advice to improve the work</span></span>
-<span id="cb9-633"><a href="#cb9-633" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-634"><a href="#cb9-634" aria-hidden="true" tabindex="-1"></a><span class="st">Write in direct, concise style; no hedging beyond necessary uncertainty</span></span>
-<span id="cb9-635"><a href="#cb9-635" aria-hidden="true" tabindex="-1"></a><span class="st">quantification.  No markdown fences, no extra keys.</span></span>
-<span id="cb9-636"><a href="#cb9-636" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
+<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_journal_tiers(pdf_path: <span class="bu">str</span> <span class="op">|</span> pathlib.Path,</span>
+<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a>                           model: <span class="bu">str</span> <span class="op">=</span> MODEL,</span>
+<span id="cb9-587"><a href="#cb9-587" aria-hidden="true" tabindex="-1"></a>                           seed: Optional[<span class="bu">int</span>] <span class="op">=</span> <span class="dv">2025</span>,</span>
+<span id="cb9-588"><a href="#cb9-588" aria-hidden="true" tabindex="-1"></a>                           max_tokens_extract: <span class="bu">int</span> <span class="op">=</span> <span class="dv">25_000</span>,</span>
+<span id="cb9-589"><a href="#cb9-589" aria-hidden="true" tabindex="-1"></a>                           verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb9-590"><a href="#cb9-590" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb9-591"><a href="#cb9-591" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns: dict with keys: tier_should{score,ci_lower,ci_upper,rationale},</span></span>
+<span id="cb9-592"><a href="#cb9-592" aria-hidden="true" tabindex="-1"></a><span class="co">    tier_will{...}, plus bookkeeping fields.</span></span>
+<span id="cb9-593"><a href="#cb9-593" aria-hidden="true" tabindex="-1"></a><span class="co">    Uses caching keyed to (pdf bytes, model, prompt_version).</span></span>
+<span id="cb9-594"><a href="#cb9-594" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb9-595"><a href="#cb9-595" aria-hidden="true" tabindex="-1"></a>    pdf_path <span class="op">=</span> pathlib.Path(pdf_path)</span>
+<span id="cb9-596"><a href="#cb9-596" aria-hidden="true" tabindex="-1"></a>    key <span class="op">=</span> _cache_key_for_tiers(pdf_path, model)</span>
+<span id="cb9-597"><a href="#cb9-597" aria-hidden="true" tabindex="-1"></a>    cache_file <span class="op">=</span> CACHE_DIR <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>key<span class="sc">}</span><span class="ss">.json"</span></span>
+<span id="cb9-598"><a href="#cb9-598" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-599"><a href="#cb9-599" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Try cache</span></span>
+<span id="cb9-600"><a href="#cb9-600" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cache_file.exists():</span>
+<span id="cb9-601"><a href="#cb9-601" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> verbose: <span class="bu">print</span>(<span class="ss">f"cache hit: </span><span class="sc">{</span>pdf_path<span class="sc">.</span>name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-602"><a href="#cb9-602" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> json.loads(cache_file.read_text())</span>
+<span id="cb9-603"><a href="#cb9-603" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> data</span>
+<span id="cb9-604"><a href="#cb9-604" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-605"><a href="#cb9-605" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract compact text for this task</span></span>
+<span id="cb9-606"><a href="#cb9-606" aria-hidden="true" tabindex="-1"></a>    paper_text <span class="op">=</span> pdf_to_tier_text(pdf_path, max_tokens<span class="op">=</span>max_tokens_extract)</span>
+<span id="cb9-607"><a href="#cb9-607" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-608"><a href="#cb9-608" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Call model with strict JSON schema</span></span>
+<span id="cb9-609"><a href="#cb9-609" aria-hidden="true" tabindex="-1"></a>    backoff <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb9-610"><a href="#cb9-610" aria-hidden="true" tabindex="-1"></a>    last_err <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb9-611"><a href="#cb9-611" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> attempt <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb9-612"><a href="#cb9-612" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb9-613"><a href="#cb9-613" aria-hidden="true" tabindex="-1"></a>            chat <span class="op">=</span> client.chat.completions.create(</span>
+<span id="cb9-614"><a href="#cb9-614" aria-hidden="true" tabindex="-1"></a>                model<span class="op">=</span>model,</span>
+<span id="cb9-615"><a href="#cb9-615" aria-hidden="true" tabindex="-1"></a>                response_format<span class="op">=</span>TIERS_RESPONSE_FORMAT,</span>
+<span id="cb9-616"><a href="#cb9-616" aria-hidden="true" tabindex="-1"></a>                seed<span class="op">=</span>seed,</span>
+<span id="cb9-617"><a href="#cb9-617" aria-hidden="true" tabindex="-1"></a>                messages<span class="op">=</span>[</span>
+<span id="cb9-618"><a href="#cb9-618" aria-hidden="true" tabindex="-1"></a>                    {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: TIERS_SYSTEM_PROMPT},</span>
+<span id="cb9-619"><a href="#cb9-619" aria-hidden="true" tabindex="-1"></a>                    {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: paper_text}</span>
+<span id="cb9-620"><a href="#cb9-620" aria-hidden="true" tabindex="-1"></a>                ],</span>
+<span id="cb9-621"><a href="#cb9-621" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb9-622"><a href="#cb9-622" aria-hidden="true" tabindex="-1"></a>            raw <span class="op">=</span> chat.choices[<span class="dv">0</span>].message.content</span>
+<span id="cb9-623"><a href="#cb9-623" aria-hidden="true" tabindex="-1"></a>            payload <span class="op">=</span> json.loads(raw)</span>
+<span id="cb9-624"><a href="#cb9-624" aria-hidden="true" tabindex="-1"></a>            payload <span class="op">=</span> _normalize_tiers(payload)</span>
+<span id="cb9-625"><a href="#cb9-625" aria-hidden="true" tabindex="-1"></a>            payload[<span class="st">"paper"</span>] <span class="op">=</span> pdf_path.stem</span>
+<span id="cb9-626"><a href="#cb9-626" aria-hidden="true" tabindex="-1"></a>            payload[<span class="st">"model"</span>] <span class="op">=</span> model</span>
+<span id="cb9-627"><a href="#cb9-627" aria-hidden="true" tabindex="-1"></a>            payload[<span class="st">"prompt_version"</span>] <span class="op">=</span> TIERS_PROMPT_VERSION</span>
+<span id="cb9-628"><a href="#cb9-628" aria-hidden="true" tabindex="-1"></a>            cache_file.write_text(json.dumps(payload, ensure_ascii<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb9-629"><a href="#cb9-629" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> payload</span>
+<span id="cb9-630"><a href="#cb9-630" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb9-631"><a href="#cb9-631" aria-hidden="true" tabindex="-1"></a>            last_err <span class="op">=</span> e</span>
+<span id="cb9-632"><a href="#cb9-632" aria-hidden="true" tabindex="-1"></a>            <span class="co"># gentle jittered exponential backoff</span></span>
+<span id="cb9-633"><a href="#cb9-633" aria-hidden="true" tabindex="-1"></a>            time.sleep(backoff <span class="op">+</span> random.random() <span class="op">*</span> <span class="fl">0.25</span>)</span>
+<span id="cb9-634"><a href="#cb9-634" aria-hidden="true" tabindex="-1"></a>            backoff <span class="op">*=</span> <span class="fl">1.8</span></span>
+<span id="cb9-635"><a href="#cb9-635" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-636"><a href="#cb9-636" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">RuntimeError</span>(<span class="ss">f"Tier evaluation failed for </span><span class="sc">{</span>pdf_path<span class="sc">.</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>last_err<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb9-637"><a href="#cb9-637" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-638"><a href="#cb9-638" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-639"><a href="#cb9-639" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-640"><a href="#cb9-640" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-641"><a href="#cb9-641" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-642"><a href="#cb9-642" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb9-638"><a href="#cb9-638" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> batch_evaluate_journal_tiers(root: <span class="bu">str</span> <span class="op">|</span> pathlib.Path <span class="op">=</span> <span class="st">"papers"</span>,</span>
+<span id="cb9-639"><a href="#cb9-639" aria-hidden="true" tabindex="-1"></a>                                 out_csv_wide: <span class="bu">str</span> <span class="op">|</span> pathlib.Path <span class="op">=</span> <span class="st">"results/journal_tiers.csv"</span>,</span>
+<span id="cb9-640"><a href="#cb9-640" aria-hidden="true" tabindex="-1"></a>                                 out_csv_long: <span class="bu">str</span> <span class="op">|</span> pathlib.Path <span class="op">=</span> <span class="st">"results/journal_tiers_long.csv"</span>,</span>
+<span id="cb9-641"><a href="#cb9-641" aria-hidden="true" tabindex="-1"></a>                                 model: <span class="bu">str</span> <span class="op">=</span> MODEL,</span>
+<span id="cb9-642"><a href="#cb9-642" aria-hidden="true" tabindex="-1"></a>                                 max_workers: <span class="bu">int</span> <span class="op">=</span> <span class="dv">3</span>,</span>
+<span id="cb9-643"><a href="#cb9-643" aria-hidden="true" tabindex="-1"></a>                                 verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>) <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb9-644"><a href="#cb9-644" aria-hidden="true" tabindex="-1"></a>    ROOT <span class="op">=</span> pathlib.Path(root)</span>
+<span id="cb9-645"><a href="#cb9-645" aria-hidden="true" tabindex="-1"></a>    OUT  <span class="op">=</span> pathlib.Path(out_csv_wide)</span>
+<span id="cb9-646"><a href="#cb9-646" aria-hidden="true" tabindex="-1"></a>    OUT.parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-647"><a href="#cb9-647" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-648"><a href="#cb9-648" aria-hidden="true" tabindex="-1"></a>    pdfs <span class="op">=</span> <span class="bu">sorted</span>(ROOT.glob(<span class="st">"*.pdf"</span>))</span>
+<span id="cb9-649"><a href="#cb9-649" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> verbose:</span>
+<span id="cb9-650"><a href="#cb9-650" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Tiering </span><span class="sc">{</span><span class="bu">len</span>(pdfs)<span class="sc">}</span><span class="ss"> papers with </span><span class="sc">{</span>max_workers<span class="sc">}</span><span class="ss"> workers..."</span>)</span>
+<span id="cb9-651"><a href="#cb9-651" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-652"><a href="#cb9-652" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> []</span>
+<span id="cb9-653"><a href="#cb9-653" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> ThreadPoolExecutor(max_workers<span class="op">=</span>max_workers) <span class="im">as</span> ex:</span>
+<span id="cb9-654"><a href="#cb9-654" aria-hidden="true" tabindex="-1"></a>        futs <span class="op">=</span> {ex.submit(evaluate_journal_tiers, pdf, model): pdf <span class="cf">for</span> pdf <span class="kw">in</span> pdfs}</span>
+<span id="cb9-655"><a href="#cb9-655" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> fut <span class="kw">in</span> as_completed(futs):</span>
+<span id="cb9-656"><a href="#cb9-656" aria-hidden="true" tabindex="-1"></a>            pdf <span class="op">=</span> futs[fut]</span>
+<span id="cb9-657"><a href="#cb9-657" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span>:</span>
+<span id="cb9-658"><a href="#cb9-658" aria-hidden="true" tabindex="-1"></a>                res <span class="op">=</span> fut.result()</span>
+<span id="cb9-659"><a href="#cb9-659" aria-hidden="true" tabindex="-1"></a>                rows.append({</span>
+<span id="cb9-660"><a href="#cb9-660" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"paper"</span>: pdf.stem,</span>
+<span id="cb9-661"><a href="#cb9-661" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"model"</span>: res.get(<span class="st">"model"</span>),</span>
+<span id="cb9-662"><a href="#cb9-662" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"prompt_version"</span>: res.get(<span class="st">"prompt_version"</span>),</span>
+<span id="cb9-663"><a href="#cb9-663" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_score"</span>:     res[<span class="st">"tier_should"</span>][<span class="st">"score"</span>],</span>
+<span id="cb9-664"><a href="#cb9-664" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_ci_lower"</span>:  res[<span class="st">"tier_should"</span>][<span class="st">"ci_lower"</span>],</span>
+<span id="cb9-665"><a href="#cb9-665" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_ci_upper"</span>:  res[<span class="st">"tier_should"</span>][<span class="st">"ci_upper"</span>],</span>
+<span id="cb9-666"><a href="#cb9-666" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"should_rationale"</span>: res[<span class="st">"tier_should"</span>][<span class="st">"rationale"</span>],</span>
+<span id="cb9-667"><a href="#cb9-667" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_score"</span>:       res[<span class="st">"tier_will"</span>][<span class="st">"score"</span>],</span>
+<span id="cb9-668"><a href="#cb9-668" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_ci_lower"</span>:    res[<span class="st">"tier_will"</span>][<span class="st">"ci_lower"</span>],</span>
+<span id="cb9-669"><a href="#cb9-669" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_ci_upper"</span>:    res[<span class="st">"tier_will"</span>][<span class="st">"ci_upper"</span>],</span>
+<span id="cb9-670"><a href="#cb9-670" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"will_rationale"</span>:   res[<span class="st">"tier_will"</span>][<span class="st">"rationale"</span>],</span>
+<span id="cb9-671"><a href="#cb9-671" aria-hidden="true" tabindex="-1"></a>                })</span>
+<span id="cb9-672"><a href="#cb9-672" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> verbose: <span class="bu">print</span>(<span class="ss">f"✓ </span><span class="sc">{</span>pdf<span class="sc">.</span>name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-673"><a href="#cb9-673" aria-hidden="true" tabindex="-1"></a>            <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb9-674"><a href="#cb9-674" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"⚠️ </span><span class="sc">{</span>pdf<span class="sc">.</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-675"><a href="#cb9-675" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-676"><a href="#cb9-676" aria-hidden="true" tabindex="-1"></a>    wide <span class="op">=</span> pd.DataFrame(rows)</span>
+<span id="cb9-677"><a href="#cb9-677" aria-hidden="true" tabindex="-1"></a>    wide.to_csv(OUT, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb9-678"><a href="#cb9-678" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-679"><a href="#cb9-679" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Long format (two rows per paper)</span></span>
+<span id="cb9-680"><a href="#cb9-680" aria-hidden="true" tabindex="-1"></a>    long_rows <span class="op">=</span> []</span>
+<span id="cb9-681"><a href="#cb9-681" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> r <span class="kw">in</span> rows:</span>
+<span id="cb9-682"><a href="#cb9-682" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> kind <span class="kw">in</span> (<span class="st">"should"</span>, <span class="st">"will"</span>):</span>
+<span id="cb9-683"><a href="#cb9-683" aria-hidden="true" tabindex="-1"></a>            long_rows.append({</span>
+<span id="cb9-684"><a href="#cb9-684" aria-hidden="true" tabindex="-1"></a>                <span class="st">"paper"</span>: r[<span class="st">"paper"</span>],</span>
+<span id="cb9-685"><a href="#cb9-685" aria-hidden="true" tabindex="-1"></a>                <span class="st">"model"</span>: r[<span class="st">"model"</span>],</span>
+<span id="cb9-686"><a href="#cb9-686" aria-hidden="true" tabindex="-1"></a>                <span class="st">"prompt_version"</span>: r[<span class="st">"prompt_version"</span>],</span>
+<span id="cb9-687"><a href="#cb9-687" aria-hidden="true" tabindex="-1"></a>                <span class="st">"tier_kind"</span>: kind,</span>
+<span id="cb9-688"><a href="#cb9-688" aria-hidden="true" tabindex="-1"></a>                <span class="st">"score"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_score"</span>],</span>
+<span id="cb9-689"><a href="#cb9-689" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_lower"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_ci_lower"</span>],</span>
+<span id="cb9-690"><a href="#cb9-690" aria-hidden="true" tabindex="-1"></a>                <span class="st">"ci_upper"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_ci_upper"</span>],</span>
+<span id="cb9-691"><a href="#cb9-691" aria-hidden="true" tabindex="-1"></a>                <span class="st">"rationale"</span>: r[<span class="ss">f"</span><span class="sc">{</span>kind<span class="sc">}</span><span class="ss">_rationale"</span>],</span>
+<span id="cb9-692"><a href="#cb9-692" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb9-693"><a href="#cb9-693" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span> <span class="op">=</span> pd.DataFrame(long_rows)</span>
+<span id="cb9-694"><a href="#cb9-694" aria-hidden="true" tabindex="-1"></a>    pathlib.Path(out_csv_long).parent.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-695"><a href="#cb9-695" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span>.to_csv(out_csv_long, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb9-696"><a href="#cb9-696" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-697"><a href="#cb9-697" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> wide</span>
+<span id="cb9-698"><a href="#cb9-698" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-699"><a href="#cb9-699" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-700"><a href="#cb9-700" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-701"><a href="#cb9-701" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-704"><a href="#cb9-704" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb9-705"><a href="#cb9-705" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb9-706"><a href="#cb9-706" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-707"><a href="#cb9-707" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-708"><a href="#cb9-708" aria-hidden="true" tabindex="-1"></a>batch_evaluate_journal_tiers(</span>
+<span id="cb9-709"><a href="#cb9-709" aria-hidden="true" tabindex="-1"></a>    root<span class="op">=</span><span class="st">"papers"</span>,</span>
+<span id="cb9-710"><a href="#cb9-710" aria-hidden="true" tabindex="-1"></a>    out_csv_wide<span class="op">=</span><span class="st">"results/journal_tiers.csv"</span>,</span>
+<span id="cb9-711"><a href="#cb9-711" aria-hidden="true" tabindex="-1"></a>    out_csv_long<span class="op">=</span><span class="st">"results/journal_tiers_long.csv"</span>,</span>
+<span id="cb9-712"><a href="#cb9-712" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>MODEL,</span>
+<span id="cb9-713"><a href="#cb9-713" aria-hidden="true" tabindex="-1"></a>    max_workers<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb9-714"><a href="#cb9-714" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="va">True</span></span>
+<span id="cb9-715"><a href="#cb9-715" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-716"><a href="#cb9-716" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-717"><a href="#cb9-717" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-718"><a href="#cb9-718" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-719"><a href="#cb9-719" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-720"><a href="#cb9-720" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-721"><a href="#cb9-721" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-722"><a href="#cb9-722" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-723"><a href="#cb9-723" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-724"><a href="#cb9-724" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-725"><a href="#cb9-725" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-726"><a href="#cb9-726" aria-hidden="true" tabindex="-1"></a><span class="fu">### Qualitative assessments</span></span>
+<span id="cb9-727"><a href="#cb9-727" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-728"><a href="#cb9-728" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-731"><a href="#cb9-731" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb9-732"><a href="#cb9-732" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: prompt-fulleval</span></span>
+<span id="cb9-733"><a href="#cb9-733" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb9-734"><a href="#cb9-734" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-735"><a href="#cb9-735" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-736"><a href="#cb9-736" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-737"><a href="#cb9-737" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-738"><a href="#cb9-738" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-739"><a href="#cb9-739" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-740"><a href="#cb9-740" aria-hidden="true" tabindex="-1"></a>EVAL_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
+<span id="cb9-741"><a href="#cb9-741" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb9-742"><a href="#cb9-742" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span>,</span>
+<span id="cb9-743"><a href="#cb9-743" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
+<span id="cb9-744"><a href="#cb9-744" aria-hidden="true" tabindex="-1"></a>        <span class="st">"summary"</span>:           {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
+<span id="cb9-745"><a href="#cb9-745" aria-hidden="true" tabindex="-1"></a>        <span class="st">"major_strengths"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
+<span id="cb9-746"><a href="#cb9-746" aria-hidden="true" tabindex="-1"></a>        <span class="st">"major_weaknesses"</span>:  {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
+<span id="cb9-747"><a href="#cb9-747" aria-hidden="true" tabindex="-1"></a>        <span class="st">"methodological_notes"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
+<span id="cb9-748"><a href="#cb9-748" aria-hidden="true" tabindex="-1"></a>        <span class="st">"policy_relevance"</span>:  {<span class="st">"type"</span>: <span class="st">"string"</span>},</span>
+<span id="cb9-749"><a href="#cb9-749" aria-hidden="true" tabindex="-1"></a>        <span class="st">"recommendations"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
+<span id="cb9-750"><a href="#cb9-750" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb9-751"><a href="#cb9-751" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"summary"</span>,</span>
+<span id="cb9-752"><a href="#cb9-752" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"major_strengths"</span>,</span>
+<span id="cb9-753"><a href="#cb9-753" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"major_weaknesses"</span>,</span>
+<span id="cb9-754"><a href="#cb9-754" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"methodological_notes"</span>,</span>
+<span id="cb9-755"><a href="#cb9-755" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"policy_relevance"</span>,</span>
+<span id="cb9-756"><a href="#cb9-756" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"recommendations"</span>]</span>
+<span id="cb9-757"><a href="#cb9-757" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-758"><a href="#cb9-758" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-759"><a href="#cb9-759" aria-hidden="true" tabindex="-1"></a>RESPONSE_FORMAT <span class="op">=</span> {</span>
+<span id="cb9-760"><a href="#cb9-760" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
+<span id="cb9-761"><a href="#cb9-761" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
+<span id="cb9-762"><a href="#cb9-762" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"written_evaluation_v1"</span>,</span>
+<span id="cb9-763"><a href="#cb9-763" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
+<span id="cb9-764"><a href="#cb9-764" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: EVAL_SCHEMA</span>
+<span id="cb9-765"><a href="#cb9-765" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-766"><a href="#cb9-766" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-767"><a href="#cb9-767" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-768"><a href="#cb9-768" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-769"><a href="#cb9-769" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="st">"""</span></span>
+<span id="cb9-770"><a href="#cb9-770" aria-hidden="true" tabindex="-1"></a><span class="st">You are writing a referee report for The Unjournal.</span></span>
+<span id="cb9-771"><a href="#cb9-771" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-772"><a href="#cb9-772" aria-hidden="true" tabindex="-1"></a><span class="st">Return STRICT JSON that matches the schema `written_evaluation_v1`.</span></span>
+<span id="cb9-773"><a href="#cb9-773" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-774"><a href="#cb9-774" aria-hidden="true" tabindex="-1"></a><span class="st">Audience → (i) research users &amp; policy-makers, (ii) departments &amp; funders,</span></span>
+<span id="cb9-775"><a href="#cb9-775" aria-hidden="true" tabindex="-1"></a><span class="st">(iii) authors.</span></span>
+<span id="cb9-776"><a href="#cb9-776" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-777"><a href="#cb9-777" aria-hidden="true" tabindex="-1"></a><span class="st">Sections (≤250 words each):</span></span>
+<span id="cb9-778"><a href="#cb9-778" aria-hidden="true" tabindex="-1"></a><span class="st">  • summary               → clear one-paragraph overview of purpose &amp; findings</span></span>
+<span id="cb9-779"><a href="#cb9-779" aria-hidden="true" tabindex="-1"></a><span class="st">  • major_strengths       → bullet list or short paragraph</span></span>
+<span id="cb9-780"><a href="#cb9-780" aria-hidden="true" tabindex="-1"></a><span class="st">  • major_weaknesses      → idem</span></span>
+<span id="cb9-781"><a href="#cb9-781" aria-hidden="true" tabindex="-1"></a><span class="st">  • methodological_notes  → focus on justification, assumptions, robustness,</span></span>
+<span id="cb9-782"><a href="#cb9-782" aria-hidden="true" tabindex="-1"></a><span class="st">                            open/science aspects</span></span>
+<span id="cb9-783"><a href="#cb9-783" aria-hidden="true" tabindex="-1"></a><span class="st">  • policy_relevance      → discuss how (and how strongly) results matter for</span></span>
+<span id="cb9-784"><a href="#cb9-784" aria-hidden="true" tabindex="-1"></a><span class="st">                            global priorities / practitioners</span></span>
+<span id="cb9-785"><a href="#cb9-785" aria-hidden="true" tabindex="-1"></a><span class="st">  • recommendations       → concrete, numbered advice to improve the work</span></span>
+<span id="cb9-786"><a href="#cb9-786" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-787"><a href="#cb9-787" aria-hidden="true" tabindex="-1"></a><span class="st">Write in direct, concise style; no hedging beyond necessary uncertainty</span></span>
+<span id="cb9-788"><a href="#cb9-788" aria-hidden="true" tabindex="-1"></a><span class="st">quantification.  No markdown fences, no extra keys.</span></span>
+<span id="cb9-789"><a href="#cb9-789" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>).strip()</span>
+<span id="cb9-790"><a href="#cb9-790" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-791"><a href="#cb9-791" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-792"><a href="#cb9-792" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-793"><a href="#cb9-793" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-794"><a href="#cb9-794" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-795"><a href="#cb9-795" aria-hidden="true" tabindex="-1"></a>---</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

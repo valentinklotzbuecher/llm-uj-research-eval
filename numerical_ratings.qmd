@@ -323,10 +323,342 @@ else:
 
 We use the following system prompt:
 
-`r SYSTEM_PROMPT`
+```{python}
+#| label: tiers-setup
+#| eval: false
+#| code-fold: true
+
+from __future__ import annotations
+import os, pathlib, json, textwrap, re, time, math, random, hashlib, threading
+from typing import Any, Dict, Optional
+import pdfplumber, tiktoken
+import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Reuse your existing OpenAI client + MODEL set earlier:
+# client = OpenAI()
+# MODEL = os.getenv("UJ_MODEL", "gpt-5")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tokenizer + compact extractor for tiering (cheaper than full paper)
+# ─────────────────────────────────────────────────────────────────────────────
+_enc = tiktoken.get_encoding("o200k_base")
+
+def _truncate_tokens(txt: str, max_tokens: int) -> str:
+    toks = _enc.encode(re.sub(r"\s+", " ", txt))
+    if len(toks) > max_tokens:
+        toks = toks[:max_tokens]
+    return _enc.decode(toks)
+
+def pdf_to_tier_text(path, max_tokens: int = 25_000) -> str:
+    """
+    Cheaper extract: try to keep Abstract, Introduction, Results/Discussion, Conclusion.
+    Falls back gracefully to the whole (minus references) then truncates by tokens.
+    """
+    try:
+        with pdfplumber.open(path) as pdf:
+            full = " ".join(p.extract_text() or "" for p in pdf.pages)
+    except Exception:
+        # Fall back to the generic extractor in your earlier chunk, if defined:
+        return pdf_to_string(path, max_tokens=max_tokens)  # type: ignore
+
+    text = re.sub(r"\s+", " ", full)
+
+    # Drop references/bibliography
+    m = re.search(r"\b(References|Bibliography)\b", text, flags=re.I)
+    if m: text = text[: m.start()]
+
+    # Heuristic section pulls
+    chunks = []
+    def _grab(label, next_labels=("Introduction","1 ","I.","Background","Data","Model","Method", "Methods", "Approach")):
+        pat = rf"\b{label}\b"
+        m = re.search(pat, text, flags=re.I)
+        if not m: return None
+        start = m.start()
+        # stop at next section-ish header
+        next_pat = r"|".join([rf"\b{re.escape(nl)}\b" for nl in next_labels])
+        m2 = re.search(next_pat, text[m.end():], flags=re.I)
+        end = m.end() + (m2.start() if m2 else 5000)  # cap a bit if no clear end
+        return text[start:end]
+
+    for lab in ["Abstract", "Summary"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+    for lab in ["Introduction", "Motivation", "Overview"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+    for lab in ["Results", "Findings", "Discussion"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+    for lab in ["Conclusion", "Conclusions", "Policy Implications", "Implications"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+
+    if not chunks:
+        candidate = text
+    else:
+        candidate = " ".join(chunks)
+
+    return _truncate_tokens(candidate, max_tokens=max_tokens)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JSON schema + prompt (v2)
+# ─────────────────────────────────────────────────────────────────────────────
+TIERS_PROMPT_VERSION = "journal_tiers_v2_2025-09-14"
+
+TIERS_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "tier_should": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_lower":  {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_upper":  {"type": "number", "minimum": 0, "maximum": 5},
+                "rationale": {"type": "string", "maxLength": 400}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        },
+        "tier_will": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_lower":  {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_upper":  {"type": "number", "minimum": 0, "maximum": 5},
+                "rationale": {"type": "string", "maxLength": 400}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        }
+    },
+    "required": ["tier_should", "tier_will"]
+}
+
+TIERS_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "journal_tiers_v2",
+        "strict": True,
+        "schema": TIERS_SCHEMA
+    }
+}
+
+TIERS_SYSTEM_PROMPT = textwrap.dedent("""
+You are an expert evaluator. Return STRICT JSON matching the provided schema.
+
+Scale (0–5; halves allowed):
+  5 = A-journal / top-five general
+  4 = top field or marginal A
+  3 = solid field
+  2 = niche / low-tier field
+  1 = working-paper outlet only
+  0 = not publishable
+
+Definitions:
+- tier_should = where the paper deserves to publish if quality-only decides.
+- tier_will   = realistic prediction given status/noise/connections.
+
+Rules:
+- Keep 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.
+- Round all scores to the nearest 0.5.
+- Rationale ≤ 40 words; focus on contribution, credibility, and fit.
+- No extra keys. No markdown. JSON only.
+""").strip()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers: rounding, clamping, validation, caching
+# ─────────────────────────────────────────────────────────────────────────────
+def _round_half(x: float) -> float:
+    return round(float(x) * 2.0) / 2.0
+
+def _clamp_0_5(x: float) -> float:
+    return max(0.0, min(5.0, float(x)))
+
+def _normalize_block(block: Dict[str, Any]) -> Dict[str, Any]:
+    s  = _round_half(_clamp_0_5(block.get("score", 0.0)))
+    lo = _round_half(_clamp_0_5(block.get("ci_lower", s)))
+    hi = _round_half(_clamp_0_5(block.get("ci_upper", s)))
+    # enforce ordering
+    if lo > s: lo, s = s, lo
+    if hi < s: hi, s = s, hi
+    if lo > hi: lo, hi = hi, lo
+    block["score"], block["ci_lower"], block["ci_upper"] = s, lo, hi
+    # Rationale hygiene
+    r = str(block.get("rationale", "")).strip()
+    block["rationale"] = re.sub(r"\s+", " ", r)
+    return block
+
+def _normalize_tiers(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if "tier_should" in payload:
+        payload["tier_should"] = _normalize_block(payload["tier_should"])
+    if "tier_will"   in payload:
+        payload["tier_will"]   = _normalize_block(payload["tier_will"])
+    return payload
+
+def _file_hash_bytes(path: pathlib.Path) -> bytes:
+    h = hashlib.sha1()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.digest()
+
+def _cache_key_for_tiers(pdf_path: pathlib.Path, model: str) -> str:
+    base = _file_hash_bytes(pdf_path)
+    extra = f"{model}|{TIERS_PROMPT_VERSION}".encode()
+    return hashlib.sha1(base + extra).hexdigest()
+
+CACHE_DIR = pathlib.Path("cache") / "journal_tiers"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_cache_lock = threading.Lock()
+
+```
 
 
 
+```{python}
+#| label: tiers-run-one
+#| eval: false
+#| code-fold: true
 
+def evaluate_journal_tiers(pdf_path: str | pathlib.Path,
+                           model: str = MODEL,
+                           seed: Optional[int] = 2025,
+                           max_tokens_extract: int = 25_000,
+                           verbose: bool = False) -> Dict[str, Any]:
+    """
+    Returns: dict with keys: tier_should{score,ci_lower,ci_upper,rationale},
+    tier_will{...}, plus bookkeeping fields.
+    Uses caching keyed to (pdf bytes, model, prompt_version).
+    """
+    pdf_path = pathlib.Path(pdf_path)
+    key = _cache_key_for_tiers(pdf_path, model)
+    cache_file = CACHE_DIR / f"{key}.json"
+
+    # Try cache
+    if cache_file.exists():
+        if verbose: print(f"cache hit: {pdf_path.name}")
+        data = json.loads(cache_file.read_text())
+        return data
+
+    # Extract compact text for this task
+    paper_text = pdf_to_tier_text(pdf_path, max_tokens=max_tokens_extract)
+
+    # Call model with strict JSON schema
+    backoff = 1.0
+    last_err = None
+    for attempt in range(6):
+        try:
+            chat = client.chat.completions.create(
+                model=model,
+                response_format=TIERS_RESPONSE_FORMAT,
+                seed=seed,
+                messages=[
+                    {"role": "system", "content": TIERS_SYSTEM_PROMPT},
+                    {"role": "user",   "content": paper_text}
+                ],
+            )
+            raw = chat.choices[0].message.content
+            payload = json.loads(raw)
+            payload = _normalize_tiers(payload)
+            payload["paper"] = pdf_path.stem
+            payload["model"] = model
+            payload["prompt_version"] = TIERS_PROMPT_VERSION
+            cache_file.write_text(json.dumps(payload, ensure_ascii=False))
+            return payload
+        except Exception as e:
+            last_err = e
+            # gentle jittered exponential backoff
+            time.sleep(backoff + random.random() * 0.25)
+            backoff *= 1.8
+
+    raise RuntimeError(f"Tier evaluation failed for {pdf_path.name}: {last_err}")
+
+
+```
+
+
+```{python}
+#| label: tiers-batch
+#| eval: false
+#| code-fold: true
+
+def batch_evaluate_journal_tiers(root: str | pathlib.Path = "papers",
+                                 out_csv_wide: str | pathlib.Path = "results/journal_tiers.csv",
+                                 out_csv_long: str | pathlib.Path = "results/journal_tiers_long.csv",
+                                 model: str = MODEL,
+                                 max_workers: int = 3,
+                                 verbose: bool = True) -> pd.DataFrame:
+    ROOT = pathlib.Path(root)
+    OUT  = pathlib.Path(out_csv_wide)
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+
+    pdfs = sorted(ROOT.glob("*.pdf"))
+    if verbose:
+        print(f"Tiering {len(pdfs)} papers with {max_workers} workers...")
+
+    rows = []
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = {ex.submit(evaluate_journal_tiers, pdf, model): pdf for pdf in pdfs}
+        for fut in as_completed(futs):
+            pdf = futs[fut]
+            try:
+                res = fut.result()
+                rows.append({
+                    "paper": pdf.stem,
+                    "model": res.get("model"),
+                    "prompt_version": res.get("prompt_version"),
+                    "should_score":     res["tier_should"]["score"],
+                    "should_ci_lower":  res["tier_should"]["ci_lower"],
+                    "should_ci_upper":  res["tier_should"]["ci_upper"],
+                    "should_rationale": res["tier_should"]["rationale"],
+                    "will_score":       res["tier_will"]["score"],
+                    "will_ci_lower":    res["tier_will"]["ci_lower"],
+                    "will_ci_upper":    res["tier_will"]["ci_upper"],
+                    "will_rationale":   res["tier_will"]["rationale"],
+                })
+                if verbose: print(f"✓ {pdf.name}")
+            except Exception as e:
+                print(f"⚠️ {pdf.name}: {e}")
+
+    wide = pd.DataFrame(rows)
+    wide.to_csv(OUT, index=False)
+
+    # Long format (two rows per paper)
+    long_rows = []
+    for r in rows:
+        for kind in ("should", "will"):
+            long_rows.append({
+                "paper": r["paper"],
+                "model": r["model"],
+                "prompt_version": r["prompt_version"],
+                "tier_kind": kind,
+                "score": r[f"{kind}_score"],
+                "ci_lower": r[f"{kind}_ci_lower"],
+                "ci_upper": r[f"{kind}_ci_upper"],
+                "rationale": r[f"{kind}_rationale"],
+            })
+    long = pd.DataFrame(long_rows)
+    pathlib.Path(out_csv_long).parent.mkdir(parents=True, exist_ok=True)
+    long.to_csv(out_csv_long, index=False)
+
+    return wide
+
+```
+
+
+```{python}
+
+batch_evaluate_journal_tiers(
+    root="papers",
+    out_csv_wide="results/journal_tiers.csv",
+    out_csv_long="results/journal_tiers_long.csv",
+    model=MODEL,
+    max_workers=3,
+    verbose=True
+)
+
+```
 
 ---
