@@ -28,15 +28,13 @@ currentmodel =  "GPT-5"
 
 We draw on two main sources:
 
-1) Human evaluations from The Unjournal’s public dataset (PubPub reports and the Coda evaluation form export).  
+1) Human evaluations from [The Unjournal’s public evaluation data](https://unjournal.github.io/unjournaldata/index.html) (PubPub reports and the Coda evaluation form export).  
 2) LLM‑generated evaluations produced by `r currentmodel` using a structured JSON‑schema prompt.
 
-We report (i) the human dataset and curation, and (ii) the LLM evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV). Code cells below show the exact configuration and contract used with the model, as well as the API call.
+## Unjournal.org evaluations
 
-## Unjournal.org 
-
-[Unjournal Dat Blog](https://unjournal.github.io/unjournaldata/index.html)
-
+We use The Unjournal’s public data for baseline comparison. In The Unjournal process, each paper is typically reviewed by 1–3 expert evaluators, who provide quantitative ratings on the 0–100 percentile scale for each criterion (with 90% credible intervals) and a written evaluation. We extracted these ratings from The Unjournal’s records (an evaluator form database and published review reports). For our analysis, we aggregated the human ratings for each paper by computing the average score per criterion (and noting the range of individual scores). 
+All selected papers had completed Unjournal reviews (meaning the authors received a full evaluation on the Unjournal platform). The sample includes 49 papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
 
 ## LLM-based evaluation
 

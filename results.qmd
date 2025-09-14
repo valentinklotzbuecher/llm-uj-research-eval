@@ -118,10 +118,7 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 ```
 
 
-
 Here we present preliminaray results, starting with a comparison of the LLM‑generated quantitative ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
-
-<!-- Results on journal ranking tiers, claim identification, and full written reports will be added soon. -->
 
 
 ## Quantitative ratings
@@ -267,6 +264,10 @@ ratings_long <- merged |>
 
 In @fig-forest, the orange diamond and line show the `r print(currentmodel)` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
 
+Looking at this figure, we can visually assess agreement. If the orange diamond lies among the green circles for a paper, the AI’s overall assessment is in line with the human range. If the orange diamond is far to the right (higher score) or left (lower score) relative to all green points, it indicates a notable disagreement.
+
+
+
 ```{r}
 #| label: fig-forest
 #| fig-cap: "LLM vs individual Human ratings (overall). Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (thin CI when available) offset per rater."
@@ -389,8 +390,7 @@ ggplot() +
 ```
 
 
-Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. Lines curve upward when the LLM ranks a paper higher than humans (orange), downward when lower (green).
-
+Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. This visualization directly compares how the AI and the human reviewers rank each paper in terms of overall quality. Each paper is represented by a curve connecting two ranked lists: on the left, the papers are ordered top-to-bottom by the human overall score (rank 1 = highest rated by humans); on the right, the papers are ordered by the AI’s overall score (rank 1 = highest rated by AI). A paper that occupies the same rank in both lists would appear as a straight horizontal line. If the AI ranks a paper higher than the humans did, the line for that paper will slope upward from left to right (starting lower on the left and ending higher on the right). Those lines are drawn in orange, indicating “AI higher than human.” Conversely, if the AI ranks a paper lower, the line slopes downward (green line indicating “AI lower than human”).
 
  
 ```{r}
@@ -538,11 +538,13 @@ plot_rank_slope_S(metric_name)
 
 ```
 
+In our results, we see a mix: many papers lie fairly close to horizontal (especially in the middle of the pack), but there are several with pronounced slopes. For example, a few orange lines curve sharply upward – these are papers that the AI considered to be among the top-ranked, while humans had them in the middle or lower end. Papers with steep green downward curves are ones humans rated highly but the AI was less impressed by. One can identify specific papers by these lines; for instance, one orange line corresponds to @Williams2024, which the AI ranked much higher than the median human rank. On the other hand, we see a green line for a paper that humans ranked very highly but AI did not – for example, Aghion et al. 2017 was among the top few for human reviewers, but the LLM overall score put it notably lower relative to others, hence a downward green curve.
+
+The overall pattern suggests that the AI and humans broadly agree on some top performers, but there are notable swaps in positions. It’s not the case that the AI simply gave everything high scores or low scores uniformly – it has a distinct “taste,” elevating some work and devaluing other work differently than human referees. The question this raises is: on what basis are these differences happening? To explore that, we can look at the category-by-category differences next.
+
 ### Individual metrics
 
-We then look closer at the specific ratings on the criterion level. @fig-heat displays LLM − Human differences by paper × metric; orange cells indicate higher LLM scores, green cells lower ones. 
-
-
+We then look closer at the specific ratings on the criterion level. @fig-heat displays LLM − Human differences by paper × metric. Each row is a paper (the rows here are ordered by the difference in overall score, with papers at the top being those the AI scored lower than humans overall, and at the bottom those the AI scored higher). Each column is one of the criteria: Claims & Evidence, Methods, Advancing Knowledge, Logic & Communication, Open Science, Global Relevance, and Overall. The cell color shows the AI score minus the human score for that paper on that criterion. Orange shades mean the AI’s score is higher; green shades mean the AI’s score is lower. White or light gray indicates the AI and human scores were about the same.
 
 ```{r}
 #| label: fig-heat
@@ -575,7 +577,22 @@ ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
 
 ```
 
-@tbl-agreement show agreement metrics across rating criteria.
+
+
+This figure provides a more granular view of where AI and human evaluations diverge. A quick scan reveals a few systematic tendencies:
+
+Orange dominates many columns, meaning the AI tended to score papers higher than humans on several criteria. In particular, the columns for Claims, Methods, Advancing Knowledge, and Communication have a lot of orange cells. This indicates that for most papers, `r currentmodel` gave higher ratings in these areas than the human reviewers did. For example, in the Logic & Communication column, we see many light-orange cells – the AI often thought papers were a bit clearer or better argued (by its judgment) than the human evaluators did.
+
+In contrast, the Open Science column shows a notable amount of green. Here the AI frequently gave lower scores than the humans. This suggests that the AI was harsher about transparency/reproducibility issues. Indeed, GPT often noted lack of code or data sharing in papers and penalized for it, whereas some human reviewers may have been more forgiving or did not emphasize open-science practices as strongly (especially if they focused more on content quality). As a result, for many papers the AI’s Open Science score is 5–10 points below the human average.
+
+
+@tbl-agreement show agreement metrics across rating criteria. To quantify the agreements and differences observed, we calculated several statistics comparing LLM scores to the human scores, aggregated by criterion:
+
+Correlation (Pearson’s r) between the AI’s and human scores across papers: This tells us, for example, if a paper that humans gave a high score also tended to get a high score from AI (regardless of absolute difference). For the Overall scores, Pearson r ≈ 0.30, indicating a weak-to-moderate positive correlation. In other words, there is some alignment – the AI does often rate the generally “better” papers higher – but there is considerable noise. Some criteria showed essentially no linear correlation (for Logic & Communication, r ~ 0, meaning the AI’s clarity ratings had no linear relationship with human ratings).
+
+We also computed Spearman rank correlation, where for Overall it was a bit higher (around 0.40), suggesting the AI is moderately good at ranking papers in roughly the same order as humans even if the exact scores differ. Notably, the Methods criterion had one of the higher Spearman correlations (~0.43), implying AI and humans somewhat agree on which papers have stronger methods, whereas Global Relevance and Communication had very low or even slight negative correlation, implying essentially no agreement on those fronts.
+
+Inter-rater reliability (Cohen’s κ): We treated the AI as one “reviewer” and the average human as another, and asked: how often do they effectively give similar ratings, beyond what chance alignment would predict? For overall scores, Cohen’s κ (with quadratic weighting for partial agreement) came out around 0.25–0.30. This would be characterized as “fair” agreement at best – a significant gap remains between AI and human judgments. For most specific criteria, the weighted κ was lower, often in the 0.1–0.2 range (and for one category, effectively 0). A κ of 0 would mean no more agreement than random chance (given the distribution of scores), so some categories are bordering on that. In contrast, typical inter-human agreement on these kinds of scoring tasks can also be low, but usually one would hope for κ in the 0.3–0.6 range among trained reviewers on well-defined criteria. Our finding of κ < 0.3 in all cases suggests that the AI’s ratings are not interchangeable with a human reviewer’s – at least not without further calibration.
 
 ```{r}
 #| label: tbl-agreement
