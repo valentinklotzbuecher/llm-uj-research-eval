@@ -21,11 +21,9 @@ library("lubridate")
 library("readr")
 library("here") 
 library("knitr") 
-# library("reticulate") 
 library("ggforce") 
 
-
-# ---- Unjournal brand palette ----------------------------------------------
+ 
 UJ_ORANGE <- "#f19e4b"   # LLM
 UJ_GREEN  <- "#99bb66"   # Human
 
@@ -37,8 +35,7 @@ theme_uj <- function(base_size = 11) {
       legend.position = "bottom"
     )
 }
-
-# ---- small helpers ---------------------------------------------------------
+ 
 fix_bounds <- function(df, lo, hi) {
   lo2 <- suppressWarnings(as.numeric(df[[lo]]))
   hi2 <- suppressWarnings(as.numeric(df[[hi]]))
@@ -122,9 +119,13 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 
 
 
+Here we present preliminaray results, starting with a comparison of the LLM‑generated quantitative ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
+
+Results on journal ranking tiers, claim identification, and full written reports will be added soon.
+
+
 ## Quantitative ratings
 
-Here we present preliminaray results, starting with a comparison of the LLM‑generated quantitative ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
 
 ### Overall ratings
 
@@ -267,39 +268,47 @@ ratings_long <- merged |>
 In @fig-forest, the orange diamond and line show the `r print(currentmodel)` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
 
 ```{r}
-#| label: fig-jitter
-#| fig-cap: "Jittered ratings by metric: Human (green) vs LLM (orange). Hollow dot = median per rater."
-#| fig-height: 8
+#| label: fig-jitter-overall
+#| fig-cap: "Overall ratings (horizontal jitter). Human (green) vs LLM (orange). Hollow dot marks the median per rater."
+#| fig-height: 4.2
+#| fig-width: 7
 
-# Build point-level data: keep all individual human ratings + one LLM midpoint per paper
-points_all <- dplyr::bind_rows(
+set.seed(42)  # reproducible jitter
+
+# Build point-level data for OVERALL only
+points_overall <- dplyr::bind_rows(
   human_raw |>
-    transmute(label_paper, label_paper_title, criteria,
-              rater = "Human", score = as.numeric(middle_rating)),
+    dplyr::filter(criteria == "overall") |>
+    dplyr::transmute(rater = "Human", score = as.numeric(middle_rating)),
   llm_raw |>
-    transmute(label_paper, label_paper_title, criteria,
-              rater = "LLM",   score = as.numeric(midpoint_llm))
+    dplyr::filter(criteria == "overall") |>
+    dplyr::transmute(rater = "LLM",   score = as.numeric(midpoint_llm))
 ) |>
-  filter(is.finite(score)) |>
-  filter(criteria == "overall")
+  dplyr::filter(is.finite(score)) |>
+  dplyr::mutate(rater = factor(rater, levels = c("Human", "LLM")))
 
-# Optional: nicer facet strip labels
-lab_crit <- function(x) stringr::str_to_title(gsub("_", " ", x))
+# Medians per rater (for the white-filled marker)
+med_overall <- points_overall |>
+  dplyr::group_by(rater) |>
+  dplyr::summarise(med = stats::median(score, na.rm = TRUE), .groups = "drop")
 
-ggplot(points_all, aes(x = rater, y = score, colour = rater, shape = rater)) +
-  geom_jitter(width = 0.15, height = 0, alpha = 0.7, size = 5) +
-  # Median per rater (white-filled dot with black outline)
-  stat_summary(fun = median, geom = "point",
-               size = 3.2, shape = 21, fill = "white", colour = "black") +
+ggplot(points_overall, aes(x = score, y = rater, colour = rater, shape = rater)) +
+  geom_jitter(height = 0.15, width = 0, alpha = 0.55, size = 1.9) +
+  # Median marker (white fill with black outline)
+  geom_point(data = med_overall,
+             aes(x = med, y = rater),
+             inherit.aes = FALSE,
+             shape = 21, size = 3.2, fill = "white", colour = "black", stroke = 0.8) +
   scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
   scale_shape_manual(values = c(LLM = 18, Human = 16), name = NULL) +
-  labs(x = NULL, y = "Score (percentile)") +
-  facet_wrap(~ criteria, nrow = 2, labeller = as_labeller(lab_crit)) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25)) +
+  labs(x = "Score (percentile)", y = NULL) +
   theme_uj() +
   theme(
-    strip.text = element_text(face = "bold"),
-    panel.grid.major.x = element_blank()
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(hjust = 0.98)
   )
+
 
 ```
 
