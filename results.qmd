@@ -11,9 +11,8 @@ engine: knitr
 #| label: setup
 
 
-
-
 currentmodel =  "GPT-5"
+
 
 library("tidyverse")
 library("janitor")
@@ -118,8 +117,17 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 }
 
 
-
 ```
+
+
+
+Here we present preliminray results, starting with a comparison of the LLM‑generated ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
+
+## Overall ratings
+
+We begin by comparing *overall* scores. 
+
+
 
 ```{r}
 #| label: load-data
@@ -253,15 +261,7 @@ ratings_long <- merged |>
 
 ```
 
-Here we present preliminray results, starting with a comparison of the LLM‑generated ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
-
-## Overall ratings
-
-We begin by comparing *overall* scores. In @fig-forest, the orange diamond and line show the `r currentmodel` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
-
-Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. Lines curve upward when the LLM ranks a paper higher than humans (orange), downward when lower (green).
-
-
+In @fig-forest, the orange diamond and line show the `r print(currentmodel)` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
 
 ```{r}
 #| label: fig-forest
@@ -384,6 +384,8 @@ ggplot() +
 
 ```
 
+
+Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. Lines curve upward when the LLM ranks a paper higher than humans (orange), downward when lower (green).
 
 
  
@@ -602,9 +604,9 @@ agreement_summary <- function(df, n_bins = 5, bin_strategy = "quantile") {
       spearman      = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
       # mean_bias     = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
       # median_bias   = median(midpoint_llm - midpoint_human, na.rm = TRUE),
-      MAE           = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
-      MedAE         = median(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
-      RMSE          = sqrt(mean((midpoint_llm - midpoint_human)^2, na.rm = TRUE)),
+      # MAE           = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+      # MedAE         = median(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+      # RMSE          = sqrt(mean((midpoint_llm - midpoint_human)^2, na.rm = TRUE)),
       kappa_unwtd   = { b <- bin_together(midpoint_llm, midpoint_human, n_bins, bin_strategy); weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "unweighted") },
       kappa_quad    = { b <- bin_together(midpoint_llm, midpoint_human, n_bins, bin_strategy); weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "quadratic") },
       .groups = "drop"
@@ -678,13 +680,18 @@ LLM — `r msg_top_llm_overall`; Human — `r msg_top_human_overall`.
 Looking across all metrics, the biggest gaps are `r msg_top_gaps_any`.
 
  
-<!-- ## Journal tier ratings -->
 
 
-<!-- ## Claim identification -->
+
+## Journal ranking tiers
 
 
-<!-- ## Full evaluations -->
+## Claim identification
+
+
+## Qualitative assessments
+
+
 
 
 
