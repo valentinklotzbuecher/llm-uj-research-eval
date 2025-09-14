@@ -121,11 +121,6 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 
 ```
 
-
-On this page we present preliminray results, starting with a comparison of the LLM‑generated ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
-
-
-
 ```{r}
 #| label: load-data
 
@@ -258,46 +253,134 @@ ratings_long <- merged |>
 
 ```
 
-
+Here we present preliminray results, starting with a comparison of the LLM‑generated ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
 
 ## Overall ratings
 
+We begin by comparing *overall* scores. In @fig-forest, the orange diamond and line show the `r currentmodel` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
 
-
+Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. Lines curve upward when the LLM ranks a paper higher than humans (orange), downward when lower (green).
 
 
 
 ```{r}
 #| label: fig-forest
-#| fig-cap: "LLM and Human ratings (overall) with 90% credible intervals"
-#| fig-height: 8
+#| fig-cap: "LLM vs individual Human ratings (overall). Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (thin CI when available) offset per rater."
+#| fig-height: 9
+#| fig-width: 8
 
+metric_name <- "overall"
 
-metric_name <- "overall" 
+# Helper: symmetric lane offsets (skip 0 so center lane is reserved for LLM)
+lane_offsets <- function(m, gap = 0.18) {
+  if (m <= 0) return(numeric(0))
+  k <- ceiling(m/2)
+  cand <- c(-seq_len(k), seq_len(k)) * gap
+  sort(cand)[seq_len(m)]
+}
 
-D <- merged |>
+# Base ordering of papers (same logic as before)
+D_base <- merged |>
   filter(criteria == metric_name) |>
-  mutate(paper_order = fct_reorder(label_paper, diff, .desc = FALSE))
+  mutate(paper_order = fct_reorder(label_paper, diff, .desc = FALSE)) |>
+  distinct(label_paper, label_paper_title, paper_order, n_raters)
 
-D_long <- bind_rows(
-  D |> transmute(paper_order, who = "Human",
-                 mid = midpoint_human, lo = human_lo_union, hi = human_hi_union),
-  D |> transmute(paper_order, who = "LLM",
-                 mid = midpoint_llm,  lo = lower_llm,     hi = upper_llm)
-)
+# Pretty label with # of human raters
+D_base <- D_base |>
+  mutate(paper_lab = paste0(label_paper, " (n=", n_raters, ")")) |>
+  arrange(paper_order) |>
+  mutate(pos = row_number())
 
-ggplot(D_long, aes(x = mid, y = paper_order, color = who)) +
-  geom_errorbarh(aes(xmin = lo, xmax = hi),
-                 height = 0, size = 0.7,
-                 position = position_dodge(width = 0.55), alpha = 0.9) +
-  geom_point(size = 2.6, position = position_dodge(width = 0.55)) +
-  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
-  labs(
-    title = paste0("Forest — ", str_to_title(gsub("_"," ", metric_name)),
-                   " (Human CI = union across raters)"),
-    x = "Score", y = NULL
+pos_map <- D_base |>
+  select(label_paper, paper_lab, pos)
+
+# --- Individual human ratings (each gets its own offset lane) --------------
+H_indiv <- human_raw |>
+  filter(criteria == metric_name) |>
+  inner_join(pos_map, by = "label_paper") |>
+  group_by(label_paper) |>
+  arrange(evaluator, .by_group = TRUE) |>
+  mutate(
+    h_id = row_number(),
+    n_h  = dplyr::n(),
+    off  = purrr::map2_dbl(n_h, h_id, ~ lane_offsets(.x)[.y]),  # <-- scalarize here
+    y    = pos + off
+  ) |>
+  ungroup() |>
+  transmute(
+    paper_lab,
+    y,
+    who = "Human",
+    mid = as.numeric(middle_rating),
+    lo  = suppressWarnings(as.numeric(lower_ci)),
+    hi  = suppressWarnings(as.numeric(upper_ci))
+  )
+
+# --- LLM midpoint + CI (one centered lane per paper) -----------------------
+L_llm <- llm_raw |>
+  filter(criteria == metric_name) |>
+  inner_join(pos_map, by = "label_paper") |>
+  mutate(y = pos) |>
+  transmute(
+    paper_lab,
+    y,
+    who = "LLM",
+    mid = as.numeric(midpoint_llm),
+    lo  = as.numeric(lower_llm),
+    hi  = as.numeric(upper_llm)
+  )
+
+Pts <- bind_rows(H_indiv, L_llm)
+
+# Axis limits from all intervals
+rng <- range(c(Pts$mid, Pts$lo, Pts$hi), na.rm = TRUE)
+pad <- 0.04 * diff(rng)
+xlim_use <- c(rng[1] - pad, rng[2] + pad)
+
+# Light separators per paper row
+row_lines <- pos_map$pos
+
+ggplot() +
+  geom_hline(yintercept = row_lines, color = "grey92", linewidth = 0.3) +
+  # Human CIs (thin) + points on their own lanes
+  geom_errorbarh(
+    data = H_indiv |> filter(is.finite(lo), is.finite(hi)),
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, alpha = 0.5, linewidth = 0.5
   ) +
-  theme_uj()
+  geom_point(
+    data = H_indiv,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 2.1, alpha = 0.9
+  ) +
+  # LLM CI (thicker) + diamond at center lane
+  geom_errorbarh(
+    data = L_llm,
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, linewidth = 0.7
+  ) +
+  geom_point(
+    data = L_llm,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 2.6
+  ) +
+  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
+  scale_shape_manual(values = c(LLM = 18, Human = 16), name = NULL) +
+  scale_y_reverse(
+    breaks = pos_map$pos,
+    labels = pos_map$paper_lab,
+    expand = expansion(mult = c(0.02, 0.06))
+  ) +
+  coord_cartesian(xlim = xlim_use) +
+  labs(x = NULL, y = NULL
+  ) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  theme_uj() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(hjust = 0.98)
+  )
+
 
 ```
 
@@ -308,30 +391,25 @@ ggplot(D_long, aes(x = mid, y = paper_order, color = who)) +
 #| label: fig-rankslope
 #| fig-cap: "Relative ranking (overall) by LLM and Human evaluators"
 #| fig-height: 8
+#| fig-width: 8
 
 
-
+# Replace helper: make_s_bezier (now carries numeric Δrank info)
 make_s_bezier <- function(D, dx_base = 0.33, dx_min = 0.08) {
-  # adaptive horizontal control distance based on |Δrank|
   dy <- abs(D$pos_right - D$pos_left)
-  k  <- max(2, stats::quantile(dy, 0.75, na.rm = TRUE))  # scale
+  k  <- max(2, stats::quantile(dy, 0.75, na.rm = TRUE))
   dx_i <- pmax(dx_min, dx_base * exp(-dy / k))
 
-  pieces <- lapply(seq_len(nrow(D)), function(i) {
-    y0 <- D$pos_left[i]; y1 <- D$pos_right[i]
-    dx <- dx_i[i]
+  purrr::map_dfr(seq_len(nrow(D)), function(i) {
+    dr_i <- D$pos_left[i] - D$pos_right[i]   # Δrank = Human − LLM
     tibble::tibble(
       group = i,
-      x = c(0, dx, 1 - dx, 1),
-      y = c(y0, y0, y1, y1),
-      col = dplyr::case_when(
-        D$delta[i] >  0 ~ "LLM higher",
-        D$delta[i] <  0 ~ "LLM lower",
-        TRUE            ~ "Tie"
-      )
+      x = c(0, dx_i[i], 1 - dx_i[i], 1),
+      y = c(D$pos_left[i], D$pos_left[i], D$pos_right[i], D$pos_right[i]),
+      dr  = dr_i,                  # signed Δrank
+      mag = abs(dr_i)              # |Δrank|
     )
   })
-  dplyr::bind_rows(pieces)
 }
 
 
@@ -360,44 +438,94 @@ build_rank_positions <- function(metric) {
     mutate(delta = midpoint_llm - midpoint_human)
 }
 
-# --- replace plot_rank_slope_S (only the labeling bits changed) ------------
-plot_rank_slope_S <- function(metric, D = NULL) {
+plot_rank_slope_S <- function(metric,
+                              D = NULL,
+                              right_width = 0.28,
+                              color_mode = c("gradient", "steps3"),
+                              soft_thresh = 5) {
+  color_mode <- match.arg(color_mode)
   if (is.null(D)) D <- build_rank_positions(metric)
   if (is.null(D) || !nrow(D)) return(ggplot() + theme_void())
 
-  B <- make_s_bezier(D)
+  # Pretty metric for legend title
+  lab_metric   <- stringr::str_to_title(gsub("_", " ", metric))
+  legend_title <- paste0("\u0394rank (H \u2212 LLM) — ", lab_metric)
 
-  ggplot() +
-    ggforce::geom_bezier(
-      data = B,
-      aes(x = x, y = y, group = group, colour = col),
-      size = 0.9
-    ) +
+  # Ranks + right-side label
+  D <- D |>
+    mutate(
+      rank_h   = pos_left,                  # Human rank (1 = highest)
+      rank_l   = pos_right,                 # LLM   rank (1 = highest)
+      d_rank   = rank_h - rank_l,           # Δrank = Human − LLM
+      right_lab = sprintf("LLM #%d | H #%d | \u0394r=%+d", rank_l, rank_h, d_rank)
+    )
+
+  B <- make_s_bezier(D) |>
+    mutate(alpha_by = pmin(mag / soft_thresh, 1))  # fade small |Δr|
+
+  p <- ggplot()
+
+  if (color_mode == "gradient") {
+    p <- p +
+      ggforce::geom_bezier(
+        data = B,
+        aes(x = x, y = y, group = group, colour = dr, alpha = alpha_by),
+        size = 0.9
+      ) +
+      scale_color_gradient2(
+        low = UJ_GREEN, mid = "grey90", high = UJ_ORANGE, midpoint = 0,
+        name = legend_title
+      ) +
+      guides(colour = guide_colourbar(title.position = "top")) +
+      scale_alpha(range = c(0.45, 1), guide = "none")
+  } else { # "steps3": three colors, small diffs de-emphasized
+    B <- B |>
+      mutate(col3 = dplyr::case_when(
+        mag <= soft_thresh ~ "Small (≤5)",
+        dr > 0             ~ "LLM higher",
+        TRUE               ~ "LLM lower"
+      ))
+    p <- p +
+      ggforce::geom_bezier(
+        data = B,
+        aes(x = x, y = y, group = group, colour = col3),
+        size = 0.9, alpha = 0.9
+      ) +
+      scale_color_manual(
+        values = c("LLM higher" = UJ_ORANGE,
+                   "LLM lower"  = UJ_GREEN,
+                   "Small (≤5)" = "grey80"),
+        name = legend_title
+      ) +
+      guides(colour = guide_legend(title.position = "top"))
+  }
+
+  p +
     geom_point(data = D, aes(x = 0, y = pos_left),
                color = UJ_GREEN, size = 2.2) +
     geom_point(data = D, aes(x = 1, y = pos_right),
                color = UJ_ORANGE, shape = 18, size = 2.4) +
-    # LEFT labels: use label_use (label_paper if present, else title)
     geom_text(data = D, aes(x = 0, y = pos_left, label = label_use),
               hjust = 1.05, size = 3, color = "grey20") +
-    scale_color_manual(values = c("LLM higher" = UJ_ORANGE,
-                                  "LLM lower"  = UJ_GREEN,
-                                  "Tie"        = "grey55"),
-                       name = NULL) +
-    scale_x_continuous(limits = c(-0.7, 1.02),
+    geom_text(data = D, aes(x = 1, y = pos_right, label = right_lab),
+              hjust = -0.05, size = 3, color = "grey20") +
+    scale_x_continuous(limits = c(-0.7, 1 + right_width),
                        breaks = c(0, 1), labels = c("Human", "LLM"),
                        expand = expansion(mult = 0)) +
     scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
-    labs(
-      title = paste0("Rank slopegraph (S-curves) — ",
-                     stringr::str_to_title(gsub("_"," ", metric))),
-      x = NULL, y = NULL
-    ) +
+    coord_cartesian(clip = "off") +
+    labs(x = NULL, y = NULL) +          # no title; caption handles description
     theme_uj() +
-    theme(plot.margin = margin(t = 10, r = 30, b = 10, l = 140))
+    theme(
+      axis.text.y  = element_blank(),   # hide y numbers
+      axis.ticks.y = element_blank(),
+      panel.grid.major.y = element_blank(),   # remove horizontal grid lines
+      panel.grid.minor.y = element_blank(),   # (defensive)
+      plot.margin = margin(t = 10, r = 190, b = 10, l = 140)
+    )
 }
 
-# Example:
+
 plot_rank_slope_S(metric_name)
 
 
@@ -406,6 +534,9 @@ plot_rank_slope_S(metric_name)
 
 ## Individual metrics
 
+We then look closer at the specific ratings on the criterion level. @fig-heat displays LLM − Human differences by paper × metric; orange cells indicate higher LLM scores, green cells lower ones. @fig-histogram shows the marginal distributions of human vs LLM scores by metric, highlighting calibration differences and spread.
+
+Tables @tbl-agreement and @tbl-coverage summarize agreement numerically: correlations, bias, $\kappa$-statistics, and interval coverage (whether each side’s CI contains the other’s midpoint).
 
 ```{r}
 #| label: fig-heat
@@ -442,16 +573,17 @@ ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
  
 ```{r}
 #| label: fig-histogram
+#| fig-cap: "Distribution of ratings by metric"
 
-smin <- min(ratings_long$score, na.rm = TRUE)
-smax <- max(ratings_long$score, na.rm = TRUE)
-bins <- if (smin >= 0 && smax <= 100) seq(0, 100, by = 5) else pretty(c(smin, smax), n = 20)
+ratings_overall <- ratings_long |>
+  filter(criteria != "overall")
+ 
 
-ggplot(ratings_long, aes(x = score, fill = rater)) +
-  geom_histogram(position = "identity", alpha = 0.55, bins = max(length(bins) - 1, 10), color = "white") +
+ggplot(ratings_overall, aes(x = score, fill = rater)) +
+  geom_histogram(position = "identity", alpha = 0.55, bins = 20, color = "white") +
   scale_fill_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
   facet_wrap(~ criteria, scales = "free_y") +
-  labs(title = "Distributions by metric", x = "Score", y = "Count") +
+  labs( x = "Score", y = "Count") +
   theme_uj()
 
 ```
@@ -461,23 +593,21 @@ ggplot(ratings_long, aes(x = score, fill = rater)) +
 #| label: tbl-agreement
 #| tbl-cap: "Overall agreement across all metrics"
 
+# Replace: agreement_summary() and display
 agreement_summary <- function(df, n_bins = 5, bin_strategy = "quantile") {
   df |>
     group_by(criteria) |>
     summarise(
-      n           = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
-      pearson     = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
-      spearman    = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
-      mean_bias   = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
-      median_bias = median(midpoint_llm - midpoint_human, na.rm = TRUE),
-      kappa_unwtd = {
-        bins <- bin_together(midpoint_llm, midpoint_human, n_bins = n_bins, strategy = bin_strategy)
-        weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "unweighted")
-      },
-      kappa_quad  = {
-        bins <- bin_together(midpoint_llm, midpoint_human, n_bins = n_bins, strategy = bin_strategy)
-        weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "quadratic")
-      },
+      n             = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
+      pearson       = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
+      spearman      = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
+      mean_bias     = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
+      median_bias   = median(midpoint_llm - midpoint_human, na.rm = TRUE),
+      MAE           = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+      MedAE         = median(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+      RMSE          = sqrt(mean((midpoint_llm - midpoint_human)^2, na.rm = TRUE)),
+      kappa_unwtd   = { b <- bin_together(midpoint_llm, midpoint_human, n_bins, bin_strategy); weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "unweighted") },
+      kappa_quad    = { b <- bin_together(midpoint_llm, midpoint_human, n_bins, bin_strategy); weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "quadratic") },
       .groups = "drop"
     ) |>
     arrange(criteria)
@@ -486,152 +616,68 @@ agreement_summary <- function(df, n_bins = 5, bin_strategy = "quantile") {
 agree_view <- agreement_summary(merged, n_bins = 5, bin_strategy = "quantile") |>
   mutate(across(where(is.numeric), ~ round(.x, 3)))
 
-kable(agree_view, caption = "Agreement by metric (Pearson, Spearman, mean/median bias, κ unweighted/weighted)")
+kable(agree_view)
 
-overall_stats <- function(df, n_bins = 5, bin_strategy = "quantile") {
-  llm <- df$midpoint_llm; hum <- df$midpoint_human
-  pr  <- suppressWarnings(cor(llm, hum, use = "pairwise.complete.obs", method = "pearson"))
-  mad <- mean(abs(llm - hum), na.rm = TRUE)
-  bins <- bin_together(llm, hum, n_bins = n_bins, strategy = bin_strategy)
-  tibble(
-    n = sum(is.finite(llm) & is.finite(hum)),
-    pearson = pr,
-    mad = mad,
-    kappa_unwtd = weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "unweighted"),
-    kappa_quad  = weighted_kappa(bins$a_bin, bins$b_bin, k = bins$k, weights = "quadratic")
-  )
-}
 
-kable(overall_stats(merged) |> mutate(across(where(is.numeric), ~ round(.x, 3))))
 
 ```
 
 
 
 ```{r}
-#| label: tbl-coverage
-#| tbl-cap: "CI coverage using Human CI = union across raters"
+#| label: calc-highlights
 
-calibrate_per_metric <- function(df) {
-  df |>
-    group_by(criteria) |>
-    summarise(
-      n = dplyr::n(),
-      slope = {
-        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
-        if (is.null(fit)) NA_real_ else unname(coef(fit)[2])
-      },
-      intercept = {
-        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
-        if (is.null(fit)) NA_real_ else unname(coef(fit)[1])
-      },
-      r2 = {
-        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
-        if (is.null(fit)) NA_real_ else summary(fit)$r.squared
-      },
-      MAD_pre = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
-      MAD_post = {
-        fit <- tryCatch(lm(midpoint_human ~ midpoint_llm, data = cur_data()), error = function(e) NULL)
-        if (is.null(fit)) NA_real_ else {
-          yhat <- predict(fit, newdata = cur_data())
-          mean(abs(yhat - midpoint_human), na.rm = TRUE)
-        }
-      },
-      MAD_delta = MAD_pre - MAD_post,
-      .groups = "drop"
-    )
-}
+# Top absolute gaps (overall)
+top_gaps_overall <- merged |>
+  filter(criteria == "overall") |>
+  mutate(abs_diff = abs(diff)) |>
+  arrange(desc(abs_diff)) |>
+  slice_head(n = 3) |>
+  mutate(paper = as.character(label_paper),
+         gap_str = sprintf("**%s** (%+.1f)", paper, diff))
 
-kable(calibrate_per_metric(merged) |>
-        mutate(across(where(is.numeric), ~ round(.x, 3))),
-      caption = "Calibration: Human ≈ intercept + slope·LLM (per metric)")
+# Highest overall scores
+top_llm_overall <- llm_raw |>
+  filter(criteria == "overall") |>
+  arrange(desc(midpoint_llm)) |>
+  slice_head(n = 3) |>
+  mutate(paper = as.character(label_paper),
+         llm_str = sprintf("**%s** (LLM %.1f)", paper, midpoint_llm))
 
-# Coverage: does each side's CI cover the other's midpoint?
-coverage_tbl <- merged |>
-  filter(is.finite(lower_llm), is.finite(upper_llm),
-         is.finite(human_lo_union), is.finite(human_hi_union)) |>
-  mutate(
-    human_in_llm = midpoint_human >= lower_llm & midpoint_human <= upper_llm,
-    llm_in_human = midpoint_llm   >= human_lo_union & midpoint_llm   <= human_hi_union,
-    both_cover   = human_in_llm & llm_in_human
-  ) |>
-  group_by(criteria) |>
-  summarise(
-    N = dplyr::n(),
-    human_in_llm = round(mean(human_in_llm), 2),
-    llm_in_human = round(mean(llm_in_human), 2),
-    both_cover   = round(mean(both_cover), 2),
-    .groups = "drop"
-  )
+top_human_overall <- human_use |>
+  filter(criteria == "overall") |>
+  arrange(desc(midpoint_human)) |>
+  slice_head(n = 3) |>
+  mutate(paper = as.character(label_paper),
+         hum_str = sprintf("**%s** (Human %.1f)", paper, midpoint_human))
 
-kable(coverage_tbl)
+# Compose strings for easy inline use
+msg_top_gaps_overall  <- paste(top_gaps_overall$gap_str, collapse = "; ")
+msg_top_llm_overall   <- paste(top_llm_overall$llm_str, collapse = "; ")
+msg_top_human_overall <- paste(top_human_overall$hum_str, collapse = "; ")
+
+# Optional: absolute largest gaps across ANY metric
+top_gaps_any <- merged |>
+  mutate(abs_diff = abs(diff)) |>
+  arrange(desc(abs_diff)) |>
+  slice_head(n = 3) |>
+  mutate(any_str = sprintf("%s — %s (%s: %+.1f)",
+                           as.character(label_paper),
+                           stringr::str_to_title(gsub("_"," ", as.character(criteria))),
+                           "LLM − Human", diff))
+msg_top_gaps_any <- paste(top_gaps_any$any_str, collapse = "; ")
 
 ```
 
 
 
-```{r}
-#| label: fig-scatter
-#| eval: false
+Overall, the largest LLM−Human gaps are `r msg_top_gaps_overall`.
 
-# global axis limits (square)
-global_min <- min(c(merged$human_lo_union, merged$lower_llm,
-                    merged$midpoint_human, merged$midpoint_llm), na.rm = TRUE)
-global_max <- max(c(merged$human_hi_union, merged$upper_llm,
-                    merged$midpoint_human, merged$midpoint_llm), na.rm = TRUE)
-pad <- 0.05 * (global_max - global_min)
-lims <- c(global_min - pad, global_max + pad)
+The top overall scores are:
+LLM — `r msg_top_llm_overall`; Human — `r msg_top_human_overall`.
 
-plot_ellipses <- function(metric) {
-  J <- merged |>
-    filter(criteria == metric) |>
-    mutate(
-      cx = midpoint_human,
-      cy = midpoint_llm,
-      rx = pmax(cx - human_lo_union, human_hi_union - cx, 0, na.rm = TRUE),
-      ry = pmax((upper_llm - lower_llm)/2, 0, na.rm = TRUE)
-    )
+Looking across all metrics, the biggest gaps are `r msg_top_gaps_any`.
 
-  # Individual human points at y = LLM midpoint
-  Hpts <- human_raw |>
-    filter(criteria == metric) |>
-    select(label_paper, label_paper_title, human_x = middle_rating) |>
-    inner_join(J |> select(label_paper, cy), by = "label_paper") |>
-    rename(llm_y = cy)
-
-  r_p <- suppressWarnings(cor(J$midpoint_human, J$midpoint_llm, use = "pairwise.complete.obs", method = "pearson"))
-  r_s <- suppressWarnings(cor(J$midpoint_human, J$midpoint_llm, use = "pairwise.complete.obs", method = "spearman"))
-  annot <- sprintf("Pearson r = %.2f; Spearman \u03C1 = %.2f", r_p, r_s)
-
-  ggplot() +
-    ggforce::geom_ellipse(
-      data = J,
-      aes(x0 = cx, y0 = cy, a = rx, b = ry, angle = 0),
-      color = alpha(UJ_GREEN, 0.65),
-      fill  = alpha(UJ_GREEN, 0.15),
-      size = 0.4
-    ) +
-    geom_point(data = Hpts, aes(x = human_x, y = llm_y),
-               color = UJ_GREEN, size = 1.6, alpha = 0.55) +
-    geom_point(data = J, aes(x = midpoint_human, y = midpoint_llm),
-               color = UJ_ORANGE, shape = 18, size = 2.6) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dotted", color = "grey50") +
-    coord_equal(xlim = lims, ylim = lims, expand = FALSE) +
-    labs(
-      title = paste0("LLM vs Human — CI ellipses — ",
-                     str_to_title(gsub("_"," ", metric))),
-      x = "Human (x)", y = "LLM (y)",
-      caption = annot
-    ) +
-    theme_uj()
-}
-
-# Example: draw for 'overall' (change metric to switch)
-plot_ellipses(metric_name)
-
-```
- 
- 
  
 <!-- ## Journal tier ratings -->
 
