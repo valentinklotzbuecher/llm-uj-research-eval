@@ -216,7 +216,7 @@ dissemination.
 
 \chapter{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, titlerule=0mm, opacitybacktitle=0.6, opacityback=0, breakable, left=2mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Work in progress}, bottomrule=.15mm, coltitle=black, rightrule=.15mm, colframe=quarto-callout-warning-color-frame, toptitle=1mm, colbacktitle=quarto-callout-warning-color!10!white, colback=white, arc=.35mm, toprule=.15mm, leftrule=.75mm]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, toprule=.15mm, colframe=quarto-callout-warning-color-frame, bottomtitle=1mm, bottomrule=.15mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Work in progress}, left=2mm, coltitle=black, arc=.35mm, opacitybacktitle=0.6, rightrule=.15mm, titlerule=0mm, toptitle=1mm, breakable, colback=white, leftrule=.75mm, colbacktitle=quarto-callout-warning-color!10!white]
 
 Pages, metrics, and comparisons are under active development. Expect
 rough edges and frequent updates.
@@ -389,15 +389,6 @@ when provided).
 
 \begin{figure}
 
-\caption{\label{fig-jitter-overall}Overall ratings (horizontal jitter).
-Human (green) vs LLM (orange). Hollow dot marks the median per rater.}
-
-\includegraphics{results_files/figure-pdf/fig-jitter-overall-1.pdf}
-
-\end{figure}%
-
-\begin{figure}
-
 \caption{\label{fig-forest}LLM vs individual Human ratings (overall).
 Each rating on its own lane: orange LLM midpoint+CI centered; green
 human midpoints (thin CI when available) offset per rater.}
@@ -433,6 +424,8 @@ metric; orange cells indicate higher LLM scores, green cells lower ones.
 
 \end{figure}%
 
+Table~\ref{tbl-agreement} show agreement metrics across rating criteria.
+
 \begin{longtable}[]{@{}lrrrrr@{}}
 
 \caption{\label{tbl-agreement}Overall agreement across all metrics}
@@ -462,6 +455,13 @@ As a first shot at understanding sources of disagreement, we look at the
 reported rationale for those ratings that diverge the most from
 (average) human assessments.
 
+This is what GPT-5 reports ``overall'' on Williams et al.
+(\citeproc{ref-Williams2024}{2024}):
+
+\begin{verbatim}
+[1] "A strong, policy-relevant mapping and quantification exercise with solid validation and careful caveats. Especially useful for restoration targeting and climate mitigation planning. Main weaknesses are reliance on historical regrowth patterns (stationarity), omission of socioeconomic feasibility in mapping, regional accuracy variation, and somewhat opaque/narrow area uncertainty. Overall quality is high across categories; no single metric dominates, so the overall is the mean."
+\end{verbatim}
+
 \section{Journal ranking tiers}\label{journal-ranking-tiers-1}
 
 \section{Claim identification}\label{claim-identification-1}
@@ -476,23 +476,41 @@ reported rationale for those ratings that diverge the most from
 
 \section{Limitations}\label{limitations}
 
-\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, titlerule=0mm, opacitybacktitle=0.6, opacityback=0, breakable, left=2mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Planned updates and extesions}, bottomrule=.15mm, coltitle=black, rightrule=.15mm, colframe=quarto-callout-warning-color-frame, toptitle=1mm, colbacktitle=quarto-callout-warning-color!10!white, colback=white, arc=.35mm, toprule=.15mm, leftrule=.75mm]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, toprule=.15mm, colframe=quarto-callout-warning-color-frame, bottomtitle=1mm, bottomrule=.15mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Planned updates and extesions}, left=2mm, coltitle=black, arc=.35mm, opacitybacktitle=0.6, rightrule=.15mm, titlerule=0mm, toptitle=1mm, breakable, colback=white, leftrule=.75mm, colbacktitle=quarto-callout-warning-color!10!white]
 
 \begin{itemize}
 \item
-  Journal ranking tiers and predictions
+  Related work
 \item
-  Claim identification
+  Slides
 \item
-  Qualitative assessments and full evaluations
+  Extended evaluation:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Journal ranking tiers and predictions
+  \item
+    Claim identification
+  \item
+    Qualitative assessments and full evaluations
+  \item
+    Comparing evaluations across fields/areas
+  \end{itemize}
 \item
-  Improved PDF ingestion
-\item
-  Optimized System prompt
-\item
-  Alternative models
-\item
-  Extended set of papers
+  Improved workflow:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Improve PDF ingestion
+  \item
+    System prompt optimization
+  \item
+    Alternative models
+  \item
+    Extend set of papers
+  \end{itemize}
 \end{itemize}
 
 \end{tcolorbox}
@@ -570,6 +588,14 @@ Paige Seidel, Vitalie Spinu, Kohske Takahashi, Davis Vaughan, Claus
 Wilke, Kara Woo, and Hiroaki Yutani,
 {``\href{https://doi.org/10.21105/joss.01686}{Welcome to the
 {tidyverse}},''} \emph{Journal of Open Source Software}, 4 (2019), 1686.
+
+\bibitem[\citeproctext]{ref-Williams2024}
+Williams, Brooke A, Hawthorne L Beyer, Matthew E Fagan, Robin L Chazdon,
+Marina Schmoeller, Starry Sprenkle-Hyppolite, Bronson W Griscom, James
+EM Watson, Anazélia M Tedesco, Mariano Gonzalez-Roglich, and others,
+{``\href{https://doi.org/10.1038/s41586-024-08106-4}{Global potential
+for natural regeneration in deforested tropical regions},''}
+\emph{Nature}, 636 (2024), 131--137.
 
 \bibitem[\citeproctext]{ref-knitr2014}
 Xie, Yihui, {``{knitr}: A comprehensive tool for reproducible research

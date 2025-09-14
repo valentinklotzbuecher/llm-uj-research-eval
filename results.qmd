@@ -121,7 +121,7 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 
 Here we present preliminaray results, starting with a comparison of the LLM‑generated quantitative ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
 
-Results on journal ranking tiers, claim identification, and full written reports will be added soon.
+<!-- Results on journal ranking tiers, claim identification, and full written reports will be added soon. -->
 
 
 ## Quantitative ratings
@@ -266,53 +266,6 @@ ratings_long <- merged |>
 ```
 
 In @fig-forest, the orange diamond and line show the `r print(currentmodel)` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
-
-```{r}
-#| label: fig-jitter-overall
-#| fig-cap: "Overall ratings (horizontal jitter). Human (green) vs LLM (orange). Hollow dot marks the median per rater."
-#| fig-height: 4.2
-#| fig-width: 7
-
-set.seed(42)  # reproducible jitter
-
-# Build point-level data for OVERALL only
-points_overall <- dplyr::bind_rows(
-  human_raw |>
-    dplyr::filter(criteria == "overall") |>
-    dplyr::transmute(rater = "Human", score = as.numeric(middle_rating)),
-  llm_raw |>
-    dplyr::filter(criteria == "overall") |>
-    dplyr::transmute(rater = "LLM",   score = as.numeric(midpoint_llm))
-) |>
-  dplyr::filter(is.finite(score)) |>
-  dplyr::mutate(rater = factor(rater, levels = c("Human", "LLM")))
-
-# Medians per rater (for the white-filled marker)
-med_overall <- points_overall |>
-  dplyr::group_by(rater) |>
-  dplyr::summarise(med = stats::median(score, na.rm = TRUE), .groups = "drop")
-
-ggplot(points_overall, aes(x = score, y = rater, colour = rater, shape = rater)) +
-  geom_jitter(height = 0.15, width = 0, alpha = 0.55, size = 1.9) +
-  # Median marker (white fill with black outline)
-  geom_point(data = med_overall,
-             aes(x = med, y = rater),
-             inherit.aes = FALSE,
-             shape = 21, size = 3.2, fill = "white", colour = "black", stroke = 0.8) +
-  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
-  scale_shape_manual(values = c(LLM = 18, Human = 16), name = NULL) +
-  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25)) +
-  labs(x = "Score (percentile)", y = NULL) +
-  theme_uj() +
-  theme(
-    panel.grid.major.y = element_blank(),
-    axis.text.y = element_text(hjust = 0.98)
-  )
-
-
-```
-
-
 
 ```{r}
 #| label: fig-forest
@@ -622,7 +575,7 @@ ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
 
 ```
 
-
+@tbl-agreement show agreement metrics across rating criteria.
 
 ```{r}
 #| label: tbl-agreement
@@ -662,8 +615,18 @@ kable(agree_view)
 As a first shot at understanding sources of disagreement, we look at the reported rationale for those ratings that diverge the most from (average) human assessments. 
 
 
+```{r}
+#| label: rationale-outliers
+
+rationale_outlier = all_ratings |>
+  filter(evaluator == currentmodel, 
+         label_paper == "Williams et al. 2024",
+         criteria == "overall")
+
+```
 
 
+This is what `r currentmodel` reports "overall" on @Williams2024: `r sprintf(rationale_outlier$rationale)`
 
 
 ## Journal ranking tiers
