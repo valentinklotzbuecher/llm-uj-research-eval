@@ -31,21 +31,18 @@ We draw on two main sources:
 1) Human evaluations from The Unjournal’s public dataset (PubPub reports and the Coda evaluation form export).  
 2) LLM‑generated evaluations produced by `r currentmodel` using a structured JSON‑schema prompt.
 
-We report (i) the human dataset and curation, and (ii) the LLM evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV). Code cells below show the exact configuration and contract used with the model; the API call is displayed but not executed.
+We report (i) the human dataset and curation, and (ii) the LLM evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV). Code cells below show the exact configuration and contract used with the model, as well as the API call.
 
-
-## Numerical ratings
-
-Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.
-
-### Unjournal.org 
+## Unjournal.org 
 
 [Unjournal Dat Blog](https://unjournal.github.io/unjournaldata/index.html)
 
 
+## LLM-based evaluation
 
-### LLM ratings
+### Quantitative ratings
 
+Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.
 
 
 ```{python}
@@ -251,17 +248,19 @@ Do not wrap the JSON in markdown fences or add extra text.
 ```
 
 
+Below is the main helper that runs a single evaluation:
+
+- extracts text with `pdf_to_string()`,
+- calls Chat Completions with the strict JSON Schema in `response_format`,
+- parses the returned JSON string into a Python dict.
+
+
 ```{python}
 #| label: eval-helper-function
 #| eval: false
 #| code-fold: true
 
 
-# Below is the main helper that runs a single evaluation:
-
-# - extracts text with `pdf_to_string()`,
-# - calls Chat Completions with the strict JSON Schema in `response_format`,
-# - parses the returned JSON string into a Python dict.
 
 
 def evaluate_paper(pdf_path: str | pathlib.Path, model: str = MODEL) -> dict:
@@ -304,7 +303,9 @@ print(probe.choices[0].message.content)  # should print {"ok": true}
 ```
 
 
-We iterate over `papers/*.pdf`, collect raw results and write a long CSV to `results/metrics_long.csv`.
+Batch-evaluate all PDFs: This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,
+pads a 0.8s sleep for rate‑limits, and collects the raw JSON dicts in memory (`records`).
+The nested `records` structure is converted to a tidy long format and written to `results/metrics_long.csv`.
 
 ```{python}
 #| label: eval-many-metrics
@@ -312,17 +313,7 @@ We iterate over `papers/*.pdf`, collect raw results and write a long CSV to `res
 #| code-fold: true
 
 
-# Batch-evaluate all PDFs
-
-
-# This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,
-# pads a 0.8 s sleep for rate‑limits, and collects the raw JSON dicts in memory
-# (`records`). We *don’t* write one JSON file per paper here; instead, the nested `records` structure is converted to a tidy long format and
-# written to `results/metrics_long.csv`.
-
-
-
-ROOT = pathlib.Path("papers")          # put your PDFs here
+ROOT = pathlib.Path("papers") 
 OUT  = pathlib.Path("results")
 OUT.mkdir(exist_ok=True)
 
@@ -331,7 +322,7 @@ pdfs = sorted(ROOT.glob("*.pdf"))
 records = []
 for pdf in tqdm(pdfs, desc="Metrics"):
     try:
-        res = evaluate_paper(pdf)     # <-- 
+        res = evaluate_paper(pdf)     # <-- API call
         res["paper"] = pdf.stem
         records.append(res)
         time.sleep(0.8)             
@@ -383,17 +374,254 @@ else:
 
 
 
-## Journal ranking tiers
+### Journal ranking tiers
+
+- What journal ranking tier should this work be published in? (0.0-5.0) 
+- What journal ranking tier will this work be published in? (0.0-5.0)
+
+
+```{python}
+#| label: prompt-journaltiers
+#| eval: false
+#| code-fold: true
+
+
+TIER_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "tier_should": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number"},
+                "ci_lower":  {"type": "number"},
+                "ci_upper":  {"type": "number"},
+                "rationale": {"type": "string"}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        },
+        "tier_will": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number"},
+                "ci_lower":  {"type": "number"},
+                "ci_upper":  {"type": "number"},
+                "rationale": {"type": "string"}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        }
+    },
+    "required": ["tier_should", "tier_will"]
+}
+
+RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "journal_tiers_v1",
+        "strict": True,
+        "schema": TIER_SCHEMA
+    }
+}
+
+SYSTEM_PROMPT = textwrap.dedent("""
+
+Return STRICT JSON that matches the schema supplied in the response_format.
+Journal‐tier scale: 0 – 5, where
+  5 = A-journal / top-five general,
+  4 = top field or marginal A,
+  3 = solid field,
+  2 = niche / low-tier field,
+  1 = working-paper outlet only,
+  0 = no publishable value.
+
+Fill both objects:
+
+• tier_should → where the paper *deserves* to publish if the process were fair
+  and quality-driven.
+
+• tier_will   → realistic prediction of where it will *actually* publish
+  (taking status, noise, connections, etc. into account).
+
+For each, supply:
+  score       = best point estimate (allow halves, e.g. 3.5)
+  ci_lower    = 5th-percentile plausible tier
+  ci_upper    = 95th-percentile plausible tier
+  rationale   = ≤40 words explaining the judgement.
+
+No extra keys, no markdown fences.
+""").strip()
+
+```
+
+
+
+### Claim identification
+
+
+```{python}
+#| label: prompt-claimid
+#| eval: false
+#| code-fold: true
+
+
+CLAIM_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        # ── 1 ─────────────────────────────────────────────────────────
+        "claim": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "text":     {"type": "string"},
+                "source":   {"type": "string"},
+                "evidence": {"type": "string"}
+            },
+            "required": ["text", "source", "evidence"]
+        },
+        # ── 2  (was missing keys in required) ─────────────────────────
+        "belief": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "prob_true": {"type": "number"},
+                "ci_lower":  {"type": "number"},
+                "ci_upper":  {"type": "number"},
+                "rationale": {"type": "string"}
+            },
+            "required": ["prob_true", "ci_lower", "ci_upper", "rationale"]
+        },
+        # ── 3 ─────────────────────────────────────────────────────────
+        "robustness_check": {"type": "string"},
+        "implication": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "description":     {"type": "string"},
+                "belief_prob":     {"type": "number"},
+                "policy_guidance": {"type": "string"}
+            },
+            "required": ["description", "belief_prob", "policy_guidance"]
+        }
+    },
+    "required": ["claim", "belief", "robustness_check", "implication"]
+}
+
+
+RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "key_claim_v1",
+        "strict": True,
+        "schema": CLAIM_SCHEMA
+    }
+}
+
+SYSTEM_PROMPT = textwrap.dedent("""
+You are an expert evaluator.
+
+Return STRICT JSON that matches the schema supplied in the response format.
+
+Tasks:
+1. Identify the single most decision-relevant factual claim in the paper.
+2. Quote / paraphrase it precisely and quantitatively in `claim.text`.
+3. Fill `claim.source` with page / section / table reference; `claim.evidence`
+   with a ≤30-word note on what supports the claim.
+4. In `belief`, give your best estimate of the probability the claim is correct
+   (`prob_true` 0–1).  Optionally add a 90 % CI (`ci_lower`, `ci_upper`).
+5. `robustness_check` : specify the *one* test / replication that would change
+   your confidence most, in ≤60 words.
+6. `implication` : state the key funding/policy implication, assign
+   `belief_prob`, and in `policy_guidance` explain (≤60 w) how a decision-maker
+   should act on it.
+
+Maximum 120 words per free-text field.  No extra keys, no markdown fences.
+""").strip()
+
+# ─── main helper — same signature style as before ──────────────────
+def identify_claim(pdf_path: str | pathlib.Path,
+                   model: str = model) -> Dict[str, Any]:
+    paper_txt = pdf_to_string(pdf_path)
+    chat = client.chat.completions.create(
+        model=model,
+        response_format=RESPONSE_FORMAT,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": paper_txt}
+        ]
+    )
+    raw_json = chat.choices[0].message.content
+    return json.loads(raw_json)
+
+```
+
+
+### Qualitative assessments
+
+
+```{python}
+#| label: prompt-fulleval
+#| eval: false
+#| code-fold: true
 
 
 
 
-## Claim identification
+
+EVAL_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "summary":           {"type": "string"},
+        "major_strengths":   {"type": "string"},
+        "major_weaknesses":  {"type": "string"},
+        "methodological_notes": {"type": "string"},
+        "policy_relevance":  {"type": "string"},
+        "recommendations":   {"type": "string"}
+    },
+    "required": ["summary",
+                 "major_strengths",
+                 "major_weaknesses",
+                 "methodological_notes",
+                 "policy_relevance",
+                 "recommendations"]
+}
+
+RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "written_evaluation_v1",
+        "strict": True,
+        "schema": EVAL_SCHEMA
+    }
+}
 
 
-## Qualitative assessments
+SYSTEM_PROMPT = textwrap.dedent("""
+You are writing a referee report for The Unjournal.
 
+Return STRICT JSON that matches the schema `written_evaluation_v1`.
 
+Audience → (i) research users & policy-makers, (ii) departments & funders,
+(iii) authors.
+
+Sections (≤250 words each):
+  • summary               → clear one-paragraph overview of purpose & findings
+  • major_strengths       → bullet list or short paragraph
+  • major_weaknesses      → idem
+  • methodological_notes  → focus on justification, assumptions, robustness,
+                            open/science aspects
+  • policy_relevance      → discuss how (and how strongly) results matter for
+                            global priorities / practitioners
+  • recommendations       → concrete, numbered advice to improve the work
+
+Write in direct, concise style; no hedging beyond necessary uncertainty
+quantification.  No markdown fences, no extra keys.
+""").strip()
+
+```
 
 
 

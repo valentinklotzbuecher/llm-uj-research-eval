@@ -119,11 +119,11 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 
 ```
 
+## Quantitative ratings
 
+Here we present preliminray results, starting with a comparison of the LLM‑generated quantitative ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
 
-Here we present preliminray results, starting with a comparison of the LLM‑generated ratings (`r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
-
-## Overall ratings
+### Overall ratings
 
 We begin by comparing *overall* scores. 
 
@@ -534,7 +534,7 @@ plot_rank_slope_S(metric_name)
 
 ```
 
-## Individual metrics
+### Individual metrics
 
 We then look closer at the specific ratings on the criterion level. @fig-heat displays LLM − Human differences by paper × metric; orange cells indicate higher LLM scores, green cells lower ones. @fig-histogram shows the marginal distributions of human vs LLM scores by metric, highlighting calibration differences and spread.
 
@@ -623,63 +623,12 @@ kable(agree_view)
 
 ```
 
+### Rationale behind the largest differences
 
-
-```{r}
-#| label: calc-highlights
-
-# Top absolute gaps (overall)
-top_gaps_overall <- merged |>
-  filter(criteria == "overall") |>
-  mutate(abs_diff = abs(diff)) |>
-  arrange(desc(abs_diff)) |>
-  slice_head(n = 3) |>
-  mutate(paper = as.character(label_paper),
-         gap_str = sprintf("%s (%+.1f)", paper, diff))
-
-# Highest overall scores
-top_llm_overall <- llm_raw |>
-  filter(criteria == "overall") |>
-  arrange(desc(midpoint_llm)) |>
-  slice_head(n = 3) |>
-  mutate(paper = as.character(label_paper),
-         llm_str = sprintf("%s (LLM %.1f)", paper, midpoint_llm))
-
-top_human_overall <- human_use |>
-  filter(criteria == "overall") |>
-  arrange(desc(midpoint_human)) |>
-  slice_head(n = 3) |>
-  mutate(paper = as.character(label_paper),
-         hum_str = sprintf("%s (Human %.1f)", paper, midpoint_human))
-
-# Compose strings for easy inline use
-msg_top_gaps_overall  <- paste(top_gaps_overall$gap_str, collapse = "; ")
-msg_top_llm_overall   <- paste(top_llm_overall$llm_str, collapse = "; ")
-msg_top_human_overall <- paste(top_human_overall$hum_str, collapse = "; ")
-
-# Optional: absolute largest gaps across ANY metric
-top_gaps_any <- merged |>
-  mutate(abs_diff = abs(diff)) |>
-  arrange(desc(abs_diff)) |>
-  slice_head(n = 3) |>
-  mutate(any_str = sprintf("%s — %s (%s: %+.1f)",
-                           as.character(label_paper),
-                           stringr::str_to_title(gsub("_"," ", as.character(criteria))),
-                           "LLM − Human", diff))
-msg_top_gaps_any <- paste(top_gaps_any$any_str, collapse = "; ")
-
-```
+As a first shot at understanding sources of disagreement, we look at the reported rationale for those ratings that diverge the most from (average) human assessments. 
 
 
 
-Overall, the largest LLM−Human gaps are `r msg_top_gaps_overall`.
-
-The top overall scores are:
-LLM — `r msg_top_llm_overall`; Human — `r msg_top_human_overall`.
-
-Looking across all metrics, the biggest gaps are `r msg_top_gaps_any`.
-
- 
 
 
 
