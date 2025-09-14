@@ -6045,6 +6045,9 @@ window.onload = function() {
   <li><a href="#unjournal.org" id="toc-unjournal.org" class="nav-link" data-scroll-target="#unjournal.org"><span class="header-section-number">2.1.1</span> Unjournal.org</a></li>
   <li><a href="#llm-ratings" id="toc-llm-ratings" class="nav-link" data-scroll-target="#llm-ratings"><span class="header-section-number">2.1.2</span> LLM ratings</a></li>
   </ul></li>
+  <li><a href="#journal-ranking-tiers" id="toc-journal-ranking-tiers" class="nav-link" data-scroll-target="#journal-ranking-tiers"><span class="header-section-number">2.2</span> Journal ranking tiers</a></li>
+  <li><a href="#claim-identification" id="toc-claim-identification" class="nav-link" data-scroll-target="#claim-identification"><span class="header-section-number">2.3</span> Claim identification</a></li>
+  <li><a href="#qualitative-assessments" id="toc-qualitative-assessments" class="nav-link" data-scroll-target="#qualitative-assessments"><span class="header-section-number">2.4</span> Qualitative assessments</a></li>
   </ul>
 <div class="quarto-other-links"><h2>Other Links</h2><ul><li><a href="https://www.unjournal.org/"><i class="bi bi-rocket"></i>The Unjournal</a></li><li><a href="https://docs.google.com/document/d/1F9bDUh1UuayQsPG2PpylwbPfDs5a-bRCOt1F-q2Qv5A/edit?usp=sharing"><i class="bi bi-google"></i>Shared notes</a></li></ul></div><div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval"><i class="bi bi-github"></i>Project files</a></li></ul></div></nav>
     </div>
@@ -6070,12 +6073,6 @@ window.onload = function() {
 </header>
 
 
-<section id="numerical-ratings" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="numerical-ratings"><span class="header-section-number">2.1</span> Numerical ratings</h2>
-<p>Following The Unjournal’s <a href="https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators">standard guidelines for evaluators</a> and their <a href="https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME">academic evaluation form</a>, evaluators are asked to consider each paper along the following dimensions: <strong>claims &amp; evidence</strong>, <strong>methods</strong>, <strong>logic &amp; communication</strong>, <strong>open science</strong>, <strong>global relevance</strong>, and an <strong>overall</strong> assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.</p>
-<section id="unjournal.org" class="level3" data-number="2.1.1">
-<h3 data-number="2.1.1" class="anchored" data-anchor-id="unjournal.org"><span class="header-section-number">2.1.1</span> Unjournal.org</h3>
-<p><a href="https://unjournal.github.io/unjournaldata/index.html">Unjournal Dat Blog</a></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
@@ -6083,12 +6080,30 @@ window.onload = function() {
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"janitor"</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"readr"</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># research &lt;- read_csv(here("data", "research.csv"), show_col_types = FALSE) |&gt;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   clean_names() |&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   filter(status == "50_published evaluations (on PubPub, by Unjournal)")</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>research <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"research.csv"</span>), <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)<span class="sc">|&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># research &lt;- research  |&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   filter(status == "50_published evaluations (on PubPub, by Unjournal)")</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>currentmodel <span class="ot">=</span>  <span class="st">"GPT-5"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<p>We draw on two main sources:</p>
+<ol type="1">
+<li>Human evaluations from The Unjournal’s public dataset (PubPub reports and the Coda evaluation form export).<br>
+</li>
+<li>LLM‑generated evaluations produced by GPT-5 using a structured JSON‑schema prompt.</li>
+</ol>
+<p>We report (i) the human dataset and curation, and (ii) the LLM evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV). Code cells below show the exact configuration and contract used with the model; the API call is displayed but not executed.</p>
+<section id="numerical-ratings" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="numerical-ratings"><span class="header-section-number">2.1</span> Numerical ratings</h2>
+<p>Following The Unjournal’s <a href="https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators">standard guidelines for evaluators</a> and their <a href="https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME">academic evaluation form</a>, evaluators are asked to consider each paper along the following dimensions: <strong>claims &amp; evidence</strong>, <strong>methods</strong>, <strong>logic &amp; communication</strong>, <strong>open science</strong>, <strong>global relevance</strong>, and an <strong>overall</strong> assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.</p>
+<section id="unjournal.org" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="unjournal.org"><span class="header-section-number">2.1.1</span> Unjournal.org</h3>
+<p><a href="https://unjournal.github.io/unjournaldata/index.html">Unjournal Dat Blog</a></p>
 </section>
 <section id="llm-ratings" class="level3" data-number="2.1.2">
 <h3 data-number="2.1.2" class="anchored" data-anchor-id="llm-ratings"><span class="header-section-number">2.1.2</span> LLM ratings</h3>
@@ -6396,12 +6411,21 @@ window.onload = function() {
 <span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>    ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+</section>
+</section>
+<section id="journal-ranking-tiers" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="journal-ranking-tiers"><span class="header-section-number">2.2</span> Journal ranking tiers</h2>
+</section>
+<section id="claim-identification" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="claim-identification"><span class="header-section-number">2.3</span> Claim identification</h2>
+</section>
+<section id="qualitative-assessments" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="qualitative-assessments"><span class="header-section-number">2.4</span> Qualitative assessments</h2>
 <hr>
 
 
 <!-- -->
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -6860,374 +6884,401 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">## Numerical ratings</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>Following The Unjournal's <span class="co">[</span><span class="ot">standard guidelines for evaluators</span><span class="co">](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators)</span> and their <span class="co">[</span><span class="ot">academic evaluation form</span><span class="co">](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME)</span>, evaluators are asked to consider each paper along the following dimensions: **claims &amp; evidence**, **methods**, **logic &amp; communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">### Unjournal.org </span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Unjournal Dat Blog</span><span class="co">](https://unjournal.github.io/unjournaldata/index.html)</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"here"</span>)</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"janitor"</span>)</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"readr"</span>)</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co"># research &lt;- read_csv(here("data", "research.csv"), show_col_types = FALSE) |&gt;</span></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co">#   clean_names() |&gt;</span></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">#   filter(status == "50_published evaluations (on PubPub, by Unjournal)")</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-r</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"here"</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"janitor"</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"readr"</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>research <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"research.csv"</span>), <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)<span class="sc">|&gt;</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co"># research &lt;- research  |&gt;</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co">#   filter(status == "50_published evaluations (on PubPub, by Unjournal)")</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>currentmodel <span class="ot">=</span>  <span class="st">"GPT-5"</span></span>
 <span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a><span class="fu">### LLM ratings</span></span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>We draw on two main sources:</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>1) Human evaluations from The Unjournal’s public dataset (PubPub reports and the Coda evaluation form export).  </span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>2) LLM‑generated evaluations produced by <span class="in">`r currentmodel`</span> using a structured JSON‑schema prompt.</span>
 <span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-env</span></span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>We report (i) the human dataset and curation, and (ii) the LLM evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV). Code cells below show the exact configuration and contract used with the model; the API call is displayed but not executed.</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="fu">## Numerical ratings</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>Following The Unjournal's <span class="co">[</span><span class="ot">standard guidelines for evaluators</span><span class="co">](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators)</span> and their <span class="co">[</span><span class="ot">academic evaluation form</span><span class="co">](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME)</span>, evaluators are asked to consider each paper along the following dimensions: **claims &amp; evidence**, **methods**, **logic &amp; communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.</span>
 <span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os, pathlib, json, textwrap, re</span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pdfplumber, time, tiktoken</span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd, numpy <span class="im">as</span> np</span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> openai <span class="im">import</span> OpenAI</span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> altair <span class="im">as</span> alt<span class="op">;</span> alt.renderers.enable(<span class="st">"html"</span>)</span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.io <span class="im">as</span> pio</span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm  </span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a><span class="fu">### Unjournal.org </span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Unjournal Dat Blog</span><span class="co">](https://unjournal.github.io/unjournaldata/index.html)</span></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a><span class="fu">### LLM ratings</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="co">#  Setup chunk:</span></span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a><span class="co"># * loads the main libraries (OpenAI SDK, Altair, Plotly, …)</span></span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="co"># * looks for your OpenAI key in **key/openai_key.txt** </span></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="co"># * initialises a client (`gpt-5`, via `UJ_MODEL`)</span></span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a><span class="co"># * defines `pdf_to_string()` — drops the reference section and hard‑caps at 180k tokens so we stay in‑context.</span></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a><span class="co"># **API key hygiene.** </span></span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="co"># The code only *reads* `key/openai_key.txt` if the environment variable isn’t already set. Keep this file out of version control (adjust gitignore).</span></span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------- API key ----------</span></span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>key_path <span class="op">=</span> pathlib.Path(<span class="st">"key/openai_key.txt"</span>)</span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.getenv(<span class="st">"OPENAI_API_KEY"</span>) <span class="kw">is</span> <span class="va">None</span> <span class="kw">and</span> key_path.exists():</span>
-<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>    os.environ[<span class="st">"OPENAI_API_KEY"</span>] <span class="op">=</span> key_path.read_text().strip()</span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> os.getenv(<span class="st">"OPENAI_API_KEY"</span>):</span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">"No API key found. Put it in key/openai_key.txt or set OPENAI_API_KEY."</span>)</span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>client <span class="op">=</span> OpenAI()</span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------- Model (GPT‑5) ----------</span></span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>MODEL <span class="op">=</span> os.getenv(<span class="st">"UJ_MODEL"</span>, <span class="st">"gpt-5"</span>)</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-env</span></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os, pathlib, json, textwrap, re</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pdfplumber, time, tiktoken</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd, numpy <span class="im">as</span> np</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> openai <span class="im">import</span> OpenAI</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> altair <span class="im">as</span> alt<span class="op">;</span> alt.renderers.enable(<span class="st">"html"</span>)</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.io <span class="im">as</span> pio</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm  </span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="co">#  Setup chunk:</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="co"># * loads the main libraries (OpenAI SDK, Altair, Plotly, …)</span></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a><span class="co"># * looks for your OpenAI key in **key/openai_key.txt** </span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="co"># * initialises a client (`gpt-5`, via `UJ_MODEL`)</span></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="co"># * defines `pdf_to_string()` — drops the reference section and hard‑caps at 180k tokens so we stay in‑context.</span></span>
 <span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------- PDF → text with a fixed tokenizer ----------</span></span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>_enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">"o200k_base"</span>)  <span class="co"># large-context encoder</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="co"># **API key hygiene.** </span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a><span class="co"># The code only *reads* `key/openai_key.txt` if the environment variable isn’t already set. Keep this file out of version control (adjust gitignore).</span></span>
 <span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pdf_to_string(path, max_tokens<span class="op">=</span><span class="dv">180_000</span>):</span>
-<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Extract text, drop references section, hard-cap by tokens."""</span></span>
-<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> pdfplumber.<span class="bu">open</span>(path) <span class="im">as</span> pdf:</span>
-<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>        text <span class="op">=</span> <span class="st">" "</span>.join(p.extract_text() <span class="kw">or</span> <span class="st">""</span> <span class="cf">for</span> p <span class="kw">in</span> pdf.pages)</span>
-<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, text)</span>
-<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> re.search(<span class="vs">r"\b(References|Bibliography)\b"</span>, text, flags<span class="op">=</span>re.I)</span>
-<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> m: text <span class="op">=</span> text[: m.start()]</span>
-<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>    toks <span class="op">=</span> _enc.encode(text)</span>
-<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(toks) <span class="op">&gt;</span> max_tokens:</span>
-<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>        text <span class="op">=</span> _enc.decode(toks[:max_tokens])</span>
-<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> text</span>
-<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------- API key ----------</span></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>key_path <span class="op">=</span> pathlib.Path(<span class="st">"key/openai_key.txt"</span>)</span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.getenv(<span class="st">"OPENAI_API_KEY"</span>) <span class="kw">is</span> <span class="va">None</span> <span class="kw">and</span> key_path.exists():</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>    os.environ[<span class="st">"OPENAI_API_KEY"</span>] <span class="op">=</span> key_path.read_text().strip()</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> os.getenv(<span class="st">"OPENAI_API_KEY"</span>):</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">"No API key found. Put it in key/openai_key.txt or set OPENAI_API_KEY."</span>)</span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>client <span class="op">=</span> OpenAI()</span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------- Model (GPT‑5) ----------</span></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>MODEL <span class="op">=</span> os.getenv(<span class="st">"UJ_MODEL"</span>, <span class="st">"gpt-5"</span>)</span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------- PDF → text with a fixed tokenizer ----------</span></span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>_enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">"o200k_base"</span>)  <span class="co"># large-context encoder</span></span>
 <span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>Response schema &amp; system prompt: This section defines the *contract* we expect back from the model:</span>
-<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`METRICS`</span> lists the categories we score.</span>
-<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`metric_schema`</span> specifies the shape and bounds of each metric.</span>
-<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`response_format`</span> (JSON Schema) asks the model to return only a JSON</span>
-<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a> object conforming to that schema.</span>
-<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`SYSTEM_PROMPT`</span> explains scoring semantics (percentiles + 90% credible</span>
-<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a> intervals) and how to set the <span class="in">`overall`</span> score.</span>
-<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: llm-setup</span></span>
-<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: show</span></span>
-<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
-<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a><span class="co"># 1.  Metric list</span></span>
-<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
-<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>METRICS <span class="op">=</span> [</span>
-<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>    <span class="st">"overall"</span>,</span>
-<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a>    <span class="st">"claims_evidence"</span>,</span>
-<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>    <span class="st">"methods"</span>,</span>
-<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>    <span class="st">"advancing_knowledge"</span>,</span>
-<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>    <span class="st">"logic_communication"</span>,</span>
-<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>    <span class="st">"open_science"</span>,</span>
-<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a>    <span class="st">"global_relevance"</span></span>
-<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
-<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a><span class="co"># 2.  JSON schema</span></span>
-<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
-<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>metric_schema <span class="op">=</span> {</span>
-<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
-<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a>        <span class="st">"midpoint"</span>:    {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">100</span>},</span>
-<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>        <span class="st">"lower_bound"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">100</span>},</span>
-<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>        <span class="st">"upper_bound"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">100</span>},</span>
-<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a>        <span class="st">"rationale"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
-<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"midpoint"</span>, <span class="st">"lower_bound"</span>, <span class="st">"upper_bound"</span>, <span class="st">"rationale"</span>],</span>
-<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span></span>
-<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>response_format <span class="op">=</span> {</span>
-<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
-<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
-<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"paper_assessment_v1"</span>,</span>
-<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
-<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: {</span>
-<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
-<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>                <span class="st">"metrics"</span>: {</span>
-<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
-<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"properties"</span>: {m: metric_schema <span class="cf">for</span> m <span class="kw">in</span> METRICS},</span>
-<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"required"</span>: METRICS,</span>
-<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"additionalProperties"</span>: <span class="va">False</span></span>
-<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a>                }</span>
-<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a>            },</span>
-<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"metrics"</span>],</span>
-<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span></span>
-<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
-<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a><span class="co"># 3.  System prompt</span></span>
-<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
-<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="ss">f"""</span></span>
-<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a><span class="ss">You are an expert evaluator.</span></span>
-<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a><span class="ss">We ask for a set of quantitative metrics. For each metric, we ask for a score and a 90% credible interval.</span></span>
-<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a><span class="ss">Percentile rankings</span></span>
-<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a><span class="ss">We ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on.</span></span>
-<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a><span class="ss">The reference is all serious research in the same area in the last three years.</span></span>
-<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a><span class="ss">Midpoint rating and credible intervals </span></span>
-<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a><span class="ss">For each metric, we ask you to provide a 'midpoint rating' and a 90% credible interval as a measure of your uncertainty. </span></span>
-<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a><span class="ss">We want policymakers, researchers, funders, and managers to be able to use evaluations to update their beliefs and make better decisions. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. </span></span>
-<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a><span class="ss">You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.</span></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pdf_to_string(path, max_tokens<span class="op">=</span><span class="dv">180_000</span>):</span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Extract text, drop references section, hard-cap by tokens."""</span></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> pdfplumber.<span class="bu">open</span>(path) <span class="im">as</span> pdf:</span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>        text <span class="op">=</span> <span class="st">" "</span>.join(p.extract_text() <span class="kw">or</span> <span class="st">""</span> <span class="cf">for</span> p <span class="kw">in</span> pdf.pages)</span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r"\s+"</span>, <span class="st">" "</span>, text)</span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> re.search(<span class="vs">r"\b(References|Bibliography)\b"</span>, text, flags<span class="op">=</span>re.I)</span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> m: text <span class="op">=</span> text[: m.start()]</span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>    toks <span class="op">=</span> _enc.encode(text)</span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(toks) <span class="op">&gt;</span> max_tokens:</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>        text <span class="op">=</span> _enc.decode(toks[:max_tokens])</span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> text</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>Response schema &amp; system prompt: This section defines the *contract* we expect back from the model:</span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`METRICS`</span> lists the categories we score.</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`metric_schema`</span> specifies the shape and bounds of each metric.</span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`response_format`</span> (JSON Schema) asks the model to return only a JSON</span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a> object conforming to that schema.</span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`SYSTEM_PROMPT`</span> explains scoring semantics (percentiles + 90% credible</span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a> intervals) and how to set the <span class="in">`overall`</span> score.</span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: llm-setup</span></span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: show</span></span>
+<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a><span class="co"># 1.  Metric list</span></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>METRICS <span class="op">=</span> [</span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>    <span class="st">"overall"</span>,</span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a>    <span class="st">"claims_evidence"</span>,</span>
+<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>    <span class="st">"methods"</span>,</span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>    <span class="st">"advancing_knowledge"</span>,</span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>    <span class="st">"logic_communication"</span>,</span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a>    <span class="st">"open_science"</span>,</span>
+<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>    <span class="st">"global_relevance"</span></span>
+<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
+<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a><span class="co"># 2.  JSON schema</span></span>
+<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
+<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>metric_schema <span class="op">=</span> {</span>
+<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>    <span class="st">"properties"</span>: {</span>
+<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>        <span class="st">"midpoint"</span>:    {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">100</span>},</span>
+<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>        <span class="st">"lower_bound"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">100</span>},</span>
+<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a>        <span class="st">"upper_bound"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">0</span>, <span class="st">"maximum"</span>: <span class="dv">100</span>},</span>
+<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a>        <span class="st">"rationale"</span>:   {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
+<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a>    <span class="st">"required"</span>: [<span class="st">"midpoint"</span>, <span class="st">"lower_bound"</span>, <span class="st">"upper_bound"</span>, <span class="st">"rationale"</span>],</span>
+<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a>    <span class="st">"additionalProperties"</span>: <span class="va">False</span></span>
+<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>response_format <span class="op">=</span> {</span>
+<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>    <span class="st">"type"</span>: <span class="st">"json_schema"</span>,</span>
+<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>    <span class="st">"json_schema"</span>: {</span>
+<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"paper_assessment_v1"</span>,</span>
+<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a>        <span class="st">"strict"</span>: <span class="va">True</span>,</span>
+<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a>        <span class="st">"schema"</span>: {</span>
+<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a>            <span class="st">"properties"</span>: {</span>
+<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>                <span class="st">"metrics"</span>: {</span>
+<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"properties"</span>: {m: metric_schema <span class="cf">for</span> m <span class="kw">in</span> METRICS},</span>
+<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"required"</span>: METRICS,</span>
+<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"additionalProperties"</span>: <span class="va">False</span></span>
+<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a>                }</span>
+<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a>            },</span>
+<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a>            <span class="st">"required"</span>: [<span class="st">"metrics"</span>],</span>
+<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>            <span class="st">"additionalProperties"</span>: <span class="va">False</span></span>
+<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a><span class="ss">Overall assessment</span></span>
-<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a><span class="ss">- Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness.importance to knowledge production, and importance to practice. </span></span>
-<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a><span class="ss">Claims, strength and characterization of evidence</span></span>
-<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?</span></span>
-<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a><span class="ss">Methods: Justification, reasonableness, validity, robustness</span></span>
-<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the methods used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? </span></span>
-<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this?</span></span>
-<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a><span class="ss">- Avoiding bias and questionable research practices (QRP): Did the authors take steps to reduce bias from opportunistic reporting and QRP? For example, did they do a strong pre-registration and pre-analysis plan, incorporate multiple hypothesis testing corrections, and report flexible specifications? </span></span>
+<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
+<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a><span class="co"># 3.  System prompt</span></span>
+<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
+<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>SYSTEM_PROMPT <span class="op">=</span> textwrap.dedent(<span class="ss">f"""</span></span>
+<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a><span class="ss">You are an expert evaluator.</span></span>
+<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a><span class="ss">We ask for a set of quantitative metrics. For each metric, we ask for a score and a 90% credible interval.</span></span>
+<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a><span class="ss">Percentile rankings</span></span>
+<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a><span class="ss">We ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on.</span></span>
+<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a><span class="ss">The reference is all serious research in the same area in the last three years.</span></span>
 <span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a><span class="ss">Advancing our knowledge and practice</span></span>
-<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a><span class="ss">- To what extent does the project contribute to the field or to practice, particularly in ways that are relevant to global priorities and impactful interventions?</span></span>
-<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions? </span></span>
-<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a><span class="ss">- Does the project add useful value to other impactful research? We don't require surprising results; sound and well-presented null results can also be valuable.</span></span>
+<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a><span class="ss">Midpoint rating and credible intervals </span></span>
+<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a><span class="ss">For each metric, we ask you to provide a 'midpoint rating' and a 90% credible interval as a measure of your uncertainty. </span></span>
+<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a><span class="ss">We want policymakers, researchers, funders, and managers to be able to use evaluations to update their beliefs and make better decisions. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. </span></span>
+<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a><span class="ss">You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.</span></span>
 <span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a><span class="ss">Logic and communication</span></span>
-<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced?</span></span>
-<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a><span class="ss">- Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow?</span></span>
-<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? </span></span>
-<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?</span></span>
+<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a><span class="ss">Overall assessment</span></span>
+<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a><span class="ss">- Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness.importance to knowledge production, and importance to practice. </span></span>
+<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a><span class="ss">Claims, strength and characterization of evidence</span></span>
+<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?</span></span>
 <span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a><span class="ss">Open, collaborative, replicable research</span></span>
-<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a><span class="ss">- Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided?</span></span>
-<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a><span class="ss">- Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained?? </span></span>
-<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a><span class="ss">- Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?</span></span>
-<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a><span class="ss">- Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?</span></span>
-<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a><span class="ss">Relevance to global priorities, usefulness for practitioners</span></span>
-<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the paper’s chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? </span></span>
-<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a><span class="ss">- Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? </span></span>
-<span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? </span></span>
-<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do they communicate (at least in the abstract or introduction)  in ways policymakers and decision-makers can understand, without misleading or oversimplifying?</span></span>
-<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a><span class="ss">Return STRICT JSON matching the supplied schema.</span></span>
-<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a><span class="ss">Fill every key in the object `metrics`:</span></span>
-<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a><span class="ss">  </span><span class="sc">{</span><span class="st">', '</span><span class="sc">.</span>join(METRICS)<span class="sc">}</span></span>
-<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a><span class="ss">Definitions are percentile scores (0 – 100) versus serious work in the field from the last 3 years.</span></span>
-<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a><span class="ss">For `overall`:</span></span>
-<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a><span class="ss">  • Default = arithmetic mean of the other six midpoints (rounded).  </span></span>
-<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a><span class="ss">  • If, in your judgment, another value is better (e.g. one metric is far more decision-relevant), choose it and explain why in `overall.rationale`.</span></span>
+<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a><span class="ss">Methods: Justification, reasonableness, validity, robustness</span></span>
+<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the methods used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? </span></span>
+<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this?</span></span>
+<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a><span class="ss">- Avoiding bias and questionable research practices (QRP): Did the authors take steps to reduce bias from opportunistic reporting and QRP? For example, did they do a strong pre-registration and pre-analysis plan, incorporate multiple hypothesis testing corrections, and report flexible specifications? </span></span>
+<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a><span class="ss">Advancing our knowledge and practice</span></span>
+<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a><span class="ss">- To what extent does the project contribute to the field or to practice, particularly in ways that are relevant to global priorities and impactful interventions?</span></span>
+<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions? </span></span>
+<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a><span class="ss">- Does the project add useful value to other impactful research? We don't require surprising results; sound and well-presented null results can also be valuable.</span></span>
+<span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a><span class="ss">Logic and communication</span></span>
+<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced?</span></span>
+<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a><span class="ss">- Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow?</span></span>
+<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? </span></span>
+<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?</span></span>
+<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a><span class="ss">Open, collaborative, replicable research</span></span>
+<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a><span class="ss">- Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided?</span></span>
+<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a><span class="ss">- Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained?? </span></span>
+<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a><span class="ss">- Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?</span></span>
+<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a><span class="ss">- Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?</span></span>
 <span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a><span class="ss">Field meanings</span></span>
-<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a><span class="ss">  midpoint      → best-guess percentile</span></span>
-<span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a><span class="ss">  lower_bound   → 5th-percentile plausible value</span></span>
-<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a><span class="ss">  upper_bound   → 95th-percentile plausible value</span></span>
-<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a><span class="ss">  rationale     → ≤100 words; terse but informative.</span></span>
+<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a><span class="ss">Relevance to global priorities, usefulness for practitioners</span></span>
+<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a><span class="ss">- Are the paper’s chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? </span></span>
+<span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a><span class="ss">- Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? </span></span>
+<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? </span></span>
+<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a><span class="ss">- Do they communicate (at least in the abstract or introduction)  in ways policymakers and decision-makers can understand, without misleading or oversimplifying?</span></span>
 <span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a><span class="ss">Do not wrap the JSON in markdown fences or add extra text.</span></span>
-<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span>).strip()</span>
-<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a><span class="ss">Return STRICT JSON matching the supplied schema.</span></span>
+<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a><span class="ss">Fill every key in the object `metrics`:</span></span>
 <span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a><span class="ss">  </span><span class="sc">{</span><span class="st">', '</span><span class="sc">.</span>join(METRICS)<span class="sc">}</span></span>
 <span id="cb6-239"><a href="#cb6-239" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: eval-helper-function</span></span>
-<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a><span class="ss">Definitions are percentile scores (0 – 100) versus serious work in the field from the last 3 years.</span></span>
+<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a><span class="ss">For `overall`:</span></span>
+<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a><span class="ss">  • Default = arithmetic mean of the other six midpoints (rounded).  </span></span>
+<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a><span class="ss">  • If, in your judgment, another value is better (e.g. one metric is far more decision-relevant), choose it and explain why in `overall.rationale`.</span></span>
+<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a><span class="ss">Field meanings</span></span>
+<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a><span class="ss">  midpoint      → best-guess percentile</span></span>
+<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a><span class="ss">  lower_bound   → 5th-percentile plausible value</span></span>
+<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a><span class="ss">  upper_bound   → 95th-percentile plausible value</span></span>
+<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a><span class="ss">  rationale     → ≤100 words; terse but informative.</span></span>
 <span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a><span class="co"># Below is the main helper that runs a single evaluation:</span></span>
-<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a><span class="co"># - extracts text with `pdf_to_string()`,</span></span>
-<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a><span class="co"># - calls Chat Completions with the strict JSON Schema in `response_format`,</span></span>
-<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a><span class="co"># - parses the returned JSON string into a Python dict.</span></span>
+<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a><span class="ss">Do not wrap the JSON in markdown fences or add extra text.</span></span>
+<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span>).strip()</span>
+<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_paper(pdf_path: <span class="bu">str</span> <span class="op">|</span> pathlib.Path, model: <span class="bu">str</span> <span class="op">=</span> MODEL) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
-<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a>    paper_text <span class="op">=</span> pdf_to_string(pdf_path)</span>
-<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a>    chat <span class="op">=</span> client.chat.completions.create(</span>
-<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a>        model<span class="op">=</span>model,                       <span class="co"># "gpt-5"</span></span>
-<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a>        response_format<span class="op">=</span>response_format,   <span class="co"># your JSON-Schema defined above</span></span>
-<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a>        messages<span class="op">=</span>[</span>
-<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: SYSTEM_PROMPT},</span>
-<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: paper_text}</span>
-<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a>        ],</span>
-<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a>        <span class="co"># max_tokens=2500,                 # optional cap for the JSON block</span></span>
-<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a>    raw_json <span class="op">=</span> chat.choices[<span class="dv">0</span>].message.content</span>
-<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(raw_json)</span>
+<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: eval-helper-function</span></span>
+<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a><span class="co"># Below is the main helper that runs a single evaluation:</span></span>
+<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a><span class="co"># - extracts text with `pdf_to_string()`,</span></span>
+<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a><span class="co"># - calls Chat Completions with the strict JSON Schema in `response_format`,</span></span>
+<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a><span class="co"># - parses the returned JSON string into a Python dict.</span></span>
 <span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a><span class="co"># Minimal probe using Chat Completions (works on gpt-5 and o3)</span></span>
-<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_paper(pdf_path: <span class="bu">str</span> <span class="op">|</span> pathlib.Path, model: <span class="bu">str</span> <span class="op">=</span> MODEL) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a>    paper_text <span class="op">=</span> pdf_to_string(pdf_path)</span>
 <span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a><span class="co"># A quick “smoke test” to confirm the client is alive and willing to emit JSON.</span></span>
-<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a><span class="co"># This intentionally uses the simple `json_object` format for wide model compatibility.</span></span>
-<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a>MODEL <span class="op">=</span> <span class="st">"gpt-5"</span>   <span class="co">#  "o3"</span></span>
-<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a>probe <span class="op">=</span> client.chat.completions.create(</span>
-<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a>   model<span class="op">=</span>MODEL,</span>
-<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a>   messages<span class="op">=</span>[</span>
-<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a>       {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Return only valid JSON: {</span><span class="ch">\"</span><span class="st">ok</span><span class="ch">\"</span><span class="st">: true}"</span>},</span>
-<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a>       {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: <span class="st">"Return {</span><span class="ch">\"</span><span class="st">ok</span><span class="ch">\"</span><span class="st">: true} only."</span>}</span>
-<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a>   ],</span>
-<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a>   <span class="co"># Wide compatibility: ask for a JSON object (no schema)</span></span>
-<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a>   response_format<span class="op">=</span>{<span class="st">"type"</span>: <span class="st">"json_object"</span>},</span>
-<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(probe.choices[<span class="dv">0</span>].message.content)  <span class="co"># should print {"ok": true}</span></span>
+<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a>    chat <span class="op">=</span> client.chat.completions.create(</span>
+<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a>        model<span class="op">=</span>model,                       <span class="co"># "gpt-5"</span></span>
+<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a>        response_format<span class="op">=</span>response_format,   <span class="co"># your JSON-Schema defined above</span></span>
+<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a>        messages<span class="op">=</span>[</span>
+<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: SYSTEM_PROMPT},</span>
+<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a>            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: paper_text}</span>
+<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a>        ],</span>
+<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a>        <span class="co"># max_tokens=2500,                 # optional cap for the JSON block</span></span>
+<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a>    raw_json <span class="op">=</span> chat.choices[<span class="dv">0</span>].message.content</span>
+<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(raw_json)</span>
+<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a><span class="co"># Minimal probe using Chat Completions (works on gpt-5 and o3)</span></span>
+<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-294"><a href="#cb6-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-296"><a href="#cb6-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a><span class="co"># A quick “smoke test” to confirm the client is alive and willing to emit JSON.</span></span>
+<span id="cb6-296"><a href="#cb6-296" aria-hidden="true" tabindex="-1"></a><span class="co"># This intentionally uses the simple `json_object` format for wide model compatibility.</span></span>
 <span id="cb6-297"><a href="#cb6-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-298"><a href="#cb6-298" aria-hidden="true" tabindex="-1"></a>We iterate over <span class="in">`papers/*.pdf`</span>, collect raw results and write a long CSV to <span class="in">`results/metrics_long.csv`</span>.</span>
+<span id="cb6-298"><a href="#cb6-298" aria-hidden="true" tabindex="-1"></a>MODEL <span class="op">=</span> <span class="st">"gpt-5"</span>   <span class="co">#  "o3"</span></span>
 <span id="cb6-299"><a href="#cb6-299" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-302"><a href="#cb6-302" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb6-303"><a href="#cb6-303" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: eval-many-metrics</span></span>
-<span id="cb6-304"><a href="#cb6-304" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb6-305"><a href="#cb6-305" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb6-306"><a href="#cb6-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-307"><a href="#cb6-307" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-308"><a href="#cb6-308" aria-hidden="true" tabindex="-1"></a><span class="co"># Batch-evaluate all PDFs</span></span>
+<span id="cb6-300"><a href="#cb6-300" aria-hidden="true" tabindex="-1"></a>probe <span class="op">=</span> client.chat.completions.create(</span>
+<span id="cb6-301"><a href="#cb6-301" aria-hidden="true" tabindex="-1"></a>   model<span class="op">=</span>MODEL,</span>
+<span id="cb6-302"><a href="#cb6-302" aria-hidden="true" tabindex="-1"></a>   messages<span class="op">=</span>[</span>
+<span id="cb6-303"><a href="#cb6-303" aria-hidden="true" tabindex="-1"></a>       {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Return only valid JSON: {</span><span class="ch">\"</span><span class="st">ok</span><span class="ch">\"</span><span class="st">: true}"</span>},</span>
+<span id="cb6-304"><a href="#cb6-304" aria-hidden="true" tabindex="-1"></a>       {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: <span class="st">"Return {</span><span class="ch">\"</span><span class="st">ok</span><span class="ch">\"</span><span class="st">: true} only."</span>}</span>
+<span id="cb6-305"><a href="#cb6-305" aria-hidden="true" tabindex="-1"></a>   ],</span>
+<span id="cb6-306"><a href="#cb6-306" aria-hidden="true" tabindex="-1"></a>   <span class="co"># Wide compatibility: ask for a JSON object (no schema)</span></span>
+<span id="cb6-307"><a href="#cb6-307" aria-hidden="true" tabindex="-1"></a>   response_format<span class="op">=</span>{<span class="st">"type"</span>: <span class="st">"json_object"</span>},</span>
+<span id="cb6-308"><a href="#cb6-308" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-309"><a href="#cb6-309" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-310"><a href="#cb6-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-311"><a href="#cb6-311" aria-hidden="true" tabindex="-1"></a><span class="co"># This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,</span></span>
-<span id="cb6-312"><a href="#cb6-312" aria-hidden="true" tabindex="-1"></a><span class="co"># pads a 0.8 s sleep for rate‑limits, and collects the raw JSON dicts in memory</span></span>
-<span id="cb6-313"><a href="#cb6-313" aria-hidden="true" tabindex="-1"></a><span class="co"># (`records`). We *don’t* write one JSON file per paper here; instead, the nested `records` structure is converted to a tidy long format and</span></span>
-<span id="cb6-314"><a href="#cb6-314" aria-hidden="true" tabindex="-1"></a><span class="co"># written to `results/metrics_long.csv`.</span></span>
-<span id="cb6-315"><a href="#cb6-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-310"><a href="#cb6-310" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(probe.choices[<span class="dv">0</span>].message.content)  <span class="co"># should print {"ok": true}</span></span>
+<span id="cb6-311"><a href="#cb6-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-312"><a href="#cb6-312" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-313"><a href="#cb6-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-314"><a href="#cb6-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-315"><a href="#cb6-315" aria-hidden="true" tabindex="-1"></a>We iterate over <span class="in">`papers/*.pdf`</span>, collect raw results and write a long CSV to <span class="in">`results/metrics_long.csv`</span>.</span>
 <span id="cb6-316"><a href="#cb6-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-317"><a href="#cb6-317" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-318"><a href="#cb6-318" aria-hidden="true" tabindex="-1"></a>ROOT <span class="op">=</span> pathlib.Path(<span class="st">"papers"</span>)          <span class="co"># put your PDFs here</span></span>
-<span id="cb6-319"><a href="#cb6-319" aria-hidden="true" tabindex="-1"></a>OUT  <span class="op">=</span> pathlib.Path(<span class="st">"results"</span>)</span>
-<span id="cb6-320"><a href="#cb6-320" aria-hidden="true" tabindex="-1"></a>OUT.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb6-321"><a href="#cb6-321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-322"><a href="#cb6-322" aria-hidden="true" tabindex="-1"></a>pdfs <span class="op">=</span> <span class="bu">sorted</span>(ROOT.glob(<span class="st">"*.pdf"</span>))</span>
+<span id="cb6-319"><a href="#cb6-319" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-320"><a href="#cb6-320" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: eval-many-metrics</span></span>
+<span id="cb6-321"><a href="#cb6-321" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb6-322"><a href="#cb6-322" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
 <span id="cb6-323"><a href="#cb6-323" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-324"><a href="#cb6-324" aria-hidden="true" tabindex="-1"></a>records <span class="op">=</span> []</span>
-<span id="cb6-325"><a href="#cb6-325" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pdf <span class="kw">in</span> tqdm(pdfs, desc<span class="op">=</span><span class="st">"Metrics"</span>):</span>
-<span id="cb6-326"><a href="#cb6-326" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
-<span id="cb6-327"><a href="#cb6-327" aria-hidden="true" tabindex="-1"></a>        res <span class="op">=</span> evaluate_paper(pdf)     <span class="co"># &lt;-- </span></span>
-<span id="cb6-328"><a href="#cb6-328" aria-hidden="true" tabindex="-1"></a>        res[<span class="st">"paper"</span>] <span class="op">=</span> pdf.stem</span>
-<span id="cb6-329"><a href="#cb6-329" aria-hidden="true" tabindex="-1"></a>        records.append(res)</span>
-<span id="cb6-330"><a href="#cb6-330" aria-hidden="true" tabindex="-1"></a>        time.sleep(<span class="fl">0.8</span>)             </span>
-<span id="cb6-331"><a href="#cb6-331" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
-<span id="cb6-332"><a href="#cb6-332" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"⚠️ </span><span class="sc">{</span>pdf<span class="sc">.</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-324"><a href="#cb6-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-325"><a href="#cb6-325" aria-hidden="true" tabindex="-1"></a><span class="co"># Batch-evaluate all PDFs</span></span>
+<span id="cb6-326"><a href="#cb6-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-327"><a href="#cb6-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-328"><a href="#cb6-328" aria-hidden="true" tabindex="-1"></a><span class="co"># This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,</span></span>
+<span id="cb6-329"><a href="#cb6-329" aria-hidden="true" tabindex="-1"></a><span class="co"># pads a 0.8 s sleep for rate‑limits, and collects the raw JSON dicts in memory</span></span>
+<span id="cb6-330"><a href="#cb6-330" aria-hidden="true" tabindex="-1"></a><span class="co"># (`records`). We *don’t* write one JSON file per paper here; instead, the nested `records` structure is converted to a tidy long format and</span></span>
+<span id="cb6-331"><a href="#cb6-331" aria-hidden="true" tabindex="-1"></a><span class="co"># written to `results/metrics_long.csv`.</span></span>
+<span id="cb6-332"><a href="#cb6-332" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-333"><a href="#cb6-333" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-334"><a href="#cb6-334" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-335"><a href="#cb6-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-336"><a href="#cb6-336" aria-hidden="true" tabindex="-1"></a>tidy_rows <span class="op">=</span> []</span>
-<span id="cb6-337"><a href="#cb6-337" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rec <span class="kw">in</span> records:</span>
-<span id="cb6-338"><a href="#cb6-338" aria-hidden="true" tabindex="-1"></a>    paper_id <span class="op">=</span> rec[<span class="st">"paper"</span>]</span>
-<span id="cb6-339"><a href="#cb6-339" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> metric, vals <span class="kw">in</span> rec[<span class="st">"metrics"</span>].items():</span>
-<span id="cb6-340"><a href="#cb6-340" aria-hidden="true" tabindex="-1"></a>        tidy_rows.append({</span>
-<span id="cb6-341"><a href="#cb6-341" aria-hidden="true" tabindex="-1"></a>            <span class="st">"paper"</span>:   paper_id,</span>
-<span id="cb6-342"><a href="#cb6-342" aria-hidden="true" tabindex="-1"></a>            <span class="st">"metric"</span>:  metric,</span>
-<span id="cb6-343"><a href="#cb6-343" aria-hidden="true" tabindex="-1"></a>            <span class="op">**</span>vals     <span class="co"># midpoint, lower_bound, upper_bound, rationale</span></span>
-<span id="cb6-344"><a href="#cb6-344" aria-hidden="true" tabindex="-1"></a>        })</span>
-<span id="cb6-345"><a href="#cb6-345" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-346"><a href="#cb6-346" aria-hidden="true" tabindex="-1"></a>tidy <span class="op">=</span> pd.DataFrame(tidy_rows)</span>
-<span id="cb6-347"><a href="#cb6-347" aria-hidden="true" tabindex="-1"></a>tidy.to_csv(OUT <span class="op">/</span> <span class="st">"metrics_long.csv"</span>, index<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb6-348"><a href="#cb6-348" aria-hidden="true" tabindex="-1"></a><span class="co"># tidy.head()</span></span>
-<span id="cb6-349"><a href="#cb6-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-335"><a href="#cb6-335" aria-hidden="true" tabindex="-1"></a>ROOT <span class="op">=</span> pathlib.Path(<span class="st">"papers"</span>)          <span class="co"># put your PDFs here</span></span>
+<span id="cb6-336"><a href="#cb6-336" aria-hidden="true" tabindex="-1"></a>OUT  <span class="op">=</span> pathlib.Path(<span class="st">"results"</span>)</span>
+<span id="cb6-337"><a href="#cb6-337" aria-hidden="true" tabindex="-1"></a>OUT.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-338"><a href="#cb6-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-339"><a href="#cb6-339" aria-hidden="true" tabindex="-1"></a>pdfs <span class="op">=</span> <span class="bu">sorted</span>(ROOT.glob(<span class="st">"*.pdf"</span>))</span>
+<span id="cb6-340"><a href="#cb6-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-341"><a href="#cb6-341" aria-hidden="true" tabindex="-1"></a>records <span class="op">=</span> []</span>
+<span id="cb6-342"><a href="#cb6-342" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pdf <span class="kw">in</span> tqdm(pdfs, desc<span class="op">=</span><span class="st">"Metrics"</span>):</span>
+<span id="cb6-343"><a href="#cb6-343" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb6-344"><a href="#cb6-344" aria-hidden="true" tabindex="-1"></a>        res <span class="op">=</span> evaluate_paper(pdf)     <span class="co"># &lt;-- </span></span>
+<span id="cb6-345"><a href="#cb6-345" aria-hidden="true" tabindex="-1"></a>        res[<span class="st">"paper"</span>] <span class="op">=</span> pdf.stem</span>
+<span id="cb6-346"><a href="#cb6-346" aria-hidden="true" tabindex="-1"></a>        records.append(res)</span>
+<span id="cb6-347"><a href="#cb6-347" aria-hidden="true" tabindex="-1"></a>        time.sleep(<span class="fl">0.8</span>)             </span>
+<span id="cb6-348"><a href="#cb6-348" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb6-349"><a href="#cb6-349" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"⚠️ </span><span class="sc">{</span>pdf<span class="sc">.</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb6-350"><a href="#cb6-350" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-351"><a href="#cb6-351" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-352"><a href="#cb6-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-353"><a href="#cb6-353" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> pathlib.Path(<span class="st">"results/metrics_long.csv"</span>)</span>
-<span id="cb6-354"><a href="#cb6-354" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> p.exists():</span>
-<span id="cb6-355"><a href="#cb6-355" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="st">"::: {.callout-warning}</span><span class="ch">\n</span><span class="st">**No results yet.** Run the batch evaluation to generate `results/metrics_long.csv`.</span><span class="ch">\n</span><span class="st">:::"</span>))</span>
-<span id="cb6-356"><a href="#cb6-356" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb6-357"><a href="#cb6-357" aria-hidden="true" tabindex="-1"></a>    tidy <span class="op">=</span> pd.read_csv(p)</span>
-<span id="cb6-358"><a href="#cb6-358" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Basic counts</span></span>
-<span id="cb6-359"><a href="#cb6-359" aria-hidden="true" tabindex="-1"></a>    n_papers <span class="op">=</span> tidy[<span class="st">"paper"</span>].nunique()</span>
-<span id="cb6-360"><a href="#cb6-360" aria-hidden="true" tabindex="-1"></a>    n_rows   <span class="op">=</span> <span class="bu">len</span>(tidy)</span>
-<span id="cb6-361"><a href="#cb6-361" aria-hidden="true" tabindex="-1"></a>    n_metrics <span class="op">=</span> tidy[<span class="st">"metric"</span>].nunique()</span>
-<span id="cb6-362"><a href="#cb6-362" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Overall-only slice</span></span>
-<span id="cb6-363"><a href="#cb6-363" aria-hidden="true" tabindex="-1"></a>    overall <span class="op">=</span> tidy[tidy[<span class="st">"metric"</span>] <span class="op">==</span> <span class="st">"overall"</span>].copy()</span>
-<span id="cb6-364"><a href="#cb6-364" aria-hidden="true" tabindex="-1"></a>    mean_overall <span class="op">=</span> overall[<span class="st">"midpoint"</span>].mean() <span class="cf">if</span> <span class="kw">not</span> overall.empty <span class="cf">else</span> np.nan</span>
-<span id="cb6-365"><a href="#cb6-365" aria-hidden="true" tabindex="-1"></a>    med_overall  <span class="op">=</span> overall[<span class="st">"midpoint"</span>].median() <span class="cf">if</span> <span class="kw">not</span> overall.empty <span class="cf">else</span> np.nan</span>
+<span id="cb6-353"><a href="#cb6-353" aria-hidden="true" tabindex="-1"></a>tidy_rows <span class="op">=</span> []</span>
+<span id="cb6-354"><a href="#cb6-354" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rec <span class="kw">in</span> records:</span>
+<span id="cb6-355"><a href="#cb6-355" aria-hidden="true" tabindex="-1"></a>    paper_id <span class="op">=</span> rec[<span class="st">"paper"</span>]</span>
+<span id="cb6-356"><a href="#cb6-356" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> metric, vals <span class="kw">in</span> rec[<span class="st">"metrics"</span>].items():</span>
+<span id="cb6-357"><a href="#cb6-357" aria-hidden="true" tabindex="-1"></a>        tidy_rows.append({</span>
+<span id="cb6-358"><a href="#cb6-358" aria-hidden="true" tabindex="-1"></a>            <span class="st">"paper"</span>:   paper_id,</span>
+<span id="cb6-359"><a href="#cb6-359" aria-hidden="true" tabindex="-1"></a>            <span class="st">"metric"</span>:  metric,</span>
+<span id="cb6-360"><a href="#cb6-360" aria-hidden="true" tabindex="-1"></a>            <span class="op">**</span>vals     <span class="co"># midpoint, lower_bound, upper_bound, rationale</span></span>
+<span id="cb6-361"><a href="#cb6-361" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb6-362"><a href="#cb6-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-363"><a href="#cb6-363" aria-hidden="true" tabindex="-1"></a>tidy <span class="op">=</span> pd.DataFrame(tidy_rows)</span>
+<span id="cb6-364"><a href="#cb6-364" aria-hidden="true" tabindex="-1"></a>tidy.to_csv(OUT <span class="op">/</span> <span class="st">"metrics_long.csv"</span>, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb6-365"><a href="#cb6-365" aria-hidden="true" tabindex="-1"></a><span class="co"># tidy.head()</span></span>
 <span id="cb6-366"><a href="#cb6-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-367"><a href="#cb6-367" aria-hidden="true" tabindex="-1"></a>    display(Markdown(</span>
-<span id="cb6-368"><a href="#cb6-368" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"**Batch size:** </span><span class="sc">{</span>n_papers<span class="sc">}</span><span class="ss"> papers  </span><span class="ch">\n</span><span class="ss">"</span></span>
-<span id="cb6-369"><a href="#cb6-369" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"**Total metric rows:** </span><span class="sc">{</span>n_rows<span class="sc">:,}</span><span class="ss"> across </span><span class="sc">{</span>n_metrics<span class="sc">}</span><span class="ss"> metrics  </span><span class="ch">\n</span><span class="ss">"</span></span>
-<span id="cb6-370"><a href="#cb6-370" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"**Overall ratings:** mean = </span><span class="sc">{</span>mean_overall<span class="sc">:.1f}</span><span class="ss">, median = </span><span class="sc">{</span>med_overall<span class="sc">:.1f}</span><span class="ss">"</span></span>
-<span id="cb6-371"><a href="#cb6-371" aria-hidden="true" tabindex="-1"></a>    ))</span>
-<span id="cb6-372"><a href="#cb6-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-373"><a href="#cb6-373" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-374"><a href="#cb6-374" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb6-375"><a href="#cb6-375" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-376"><a href="#cb6-376" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-377"><a href="#cb6-377" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-378"><a href="#cb6-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-379"><a href="#cb6-379" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-380"><a href="#cb6-380" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-381"><a href="#cb6-381" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-382"><a href="#cb6-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-383"><a href="#cb6-383" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb6-367"><a href="#cb6-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-368"><a href="#cb6-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-369"><a href="#cb6-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-370"><a href="#cb6-370" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> pathlib.Path(<span class="st">"results/metrics_long.csv"</span>)</span>
+<span id="cb6-371"><a href="#cb6-371" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> p.exists():</span>
+<span id="cb6-372"><a href="#cb6-372" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="st">"::: {.callout-warning}</span><span class="ch">\n</span><span class="st">**No results yet.** Run the batch evaluation to generate `results/metrics_long.csv`.</span><span class="ch">\n</span><span class="st">:::"</span>))</span>
+<span id="cb6-373"><a href="#cb6-373" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb6-374"><a href="#cb6-374" aria-hidden="true" tabindex="-1"></a>    tidy <span class="op">=</span> pd.read_csv(p)</span>
+<span id="cb6-375"><a href="#cb6-375" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Basic counts</span></span>
+<span id="cb6-376"><a href="#cb6-376" aria-hidden="true" tabindex="-1"></a>    n_papers <span class="op">=</span> tidy[<span class="st">"paper"</span>].nunique()</span>
+<span id="cb6-377"><a href="#cb6-377" aria-hidden="true" tabindex="-1"></a>    n_rows   <span class="op">=</span> <span class="bu">len</span>(tidy)</span>
+<span id="cb6-378"><a href="#cb6-378" aria-hidden="true" tabindex="-1"></a>    n_metrics <span class="op">=</span> tidy[<span class="st">"metric"</span>].nunique()</span>
+<span id="cb6-379"><a href="#cb6-379" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Overall-only slice</span></span>
+<span id="cb6-380"><a href="#cb6-380" aria-hidden="true" tabindex="-1"></a>    overall <span class="op">=</span> tidy[tidy[<span class="st">"metric"</span>] <span class="op">==</span> <span class="st">"overall"</span>].copy()</span>
+<span id="cb6-381"><a href="#cb6-381" aria-hidden="true" tabindex="-1"></a>    mean_overall <span class="op">=</span> overall[<span class="st">"midpoint"</span>].mean() <span class="cf">if</span> <span class="kw">not</span> overall.empty <span class="cf">else</span> np.nan</span>
+<span id="cb6-382"><a href="#cb6-382" aria-hidden="true" tabindex="-1"></a>    med_overall  <span class="op">=</span> overall[<span class="st">"midpoint"</span>].median() <span class="cf">if</span> <span class="kw">not</span> overall.empty <span class="cf">else</span> np.nan</span>
+<span id="cb6-383"><a href="#cb6-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-384"><a href="#cb6-384" aria-hidden="true" tabindex="-1"></a>    display(Markdown(</span>
+<span id="cb6-385"><a href="#cb6-385" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"**Batch size:** </span><span class="sc">{</span>n_papers<span class="sc">}</span><span class="ss"> papers  </span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb6-386"><a href="#cb6-386" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"**Total metric rows:** </span><span class="sc">{</span>n_rows<span class="sc">:,}</span><span class="ss"> across </span><span class="sc">{</span>n_metrics<span class="sc">}</span><span class="ss"> metrics  </span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb6-387"><a href="#cb6-387" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"**Overall ratings:** mean = </span><span class="sc">{</span>mean_overall<span class="sc">:.1f}</span><span class="ss">, median = </span><span class="sc">{</span>med_overall<span class="sc">:.1f}</span><span class="ss">"</span></span>
+<span id="cb6-388"><a href="#cb6-388" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb6-389"><a href="#cb6-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-390"><a href="#cb6-390" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-391"><a href="#cb6-391" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-392"><a href="#cb6-392" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-393"><a href="#cb6-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-394"><a href="#cb6-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-395"><a href="#cb6-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-396"><a href="#cb6-396" aria-hidden="true" tabindex="-1"></a><span class="fu">## Journal ranking tiers</span></span>
+<span id="cb6-397"><a href="#cb6-397" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-398"><a href="#cb6-398" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-399"><a href="#cb6-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-400"><a href="#cb6-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-401"><a href="#cb6-401" aria-hidden="true" tabindex="-1"></a><span class="fu">## Claim identification</span></span>
+<span id="cb6-402"><a href="#cb6-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-403"><a href="#cb6-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-404"><a href="#cb6-404" aria-hidden="true" tabindex="-1"></a><span class="fu">## Qualitative assessments</span></span>
+<span id="cb6-405"><a href="#cb6-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-406"><a href="#cb6-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-407"><a href="#cb6-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-408"><a href="#cb6-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-409"><a href="#cb6-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-410"><a href="#cb6-410" aria-hidden="true" tabindex="-1"></a>---</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

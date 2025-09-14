@@ -3,6 +3,37 @@ title: "Data and methods"
 ---
 
 
+```{r}
+#| label: setup-r
+#| eval: true
+#| code-fold: true
+
+library("here")
+library("janitor")
+library("readr")
+
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE)|>
+  clean_names()
+
+# research <- research  |>
+#   filter(status == "50_published evaluations (on PubPub, by Unjournal)")
+
+
+
+currentmodel =  "GPT-5"
+
+
+
+```
+
+We draw on two main sources:
+
+1) Human evaluations from The Unjournal’s public dataset (PubPub reports and the Coda evaluation form export).  
+2) LLM‑generated evaluations produced by `r currentmodel` using a structured JSON‑schema prompt.
+
+We report (i) the human dataset and curation, and (ii) the LLM evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV). Code cells below show the exact configuration and contract used with the model; the API call is displayed but not executed.
+
+
 ## Numerical ratings
 
 Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.
@@ -10,21 +41,6 @@ Following The Unjournal's [standard guidelines for evaluators](https://globalimp
 ### Unjournal.org 
 
 [Unjournal Dat Blog](https://unjournal.github.io/unjournaldata/index.html)
-
-
-```{r}
-
-library("here")
-library("janitor")
-library("readr")
-
-# research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
-#   clean_names() |>
-#   filter(status == "50_published evaluations (on PubPub, by Unjournal)")
-# 
-
-
-```
 
 
 
@@ -366,6 +382,16 @@ else:
 ```
 
 
+
+## Journal ranking tiers
+
+
+
+
+## Claim identification
+
+
+## Qualitative assessments
 
 
 

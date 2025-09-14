@@ -13,7 +13,7 @@ engine: knitr
 
 # renv::install("ggforce")
 
-currentmodel = "GPT-5"
+currentmodel =  "GPT-5"
 
 library("tidyverse")
 library("janitor")
@@ -536,7 +536,6 @@ plot_rank_slope_S(metric_name)
 
 We then look closer at the specific ratings on the criterion level. @fig-heat displays LLM − Human differences by paper × metric; orange cells indicate higher LLM scores, green cells lower ones. @fig-histogram shows the marginal distributions of human vs LLM scores by metric, highlighting calibration differences and spread.
 
-Tables @tbl-agreement and @tbl-coverage summarize agreement numerically: correlations, bias, $\kappa$-statistics, and interval coverage (whether each side’s CI contains the other’s midpoint).
 
 ```{r}
 #| label: fig-heat
@@ -601,8 +600,8 @@ agreement_summary <- function(df, n_bins = 5, bin_strategy = "quantile") {
       n             = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
       pearson       = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
       spearman      = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
-      mean_bias     = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
-      median_bias   = median(midpoint_llm - midpoint_human, na.rm = TRUE),
+      # mean_bias     = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
+      # median_bias   = median(midpoint_llm - midpoint_human, na.rm = TRUE),
       MAE           = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
       MedAE         = median(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
       RMSE          = sqrt(mean((midpoint_llm - midpoint_human)^2, na.rm = TRUE)),
@@ -634,7 +633,7 @@ top_gaps_overall <- merged |>
   arrange(desc(abs_diff)) |>
   slice_head(n = 3) |>
   mutate(paper = as.character(label_paper),
-         gap_str = sprintf("**%s** (%+.1f)", paper, diff))
+         gap_str = sprintf("%s (%+.1f)", paper, diff))
 
 # Highest overall scores
 top_llm_overall <- llm_raw |>
@@ -642,14 +641,14 @@ top_llm_overall <- llm_raw |>
   arrange(desc(midpoint_llm)) |>
   slice_head(n = 3) |>
   mutate(paper = as.character(label_paper),
-         llm_str = sprintf("**%s** (LLM %.1f)", paper, midpoint_llm))
+         llm_str = sprintf("%s (LLM %.1f)", paper, midpoint_llm))
 
 top_human_overall <- human_use |>
   filter(criteria == "overall") |>
   arrange(desc(midpoint_human)) |>
   slice_head(n = 3) |>
   mutate(paper = as.character(label_paper),
-         hum_str = sprintf("**%s** (Human %.1f)", paper, midpoint_human))
+         hum_str = sprintf("%s (Human %.1f)", paper, midpoint_human))
 
 # Compose strings for easy inline use
 msg_top_gaps_overall  <- paste(top_gaps_overall$gap_str, collapse = "; ")
