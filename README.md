@@ -13,7 +13,7 @@ We are working on this collaboratively in [this Github repo](https://github.com/
 
 ## Data layout
 papers/    raw PDFs (tracked, large files OK)
-results/   generated JSON + CSV
+results/   generated JSON + CSV <!-- DR: there is no such folder, at least I couldn't find one. Was it .gitignored? -->
 key/       openai_key.txt (git-ignored)
 
 ## Other notes
