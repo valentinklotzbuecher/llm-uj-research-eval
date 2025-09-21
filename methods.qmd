@@ -53,7 +53,7 @@ if not os.getenv("OPENAI_API_KEY"):
 
 client = OpenAI()
 
-# ---------- Model (GPT‑5) ----------
+# ---------- Model ----------
 MODEL = os.getenv("UJ_MODEL", "o3")
 
 # ---------- PDF → text with a fixed tokenizer ----------
@@ -146,16 +146,6 @@ We enforce a JSON Schema for the results. The model must return one object with 
 #| label: llm-setup
 #| eval: false
 #| code-fold: show
-
-
-# LLM setup
-# 
-# - `METRICS` lists the categories we score.
-# - `metric_schema` specifies the shape and bounds of each metric.
-# - `response_format` (JSON Schema) asks the model to return only a JSON
-#  object conforming to that schema.
-# - `SYSTEM_PROMPT` explains scoring semantics (percentiles + 90% credible
-#  intervals) and how to set the `overall` score.
 
 # -----------------------------
 # 1.  Metric list
@@ -760,7 +750,6 @@ batch_evaluate_journal_tiers(
 
 
 ### Qualitative assessments
-
 
 ```{python}
 #| label: prompt-fulleval
