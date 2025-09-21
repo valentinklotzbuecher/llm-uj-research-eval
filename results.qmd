@@ -10,8 +10,6 @@ engine: knitr
 ```{r}
 #| label: setup
 
-currentmodel =  "GPT-5"
-
 
 library("tidyverse")
 library("janitor")
@@ -23,6 +21,7 @@ library("here")
 library("knitr") 
 library("ggforce") 
 library("ggrepel")
+library("glue")
 
  
 UJ_ORANGE <- "#f19e4b"   # LLM
@@ -116,6 +115,35 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 
 
 
+metrics_meta <- readr::read_csv(here("data", "metrics_meta.csv"), show_col_types = FALSE) |>
+  janitor::clean_names()
+
+# Model label from meta (drop hard-coding)
+models_run   <- metrics_meta |>
+  dplyr::distinct(model) |>
+  dplyr::pull(model) |> na.omit()
+currentmodel <- if (length(models_run) == 1) models_run else paste(models_run, collapse = ", ")
+
+# Token summary (input + output + reasoning tokens when available)
+metrics_meta <- metrics_meta |>
+  dplyr::mutate(total_tokens = dplyr::coalesce(input_tokens, 0) +
+                                dplyr::coalesce(output_tokens, 0) +
+                                dplyr::coalesce(reasoning_tokens, 0))
+
+tok_sum <- metrics_meta |>
+  dplyr::summarise(
+    n_papers = dplyr::n_distinct(paper),
+    median_tokens = stats::median(total_tokens, na.rm = TRUE),
+    mean_tokens   = mean(total_tokens, na.rm = TRUE)
+  )
+
+
+
+reasining_example = metrics_meta |>
+  filter(!is.na(reasoning_summary), 
+         paper == "Williams et al. 2024")
+
+
 ```
 
 Here we present preliminary results, starting with a comparison of the LLM‑generated quantitative ratings (model: `r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
@@ -123,11 +151,16 @@ Here we present preliminary results, starting with a comparison of the LLM‑gen
 
 ## Quantitative ratings
 
+We evaluated `r tok_sum$n_papers` papers using `r currentmodel`, reading each manuscript directly from the PDF and returning a strict JSON assessment. 
+
+Before looking at the output, it is instructive to look at the reported reasoning summary of the LLM (only partially available). 
+This is what `r currentmodel` reports about its reasoning on @Williams2024: `r sprintf(reasining_example$reasoning_summary)`
+
+
 
 ### Overall ratings
 
 We begin by comparing *overall* scores. 
-
 
 
 ```{r}
@@ -145,7 +178,7 @@ UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
 metrics <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE)
 
 metrics <- metrics |> clean_names() |>
-  mutate(evaluator = "GPT-5",
+  mutate(evaluator = currentmodel,
          label_paper = str_replace(paper, "et al ", "et al. "),
          middle_rating = midpoint,
          lower_ci = lower_bound,
@@ -214,11 +247,11 @@ all_ratings <- all_ratings |>
 
 # Split: LLM vs Human raters (LLM = evaluator == 'GPT-5')
 human_raw <- all_ratings |>
-  filter(evaluator != "GPT-5") |>
+  filter(evaluator != currentmodel) |>
   filter(!is.na(middle_rating))
 
 llm_raw <- all_ratings |>
-  filter(evaluator == "GPT-5") |>
+  filter(evaluator == currentmodel) |>
   transmute(
     label_paper, label_paper_title, criteria,
     midpoint_llm = middle_rating,
@@ -643,7 +676,7 @@ rationale_outlier = all_ratings |>
 ```
 
 
-This is what `r currentmodel` reports "overall" on @Williams2024: `r sprintf(rationale_outlier$rationale)`
+For @Williams2024 "overall", `r currentmodel` gives the following rationale:  `r sprintf(rationale_outlier$rationale)`
 
 
 ## Journal ranking tiers

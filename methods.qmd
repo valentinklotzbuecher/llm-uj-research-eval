@@ -3,33 +3,10 @@ title: "Data and methods"
 ---
 
 
-```{r}
-#| label: setup-r
-#| eval: true
-#| code-fold: true
-
-library("here")
-library("janitor")
-library("readr")
-
-filter <- dplyr::filter
-
-research <- read_csv(here("data", "research.csv"), show_col_types = FALSE)|>
-  clean_names()
-
-research_done <- research  |> filter(status == "50_published evaluations (on PubPub, by Unjournal)")
-
-
-currentmodel =  "GPT-5"
-
-
-
-```
-
 We draw on two main sources:
 
 1) Human evaluations from [The Unjournal’s public evaluation data](https://unjournal.github.io/unjournaldata/index.html) (PubPub reports and the Coda evaluation form export).  
-2) LLM‑generated evaluations produced by `r currentmodel` using a structured JSON‑schema prompt.
+2) LLM‑generated evaluations using a structured JSON‑schema prompt.
 
 ## Unjournal.org evaluations
 
@@ -42,14 +19,18 @@ All selected papers havw completed The Unjournal's evaluation process (meaning t
 
 Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.
 
-*Internal note: The Python content below must be run externally*
+<!-- *Internal note: The Python content below must be run externally* -->
+
+We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.
 
 ```{python}
 #| label: setup-env
 #| eval: false
 #| code-fold: true
 
-import os, pathlib, json, textwrap, re
+# Environment setup
+
+import os, pathlib, json, textwrap, re, random
 import pdfplumber, time, tiktoken
 import pandas as pd, numpy as np
 from openai import OpenAI
@@ -58,15 +39,9 @@ import plotly.io as pio
 import plotly.graph_objects as go
 from tqdm import tqdm  
 from IPython.display import Markdown, display
+from typing import Dict
+from collections import deque
 
-#  Setup chunk:
-# * loads the main libraries (OpenAI SDK, Altair, Plotly, …)
-# * looks for your OpenAI key in **key/openai_key.txt** 
-# * initialises a client (`gpt-5`, via `UJ_MODEL`)
-# * defines `pdf_to_string()` — drops the reference section and hard‑caps at 180k tokens so we stay in‑context.
-
-# **API key hygiene.** 
-# The code only *reads* `key/openai_key.txt` if the environment variable isn’t already set. Keep this file out of version control (adjust gitignore).
 
 
 # ---------- API key ----------
@@ -79,44 +54,108 @@ if not os.getenv("OPENAI_API_KEY"):
 client = OpenAI()
 
 # ---------- Model (GPT‑5) ----------
-MODEL = os.getenv("UJ_MODEL", "gpt-5")
+MODEL = os.getenv("UJ_MODEL", "o3")
 
 # ---------- PDF → text with a fixed tokenizer ----------
 _enc = tiktoken.get_encoding("o200k_base")  # large-context encoder
 
-def pdf_to_string(path, max_tokens=180_000):
-    """Extract text, drop references section, hard-cap by tokens."""
-    with pdfplumber.open(path) as pdf:
-        text = " ".join(p.extract_text() or "" for p in pdf.pages)
-    text = re.sub(r"\s+", " ", text)
-    m = re.search(r"\b(References|Bibliography)\b", text, flags=re.I)
-    if m: text = text[: m.start()]
-    toks = _enc.encode(text)
-    if len(toks) > max_tokens:
-        text = _enc.decode(toks[:max_tokens])
-    return text
 
-#To do (or to do again) -- save these text files in the environment
-# Or should we be able to drag the pdf to the API directly? But then you want to verify what the pdf extracted.
+# ---- cache file_ids so each PDF uploads once ----
+FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
+FILES_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+_file_ids: Dict[str, str] = {}
+if FILES_CACHE_PATH.exists():
+    _file_ids.update(json.loads(FILES_CACHE_PATH.read_text()))
+
+
+def _get_file_id(pdf_path: str | pathlib.Path) -> str:
+    pdf_path = str(pdf_path)
+    if pdf_path in _file_ids:
+        return _file_ids[pdf_path]
+    with open(pdf_path, "rb") as fh:
+        up = client.files.create(file=fh, purpose="assistants")
+    _file_ids[pdf_path] = up.id
+    FILES_CACHE_PATH.write_text(json.dumps(_file_ids, ensure_ascii=False, indent=2))
+    return up.id
+
+
+
+class TokenPacer:
+    """Keep tokens/min under a target. Uses a 60s sliding window."""
+    def __init__(self, tpm_limit=30000, safety=0.9, warmup_est=9000):
+        self.tpm = int(tpm_limit * safety)
+        self.events = deque()  # (ts, tokens)
+        self.est = warmup_est  # next-call estimate
+
+    def _purge(self):
+        now = time.time()
+        while self.events and now - self.events[0][0] > 60:
+            self.events.popleft()
+
+    def before(self, est_tokens=None):
+        est = self.est if est_tokens is None else est_tokens
+        self._purge()
+        used = sum(t for _, t in self.events)
+        if used + est > self.tpm and self.events:
+            wait = 60 - (time.time() - self.events[0][0])
+            time.sleep(max(0.0, wait) + random.random() * 0.3)
+
+    def after(self, resp):
+        d = resp.model_dump()
+        u = d.get("usage") or {}
+        tok = (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0)
+        od = u.get("output_tokens_details") or {}
+        tok += od.get("reasoning_tokens") or 0
+        self._purge()
+        self.events.append((time.time(), tok))
+        # update next estimate (EMA)
+        self.est = max(1000, 0.5 * self.est + 0.5 * tok)
+        return tok
+
+PACER = TokenPacer(tpm_limit=30000, safety=0.9, warmup_est=9000)
+
+def _sleep_from_429_text(msg, base=3.0):
+    m = re.search(r"try again in ([0-9.]+)s", msg, flags=re.I)
+    return (float(m.group(1)) if m else base) + random.random() * 0.5
+
+def call_with_retries(make_call, max_tries=6):
+    delay = 2.0
+    for k in range(max_tries):
+        PACER.before()
+        try:
+            resp = make_call()
+            PACER.after(resp)
+            return resp
+        except Exception as e:
+            s = str(e)
+            if "rate limit" in s.lower() or "429" in s or "tpm" in s.lower():
+                time.sleep(_sleep_from_429_text(s, base=delay))
+                delay = min(delay * 1.7, 20.0)
+                continue
+            raise
+    raise RuntimeError("Too many retries on rate limits.")
+
 
 ```
 
 
-Response schema & system prompt: This section defines the *contract* we expect back from the model:
-
-- `METRICS` lists the categories we score.
-- `metric_schema` specifies the shape and bounds of each metric.
-- `response_format` (JSON Schema) asks the model to return only a JSON
- object conforming to that schema.
-- `SYSTEM_PROMPT` explains scoring semantics (percentiles + 90% credible
- intervals) and how to set the `overall` score.
- 
+We enforce a JSON Schema for the results. The model must return one object with named criteria, a midpoint score, and a 90% interval for each, plus a short rationale. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. The credible intervals communicate uncertainty rather than false precision. The brief rationales clarify what evidence in the paper drove each score.
 
 
 ```{python}
 #| label: llm-setup
 #| eval: false
 #| code-fold: show
+
+
+# LLM setup
+# 
+# - `METRICS` lists the categories we score.
+# - `metric_schema` specifies the shape and bounds of each metric.
+# - `response_format` (JSON Schema) asks the model to return only a JSON
+#  object conforming to that schema.
+# - `SYSTEM_PROMPT` explains scoring semantics (percentiles + 90% credible
+#  intervals) and how to set the `overall` score.
 
 # -----------------------------
 # 1.  Metric list
@@ -131,9 +170,6 @@ METRICS = [
     "global_relevance"
 ]
 
-# -----------------------------
-# 2.  JSON schema
-# -----------------------------
 metric_schema = {
     "type": "object",
     "properties": {
@@ -146,26 +182,30 @@ metric_schema = {
     "additionalProperties": False
 }
 
-response_format = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "paper_assessment_v1",
-        "strict": True,
-        "schema": {
+# -----------------------------
+# 2.  JSON schema
+# -----------------------------
+METRICS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "metrics": {
             "type": "object",
-            "properties": {
-                "metrics": {
-                    "type": "object",
-                    "properties": {m: metric_schema for m in METRICS},
-                    "required": METRICS,
-                    "additionalProperties": False
-                }
-            },
-            "required": ["metrics"],
+            "properties": {m: metric_schema for m in METRICS},
+            "required": METRICS,
             "additionalProperties": False
         }
-    }
+    },
+    "required": ["metrics"],
+    "additionalProperties": False
 }
+
+TEXT_FORMAT_METRICS = {
+    "type": "json_schema",
+    "name": "paper_assessment_v1",
+    "strict": True,
+    "schema": METRICS_SCHEMA
+}
+
 
 
 # -----------------------------
@@ -247,11 +287,12 @@ Do not wrap the JSON in markdown fences or add extra text.
 ```
 
 
-Below is the main helper that runs a single evaluation:
 
-- extracts text with `pdf_to_string()`,
-- calls Chat Completions with the strict JSON Schema in `response_format`,
-- parses the returned JSON string into a Python dict.
+ 
+
+We use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate “ingestion” stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.
+
+
 
 
 ```{python}
@@ -259,56 +300,69 @@ Below is the main helper that runs a single evaluation:
 #| eval: false
 #| code-fold: true
 
-
-def evaluate_paper(pdf_path: str | pathlib.Path, model: str = MODEL) -> dict:
-    paper_text = pdf_to_string(pdf_path)
-
-    chat = client.chat.completions.create(
-        model=model,                       # "gpt-5"
-        response_format=response_format,   # your JSON-Schema defined above
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": paper_text}
-        ],
-        # max_tokens=2500,                 # optional cap for the JSON block
-    )
-
-    raw_json = chat.choices[0].message.content
-    return json.loads(raw_json)
+# Evaluation function
 
 
-# Minimal probe using Chat Completions (works on gpt-5 and o3)
+def _reasoning_meta(resp):
+    d = resp.model_dump()  
+    rid, summary_text = None, None
+    out = d.get("output") or []
+    if out and (out[0].get("type") == "reasoning"):
+        rid = out[0].get("id")
+        summ = out[0].get("summary") or []
+        if summ and isinstance(summ, list):
+            summary_text = summ[0].get("text")
+
+    usage = d.get("usage") or {}
+    odet  = usage.get("output_tokens_details") or {}
+    return {
+        "response_id": d.get("id"),
+        "reasoning_id": rid,
+        "reasoning_summary": summary_text,
+        "input_tokens": usage.get("input_tokens"),
+        "output_tokens": usage.get("output_tokens"),
+        "reasoning_tokens": odet.get("reasoning_tokens"),
+    }
 
 
-# A quick “smoke test” to confirm the client is alive and willing to emit JSON.
-# This intentionally uses the simple `json_object` format for wide model compatibility.
+def evaluate_paper(pdf_path, model=MODEL):
+    fid = _get_file_id(pdf_path)
 
-MODEL = "gpt-5"   #  "o3"
+    def _make():
+        return client.responses.create(
+            model=model,                                
+            text={"format": TEXT_FORMAT_METRICS},
+            input=[
+                {"role":"system","content":[{"type":"input_text","text": SYSTEM_PROMPT}]},
+                {"role":"user","content":[
+                    {"type":"input_file","file_id": fid},
+                    {"type":"input_text","text":"Return STRICT JSON per schema."}
+                ]},
+            ],
+            # reasoning={"effort":"low"},                 # lower token use
+            reasoning={"effort":"medium","summary":"auto"},  
+            max_output_tokens=2000,                    
+            store=False
+        )
 
-probe = client.chat.completions.create(
-   model=MODEL,
-   messages=[
-       {"role": "system", "content": "Return only valid JSON: {\"ok\": true}"},
-       {"role": "user",   "content": "Return {\"ok\": true} only."}
-   ],
-   # Wide compatibility: ask for a JSON object (no schema)
-   response_format={"type": "json_object"},
-)
-
-print(probe.choices[0].message.content)  # should print {"ok": true}
+    resp = call_with_retries(_make)
+    out = json.loads(resp.output_text)
+    meta = _reasoning_meta(resp)
+    return {**out, **meta}
 
 ```
 
 
-Batch-evaluate all PDFs: This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,
-pads a 0.8s sleep for rate‑limits, and collects the raw JSON dicts in memory (`records`).
-The nested `records` structure is converted to a tidy long format and written to `results/metrics_long.csv`.
 
 ```{python}
 #| label: eval-many-metrics
 #| eval: false
 #| code-fold: true
 
+# Batch-evaluate all PDFs: This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,
+# pads a 0.8s sleep for rate‑limits, and collects the raw JSON dicts in memory (`records`).
+# The nested `records` structure is converted to a tidy long format and written to `results/metrics_long.csv`.
+# We also save details on model, tokens and the reasoning summary in `results/metrics_meta.csv`
 
 ROOT = pathlib.Path("papers") 
 OUT  = pathlib.Path("results")
@@ -343,6 +397,21 @@ tidy.to_csv(OUT / "metrics_long.csv", index=False)
 # tidy.head()
 
 
+# eval-many-metrics 
+meta_rows = []
+for rec in records:
+    meta_rows.append({
+        "paper": rec["paper"],
+        "response_id": rec.get("response_id"),
+        "reasoning_id": rec.get("reasoning_id"),
+        "reasoning_summary": rec.get("reasoning_summary"),
+        "input_tokens": rec.get("input_tokens"),
+        "output_tokens": rec.get("output_tokens"),
+        "reasoning_tokens": rec.get("reasoning_tokens"),
+        "model": MODEL,
+    })
+meta_df = pd.DataFrame(meta_rows)
+meta_df.to_csv(OUT / "metrics_meta.csv", index=False)
 
 
 p = pathlib.Path("results/metrics_long.csv")
@@ -389,71 +458,7 @@ import pdfplumber, tiktoken
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Reuse your existing OpenAI client + MODEL set earlier:
-# client = OpenAI()
-# MODEL = os.getenv("UJ_MODEL", "gpt-5")
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Tokenizer + compact extractor for tiering  
-# ─────────────────────────────────────────────────────────────────────────────
-_enc = tiktoken.get_encoding("o200k_base")
-
-def _truncate_tokens(txt: str, max_tokens: int) -> str:
-    toks = _enc.encode(re.sub(r"\s+", " ", txt))
-    if len(toks) > max_tokens:
-        toks = toks[:max_tokens]
-    return _enc.decode(toks)
-
-def pdf_to_tier_text(path, max_tokens: int = 25_000) -> str:
-    """
-    Cheaper extract: try to keep Abstract, Introduction, Results/Discussion, Conclusion.
-    Falls back gracefully to the whole (minus references) then truncates by tokens.
-    """
-    try:
-        with pdfplumber.open(path) as pdf:
-            full = " ".join(p.extract_text() or "" for p in pdf.pages)
-    except Exception:
-        # Fall back to the generic extractor in your earlier chunk, if defined:
-        return pdf_to_string(path, max_tokens=max_tokens)  # type: ignore
-
-    text = re.sub(r"\s+", " ", full)
-
-    # Drop references/bibliography
-    m = re.search(r"\b(References|Bibliography)\b", text, flags=re.I)
-    if m: text = text[: m.start()]
-
-    # Heuristic section pulls
-    chunks = []
-    def _grab(label, next_labels=("Introduction","1 ","I.","Background","Data","Model","Method", "Methods", "Approach")):
-        pat = rf"\b{label}\b"
-        m = re.search(pat, text, flags=re.I)
-        if not m: return None
-        start = m.start()
-        # stop at next section-ish header
-        next_pat = r"|".join([rf"\b{re.escape(nl)}\b" for nl in next_labels])
-        m2 = re.search(next_pat, text[m.end():], flags=re.I)
-        end = m.end() + (m2.start() if m2 else 5000)  # cap a bit if no clear end
-        return text[start:end]
-
-    for lab in ["Abstract", "Summary"]:
-        s = _grab(lab)
-        if s: chunks.append(s)
-    for lab in ["Introduction", "Motivation", "Overview"]:
-        s = _grab(lab)
-        if s: chunks.append(s)
-    for lab in ["Results", "Findings", "Discussion"]:
-        s = _grab(lab)
-        if s: chunks.append(s)
-    for lab in ["Conclusion", "Conclusions", "Policy Implications", "Implications"]:
-        s = _grab(lab)
-        if s: chunks.append(s)
-
-    if not chunks:
-        candidate = text
-    else:
-        candidate = " ".join(chunks)
-
-    return _truncate_tokens(candidate, max_tokens=max_tokens)
+# Reuse your existing OpenAI client + MODEL set earlier
 
 # ─────────────────────────────────────────────────────────────────────────────
 # JSON schema + prompt (v2)
@@ -490,14 +495,18 @@ TIERS_SCHEMA: Dict[str, Any] = {
     "required": ["tier_should", "tier_will"]
 }
 
-TIERS_RESPONSE_FORMAT = {
+
+
+TEXT_FORMAT_TIERS = {
     "type": "json_schema",
-    "json_schema": {
-        "name": "journal_tiers_v2",
-        "strict": True,
-        "schema": TIERS_SCHEMA
-    }
+    "name": "journal_tiers_v2",
+    "strict": True,
+    "schema": TIERS_SCHEMA
 }
+
+
+
+
 
 TIERS_SYSTEM_PROMPT = textwrap.dedent("""
 You are an expert evaluator. Return STRICT JSON matching the provided schema.
@@ -568,81 +577,117 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 _cache_lock = threading.Lock()
 
 
-
 def evaluate_journal_tiers(pdf_path: str | pathlib.Path,
                            model: str = MODEL,
-                           seed: Optional[int] = 2025,
-                           max_tokens_extract: int = 25_000,
                            verbose: bool = False) -> Dict[str, Any]:
-    """
-    Returns: dict with keys: tier_should{score,ci_lower,ci_upper,rationale},
-    tier_will{...}, plus bookkeeping fields.
-    Uses caching keyed to (pdf bytes, model, prompt_version).
-    """
     pdf_path = pathlib.Path(pdf_path)
+
+    # cache by (pdf bytes + model + prompt version)
     key = _cache_key_for_tiers(pdf_path, model)
     cache_file = CACHE_DIR / f"{key}.json"
-
-    # Try cache
     if cache_file.exists():
-        if verbose: print(f"cache hit: {pdf_path.name}")
-        data = json.loads(cache_file.read_text())
-        return data
+        return json.loads(cache_file.read_text())
 
-    # Extract compact text for this task
-    paper_text = pdf_to_tier_text(pdf_path, max_tokens=max_tokens_extract)
+    fid = _get_file_id(pdf_path)
 
-    # Call model with strict JSON schema
-    backoff = 1.0
-    last_err = None
-    for attempt in range(6):
-        try:
-            chat = client.chat.completions.create(
-                model=model,
-                response_format=TIERS_RESPONSE_FORMAT,
-                seed=seed,
-                messages=[
-                    {"role": "system", "content": TIERS_SYSTEM_PROMPT},
-                    {"role": "user",   "content": paper_text}
-                ],
-            )
-            raw = chat.choices[0].message.content
-            payload = json.loads(raw)
-            payload = _normalize_tiers(payload)
-            payload["paper"] = pdf_path.stem
-            payload["model"] = model
-            payload["prompt_version"] = TIERS_PROMPT_VERSION
-            cache_file.write_text(json.dumps(payload, ensure_ascii=False))
-            return payload
-        except Exception as e:
-            last_err = e
-            # gentle jittered exponential backoff
-            time.sleep(backoff + random.random() * 0.25)
-            backoff *= 1.8
+    def _call(m):
+        return client.responses.create(
+            model=m,
+            text={"format": TEXT_FORMAT_TIERS},
+            input=[
+                {"role": "system", "content": [
+                    {"type": "input_text", "text": TIERS_SYSTEM_PROMPT}
+                ]},
+                {"role": "user", "content": [
+                    {"type": "input_file", "file_id": fid},
+                    {"type": "input_text", "text": "Score tiers per schema. JSON only."}
+                ]}
+            ],
+            reasoning={"effort": "low"},          # or "medium" if needed
+            max_output_tokens=400,
+            store=False
+        )
 
-    raise RuntimeError(f"Tier evaluation failed for {pdf_path.name}: {last_err}")
+    # retry + optional model fallback
+    try:
+        resp = call_with_retries(lambda: _call(model))
+    except RuntimeError:
+        resp = call_with_retries(lambda: _call("gpt-4o"))
 
+    payload = json.loads(resp.output_text)
+    payload = _normalize_tiers(payload)
+    payload["paper"] = pdf_path.stem
+    payload["model"] = model
+    payload["prompt_version"] = TIERS_PROMPT_VERSION
+    payload.update(_reasoning_meta(resp))         # response_id, summary, tokens
+
+    cache_file.write_text(json.dumps(payload, ensure_ascii=False))
+    return payload
+
+
+# ── Batch (sequential by default; set max_workers>1 only if limits allow) ────
 def batch_evaluate_journal_tiers(root: str | pathlib.Path = "papers",
                                  out_csv_wide: str | pathlib.Path = "results/journal_tiers.csv",
                                  out_csv_long: str | pathlib.Path = "results/journal_tiers_long.csv",
+                                 out_csv_meta: str | pathlib.Path = "results/journal_tiers_meta.csv",
                                  model: str = MODEL,
-                                 max_workers: int = 3,
+                                 max_workers: int = 1,
                                  verbose: bool = True) -> pd.DataFrame:
     ROOT = pathlib.Path(root)
-    OUT  = pathlib.Path(out_csv_wide)
-    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUTW = pathlib.Path(out_csv_wide); OUTW.parent.mkdir(parents=True, exist_ok=True)
+    OUTL = pathlib.Path(out_csv_long); OUTL.parent.mkdir(parents=True, exist_ok=True)
+    OUTM = pathlib.Path(out_csv_meta); OUTM.parent.mkdir(parents=True, exist_ok=True)
 
     pdfs = sorted(ROOT.glob("*.pdf"))
     if verbose:
-        print(f"Tiering {len(pdfs)} papers with {max_workers} workers...")
+        print(f"Tiering {len(pdfs)} papers with {max_workers} worker(s)...")
 
-    rows = []
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futs = {ex.submit(evaluate_journal_tiers, pdf, model): pdf for pdf in pdfs}
-        for fut in as_completed(futs):
-            pdf = futs[fut]
+    rows, meta_rows = [], []
+
+    if max_workers == 1:
+        it = pdfs
+        for pdf in it:
             try:
-                res = fut.result()
+                res = evaluate_journal_tiers(pdf, model=model)
+            except Exception as e:
+                print(f"⚠️ {pdf.name}: {e}")
+                continue
+            rows.append({
+                "paper": pdf.stem,
+                "model": res.get("model"),
+                "prompt_version": res.get("prompt_version"),
+                "should_score":     res["tier_should"]["score"],
+                "should_ci_lower":  res["tier_should"]["ci_lower"],
+                "should_ci_upper":  res["tier_should"]["ci_upper"],
+                "should_rationale": res["tier_should"]["rationale"],
+                "will_score":       res["tier_will"]["score"],
+                "will_ci_lower":    res["tier_will"]["ci_lower"],
+                "will_ci_upper":    res["tier_will"]["ci_upper"],
+                "will_rationale":   res["tier_will"]["rationale"],
+            })
+            meta_rows.append({
+                "paper": res["paper"],
+                "response_id": res.get("response_id"),
+                "reasoning_id": res.get("reasoning_id"),
+                "reasoning_summary": res.get("reasoning_summary"),
+                "input_tokens": res.get("input_tokens"),
+                "output_tokens": res.get("output_tokens"),
+                "reasoning_tokens": res.get("reasoning_tokens"),
+                "model": res.get("model"),
+                "prompt_version": res.get("prompt_version"),
+            })
+            if verbose: print(f"✓ {pdf.name}")
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futs = {ex.submit(evaluate_journal_tiers, pdf, model): pdf for pdf in pdfs}
+            for fut in as_completed(futs):
+                pdf = futs[fut]
+                try:
+                    res = fut.result()
+                except Exception as e:
+                    print(f"⚠️ {pdf.name}: {e}")
+                    continue
                 rows.append({
                     "paper": pdf.stem,
                     "model": res.get("model"),
@@ -656,14 +701,21 @@ def batch_evaluate_journal_tiers(root: str | pathlib.Path = "papers",
                     "will_ci_upper":    res["tier_will"]["ci_upper"],
                     "will_rationale":   res["tier_will"]["rationale"],
                 })
+                meta_rows.append({
+                    "paper": res["paper"],
+                    "response_id": res.get("response_id"),
+                    "reasoning_id": res.get("reasoning_id"),
+                    "reasoning_summary": res.get("reasoning_summary"),
+                    "input_tokens": res.get("input_tokens"),
+                    "output_tokens": res.get("output_tokens"),
+                    "reasoning_tokens": res.get("reasoning_tokens"),
+                    "model": res.get("model"),
+                    "prompt_version": res.get("prompt_version"),
+                })
                 if verbose: print(f"✓ {pdf.name}")
-            except Exception as e:
-                print(f"⚠️ {pdf.name}: {e}")
 
-    wide = pd.DataFrame(rows)
-    wide.to_csv(OUT, index=False)
+    wide = pd.DataFrame(rows);  wide.to_csv(OUTW, index=False)
 
-    # Long format (two rows per paper)
     long_rows = []
     for r in rows:
         for kind in ("should", "will"):
@@ -677,10 +729,9 @@ def batch_evaluate_journal_tiers(root: str | pathlib.Path = "papers",
                 "ci_upper": r[f"{kind}_ci_upper"],
                 "rationale": r[f"{kind}_rationale"],
             })
-    long = pd.DataFrame(long_rows)
-    pathlib.Path(out_csv_long).parent.mkdir(parents=True, exist_ok=True)
-    long.to_csv(out_csv_long, index=False)
+    pd.DataFrame(long_rows).to_csv(OUTL, index=False)
 
+    pd.DataFrame(meta_rows).to_csv(OUTM, index=False)
     return wide
 
 ```
@@ -695,7 +746,7 @@ batch_evaluate_journal_tiers(
     out_csv_wide="results/journal_tiers.csv",
     out_csv_long="results/journal_tiers_long.csv",
     model=MODEL,
-    max_workers=3,
+    max_workers=1,
     verbose=True
 )
 
@@ -719,7 +770,6 @@ batch_evaluate_journal_tiers(
 
 
 
-
 EVAL_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -739,17 +789,19 @@ EVAL_SCHEMA: Dict[str, Any] = {
                  "recommendations"]
 }
 
-RESPONSE_FORMAT = {
+
+TEXT_FORMAT_QUAL = {
     "type": "json_schema",
-    "json_schema": {
-        "name": "written_evaluation_v1",
-        "strict": True,
-        "schema": EVAL_SCHEMA
-    }
+    "name": "written_evaluation_v1",
+    "strict": True,
+    "schema": EVAL_SCHEMA
 }
 
 
-SYSTEM_PROMPT = textwrap.dedent("""
+
+
+
+QUAL_SYSTEM_PROMPT = textwrap.dedent("""
 You are writing a referee report for The Unjournal.
 
 Return STRICT JSON that matches the schema `written_evaluation_v1`.
@@ -771,7 +823,11 @@ Write in direct, concise style; no hedging beyond necessary uncertainty
 quantification.  No markdown fences, no extra keys.
 """).strip()
 
+
+
+
 ```
+
 
 
 
