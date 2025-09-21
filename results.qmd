@@ -118,7 +118,7 @@ weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","line
 metrics_meta <- readr::read_csv(here("data", "metrics_meta.csv"), show_col_types = FALSE) |>
   janitor::clean_names()
 
-# Model label from meta (drop hard-coding)
+# Model label from meta 
 models_run   <- metrics_meta |>
   dplyr::distinct(model) |>
   dplyr::pull(model) |> na.omit()
@@ -211,9 +211,9 @@ research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
 #   left_join(UJmap, by = c("label_paper_title")) 
 
 # More journal rating info
-# jql_enriched_raw <- if (!is.na(jql_enriched_file)) read_clean(jql_enriched_file) else NULL
-# jql70_raw <- if (!is.na(jql70_file)) read_clean(jql70_file) else NULL
-  
+# jql70_raw <- read_csv(here("data", "jql70a.csv"), show_col_types = FALSE)
+jql_enriched_raw <- read_csv(here("data", "jql-enriched.csv"), show_col_types = FALSE)
+
 
 # Merge Unjournal data and keys
 rsx_research <- rsx  |>
@@ -681,12 +681,13 @@ For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r 
 
 ## Journal ranking tiers
 
+
 ```{r}
 
 
-df <- read_csv(here("data", "journal_tiers.csv"), show_col_types = FALSE)
+jtiers <- read_csv(here("data", "journal_tiers.csv"), show_col_types = FALSE)
 
-gg <- ggplot(df, aes(x = should_score, y = will_score)) +
+gg <- ggplot(jtiers, aes(x = should_score, y = will_score)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.3) +
   geom_point(alpha = 0.85, size = 2) +
   coord_equal(xlim = c(1, 5), ylim = c(1, 5)) +
@@ -702,8 +703,6 @@ gg
 
 
 ```
-
-
 
 ## Claim identification
 
