@@ -10,14 +10,15 @@ We draw on two main sources:
 
 ## Unjournal.org evaluations
 
-We use The Unjournal's public data for a baseline comparison. In The Unjournal process, each paper is typically reviewed by two  expert evaluators,^[Occasionally they use 1 or 3 evaluators.] who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),^[See their guidelines [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#quantitative-metrics); these criteria include "Overall assessment", "Claims, strength and characterization of evidence", "Methods: Justification, reasonableness, validity, robustness", "Advancing knowledge and practice", "Logic and communication", "Open, collaborative, replicable science", and "Relevance to global priorities, usefulness for practitioners",  two "journal tier" ratings on a 0.0 - 5.0 scale,^["a normative judgment about 'how well the research should publish'" and "a prediction about where the research will be published"] and a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper's "main claim". We extracted these ratings from The Unjournal’s records (an evaluator form database and published review reports). For our initial analysis, we aggregated the human ratings for each paper by computing the average score per criterion (and noting the range of individual scores). 
-All selected papers havw completed The Unjournal's evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly postede at unjournal.pubpuborg). The sample includes `r dim(research_done)[1]`  papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
+We use The Unjournal's public data for a baseline comparison. At The Unjournal each paper is typically evaluated (aka 'reviewed') by two expert evaluators^[Occasionally they use 1 or 3 evaluators.] who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),^[See their guidelines [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#quantitative-metrics); these criteria include "Overall assessment", "Claims, strength and characterization of evidence", "Methods: Justification, reasonableness, validity, robustness", "Advancing knowledge and practice", "Logic and communication", "Open, collaborative, replicable science", and "Relevance to global priorities, usefulness for practitioners"] two "journal tier" ratings on a 0.0 - 5.0 scale,^["a normative judgment about 'how well the research should publish'" and "a prediction about where the research will be published"] a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper's "main claim". For our initial analysis, we extracted these human ratings and aggregated them, taking the average score per criterion across evaluators (and noting the range of individual scores). 
+
+All papers have completed The Unjournal's evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes `r dim(research_done)[1]`  papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
 
 ## LLM-based evaluation
 
 ### Quantitative ratings
 
-Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked to provide a midpoint and a 90% credible interval to communicate uncertainty.
+Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked for the midpoint of their beliefs and their 90% credible interval, to communicate their uncertainty.
 
 <!-- *Internal note: The Python content below must be run externally* -->
 
@@ -139,7 +140,11 @@ def call_with_retries(make_call, max_tries=6):
 ```
 
 
-We enforce a JSON Schema for the results. The model must return one object with named criteria, a midpoint score, and a 90% interval for each, plus a short rationale. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. The credible intervals communicate uncertainty rather than false precision. The brief rationales clarify what evidence in the paper drove each score.
+We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each, as well as a short rationale for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
+
+We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence
+
+We request brief rationales to allow the LLM to clarify the evidence and the process that drove it's rating. This could help us understand it's prioritization and taste, and might help us spot if it misunderstood our instructions. However, we cannot be confident that it's response to this question accurate reveals the process or the reasoning steps behind the ratings. E.g., this might reflect an ex-post attempt to construct a concise and believable story, when in fact the process that may have been far more random, too complicated to discuss in words, or reflecting biases.  
 
 
 ```{python}
@@ -276,12 +281,9 @@ Do not wrap the JSON in markdown fences or add extra text.
 
 ```
 
-
-
  
 
-We use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate “ingestion” stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.
-
+We use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate "ingestion" stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.
 
 
 
@@ -291,7 +293,6 @@ We use a single‑step call with a reasoning model that supports file input. One
 #| code-fold: true
 
 # Evaluation function
-
 
 def _reasoning_meta(resp):
     d = resp.model_dump()  

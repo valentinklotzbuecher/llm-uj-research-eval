@@ -153,8 +153,10 @@ Here we present preliminary results, starting with a comparison of the LLM‑gen
 
 We evaluated `r tok_sum$n_papers` papers using `r currentmodel`, reading each manuscript directly from the PDF and returning a strict JSON assessment. 
 
-Before looking at the output, it is instructive to look at the reported reasoning summary of the LLM (only partially available). 
-This is what `r currentmodel` reports about its reasoning on @Williams2024: `r sprintf(reasining_example$reasoning_summary)`
+Before looking at the output, it is instructive to look at the reported reasoning summary of the LLM (only partially available).  
+For example, this is what `r currentmodel` reports about its reasoning for @Williams2024:
+
+`r sprintf(reasining_example$reasoning_summary)`
 
 
 
@@ -295,9 +297,9 @@ ratings_long <- merged |>
 
 ```
 
-In @fig-forest, the orange diamond and line show the `r print(currentmodel)` midpoint and its 90% credible interval for each paper, while the green circles show every individual human evaluator’s midpoint (with 90% CI when provided).
+In @fig-forest, the orange diamond and line show the `r print(currentmodel)` model's midpoint and its 90% credible interval for each paper, while the green circles show each individual human evaluator’s midpoint (along with 90% CI when they provided these).
 
-Looking at this figure, we can visually assess agreement. If the orange diamond lies among the green circles for a paper, the AI’s overall assessment is in line with the human range. If the orange diamond is far to the right (higher score) or left (lower score) relative to all green points, it indicates a notable disagreement.
+Looking at this figure, we can visually assess agreement. If the orange diamond lies among the green circles and lines for a paper, the AI’s overall assessment is in line with the human range. If the orange diamond is far to the right (higher score) or left (lower score) relative to the green points, it indicates a notable disagreement.
 
 
 
@@ -310,18 +312,19 @@ Looking at this figure, we can visually assess agreement. If the orange diamond 
 metric_name <- "overall"
 
 # Helper: symmetric lane offsets (skip 0 so center lane is reserved for LLM)
-lane_offsets <- function(m, gap = 0.18) {
+lane_offsets <- function(m, gap = 0.18) { #DR @valentin -- we probably want a bigger gap between papers here
   if (m <= 0) return(numeric(0))
   k <- ceiling(m/2)
   cand <- c(-seq_len(k), seq_len(k)) * gap
   sort(cand)[seq_len(m)]
 }
 
-# Base ordering of papers (same logic as before)
+# Base ordering of papers (same logic as before) #DR @valentin  OK, I guess it's ordered by 'average human minus AI rating'? But we should then note this in the doc. Might also make the diagram dynamic if possible to let users sort in other ways, like  by human average rating, AI average rating, or alphabetically. 
+
 D_base <- merged |>
   filter(criteria == metric_name) |>
   mutate(paper_order = fct_reorder(label_paper, diff, .desc = FALSE)) |>
-  distinct(label_paper, label_paper_title, paper_order, n_raters)
+  distinct(label_paper, label_paper_title, paper_order, n_raters) #DR @valentin -- maybe we don't need to put the number of raters here as the lines show that. At least as long as there's enough space to see that part of the diagram. 
 
 # Pretty label with # of human raters
 D_base <- D_base |>
@@ -571,9 +574,9 @@ plot_rank_slope_S(metric_name)
 
 ```
 
-In our results, we see a mix: many papers lie fairly close to horizontal (especially in the middle of the pack), but there are several with pronounced slopes. For example, a few orange lines curve sharply upward – these are papers that the AI considered to be among the top-ranked, while humans had them in the middle or lower end. Papers with steep green downward curves are ones humans rated highly but the AI was less impressed by. One can identify specific papers by these lines; for instance, one orange line corresponds to @Williams2024, which the AI ranked much higher than the median human rank. On the other hand, we see a green line for a paper that humans ranked very highly but AI did not – for example, Aghion et al. 2017 was among the top few for human reviewers, but the LLM overall score put it notably lower relative to others, hence a downward green curve.
+In our results, we see a mix: many papers lie fairly close to horizontal (especially in the middle of the pack), but there are several with pronounced slopes. For example, a few orange lines curve sharply upward – these are papers that the AI considered to be among the top-ranked, while humans had them in the middle or lower end. Papers with steep green downward curves are ones humans rated highly but the AI was less impressed by. One can identify specific papers by these lines; for instance, one orange line corresponds to @Williams2024, which the AI ranked much higher than the median human rank. On the other hand, we see a green line for a paper that humans ranked very highly but AI did not – for example, Aghion et al. 2017 was among the top few for human evaluators, but the LLM overall score put it notably lower relative to others, hence a downward green curve.
 
-The overall pattern suggests that the AI and humans broadly agree on some top performers, but there are notable swaps in positions. It’s not the case that the AI simply gave everything high scores or low scores uniformly – it has a distinct “taste,” elevating some work and devaluing other work differently than human referees. The question this raises is: on what basis are these differences happening? To explore that, we can look at the category-by-category differences next.
+The overall pattern suggests that the AI and humans broadly agree on some top performers, but there are notable swaps in positions. It’s not the case that the AI simply gave everything high scores or low scores uniformly – it may have a distinct “taste,” elevating some work and devaluing other work differently than human referees. The question this raises is: on what basis are these differences happening? To explore that, we can look at the category-by-category differences next, followed by multidimensional modeling. However, we caution that the various observed characteristics of each paper are not determined independently from each other, and may also systematically relate to unobservable characteristics. Thus, unless we introduce exogenous variation (e.g., by altering the text of the papers shared, as in @Pataranutaporn2025), these results will be suggestive and exploratory, and not clearly causal or predictive. 
 
 ### Individual metrics
 
@@ -582,7 +585,7 @@ We then look closer at the specific ratings on the criterion level. @fig-heat di
 ```{r}
 #| label: fig-heat
 #| fig-height: 7
-#| fig-cap: "LLM − Human differences by paper × metric"
+#| fig-cap: "LLM − Human differences by paper × metric; sorted by 'greatest LLM relative preference'"
 
 pair <- merged |>
   transmute(paper = label_paper, metric = criteria,
@@ -613,11 +616,10 @@ ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
 
 
 This figure provides a more granular view of where AI and human evaluations diverge. A quick scan reveals a few systematic tendencies:
+ 
+For some criteria,  the AI tended to score papers higher than humans.  For example, in the Logic & Communication column, we see many light-orange cells – the AI often thought papers were a bit clearer or better argued (by its judgment) than the human evaluators did.
 
-Orange dominates many columns, meaning the AI tended to score papers higher than humans on several criteria. In particular, the columns for Claims, Methods, Advancing Knowledge, and Communication have a lot of orange cells. This indicates that for most papers, `r currentmodel` gave higher ratings in these areas than the human reviewers did. For example, in the Logic & Communication column, we see many light-orange cells – the AI often thought papers were a bit clearer or better argued (by its judgment) than the human evaluators did.
-
-In contrast, the Open Science column shows a notable amount of green. Here the AI frequently gave lower scores than the humans. This suggests that the AI was harsher about transparency/reproducibility issues. Indeed, GPT often noted lack of code or data sharing in papers and penalized for it, whereas some human reviewers may have been more forgiving or did not emphasize open-science practices as strongly (especially if they focused more on content quality). As a result, for many papers the AI’s Open Science score is 5–10 points below the human average.
-
+In contrast, the Open Science column shows a notable amount of green. Here the AI frequently gave lower scores than the humans. This suggests that the AI was harsher about transparency/reproducibility issues. Indeed, GPT often noted lack of code or data sharing in papers and penalized for it, whereas some human reviewers may have been more forgiving or did not emphasize open-science practices as strongly, or may have had lower expectations, especially for pre-journal-publication work. As a result, for many papers the AI’s Open Science score is 5–10 points below the human average.
 
 @tbl-agreement show agreement metrics across rating criteria. To quantify the agreements and differences observed, we calculated several statistics comparing LLM scores to the human scores, aggregated by criterion:
 
