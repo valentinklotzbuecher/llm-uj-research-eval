@@ -503,40 +503,52 @@ TEXT_FORMAT_TIERS = {
 
 
 TIERS_SYSTEM_PROMPT = textwrap.dedent("""
-You are an expert evaluator. Return STRICT JSON matching the provided schema.
+You are an expert evaluator for The Unjournal. Read ONLY the attached manuscript PDF. Return STRICT JSON that matches the provided schema. No extra text.
 
-Scale (0–5; halves allowed):
-  5 = A-journal / top-five general
-  4 = top field or marginal A
-  3 = solid field
-  2 = niche / low-tier field
-  1 = working-paper outlet only
-  0 = not publishable
+Task
+• Produce two journal‐tier assessments on a 0.0–5.0 scale with 90% credible intervals (the narrowest interval that you believe has 90% probability).
+• Allow non‑integer scores.
 
-Definitions:
-- tier_should = where the paper deserves to publish if quality-only decides.
-- tier_will   = realistic prediction given status/noise/connections.
+Scale anchors (0–5)
+0 = “Won’t publish / little to no value”; unlikely to be cited by credible researchers
+1 = OK / somewhat valuable journal
+2 = Marginal B‑journal / decent field journal
+3 = Top B‑journal / strong field journal
+4 = Marginal A‑journal / top field journal
+5 = A‑journal / top journal
 
-Rules:
-- Keep 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.
-- Round all scores to the nearest 0.5.
-- Rationale ≤ 40 words; focus on contribution, credibility, and fit.
-- No extra keys. No markdown. JSON only.
+Targets
+• tier_should: Where the paper SHOULD publish if the process were fair, unbiased, and noise‑free, applying the evaluation criteria only.
+• tier_will: Where the paper WILL publish in practice, accounting for venue fit, editorial noise, status/affiliation signals visible in the manuscript, perceived novelty, controversy, and typical field norms.
+
+Evidence to use
+Base judgments only on the manuscript content. Use topic/subfield, contribution, methods and identification credibility, strength of evidence, clarity, openness/reproducibility, and venue fit cues inferable from the text (theory vs empirics, sample size/context, policy relevance). Do NOT use external lookups.
+
+Uncertainty
+• Provide the midpoint as the median of your belief.
+• Provide a 90% credible interval: 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.
+• Calibrate: widen intervals when the paper’s field/fit is ambiguous or evidence is thin; narrow when evidence is clear. Intervals need not be symmetric.
+
+Rationales
+• ≤75 words each.
+• State the key drivers: contribution, credibility, and fit. For tier_will, note main upward/downward factors (e.g., general interest vs niche, methodological risk, length/scope, visible prestige cues). Avoid naming specific journals unless named in the manuscript.
+
+Output format
+JSON only, matching the schema with two objects: tier_should and tier_will, each with {score, ci_lower, ci_upper, rationale}.
+
 """).strip()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers: rounding, clamping, validation, caching
 # ─────────────────────────────────────────────────────────────────────────────
-def _round_half(x: float) -> float:
-    return round(float(x) * 2.0) / 2.0
 
 def _clamp_0_5(x: float) -> float:
     return max(0.0, min(5.0, float(x)))
 
 def _normalize_block(block: Dict[str, Any]) -> Dict[str, Any]:
-    s  = _round_half(_clamp_0_5(block.get("score", 0.0)))
-    lo = _round_half(_clamp_0_5(block.get("ci_lower", s)))
-    hi = _round_half(_clamp_0_5(block.get("ci_upper", s)))
+    s  = _clamp_0_5(block.get("score", 0.0))
+    lo = _clamp_0_5(block.get("ci_lower", s))
+    hi = _clamp_0_5(block.get("ci_upper", s))
     # enforce ordering
     if lo > s: lo, s = s, lo
     if hi < s: hi, s = s, hi

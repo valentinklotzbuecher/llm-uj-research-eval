@@ -219,10 +219,15 @@ jql_enriched_raw <- read_csv(here("data", "jql-enriched.csv"), show_col_types = 
 
 # Merge Unjournal data and keys
 rsx_research <- rsx  |>
-  left_join(UJmap, by = c("label_paper_title")) |>
   left_join(research, by = c("label_paper_title")) |>  
+  left_join(UJmap, by = c("label_paper_title")) |>
   select(c("label_paper", "label_paper_title", "evaluator","criteria","middle_rating","lower_ci","upper_ci")) |>
-  mutate(rationale = "")
+  mutate(rationale = "") |>
+  mutate(
+    label_paper = if_else(label_paper_title == "A Welfare Analysis of Policies Impacting Climate Change", "Hahn et al. 2025", label_paper),
+    label_paper = if_else(label_paper_title == "Intergenerational Child Mortality Impacts of Deworming: Experimental Evidence from Two Decades of the Kenya Life Panel Survey
+", "Walker et al. 2023", label_paper)
+  )
  
 # Merge Unjournal data and LLM metrics
 all_ratings <- rbind(rsx_research, metrics) |>
@@ -232,7 +237,7 @@ all_ratings <- rbind(rsx_research, metrics) |>
   mutate(label_paper = factor(label_paper))
 
 # clean up
-rm("metrics", "research", "rsx", "rsx_research", "UJmap")
+# rm("metrics", "research", "rsx", "rsx_research", "UJmap")
 
 # write_csv(all_ratings, here("data", "all_ratings.csv"))
 write_rds(
@@ -686,6 +691,18 @@ For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r 
 
 ```{r}
 
+
+# Mapping paper keys - short titles
+UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
+  mutate(label_paper_title = research,
+         label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+
+
+jtiers_uj <- human_raw |>
+  filter(criteria== "merits_journal" | criteria == "journal_prediction") |>
+  left_join(UJmap, by = c("label_paper_title")) 
 
 jtiers <- read_csv(here("data", "journal_tiers.csv"), show_col_types = FALSE)
 
