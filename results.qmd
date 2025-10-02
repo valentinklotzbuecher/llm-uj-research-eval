@@ -692,6 +692,11 @@ For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r 
 ```{r}
 
 
+
+paper_authors <- read_delim(here("data", "paper_authors.csv"), delim = ",")
+
+
+
 # Mapping paper keys - short titles
 UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
   mutate(label_paper_title = research,
@@ -699,10 +704,36 @@ UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
   select(c("label_paper_title", "label_paper"))
 
 
+# Unjournal ratings
+rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
 
-jtiers_uj <- human_raw |>
-  filter(criteria== "merits_journal" | criteria == "journal_prediction") |>
-  left_join(UJmap, by = c("label_paper_title")) 
+
+# UJ evaluated research
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>  
+  left_join(UJmap, by = c("label_paper_title")) |>
+  mutate(doi = str_trim(doi)) |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w31162", "Walker et al. 2023", label_paper, missing = label_paper)) |>
+  mutate(label_paper = if_else(doi == "doi.org/10.3386/w32728", "Hahn et al. 2025", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w30011", "Bhat et al. 2022", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "10.1093/wbro/lkae010", "Crawfurd et al. 2023", label_paper, missing = label_paper))  |>
+  left_join(rsx, by = c("label_paper_title"))
+ 
+
+
+# 
+# # Merge Unjournal data and keys
+# rsx_research <- rsx  |>
+#   left_join(research, by = c("label_paper_title"))  |>
+#   select(c("label_paper", "label_paper_title", "evaluator","criteria","middle_rating","lower_ci","upper_ci")) |>
+#   mutate(rationale = "") |>
+#   
+ 
+ 
 
 jtiers <- read_csv(here("data", "journal_tiers.csv"), show_col_types = FALSE)
 
@@ -718,7 +749,16 @@ gg <- ggplot(jtiers, aes(x = should_score, y = will_score)) +
   ) +
   theme_uj(base_size = 12)
 
-gg
+# gg
+
+
+jtiers_uj <- research |>
+  filter(criteria== "merits_journal" | criteria == "journal_predict") |>
+  mutate(paper = label_paper) 
+
+
+  # left_join(jtiers, by = c("paper")) 
+
 
 
 ```
