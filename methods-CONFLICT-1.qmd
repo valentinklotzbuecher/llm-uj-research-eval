@@ -1,0 +1,839 @@
+---
+title: "Data and methods"
+---
+
+
+We draw on two main sources:
+
+1) Human evaluations from [The Unjournal’s public evaluation data](https://unjournal.github.io/unjournaldata/index.html) (PubPub reports and the Coda evaluation form export).  
+2) LLM‑generated evaluations using a structured JSON‑schema prompt.
+
+## Unjournal.org evaluations
+
+We use The Unjournal's public data for a baseline comparison. At The Unjournal each paper is typically evaluated (aka 'reviewed') by two expert evaluators^[Occasionally they use 1 or 3 evaluators.] who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),^[See their guidelines [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#quantitative-metrics); these criteria include "Overall assessment", "Claims, strength and characterization of evidence", "Methods: Justification, reasonableness, validity, robustness", "Advancing knowledge and practice", "Logic and communication", "Open, collaborative, replicable science", and "Relevance to global priorities, usefulness for practitioners"] two "journal tier" ratings on a 0.0 - 5.0 scale,^["a normative judgment about 'how well the research should publish'" and "a prediction about where the research will be published"] a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper's "main claim". For our initial analysis, we extracted these human ratings and aggregated them, taking the average score per criterion across evaluators (and noting the range of individual scores). 
+
+All papers have completed The Unjournal's evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes `r dim(research_done)[1]`  papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
+
+## LLM-based evaluation
+
+### Quantitative ratings
+
+Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked for the midpoint of their beliefs and their 90% credible interval, to communicate their uncertainty.
+
+<!-- *Internal note: The Python content below must be run externally* -->
+
+We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.
+
+```{python}
+#| label: setup-env
+#| eval: false
+#| code-fold: true
+
+# Environment setup
+
+import os, pathlib, json, textwrap, re, random
+import pdfplumber, time, tiktoken
+import pandas as pd, numpy as np
+from openai import OpenAI
+import altair as alt; alt.renderers.enable("html")
+import plotly.io as pio
+import plotly.graph_objects as go
+from tqdm import tqdm  
+from IPython.display import Markdown, display
+from typing import Dict
+from collections import deque
+
+
+
+# ---------- API key ----------
+key_path = pathlib.Path("key/openai_key.txt")
+if os.getenv("OPENAI_API_KEY") is None and key_path.exists():
+    os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError("No API key found. Put it in key/openai_key.txt or set OPENAI_API_KEY.")
+
+client = OpenAI()
+
+# ---------- Model ----------
+MODEL = os.getenv("UJ_MODEL", "o3")
+
+# ---------- PDF → text with a fixed tokenizer ----------
+_enc = tiktoken.get_encoding("o200k_base")  # large-context encoder
+
+
+# ---- cache file_ids so each PDF uploads once ----
+FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
+FILES_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+_file_ids: Dict[str, str] = {}
+if FILES_CACHE_PATH.exists():
+    _file_ids.update(json.loads(FILES_CACHE_PATH.read_text()))
+
+
+def _get_file_id(pdf_path: str | pathlib.Path) -> str:
+    pdf_path = str(pdf_path)
+    if pdf_path in _file_ids:
+        return _file_ids[pdf_path]
+    with open(pdf_path, "rb") as fh:
+        up = client.files.create(file=fh, purpose="assistants")
+    _file_ids[pdf_path] = up.id
+    FILES_CACHE_PATH.write_text(json.dumps(_file_ids, ensure_ascii=False, indent=2))
+    return up.id
+
+
+
+class TokenPacer:
+    """Keep tokens/min under a target. Uses a 60s sliding window."""
+    def __init__(self, tpm_limit=30000, safety=0.9, warmup_est=9000):
+        self.tpm = int(tpm_limit * safety)
+        self.events = deque()  # (ts, tokens)
+        self.est = warmup_est  # next-call estimate
+
+    def _purge(self):
+        now = time.time()
+        while self.events and now - self.events[0][0] > 60:
+            self.events.popleft()
+
+    def before(self, est_tokens=None):
+        est = self.est if est_tokens is None else est_tokens
+        self._purge()
+        used = sum(t for _, t in self.events)
+        if used + est > self.tpm and self.events:
+            wait = 60 - (time.time() - self.events[0][0])
+            time.sleep(max(0.0, wait) + random.random() * 0.3)
+
+    def after(self, resp):
+        d = resp.model_dump()
+        u = d.get("usage") or {}
+        tok = (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0)
+        od = u.get("output_tokens_details") or {}
+        tok += od.get("reasoning_tokens") or 0
+        self._purge()
+        self.events.append((time.time(), tok))
+        # update next estimate (EMA)
+        self.est = max(1000, 0.5 * self.est + 0.5 * tok)
+        return tok
+
+PACER = TokenPacer(tpm_limit=30000, safety=0.9, warmup_est=9000)
+
+def _sleep_from_429_text(msg, base=3.0):
+    m = re.search(r"try again in ([0-9.]+)s", msg, flags=re.I)
+    return (float(m.group(1)) if m else base) + random.random() * 0.5
+
+def call_with_retries(make_call, max_tries=6):
+    delay = 2.0
+    for k in range(max_tries):
+        PACER.before()
+        try:
+            resp = make_call()
+            PACER.after(resp)
+            return resp
+        except Exception as e:
+            s = str(e)
+            if "rate limit" in s.lower() or "429" in s or "tpm" in s.lower():
+                time.sleep(_sleep_from_429_text(s, base=delay))
+                delay = min(delay * 1.7, 20.0)
+                continue
+            raise
+    raise RuntimeError("Too many retries on rate limits.")
+
+
+```
+
+
+We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each, as well as a short rationale for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
+
+We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence
+
+We request brief rationales to allow the LLM to clarify the evidence and the process that drove it's rating. This could help us understand it's prioritization and taste, and might help us spot if it misunderstood our instructions. However, we cannot be confident that it's response to this question accurate reveals the process or the reasoning steps behind the ratings. E.g., this might reflect an ex-post attempt to construct a concise and believable story, when in fact the process that may have been far more random, too complicated to discuss in words, or reflecting biases.  
+
+
+```{python}
+#| label: llm-setup
+#| eval: false
+#| code-fold: show
+
+# -----------------------------
+# 1.  Metric list
+# -----------------------------
+METRICS = [
+    "overall",
+    "claims_evidence",
+    "methods",
+    "advancing_knowledge",
+    "logic_communication",
+    "open_science",
+    "global_relevance"
+]
+
+metric_schema = {
+    "type": "object",
+    "properties": {
+        "midpoint":    {"type": "integer", "minimum": 0, "maximum": 100},
+        "lower_bound": {"type": "integer", "minimum": 0, "maximum": 100},
+        "upper_bound": {"type": "integer", "minimum": 0, "maximum": 100},
+        "rationale":   {"type": "string"}
+    },
+    "required": ["midpoint", "lower_bound", "upper_bound", "rationale"],
+    "additionalProperties": False
+}
+
+# -----------------------------
+# 2.  JSON schema
+# -----------------------------
+METRICS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "metrics": {
+            "type": "object",
+            "properties": {m: metric_schema for m in METRICS},
+            "required": METRICS,
+            "additionalProperties": False
+        }
+    },
+    "required": ["metrics"],
+    "additionalProperties": False
+}
+
+TEXT_FORMAT_METRICS = {
+    "type": "json_schema",
+    "name": "paper_assessment_v1",
+    "strict": True,
+    "schema": METRICS_SCHEMA
+}
+
+
+
+# -----------------------------
+# 3.  System prompt
+# -----------------------------
+SYSTEM_PROMPT = textwrap.dedent(f"""
+You are an expert evaluator.
+
+We ask for a set of quantitative metrics. For each metric, we ask for a score and a 90% credible interval.
+
+Percentile rankings
+We ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on.
+The reference is all serious research in the same area in the last three years.
+
+Midpoint rating and credible intervals 
+For each metric, we ask you to provide a 'midpoint rating' and a 90% credible interval as a measure of your uncertainty. 
+We want policymakers, researchers, funders, and managers to be able to use evaluations to update their beliefs and make better decisions. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. 
+You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.
+
+Overall assessment
+- Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness.importance to knowledge production, and importance to practice. 
+
+
+Claims, strength and characterization of evidence
+- Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
+
+Methods: Justification, reasonableness, validity, robustness
+- Are the methods used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? 
+- Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this?
+- Avoiding bias and questionable research practices (QRP): Did the authors take steps to reduce bias from opportunistic reporting and QRP? For example, did they do a strong pre-registration and pre-analysis plan, incorporate multiple hypothesis testing corrections, and report flexible specifications? 
+
+Advancing our knowledge and practice
+- To what extent does the project contribute to the field or to practice, particularly in ways that are relevant to global priorities and impactful interventions?
+- Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions? 
+- Does the project add useful value to other impactful research? We don't require surprising results; sound and well-presented null results can also be valuable.
+
+
+Logic and communication
+- Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced?
+- Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow?
+- Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? 
+- Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?
+
+Open, collaborative, replicable research
+- Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided?
+- Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained?? 
+- Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?
+- Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?
+
+Relevance to global priorities, usefulness for practitioners
+- Are the paper’s chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? 
+- Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? 
+- Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? 
+- Do they communicate (at least in the abstract or introduction)  in ways policymakers and decision-makers can understand, without misleading or oversimplifying?
+
+Return STRICT JSON matching the supplied schema.
+
+Fill every key in the object `metrics`:
+
+  {', '.join(METRICS)}
+
+Definitions are percentile scores (0 – 100) versus serious work in the field from the last 3 years.
+For `overall`:
+  • Default = arithmetic mean of the other six midpoints (rounded).  
+  • If, in your judgment, another value is better (e.g. one metric is far more decision-relevant), choose it and explain why in `overall.rationale`.
+
+Field meanings
+  midpoint      → best-guess percentile
+  lower_bound   → 5th-percentile plausible value
+  upper_bound   → 95th-percentile plausible value
+  rationale     → ≤100 words; terse but informative.
+
+Do not wrap the JSON in markdown fences or add extra text.
+""").strip()
+
+
+
+
+```
+
+ 
+
+We use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate "ingestion" stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.
+
+
+
+```{python}
+#| label: eval-helper-function
+#| eval: false
+#| code-fold: true
+
+# Evaluation function
+
+def _reasoning_meta(resp):
+    d = resp.model_dump()  
+    rid, summary_text = None, None
+    out = d.get("output") or []
+    if out and (out[0].get("type") == "reasoning"):
+        rid = out[0].get("id")
+        summ = out[0].get("summary") or []
+        if summ and isinstance(summ, list):
+            summary_text = summ[0].get("text")
+
+    usage = d.get("usage") or {}
+    odet  = usage.get("output_tokens_details") or {}
+    return {
+        "response_id": d.get("id"),
+        "reasoning_id": rid,
+        "reasoning_summary": summary_text,
+        "input_tokens": usage.get("input_tokens"),
+        "output_tokens": usage.get("output_tokens"),
+        "reasoning_tokens": odet.get("reasoning_tokens"),
+    }
+
+
+def evaluate_paper(pdf_path, model=MODEL):
+    fid = _get_file_id(pdf_path)
+
+    def _make():
+        return client.responses.create(
+            model=model,                                
+            text={"format": TEXT_FORMAT_METRICS},
+            input=[
+                {"role":"system","content":[{"type":"input_text","text": SYSTEM_PROMPT}]},
+                {"role":"user","content":[
+                    {"type":"input_file","file_id": fid},
+                    {"type":"input_text","text":"Return STRICT JSON per schema."}
+                ]},
+            ],
+            # reasoning={"effort":"low"},                 # lower token use
+            reasoning={"effort":"medium","summary":"auto"},  
+            max_output_tokens=2000,                    
+            store=False
+        )
+
+    resp = call_with_retries(_make)
+    out = json.loads(resp.output_text)
+    meta = _reasoning_meta(resp)
+    return {**out, **meta}
+
+```
+
+
+
+```{python}
+#| label: eval-many-metrics
+#| eval: false
+#| code-fold: true
+
+# Batch-evaluate all PDFs: This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,
+# pads a 0.8s sleep for rate‑limits, and collects the raw JSON dicts in memory (`records`).
+# The nested `records` structure is converted to a tidy long format and written to `results/metrics_long.csv`.
+# We also save details on model, tokens and the reasoning summary in `results/metrics_meta.csv`
+
+ROOT = pathlib.Path("papers") 
+OUT  = pathlib.Path("results")
+OUT.mkdir(exist_ok=True)
+
+pdfs = sorted(ROOT.glob("*.pdf"))
+
+records = []
+for pdf in tqdm(pdfs, desc="Metrics"):
+    try:
+        res = evaluate_paper(pdf)     # <-- API call
+        res["paper"] = pdf.stem
+        records.append(res)
+        time.sleep(0.8)             
+    except Exception as e:
+        print(f"⚠️ {pdf.name}: {e}")
+
+
+
+tidy_rows = []
+for rec in records:
+    paper_id = rec["paper"]
+    for metric, vals in rec["metrics"].items():
+        tidy_rows.append({
+            "paper":   paper_id,
+            "metric":  metric,
+            **vals     # midpoint, lower_bound, upper_bound, rationale
+        })
+
+tidy = pd.DataFrame(tidy_rows)
+tidy.to_csv(OUT / "metrics_long.csv", index=False)
+# tidy.head()
+
+
+# eval-many-metrics 
+meta_rows = []
+for rec in records:
+    meta_rows.append({
+        "paper": rec["paper"],
+        "response_id": rec.get("response_id"),
+        "reasoning_id": rec.get("reasoning_id"),
+        "reasoning_summary": rec.get("reasoning_summary"),
+        "input_tokens": rec.get("input_tokens"),
+        "output_tokens": rec.get("output_tokens"),
+        "reasoning_tokens": rec.get("reasoning_tokens"),
+        "model": MODEL,
+    })
+meta_df = pd.DataFrame(meta_rows)
+meta_df.to_csv(OUT / "metrics_meta.csv", index=False)
+
+
+p = pathlib.Path("results/metrics_long.csv")
+if not p.exists():
+    display(Markdown("::: {.callout-warning}\n**No results yet.** Run the batch evaluation to generate `results/metrics_long.csv`.\n:::"))
+else:
+    tidy = pd.read_csv(p)
+    # Basic counts
+    n_papers = tidy["paper"].nunique()
+    n_rows   = len(tidy)
+    n_metrics = tidy["metric"].nunique()
+    # Overall-only slice
+    overall = tidy[tidy["metric"] == "overall"].copy()
+    mean_overall = overall["midpoint"].mean() if not overall.empty else np.nan
+    med_overall  = overall["midpoint"].median() if not overall.empty else np.nan
+
+    display(Markdown(
+        f"**Batch size:** {n_papers} papers  \n"
+        f"**Total metric rows:** {n_rows:,} across {n_metrics} metrics  \n"
+        f"**Overall ratings:** mean = {mean_overall:.1f}, median = {med_overall:.1f}"
+    ))
+
+
+        
+```
+
+
+
+### Journal ranking tiers
+
+
+For journal ranking, we apply the same setup with a compact schema:
+
+- What journal ranking tier should this work be published in? (0.0-5.0) 
+- What journal ranking tier will this work be published in? (0.0-5.0)
+
+
+```{python}
+#| label: tiers-setup
+#| eval: false
+#| code-fold: true
+
+from __future__ import annotations
+import os, pathlib, json, textwrap, re, time, math, random, hashlib, threading
+from typing import Any, Dict, Optional
+import pdfplumber, tiktoken
+import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Reuse your existing OpenAI client + MODEL set earlier
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JSON schema + prompt (v2)
+# ─────────────────────────────────────────────────────────────────────────────
+TIERS_PROMPT_VERSION = "journal_tiers_v2_2025-09-14"
+
+TIERS_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "tier_should": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_lower":  {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_upper":  {"type": "number", "minimum": 0, "maximum": 5},
+                "rationale": {"type": "string", "maxLength": 400}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        },
+        "tier_will": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_lower":  {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_upper":  {"type": "number", "minimum": 0, "maximum": 5},
+                "rationale": {"type": "string", "maxLength": 400}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        }
+    },
+    "required": ["tier_should", "tier_will"]
+}
+
+
+
+TEXT_FORMAT_TIERS = {
+    "type": "json_schema",
+    "name": "journal_tiers_v2",
+    "strict": True,
+    "schema": TIERS_SCHEMA
+}
+
+
+
+
+
+TIERS_SYSTEM_PROMPT = textwrap.dedent("""
+You are an expert evaluator for The Unjournal. Read ONLY the attached manuscript PDF. Return STRICT JSON that matches the provided schema. No extra text.
+
+Task
+• Produce two journal‐tier assessments on a 0.0–5.0 scale with 90% credible intervals (the narrowest interval that you believe has 90% probability).
+• Allow non‑integer scores.
+
+Scale anchors (0–5)
+0 = “Won’t publish / little to no value”; unlikely to be cited by credible researchers
+1 = OK / somewhat valuable journal
+2 = Marginal B‑journal / decent field journal
+3 = Top B‑journal / strong field journal
+4 = Marginal A‑journal / top field journal
+5 = A‑journal / top journal
+
+Targets
+• tier_should: Where the paper SHOULD publish if the process were fair, unbiased, and noise‑free, applying the evaluation criteria only.
+• tier_will: Where the paper WILL publish in practice, accounting for venue fit, editorial noise, status/affiliation signals visible in the manuscript, perceived novelty, controversy, and typical field norms.
+
+Evidence to use
+Base judgments only on the manuscript content. Use topic/subfield, contribution, methods and identification credibility, strength of evidence, clarity, openness/reproducibility, and venue fit cues inferable from the text (theory vs empirics, sample size/context, policy relevance). Do NOT use external lookups.
+
+Uncertainty
+• Provide the midpoint as the median of your belief.
+• Provide a 90% credible interval: 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.
+• Calibrate: widen intervals when the paper’s field/fit is ambiguous or evidence is thin; narrow when evidence is clear. Intervals need not be symmetric.
+
+Rationales
+• ≤75 words each.
+• State the key drivers: contribution, credibility, and fit. For tier_will, note main upward/downward factors (e.g., general interest vs niche, methodological risk, length/scope, visible prestige cues). Avoid naming specific journals unless named in the manuscript.
+
+Output format
+JSON only, matching the schema with two objects: tier_should and tier_will, each with {score, ci_lower, ci_upper, rationale}.
+
+""").strip()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers: rounding, clamping, validation, caching
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _clamp_0_5(x: float) -> float:
+    return max(0.0, min(5.0, float(x)))
+
+def _normalize_block(block: Dict[str, Any]) -> Dict[str, Any]:
+    s  = _clamp_0_5(block.get("score", 0.0))
+    lo = _clamp_0_5(block.get("ci_lower", s))
+    hi = _clamp_0_5(block.get("ci_upper", s))
+    # enforce ordering
+    if lo > s: lo, s = s, lo
+    if hi < s: hi, s = s, hi
+    if lo > hi: lo, hi = hi, lo
+    block["score"], block["ci_lower"], block["ci_upper"] = s, lo, hi
+    # Rationale hygiene
+    r = str(block.get("rationale", "")).strip()
+    block["rationale"] = re.sub(r"\s+", " ", r)
+    return block
+
+def _normalize_tiers(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if "tier_should" in payload:
+        payload["tier_should"] = _normalize_block(payload["tier_should"])
+    if "tier_will"   in payload:
+        payload["tier_will"]   = _normalize_block(payload["tier_will"])
+    return payload
+
+def _file_hash_bytes(path: pathlib.Path) -> bytes:
+    h = hashlib.sha1()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.digest()
+
+def _cache_key_for_tiers(pdf_path: pathlib.Path, model: str) -> str:
+    base = _file_hash_bytes(pdf_path)
+    extra = f"{model}|{TIERS_PROMPT_VERSION}".encode()
+    return hashlib.sha1(base + extra).hexdigest()
+
+CACHE_DIR = pathlib.Path("cache") / "journal_tiers"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_cache_lock = threading.Lock()
+
+
+def evaluate_journal_tiers(pdf_path: str | pathlib.Path,
+                           model: str = MODEL,
+                           verbose: bool = False) -> Dict[str, Any]:
+    pdf_path = pathlib.Path(pdf_path)
+
+    # cache by (pdf bytes + model + prompt version)
+    key = _cache_key_for_tiers(pdf_path, model)
+    cache_file = CACHE_DIR / f"{key}.json"
+    if cache_file.exists():
+        return json.loads(cache_file.read_text())
+
+    fid = _get_file_id(pdf_path)
+
+    def _call(m):
+        return client.responses.create(
+            model=m,
+            text={"format": TEXT_FORMAT_TIERS},
+            input=[
+                {"role": "system", "content": [
+                    {"type": "input_text", "text": TIERS_SYSTEM_PROMPT}
+                ]},
+                {"role": "user", "content": [
+                    {"type": "input_file", "file_id": fid},
+                    {"type": "input_text", "text": "Score tiers per schema. JSON only."}
+                ]}
+            ],
+            reasoning={"effort": "low"},          # or "medium" if needed
+            max_output_tokens=400,
+            store=False
+        )
+
+    # retry + optional model fallback
+    try:
+        resp = call_with_retries(lambda: _call(model))
+    except RuntimeError:
+        resp = call_with_retries(lambda: _call("gpt-4o"))
+
+    payload = json.loads(resp.output_text)
+    payload = _normalize_tiers(payload)
+    payload["paper"] = pdf_path.stem
+    payload["model"] = model
+    payload["prompt_version"] = TIERS_PROMPT_VERSION
+    payload.update(_reasoning_meta(resp))         # response_id, summary, tokens
+
+    cache_file.write_text(json.dumps(payload, ensure_ascii=False))
+    return payload
+
+
+# ── Batch (sequential by default; set max_workers>1 only if limits allow) ────
+def batch_evaluate_journal_tiers(root: str | pathlib.Path = "papers",
+                                 out_csv_wide: str | pathlib.Path = "results/journal_tiers.csv",
+                                 out_csv_long: str | pathlib.Path = "results/journal_tiers_long.csv",
+                                 out_csv_meta: str | pathlib.Path = "results/journal_tiers_meta.csv",
+                                 model: str = MODEL,
+                                 max_workers: int = 1,
+                                 verbose: bool = True) -> pd.DataFrame:
+    ROOT = pathlib.Path(root)
+    OUTW = pathlib.Path(out_csv_wide); OUTW.parent.mkdir(parents=True, exist_ok=True)
+    OUTL = pathlib.Path(out_csv_long); OUTL.parent.mkdir(parents=True, exist_ok=True)
+    OUTM = pathlib.Path(out_csv_meta); OUTM.parent.mkdir(parents=True, exist_ok=True)
+
+    pdfs = sorted(ROOT.glob("*.pdf"))
+    if verbose:
+        print(f"Tiering {len(pdfs)} papers with {max_workers} worker(s)...")
+
+    rows, meta_rows = [], []
+
+    if max_workers == 1:
+        it = pdfs
+        for pdf in it:
+            try:
+                res = evaluate_journal_tiers(pdf, model=model)
+            except Exception as e:
+                print(f"⚠️ {pdf.name}: {e}")
+                continue
+            rows.append({
+                "paper": pdf.stem,
+                "model": res.get("model"),
+                "prompt_version": res.get("prompt_version"),
+                "should_score":     res["tier_should"]["score"],
+                "should_ci_lower":  res["tier_should"]["ci_lower"],
+                "should_ci_upper":  res["tier_should"]["ci_upper"],
+                "should_rationale": res["tier_should"]["rationale"],
+                "will_score":       res["tier_will"]["score"],
+                "will_ci_lower":    res["tier_will"]["ci_lower"],
+                "will_ci_upper":    res["tier_will"]["ci_upper"],
+                "will_rationale":   res["tier_will"]["rationale"],
+            })
+            meta_rows.append({
+                "paper": res["paper"],
+                "response_id": res.get("response_id"),
+                "reasoning_id": res.get("reasoning_id"),
+                "reasoning_summary": res.get("reasoning_summary"),
+                "input_tokens": res.get("input_tokens"),
+                "output_tokens": res.get("output_tokens"),
+                "reasoning_tokens": res.get("reasoning_tokens"),
+                "model": res.get("model"),
+                "prompt_version": res.get("prompt_version"),
+            })
+            if verbose: print(f"✓ {pdf.name}")
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futs = {ex.submit(evaluate_journal_tiers, pdf, model): pdf for pdf in pdfs}
+            for fut in as_completed(futs):
+                pdf = futs[fut]
+                try:
+                    res = fut.result()
+                except Exception as e:
+                    print(f"⚠️ {pdf.name}: {e}")
+                    continue
+                rows.append({
+                    "paper": pdf.stem,
+                    "model": res.get("model"),
+                    "prompt_version": res.get("prompt_version"),
+                    "should_score":     res["tier_should"]["score"],
+                    "should_ci_lower":  res["tier_should"]["ci_lower"],
+                    "should_ci_upper":  res["tier_should"]["ci_upper"],
+                    "should_rationale": res["tier_should"]["rationale"],
+                    "will_score":       res["tier_will"]["score"],
+                    "will_ci_lower":    res["tier_will"]["ci_lower"],
+                    "will_ci_upper":    res["tier_will"]["ci_upper"],
+                    "will_rationale":   res["tier_will"]["rationale"],
+                })
+                meta_rows.append({
+                    "paper": res["paper"],
+                    "response_id": res.get("response_id"),
+                    "reasoning_id": res.get("reasoning_id"),
+                    "reasoning_summary": res.get("reasoning_summary"),
+                    "input_tokens": res.get("input_tokens"),
+                    "output_tokens": res.get("output_tokens"),
+                    "reasoning_tokens": res.get("reasoning_tokens"),
+                    "model": res.get("model"),
+                    "prompt_version": res.get("prompt_version"),
+                })
+                if verbose: print(f"✓ {pdf.name}")
+
+    wide = pd.DataFrame(rows);  wide.to_csv(OUTW, index=False)
+
+    long_rows = []
+    for r in rows:
+        for kind in ("should", "will"):
+            long_rows.append({
+                "paper": r["paper"],
+                "model": r["model"],
+                "prompt_version": r["prompt_version"],
+                "tier_kind": kind,
+                "score": r[f"{kind}_score"],
+                "ci_lower": r[f"{kind}_ci_lower"],
+                "ci_upper": r[f"{kind}_ci_upper"],
+                "rationale": r[f"{kind}_rationale"],
+            })
+    pd.DataFrame(long_rows).to_csv(OUTL, index=False)
+
+    pd.DataFrame(meta_rows).to_csv(OUTM, index=False)
+    return wide
+
+```
+
+
+```{python}
+#| eval: false
+#| code-fold: true
+
+batch_evaluate_journal_tiers(
+    root="papers",
+    out_csv_wide="results/journal_tiers.csv",
+    out_csv_long="results/journal_tiers_long.csv",
+    model=MODEL,
+    max_workers=1,
+    verbose=True
+)
+
+```
+
+
+
+
+
+
+
+
+### Qualitative assessments
+
+```{python}
+#| label: prompt-fulleval
+#| eval: false
+#| code-fold: true
+
+
+
+
+EVAL_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "summary":           {"type": "string"},
+        "major_strengths":   {"type": "string"},
+        "major_weaknesses":  {"type": "string"},
+        "methodological_notes": {"type": "string"},
+        "policy_relevance":  {"type": "string"},
+        "recommendations":   {"type": "string"}
+    },
+    "required": ["summary",
+                 "major_strengths",
+                 "major_weaknesses",
+                 "methodological_notes",
+                 "policy_relevance",
+                 "recommendations"]
+}
+
+
+TEXT_FORMAT_QUAL = {
+    "type": "json_schema",
+    "name": "written_evaluation_v1",
+    "strict": True,
+    "schema": EVAL_SCHEMA
+}
+
+
+
+
+
+QUAL_SYSTEM_PROMPT = textwrap.dedent("""
+You are writing a referee report for The Unjournal.
+
+Return STRICT JSON that matches the schema `written_evaluation_v1`.
+
+Audience → (i) research users & policy-makers, (ii) departments & funders,
+(iii) authors.
+
+Sections (≤250 words each):
+  • summary               → clear one-paragraph overview of purpose & findings
+  • major_strengths       → bullet list or short paragraph
+  • major_weaknesses      → idem
+  • methodological_notes  → focus on justification, assumptions, robustness,
+                            open/science aspects
+  • policy_relevance      → discuss how (and how strongly) results matter for
+                            global priorities / practitioners
+  • recommendations       → concrete, numbered advice to improve the work
+
+Write in direct, concise style; no hedging beyond necessary uncertainty
+quantification.  No markdown fences, no extra keys.
+""").strip()
+
+
+
+
+```
+
+
+
+
+---
