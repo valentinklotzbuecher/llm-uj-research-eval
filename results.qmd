@@ -22,7 +22,8 @@ library("knitr")
 library("ggforce") 
 library("ggrepel")
 library("glue")
-
+library("ggalluvial")
+library("scales")
  
 UJ_ORANGE <- "#f19e4b"   # LLM
 UJ_GREEN  <- "#99bb66"   # Human
@@ -149,6 +150,216 @@ reasining_example = metrics_meta |>
 Here we present preliminary results, starting with a comparison of the LLM‑generated quantitative ratings (model: `r print(currentmodel)`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
 
 
+
+## Journal ranking tiers
+
+
+```{r}
+#| label: load-data-tiers
+
+
+# paper_authors <- read_delim(here("data", "paper_authors.csv"), delim = ",")
+
+# Mapping paper keys - short titles
+UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
+  mutate(label_paper_title = research,
+         label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+
+# Unjournal ratings
+rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
+
+
+# UJ evaluated research
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>  
+  left_join(UJmap, by = c("label_paper_title")) |>
+  mutate(doi = str_trim(doi)) |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w31162", "Walker et al. 2023", label_paper, missing = label_paper)) |>
+  mutate(label_paper = if_else(doi == "doi.org/10.3386/w32728", "Hahn et al. 2025", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w30011", "Bhat et al. 2022", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "10.1093/wbro/lkae010", "Crawfurd et al. 2023", label_paper, missing = label_paper))  |>
+  left_join(rsx, by = c("label_paper_title"))
+ 
+
+jtiers_llm <- read_csv(here("data", "journal_tiers_long.csv"), show_col_types = FALSE) |>
+  mutate(middle_rating = score,
+         lower_ci = ci_lower,
+         upper_ci = ci_upper,
+         criteria = if_else(tier_kind == "will", "journal_predict", "merits_journal"),
+         evaluator = model,
+         label_paper = paper
+         ) |>
+  select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
+
+
+jtiers_uj <- research |>
+  filter(criteria== "merits_journal" | criteria == "journal_predict") |>
+  mutate(paper = label_paper,
+         rationale = "")  |>
+  select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
+
+
+jtiers <- jtiers_uj |>
+  rbind(jtiers_llm) |>
+  mutate(human = if_else(evaluator == "o3", "Human", "o3"),
+         lower_ci = if_else(lower_ci > 10, lower_ci/10, lower_ci))
+
+
+# write_csv(all_ratings, here("data", "all_jtiers.csv"))
+write_rds(
+  jtiers,
+  here("data", "all_jtiers.rds"),
+  compress = "none"
+  )
+
+
+```
+
+
+
+```{r}
+#| label: fig-forest-tiers
+#| fig-cap: "Journal tiers -- LLM vs individual Human ratings. Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (CI when available) offset per rater."
+#| fig-height: 13
+#| fig-width: 8
+
+
+
+jtiers <- jtiers |>
+  mutate(
+    who = if_else(evaluator == "o3", "LLM", "Human"),
+    mid = middle_rating, lo = lower_ci, hi = upper_ci
+  )  
+
+# order rows within each facet: by LLM mid if present, else median human
+ord_tbl <- jtiers %>%
+  group_by(criteria, label_paper) %>%
+  summarise(
+    ord = if (any(who == "LLM")) mid[which(who == "LLM")[1]] else median(mid[who == "Human"], na.rm = TRUE),
+    n_h = sum(who == "Human"),
+    .groups = "drop"
+  ) %>%
+  group_by(criteria) %>% arrange(desc(ord), .by_group = TRUE) %>%
+  mutate(level = paste(criteria, paste0(label_paper, " (n=", n_h, ")"), sep = "___"))
+
+jplot <- jtiers %>%
+  left_join(ord_tbl, by = c("criteria", "label_paper")) %>%
+  mutate(level = paste(criteria, paste0(label_paper, " (n=", n_h, ")"), sep = "___"),
+         paper_fac = factor(level, levels = ord_tbl$level))
+
+lab_fun <- function(x) sub("^.*___", "", x)
+
+set.seed(1)
+ggplot(jplot, aes(x = mid, y = paper_fac, colour = who, shape = who)) +
+  # humans: jittered lanes
+  geom_errorbarh(
+    data = subset(jplot, who == "Human" & is.finite(lo) & is.finite(hi)),
+    aes(xmin = lo, xmax = hi),
+    height = 0, alpha = 0.55, linewidth = 0.5,
+    position = position_jitter(height = 0.22, width = 0)
+  ) +
+  geom_point(
+    data = subset(jplot, who == "Human"),
+    size = 1.9, alpha = 0.9,
+    position = position_jitter(height = 0.22, width = 0)
+  ) +
+  # LLM: centered lane
+  geom_errorbarh(
+    data = subset(jplot, who == "LLM" & is.finite(lo) & is.finite(hi)),
+    aes(xmin = lo, xmax = hi),
+    height = 0, linewidth = 0.8
+  ) +
+  geom_point(
+    data = subset(jplot, who == "LLM"),
+    size = 2.4
+  ) +
+  facet_wrap(~criteria, ncol = 1, scales = "free_y",
+             labeller = as_labeller(c(journal_predict = "Where will this paper be published?", merits_journal = "Where should this paper be published?"))) +
+  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
+  scale_shape_manual(values = c(LLM = 18, Human = 16), name = NULL) +
+  scale_y_discrete(labels = lab_fun, expand = expansion(mult = c(0.02, 0.06))) +
+  coord_cartesian(xlim = c(0, 5)) +
+  labs(x = NULL, y = NULL) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  theme_uj() +
+  theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3),
+        axis.text.y = element_text(hjust = 0.98),
+        legend.position = "bottom")
+```
+
+
+<!-- ```{r} -->
+
+
+<!-- # --- load --- -->
+<!-- jt <- jtiers -->
+
+
+<!-- steps <- c("LLM should","LLM would","Human would","Human should") -->
+
+<!-- llm <- jt %>% -->
+<!--   filter(evaluator == "o3", criteria %in% c("merits_journal","journal_predict")) %>% -->
+<!--   select(paper = label_paper, criteria, rating = middle_rating) %>% -->
+<!--   pivot_wider(names_from = criteria, values_from = rating) %>% -->
+<!--   transmute(paper, -->
+<!--             `LLM should` = round(merits_journal), -->
+<!--             `LLM would`  = round(journal_predict)) -->
+
+<!-- human <- jt %>% -->
+<!--   filter(evaluator != "o3", criteria %in% c("merits_journal","journal_predict")) %>% -->
+<!--   group_by(paper = label_paper, criteria) %>% -->
+<!--   summarise(rating = median(middle_rating, na.rm = TRUE), .groups = "drop") %>% -->
+<!--   pivot_wider(names_from = criteria, values_from = rating) %>% -->
+<!--   transmute(paper, -->
+<!--             `Human would`  = round(journal_predict), -->
+<!--             `Human should` = round(merits_journal)) -->
+
+<!-- wide <- inner_join(llm, human, by = "paper") %>% -->
+<!--   mutate(across(all_of(steps), -->
+<!--                 ~ factor(pmin(pmax(.x, 1), 5), levels = 1:5, ordered = TRUE))) %>% -->
+<!--   drop_na(all_of(steps)) -->
+
+<!-- # ---- aggregate flows and pad missing combos ---- -->
+<!-- flows <- wide %>% -->
+<!--   count(!!!syms(steps), name = "n") %>% -->
+<!--   complete( -->
+<!--     `LLM should` = levels(wide$`LLM should`), -->
+<!--     `LLM would`  = levels(wide$`LLM would`), -->
+<!--     `Human would`= levels(wide$`Human would`), -->
+<!--     `Human should`= levels(wide$`Human should`), -->
+<!--     fill = list(n = 0L) -->
+<!--   ) %>% -->
+<!--   mutate(wt = n / sum(n)) %>%                 # shares -->
+<!--   mutate(across(all_of(steps), forcats::fct_rev))  # put 5 at top (optional) -->
+
+<!-- # ---- plot ---- -->
+<!-- ggplot(flows, -->
+<!--        aes(y = wt, -->
+<!--            axis1 = `LLM should`, axis2 = `LLM would`, -->
+<!--            axis3 = `Human would`, axis4 = `Human should`)) + -->
+<!--   geom_alluvium(aes(fill = `LLM should`), width = .1, alpha = .8) + -->
+<!--   geom_stratum(width = .1, color = "grey30", fill = "white") + -->
+<!--   geom_text(stat = "stratum", aes(label = after_stat(stratum)), vjust = -0.5, size = 3) + -->
+<!--   scale_x_discrete(limits = steps, expand = c(.02, .05)) + -->
+<!--   scale_y_continuous(labels = percent_format(accuracy = 1)) + -->
+<!--   labs(x = NULL, y = "Share of papers", fill = "LLM should rating") + -->
+<!--   theme_minimal(base_size = 11) + -->
+<!--   theme(legend.position = "bottom") -->
+
+<!-- ``` -->
+
+
+
+ 
+
+
+
 ## Quantitative ratings
 
 We evaluated `r tok_sum$n_papers` papers using `r currentmodel`, reading each manuscript directly from the PDF and returning a strict JSON assessment. 
@@ -166,7 +377,7 @@ We begin by comparing *overall* scores.
 
 
 ```{r}
-#| label: load-data
+#| label: load-data-x
 
 # Mapping paper keys - short titles
 UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
@@ -686,42 +897,7 @@ rationale_outlier = all_ratings |>
 For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r sprintf(rationale_outlier$rationale)`
 
 
-## Journal ranking tiers
 
-
-```{r}
-
-
-# Mapping paper keys - short titles
-UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
-  mutate(label_paper_title = research,
-         label_paper = paper) |>
-  select(c("label_paper_title", "label_paper"))
-
-
-
-jtiers_uj <- human_raw |>
-  filter(criteria== "merits_journal" | criteria == "journal_prediction") |>
-  left_join(UJmap, by = c("label_paper_title")) 
-
-jtiers <- read_csv(here("data", "journal_tiers.csv"), show_col_types = FALSE)
-
-gg <- ggplot(jtiers, aes(x = should_score, y = will_score)) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.3) +
-  geom_point(alpha = 0.85, size = 2) +
-  coord_equal(xlim = c(1, 5), ylim = c(1, 5)) +
-  scale_x_continuous(breaks = 1:5) +
-  scale_y_continuous(breaks = 1:5) +
-  labs(
-    x = "LLM ‘Should’ tier (1–5)",
-    y = "LLM ‘Will’ tier (1–5)"
-  ) +
-  theme_uj(base_size = 12)
-
-gg
-
-
-```
 
 ## Claim identification
 
