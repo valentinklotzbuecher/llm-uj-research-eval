@@ -70,6 +70,8 @@ Probably skip:^["Mutual information between human and LLM ratings — 'how many 
 
 Making the most accurate predictions for publication outcomes and bibliometrics?
 
+<!-- Commenting this section out for now because it will be a while until we are ready to do this 
+
 ## Human-like discussion (\*) (#DISCUSSION_HUMANLIKE)
 
 (\*) Note: this will require us to recruit expert human raters.
@@ -79,29 +81,32 @@ Writing a discussion that is most similar to human referee reports/evaluations? 
 -   Measure 1: most likely to be judged to be a human report by blinded human readers\
 -   Measure 2: Rated ‘most like a human report’ by blinded human readers
 
-## Useful discussion (#DISCUSSION_USEFUL)
+## Useful discussion (#DISCUSSION_USEFUL) (\*)
 
-\[DISCUSSION_USEFUL\] Writing a discussion rated as most useful (1) by papers’ authors and (2) by readers?
+
+\[DISCUSSION_USEFUL\] Writing a discussion rated as most useful (1) by papers' authors and (2) by readers?
 
 (Across categories)
 
-## Claim identification (#CLAIM_ID_HUMANLIKE, #CLAIM_ID_USEFUL)
+## Claim identification (#CLAIM_ID_HUMANLIKE, #CLAIM_ID_USEFUL) (\*)
 
-(Similar to the discussion ones for 'claim identification')
+(Similar to the discussion ones for 'DISCUSSION_HUMANLIKE')
 
-Identifying the most important claims in a paper, most likely to be judged to be a human claim list by blinded human readers
+Identifying the most important claims in a paper, most likely to be judged to be a human claim list by blinded human readers (\*)
 
-## Error identification (#ERROR_SEARCH, #REVIEWER_MISTAKES)
+Similar for usefulness (\*)
+
+
+
+## Error identification (#ERROR_SEARCH, #REVIEWER_MISTAKES) (\*)
+
 
 ERROR_SEARCH: Finding the most errors and mistakes (previously known errors or independently verified errors) (Potentially less relevant for The Unjournal’s domain)
 
 REVIEWER_MISTAKES: Making the fewest misstatements and false positives ‘errors’ .
 
-## Other questions
 
-(Small question/variation) Do the ratings more closely resemble human ratings when the LLM is first asked to write a discussion?
-
-...and how strong is this performance in an absolute sense?
+-->
 
 ## Why are these questions useful?:
 
@@ -139,41 +144,9 @@ Adding some 'pro tips' that seemed useful:
 
 > Pair coefficients with hierarchical models for inference: e.g., an ordinal mixed model `rating ~ method + (1|paper) + (1|rater)` to test if LLM differs from humans while the coefficient gives you the practical agreement level.
 
-## Dimensions of prompt and context variation
-
-(To be assembled in a sheet or data frame)
-
-### Which baseline model
-
-OpenAI - 3o - 5 pro - Deep research (5?)
-
-Other providers (\*)
-
-### Ordering of prompts
-
--   Ratings first, then discussion
--   Discussion first, then ratings
--   Explicitly asked to consider discussion in ratings
--   Ratings only
-
-### De-identification and debiasing
-
--   No de-identification, no debiasing instructions
-
--   No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.")
-
--   Remove author names, institutions, acknowledgements, funding sources
-
--   Check if it still guesses the authors etc.
-
--   Replace author names with fake prestigious / non-prestigious names (\*)
-
--   Replace institutions with fake prestigious / non-prestigious institutions (\*)
-
-
 # How do human and LLM evaluations compare? Which is 'better', and by how much...?
 
-##  Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES)
+##  Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES) (/*)
 
 [BETTER_REVIEW_SUBJECTIVE] Which review discussion is better?
 
@@ -190,10 +163,7 @@ Other providers (\*)
 
 [BETTER_RATINGS_SUBJECTIVE] Which set of ratings is better (same considerations as for the review discussion)  
 
-
-
 [FEEDBACK_TO_AUTHORS] In terms of the authors' ratings for useful feedback?
-
 
 
 [PREDICT_BIBLIOMETRICS_COMPARISON] At making predictions for journal, bibliometric, measurable impact, and replication outcomes?
@@ -234,22 +204,61 @@ What are some deeper but still concrete definitions of different types of either
 
 
 
-# Prompt variations
+# Dimensions of prompt and context variation
 
-"Evaluate as an economist" vs "predict"
+*These could be assembled in a sheet or data frame.* 
+There are probably too many variations here for a full factorial design, or for designs reporting and comparing all ratings across all designs (at least this seems overwhelming). 
 
-Exact guidelines from evaluators vs. LLM-specific tailoring
+I suggest 
+1. Focus on 2-3 'likely best setups', supported by previous work and intuition, for full comparisons
+2. For 1-2 of these 'best setups' varying other dimensions one at a time, comparing key ratings only.
 
-Mention The Unjournal vs. No mention
+## Which baseline model
 
-### Paper+ context variations
+- 3o
+- 5 pro
+- Deep research (5?)
+- Other providers (\*)
+
+
+## Prompt variations  
+
+- "Evaluate as an economist" vs "predict"
+
+- Exact guidelines for evaluators vs. LLM-specific tailoring
+
+- Mention The Unjournal vs. Don't mention
+
+## Paper+ context variations
 
 -   Abstract only
 -   Paper only
 -   Paper + supplementary materials + preregistration etc.
 -   Paper + human evaluations (contamination risk?)
 
-### Parameter variations
+## Ordering of prompts
+
+-   Ratings first, then discussion
+-   Discussion first, then ratings
+-   Explicitly asked to consider discussion in ratings
+-   Ratings only
+
+## De-identification and debiasing
+
+-   No de-identification, no debiasing instructions
+
+-   No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.")
+
+-   Remove author names, institutions, acknowledgements, funding sources
+
+-   Check if it still guesses the authors etc.
+
+-   Replace author names with fake prestigious / non-prestigious names (\*)
+
+-   Replace institutions with fake prestigious / non-prestigious institutions (\*)
+
+
+## Parameter variations
 
 -   Temperature
 -   Top-p
