@@ -24,7 +24,7 @@
     "href": "methods.html",
     "title": "Data and methods",
     "section": "",
-    "text": "Unjournal.org evaluations\nWe use The Unjournal’s public data for a baseline comparison. At The Unjournal each paper is typically evaluated (aka ‘reviewed’) by two expert evaluators1 who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),2 two “journal tier” ratings on a 0.0 - 5.0 scale,3 a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper’s “main claim”. For our initial analysis, we extracted these human ratings and aggregated them, taking the average score per criterion across evaluators (and noting the range of individual scores).\nAll papers have completed The Unjournal’s evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes r dim(research_done)[1] papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.",
+    "text": "Unjournal.org evaluations\nWe use The Unjournal’s public data for a baseline comparison. At The Unjournal each paper is typically evaluated (aka ‘reviewed’) by two expert evaluators1 who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),2 two “journal tier” ratings on a 0.0 - 5.0 scale,3 a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper’s “main claim”. For our initial analysis, we extracted these human ratings and aggregated them, taking the average score per criterion across evaluators (and noting the range of individual scores).\nAll papers have completed The Unjournal’s evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data and methods</span>"
     ]
@@ -90,13 +90,123 @@
     ]
   },
   {
+    "objectID": "questions_answers.html",
+    "href": "questions_answers.html",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "",
+    "text": "Comparing models: prompts and environment engineering for effective LLM evaluation\nWhich ‘model’, i.e., which prompts, parameters, model, and contexts do best for:",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#predicting-human-ratings-predict_human_ratings",
+    "href": "questions_answers.html#predicting-human-ratings-predict_human_ratings",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Predicting human ratings (#PREDICT_HUMAN_RATINGS)",
+    "text": "Predicting human ratings (#PREDICT_HUMAN_RATINGS)\nWhich best produces a vector of ratings that is the closest to human research ratings, in meaningful dimensions? (Beware overfitting; we need clean testing data.)\nFor each of these we should also compare how well one human rater predicts another human rater. This is high-value for The Unjournal and provides an interesting benchmark for the LLMs.\n\nSimplest comparisons among models\nFor face-value sanity checks, report and compare models ‘predictions’ of human ratings by: - Mean absolute error (MAE) - Root mean squared error (RMSE) - Correlation (Pearson and Spearman) - Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure) - (Pseudo)-calibration of LLM CIs: How often does the human point estimate fall within the LLM CI?\n\n\nDesirable metrics for comparing point estimates\n1\nIntraclass correlation:2\n\n[GPT] measures absolute agreement across raters viewing the same targets; report CIs and the specific ICC form. Use Koo & Li’s guideline to choose/report ICC form and interpret magnitudes. irr::icc(…).\n\n\nR: irr::icc() (set model=\"twoway\", type=\"agreement\", unit=\"single\" for single‑rater agreement; average if you aggregate multiple LLM runs).\n\nKrippendorff’s \\(\\alpha\\): “handles missingness, multiple raters, and different scale types (nominal vs ratio). irr::kripp.alpha()”\nWe have missingness and multiple raters; and this also could allow us to combine across scale types (e.g. 0-100 and 0-5). But for ‘combinations’, should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?\nMaybe also estimate\n\n[GPT] Concordance of rank‑orders across papers: Spearman \\(\\rho\\) or Kendall \\(\\tau\\) if you also collect overall ‘rankings’ of paper quality. cor(…, method = “spearman”|“kendall”); DescTools::KendallW() for many raters.\n\nWe don’t ask evaluators to do rankings, but we do make these comparisons, and we could see ‘human evaluators’ as a class. And the rank-sensitivity seems compelling. But why choose Kendall vs Spearman?\nProbably skip:3\n\n\nDesirable for comparing distributions (imputed from CIs)\n\nDistributional similarity / information theory\n\n\nJensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive “distance between distributions”. philentropy::JSD()\n\nK-L divergence: Directional: focus on how well the LLM models predict the humans, i.e., how ‘surprising’ the human distributions are to the LLMs.\nProbably skip:4\n\n\nDesirable: Hierarchical models for identifying systematic patterns (with caveats)\n\n[GPT] Use hierarchical ordinal models: brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative(\"logit\")) to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist).\n\nWe could add parameters for paper characteristics, especially field/cause area, method, and source. However, these should not be treated as causal effects, as they may be confounded with paper quality and rater characteristics. Even the implied ‘interactions’ with ‘method’ (LLM vs human) may be confounded. But it seems descriptively useful and suggestive.",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#predicting-bibliometrics-predict_bibliometrics",
+    "href": "questions_answers.html#predicting-bibliometrics-predict_bibliometrics",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Predicting bibliometrics (*) (#PREDICT_BIBLIOMETRICS)",
+    "text": "Predicting bibliometrics (*) (#PREDICT_BIBLIOMETRICS)\nMaking the most accurate predictions for publication outcomes and bibliometrics (citation counts etc.)\nContamination is a substantial concern here (also for human ratings), so we’d need to focus on papers currently in early stages.\nPossible outcomes: Top-tier journal (binary), journal REPEC-index, (weighted) citation counts 2y/5y, time to publication in tier above threshold.\nMetrics (return to this, we are not likely to have this data for a while).",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#why-are-these-questions-useful",
+    "href": "questions_answers.html#why-are-these-questions-useful",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Why are these questions useful?:",
+    "text": "Why are these questions useful?:\nRefining LLM evaluation practice: The research and practice community (as well as The Unjournal) may want to use LLMs to do research evaluation for the reasons described in our outline (which we can elaborate on). Thus, we want to learn and refine the best approaches. Error-checking: Similarly, for ‘checking for errors’ as a complement to peer review.\n(Detecting LLM reviews — who cares?): If we want to be able to detect LLM-generated reviews, we want to know how close it can get to human reviews and in what ways it characteristically differs. But do we care?",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#how-will-we-measure-and-test-each-of-these",
+    "href": "questions_answers.html#how-will-we-measure-and-test-each-of-these",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "How will we measure and test each of these?",
+    "text": "How will we measure and test each of these?\nTo be fleshed out in the sections above.\nGPT-pro guidance, following my prompt:\n\nMeasurements that are useful, intuitive, valid (incl. information‑theoretic), with R recipes. 5\n\n\nDesign backbone (applies throughout):\n\n\nUnit of analysis = paper × rater/model × metric.6\n\n\nUse held‑out test sets and time‑based splits (train on past, test on future) to avoid leakage/contamination the proposal warns about.7\n\n\nPrefer proper scoring rules, agreement coefficients, and hierarchical (mixed) models with paper and rater random effects for inference and uncertainty.8\n\nAdding some ‘pro tips’ that seemed useful:\n\nReport both an agreement coefficient and a simple % agreement so readers can sanity-check chance-correction effects.\n\n\nPair coefficients with hierarchical models for inference: e.g., an ordinal mixed model rating ~ method + (1|paper) + (1|rater) to test if LLM differs from humans while the coefficient gives you the practical agreement level.",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#better-review-discussions-better_review_subjective-better_reviews_llm_judges",
+    "href": "questions_answers.html#better-review-discussions-better_review_subjective-better_reviews_llm_judges",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES) (/*)",
+    "text": "Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES) (/*)\n[BETTER_REVIEW_SUBJECTIVE] Which review discussion is better?\n\nAccording to the subjective judgment of outside expert readers;\nideally blinded as to which is AI, but that’s a challenge to implement\nDivide this up by categories; readability, insight into econometrics, understanding of context, etc.\nMetrics for ‘how much’ could refer to a percentile distribution of human evaluators.\n\n[BETTER_REVIEWS_LLM_JUDGES] According to the judgment of other LLMs (perhaps those with system prompts that humans rate as useful and good at judging the strength of evaluations — overambitious? Consider — could judging the quality be easier than producing the review?)",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#better-ratings-better_ratings_subjective",
+    "href": "questions_answers.html#better-ratings-better_ratings_subjective",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Better ratings (#BETTER_RATINGS_SUBJECTIVE)",
+    "text": "Better ratings (#BETTER_RATINGS_SUBJECTIVE)\n[BETTER_RATINGS_SUBJECTIVE] Which set of ratings is better (same considerations as for the review discussion)\n[FEEDBACK_TO_AUTHORS] In terms of the authors’ ratings for useful feedback?\n[PREDICT_BIBLIOMETRICS_COMPARISON] At making predictions for journal, bibliometric, measurable impact, and replication outcomes?\n[ERROR_FINDING] At finding errors of particular types? (Flesh these out; simple math errors, mischaracterizing results, unrealistic assumptions, use of unjustified and inferior methods, etc. )\nWhy are these questions useful?:\n\nShould we use LLMs to do evaluation? (And related tasks like pre-screening, grants)\nOr, how should we use it as a complement?\n(application) Value of The Unjournal reports\nInsights into research and insight capabilities of LLMs (e.g., do they rate certain things particularly well?)\nLLM agreement as a measure of consensus is in an academic sub-field [\n\nHow will we measure and test these?",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#dimensions-of-variation",
+    "href": "questions_answers.html#dimensions-of-variation",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Dimensions of variation",
+    "text": "Dimensions of variation\n\nWhich baseline model\n\n3o\n5 pro\nDeep research (5?)\nOther providers (*)",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#prompt-variations",
+    "href": "questions_answers.html#prompt-variations",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Prompt variations",
+    "text": "Prompt variations\n\n“Evaluate as an economist” vs “predict”\nExact guidelines for evaluators vs. LLM-specific tailoring\nMention The Unjournal vs. Don’t mention\n\n\nPaper+ context variations\n\nAbstract only\nPaper only\nPaper + supplementary materials + preregistration etc.\nPaper + human evaluations (contamination risk?)\n\n\n\nOrdering of prompts\n\nRatings first, then discussion\nDiscussion first, then ratings\nExplicitly asked to consider discussion in ratings\nRatings only\n\n\n\nDe-identification and debiasing\n\nNo de-identification, no debiasing instructions\nNo de-identification, strong de-biasing instructions (e.g. “ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.”)\nRemove author names, institutions, acknowledgements, funding sources\nCheck if it still guesses the authors etc.\nReplace author names with fake prestigious / non-prestigious names (*)\nReplace institutions with fake prestigious / non-prestigious institutions (*)\n\n\n\nParameter variations\n\nTemperature\nTop-p\nNumber of runs (for aggregation)",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#between-prompt-stability-measures",
+    "href": "questions_answers.html#between-prompt-stability-measures",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "Between prompt-stability measures",
+    "text": "Between prompt-stability measures\n\nWithin‑model repeatability: run k independent generations per prompt; report within‑LLM variance of ratings and text similarity across runs (cosine similarity of embeddings; quanteda.textstats::textstat_simil() or text::textSimilarity())",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
+    "objectID": "questions_answers.html#footnotes",
+    "href": "questions_answers.html#footnotes",
+    "title": "Specific questions, suggested metrics and tests, explanations",
+    "section": "",
+    "text": "DR: I think most of the following should work for both the continuous 0-100 ratings and the 0-5 journal tier ratings. I believe these are agreement coefficients, which correct for chance agreement.↩︎\nDR: As I understand it, the share of the variance attributable of the paper rather than the identity of the rater.↩︎\nQuadratic‑weighted \\(\\kappa\\) (Cohen’s weighted kappa) “penalizes big disagreements more than small ones” intuitive 0–1 scale. DR: I don’t think we want to penalize big disagreements nonlinearly.↩︎\n“Mutual information between human and LLM ratings — ‘how many nats/bits of information one gives about the other’.” – I don’t think our measures are reasonably expressed in bits?↩︎\nDR: As per my request↩︎\nDR: OK, but we want to enable some aggregation and some higher-level effects.↩︎\nDR: Aiming to do this using the prospective evaluations. There are two issues here: 1. The usual overfitting issues 2. The possibility of actual model contamination↩︎\nDR: I was unsure about the “proper scoring rules” as I thought that was about incentives for human forecasters, but it applies here as well. These have good properties, including “ensures that models are ranked by true predictive accuracy, not by quirks of scale, variance, or overconfidence.”↩︎",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Specific questions, suggested metrics and tests, explanations</span>"
+    ]
+  },
+  {
     "objectID": "discussion.html",
     "href": "discussion.html",
     "title": "Discussion",
     "section": "",
     "text": "Preliminary findings",
     "crumbs": [
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Discussion</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Discussion</span>"
     ]
   },
   {
@@ -106,7 +216,7 @@
     "section": "Limitations",
     "text": "Limitations\nSample size and representativeness: We evaluated on only  ~40–50 papers, all in the social sciences and specifically chosen by The Unjournal for evaluation (which means they were considered high-impact or interesting). This is not a random sample of research literature. The papers also skew toward empirical and policy-relevant topics. The AI’s performance and alignment might differ in other fields (e.g., pure theory, biology) or on less polished papers.\nHuman agreement as a moving target: The Unjournal human evaluations themselves are not a single ground truth. As evidence of this, we note substantial variability between reviewers.\nPotential AI knowledge contamination: We attempted to prevent giving the AI any information about the human evaluations, but we cannot be 100% sure that the model’s training data didn’t include some fragment of these papers, related discussions, or even The Unournal evaluations. We will be able to exclude this for the evaluations of future Unjournal evaluations.\nModel limitations and “alignment” issues: While powerful, is not a domain expert with judgment honed by years of experience. It might be overly influenced by how a paper is written (fluency) or by irrelevant sections. It also tends to avoid extremely harsh language or low scores unless there is a clear reason, due to its alignment training to be helpful/polite – this could explain the general score inflation we observed. The model might fail to catch subtle methodological flaws that a field expert would notice, or conversely it might “hallucinate” a concern that isn’t actually a problem. Without ground truth about a paper’s actual quality, we used human consensus as a proxy; if the humans overlooked something, the AI could appear to “disagree” but possibly be pointing to a real issue.\n(There is also evidence, e.g. Pataranutaporn et al. (2025) that LLMs show biases towards more prestigious author names, institutions, and towards male prestigious authors. We will provide further evidence on this in the next iterations, de-identifying the work under LLM evaluation.)\nScoring calibration: The AI was prompted to use the 0–100 percentile scale, but calibrating that is hard. Humans likely had some calibration from guidelines or community norms (e.g. perhaps very few papers should get above 90). The AI might have been more liberal in using the high end of the scale (hence higher means). In future, a different prompt or examples could calibrate it to match the distribution of human scores more closely. We also only took one run from the AI for each paper; LLM outputs can have randomness, so a different run might vary slightly. (To do: aggregate across multiple runs.)\nSmall differences and rounding: Our analysis treated the AI’s numeric outputs at face value. Small differences (e.g. AI 85 vs human 82) might not be meaningful in practice – both indicate a similar qualitative assessment (“very good”). Some of our metrics (like kappa) penalize any difference, even if minor. Thus, the “low agreement” statistics might sound worse than the reality where in many cases AI and humans were only off by a few points. We intend to analyze the distribution of absolute differences: a large portion might be within say ±5 points which could be considered essentially agreement in practice. The credible intervals add another layer: sometimes an AI’s score fell outside a human’s interval, but overlapping intervals could still mean they agree within uncertainty. We did observe that AI’s intervals were often narrower than humans’ (LLM tended to be confident, giving ~10-point spreads, whereas some human evaluators gave 20-point or left some intervals blank), which is another aspect of calibration.\n\n\n\n\n\n\nPlanned updates and extensions\n\n\n\nAlso see internal tasks/issues in Coda\n\nRelated work\nSlides\nExtended evaluation:\n\nJournal ranking tiers and predictions\nClaim identification\nQualitative assessments and full evaluations\nComparing evaluations across fields/areas\n\nImproved workflow:\n\nImprove PDF ingestion\nSystem prompt optimization\nAlternative models\nExtend set of papers\n\nAggregating multiple LLM runs\nAnonymization\nEvaluation of papers for prospective (uncontaminated) evaluation\nMore grounded information theoretic metrics and robust statistical tests.\n\n\n\n\n\n\n\n\n\nPataranutaporn, Pat, Nattavudh Powdthavee, Chayapatr Achiwaranguprok, and Pattie Maes, “Can AI solve the peer review crisis? A large scale cross model experiment of LLMs’ performance and biases in evaluating over 1000 economics papers,” 2025.",
     "crumbs": [
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Discussion</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Discussion</span>"
     ]
   },
   {
