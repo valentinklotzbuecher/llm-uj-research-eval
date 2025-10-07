@@ -15,9 +15,9 @@ Relying on insights from GPT-pro (see [here](https://chatgpt.com/share/e/68e3e48
 ## Predicting human ratings (#PREDICT_HUMAN_RATINGS)
 
 Which best produces a vector of ratings that is the closest to human research ratings, in meaningful dimensions?
-(Beware overfitting; we need clean testing data)
+(Beware overfitting; we need clean testing data.)
 
-*For each of these, also compare how well one human rater predicts another human rater.*
+*For each of these we should also compare how well one human rater predicts another human rater. This is high-value for The Unjournal and provides an interesting benchmark for the LLMs.*
 
 ### Simplest comparisons among models
 
@@ -25,36 +25,34 @@ For face-value sanity checks, report and compare models 'predictions' of human r
 -   Mean absolute error (MAE)
 -   Root mean squared error (RMSE)
 -   Correlation (Pearson and Spearman)
--   Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure )
--   (Pseudo)-calibration of LLM CIs: how often does the human point estimate fall within the LLM CI?
+-   Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure)
+-   (Pseudo)-calibration of LLM CIs: How often does the human point estimate fall within the LLM CI?
 
 ### Desirable metrics for comparing point estimates
 
-DR: I think most of the following should work for both the continuous 0-100 ratings and the 0-5 journal tier ratings.
+^[DR: I think most of the following should work for both the continuous 0-100 ratings and the 0-5 journal tier ratings. I believe these are *agreement coefficients*, which correct for chance agreement.]
 
-Intraclass correlation: 
+Intraclass correlation:^[DR: As I understand it, the share of the variance attributable of the *paper* rather than the identity of the *rater*.]
+
 > [GPT] measures absolute agreement across raters viewing the same targets; report CIs and the specific ICC form. Use Koo & Li’s guideline to choose/report ICC form and interpret magnitudes. irr::icc(...). 
-
-> ICC asks "if we swapped the rater (human ︎with LLM), how much would the score change relative to paper‑to‑paper variation?"
 
 > `R: irr::icc()` (set `model="twoway", type="agreement", unit="single"` for single‑rater agreement; average if you aggregate multiple LLM runs).
 
-
 Krippendorff’s $\alpha$: "handles missingness, multiple raters, and different scale types (nominal vs ratio). `irr::kripp.alpha()`"
 
-We have missingness and multiple raters; and this also coudl allow us to combine across scale types (e.g. 0-100 and 0-5). But for 'combinations', should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?
+We have missingness and multiple raters; and this also could allow us to combine across scale types (e.g. 0-100 and 0-5). But for 'combinations', should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?
 
 
-**Maybe estimate** 
+**Maybe also estimate** 
 
-> Concordance of rank‑orders across papers: Spearman $\rho$ or Kendall $\tau$ if you also collect overall 'rankings' of paper quality. cor(..., method = "spearman"|"kendall"); DescTools::KendallW() for many raters. 
+> [GPT] Concordance of rank‑orders across papers: Spearman $\rho$ or Kendall $\tau$ if you also collect overall 'rankings' of paper quality. cor(..., method = "spearman"|"kendall"); DescTools::KendallW() for many raters. 
 
 We don't ask evaluators to do rankings, but we do make these comparisons, and we could see 'human evaluators' as a class. And the rank-sensitivity seems compelling. But why choose Kendall vs Spearman?
 
 Probably skip:^[Quadratic‑weighted $\kappa$  (Cohen’s weighted kappa) "penalizes big disagreements more than small ones" intuitive 0–1 scale.  DR: I don't think we want to penalize big disagreements nonlinearly.]
 
 
-### Desirable For comparing distributions (imputed from CIs)
+### Desirable for comparing distributions (imputed from CIs)
 
 > Distributional similarity / information theory 
 
@@ -65,10 +63,24 @@ K-L divergence: Directional: focus on how well the LLM models predict the humans
 Probably skip:^["Mutual information between human and LLM ratings — 'how many nats/bits of information one gives about the other'." -- I don't think our measures are reasonably expressed in bits?] 
 
 
+### Desirable: Hierarchical models for identifying systematic patterns (with caveats)
+
+> [GPT] Use hierarchical ordinal models: `brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative("logit"))` to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist). 
+
+We could add parameters for paper characteristics, especially field/cause area, method, and source. However, these should not be treated as causal effects, as they may be confounded with paper quality and rater characteristics. Even the implied 'interactions' with 'method' (LLM vs human) may be confounded. But it seems descriptively useful and suggestive.
+
 
 ## Predicting bibliometrics (\*) (#PREDICT_BIBLIOMETRICS)
 
-Making the most accurate predictions for publication outcomes and bibliometrics?
+Making the most accurate predictions for publication outcomes and bibliometrics (citation counts etc.)
+
+*Contamination is a substantial concern here* (also for human ratings), so we'd need to focus on papers currently in early stages.
+
+Possible outcomes: Top-tier journal (binary), journal REPEC-index, (weighted) citation counts 2y/5y, time to publication in tier above threshold. 
+
+Metrics (return to this, we are not likely to have this data for a while).
+
+
 
 <!-- Commenting this section out for now because it will be a while until we are ready to do this 
 
@@ -203,8 +215,7 @@ What are some deeper but still concrete definitions of different types of either
 
 
 
-
-# Dimensions of prompt and context variation
+# Prompt and context variation
 
 *These could be assembled in a sheet or data frame.* 
 There are probably too many variations here for a full factorial design, or for designs reporting and comparing all ratings across all designs (at least this seems overwhelming). 
@@ -213,7 +224,9 @@ I suggest
 1. Focus on 2-3 'likely best setups', supported by previous work and intuition, for full comparisons
 2. For 1-2 of these 'best setups' varying other dimensions one at a time, comparing key ratings only.
 
-## Which baseline model
+## Dimensions of variation 
+
+### Which baseline model
 
 - 3o
 - 5 pro
@@ -229,21 +242,21 @@ I suggest
 
 - Mention The Unjournal vs. Don't mention
 
-## Paper+ context variations
+### Paper+ context variations
 
 -   Abstract only
 -   Paper only
 -   Paper + supplementary materials + preregistration etc.
 -   Paper + human evaluations (contamination risk?)
 
-## Ordering of prompts
+### Ordering of prompts
 
 -   Ratings first, then discussion
 -   Discussion first, then ratings
 -   Explicitly asked to consider discussion in ratings
 -   Ratings only
 
-## De-identification and debiasing
+### De-identification and debiasing
 
 -   No de-identification, no debiasing instructions
 
@@ -258,8 +271,13 @@ I suggest
 -   Replace institutions with fake prestigious / non-prestigious institutions (\*)
 
 
-## Parameter variations
+### Parameter variations
 
 -   Temperature
 -   Top-p
 -   Number of runs (for aggregation)
+
+## Between prompt-stability measures
+
+
+> Within‑model repeatability: run k independent generations per prompt; report within‑LLM variance of ratings and text similarity across runs (cosine similarity of embeddings; quanteda.textstats::textstat_simil() or text::textSimilarity())
