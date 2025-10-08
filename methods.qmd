@@ -12,7 +12,7 @@ We draw on two main sources:
 
 We use The Unjournal's public data for a baseline comparison. At The Unjournal each paper is typically evaluated (aka 'reviewed') by two expert evaluators^[Occasionally they use 1 or 3 evaluators.] who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),^[See their guidelines [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#quantitative-metrics); these criteria include "Overall assessment", "Claims, strength and characterization of evidence", "Methods: Justification, reasonableness, validity, robustness", "Advancing knowledge and practice", "Logic and communication", "Open, collaborative, replicable science", and "Relevance to global priorities, usefulness for practitioners"] two "journal tier" ratings on a 0.0 - 5.0 scale,^["a normative judgment about 'how well the research should publish'" and "a prediction about where the research will be published"] a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper's "main claim". For our initial analysis, we extracted these human ratings and aggregated them, taking the average score per criterion across evaluators (and noting the range of individual scores). 
 
-All papers have completed The Unjournal's evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes `r dim(research_done)[1]`  papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
+All papers have completed The Unjournal's evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
 
 ## LLM-based evaluation
 
@@ -55,7 +55,7 @@ if not os.getenv("OPENAI_API_KEY"):
 client = OpenAI()
 
 # ---------- Model ----------
-MODEL = os.getenv("UJ_MODEL", "o3")
+MODEL = os.getenv("UJ_MODEL", "gpt-5")
 
 # ---------- PDF → text with a fixed tokenizer ----------
 _enc = tiktoken.get_encoding("o200k_base")  # large-context encoder
@@ -232,8 +232,8 @@ For the applied and policy stream the reference group should be "all applied and
 
 <summary>"Serious" research? Academic research? </summary>
 
-Here, we are mainly considering research done by professional researchers with high levels of training, experience, and familiarity with recent practice, who have time and resources to devote months or years to each such research project or paper. \
-\
+Here, we are mainly considering research done by professional researchers with high levels of training, experience, and familiarity with recent practice, who have time and resources to devote months or years to each such research project or paper. 
+
 These will typically be written as 'working papers' and presented at academic seminars before being submitted to standard academic journals. Although no credential is required, this typically includes people with PhD degrees (or upper-level PhD students). Most of this sort of research is done by full-time academics (professors, post-docs, academic staff, etc.) with a substantial research remit, as well as research staff at think tanks and research institutions (but there may be important exceptions). &#x20;
 
 </details>
@@ -575,6 +575,15 @@ else:
         
 ```
 
+<!-- Errors/Warnings during the latest LLM call:
+⚠️ Blimpo and Castaneda-Dower 2025.pdf: Expecting ',' delimiter: line 1 column 2660 (char 2659)
+Metrics:  44%|████▍     | 22/50 [36:58<49:23, 105.85s/it]⚠️ Carson et al. 2023.pdf: Unterminated string starting at: line 1 column 1050 (char 1049)
+Metrics:  58%|█████▊    | 29/50 [49:12<36:56, 105.54s/it]⚠️ Fangwa et al. 2023.pdf: Unterminated string starting at: line 1 column 2850 (char 2849)
+Metrics:  64%|██████▍   | 32/50 [54:36<31:54, 106.38s/it]⚠️ Green et al. 2025.pdf: Unterminated string starting at: line 1 column 1343 (char 1342)
+Metrics:  76%|███████▌  | 38/50 [1:04:44<19:49, 99.09s/it] ⚠️ Karger et al. 2023.pdf: Error code: 400 - {'error': {'message': 'Your input exceeds the context window of this model. Please adjust your input and try again.', 'type': 'invalid_request_error', 'param': 'input', 'code': 'context_length_exceeded'}}
+Metrics:  78%|███████▊  | 39/50 [1:05:41<15:52, 86.59s/it]⚠️ Kremer et al. 2020.pdf: Unterminated string starting at: line 1 column 2584 (char 2583)
+Metrics:  90%|█████████ | 45/50 [1:15:15<07:54, 94.97s/it]⚠️ Salazar and Restrepo 2024.pdf: Unterminated string starting at: line 1 column 2468 (char 2467)
+Metrics: 100%|██████████| 50/50 [1:25:42<00:00, 102.85s/it]⚠️ Xing et al. 2023.pdf: Unterminated string starting at: line 1 column 2322 (char 2321) -->
 
 
 ### Journal ranking tiers
