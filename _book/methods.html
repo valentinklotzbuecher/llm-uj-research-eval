@@ -4820,7 +4820,7 @@ vertical-align: -.125em;
 <p>Following The Unjournal’s <a href="https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators">standard guidelines for evaluators</a> and their <a href="https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME">academic evaluation form</a>, evaluators are asked to consider each paper along the following dimensions: <strong>claims &amp; evidence</strong>, <strong>methods</strong>, <strong>logic &amp; communication</strong>, <strong>open science</strong>, <strong>global relevance</strong>, and an <strong>overall</strong> assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked for the midpoint of their beliefs and their 90% credible interval, to communicate their uncertainty.</p>
 <!-- *Internal note: The Python content below must be run externally* -->
 <p>We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.</p>
-<div id="setup-env" class="cell" data-execution_count="1">
+<div id="setup-env" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Environment setup</span></span>
@@ -4934,7 +4934,7 @@ vertical-align: -.125em;
 <p>We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each, as well as a short rationale for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean.</p>
 <p>We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model’s inaccuracy more when it’s stated with high confidence</p>
 <p>We request brief rationales to allow the LLM to clarify the evidence and the process that drove it’s rating. This could help us understand it’s prioritization and taste, and might help us spot if it misunderstood our instructions. However, we cannot be confident that it’s response to this question accurate reveals the process or the reasoning steps behind the ratings. E.g., this might reflect an ex-post attempt to construct a concise and believable story, when in fact the process that may have been far more random, too complicated to discuss in words, or reflecting biases.</p>
-<div id="llm-setup" class="cell" data-execution_count="2">
+<div id="llm-setup" class="cell" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># -----------------------------</span></span>
@@ -5206,7 +5206,7 @@ vertical-align: -.125em;
 </details>
 </div>
 <p>We use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate “ingestion” stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.</p>
-<div id="eval-helper-function" class="cell" data-execution_count="3">
+<div id="eval-helper-function" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluation function</span></span>
@@ -5259,7 +5259,7 @@ vertical-align: -.125em;
 <span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="op">**</span>out, <span class="op">**</span>meta}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="eval-many-metrics" class="cell" data-execution_count="4">
+<div id="eval-many-metrics" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#23 Sept 2025 -- this was run as a separate chunk in VScode</span></span>
@@ -5357,7 +5357,7 @@ Metrics: 100%|██████████| 50/50 [1:25:42<00:00, 102.85s/it]�
 <li>What journal ranking tier should this work be published in? (0.0-5.0)</li>
 <li>What journal ranking tier will this work be published in? (0.0-5.0)</li>
 </ul>
-<div id="tiers-setup" class="cell" data-execution_count="5">
+<div id="tiers-setup" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> __future__ <span class="im">import</span> annotations</span>
@@ -5656,7 +5656,7 @@ Metrics: 100%|██████████| 50/50 [1:25:42<00:00, 102.85s/it]�
 <span id="cb5-294"><a href="#cb5-294" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> wide</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div id="74b8f16d" class="cell" data-execution_count="6">
+<div id="74b8f16d" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>batch_evaluate_journal_tiers(</span>
@@ -5672,7 +5672,7 @@ Metrics: 100%|██████████| 50/50 [1:25:42<00:00, 102.85s/it]�
 </section>
 <section id="qualitative-assessments" class="level3">
 <h3 class="anchored" data-anchor-id="qualitative-assessments">Qualitative assessments</h3>
-<div id="prompt-fulleval" class="cell" data-execution_count="7">
+<div id="prompt-fulleval" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>EVAL_SCHEMA: Dict[<span class="bu">str</span>, Any] <span class="op">=</span> {</span>
