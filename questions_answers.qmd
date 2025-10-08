@@ -1,5 +1,5 @@
 ---
-title: "Specific questions, suggested metrics and tests, explanations"
+title: "Discussion: Questions, metrics, tests"
 ---
 
 See [Coda here](https://coda.io/d/Comparing-LLM-Generated-Reviews-to-Human-Evaluations-in-Social-S_dSJIQH2CJD3/Questions-and-metrics_suHIfnI2#_lu2K-xEW) for now (will integrate back into this Qmd once we have converged on reasonable measures and tests.)
@@ -25,6 +25,8 @@ For face-value sanity checks, report and compare models 'predictions' of human r
 -   Mean absolute error (MAE)
 -   Root mean squared error (RMSE)
 -   Correlation (Pearson and Spearman)
+
+Possibly also:
 -   Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure)
 -   (Pseudo)-calibration of LLM CIs: How often does the human point estimate fall within the LLM CI?
 
@@ -56,11 +58,13 @@ Probably skip:^[Quadratic‑weighted $\kappa$  (Cohen’s weighted kappa) "penal
 
 > Distributional similarity / information theory 
 
-> Jensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive “distance between distributions”. `philentropy::JSD()`  
+> Jensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive "distance between distributions". `philentropy::JSD()`  
 
 K-L divergence: Directional: focus on how well the LLM models predict the humans, i.e., how 'surprising' the human distributions are to the LLMs.
 
 Probably skip:^["Mutual information between human and LLM ratings — 'how many nats/bits of information one gives about the other'." -- I don't think our measures are reasonably expressed in bits?] 
+
+
 
 
 ### Desirable: Hierarchical models for identifying systematic patterns (with caveats)
@@ -186,11 +190,15 @@ Adding some 'pro tips' that seemed useful:
 
 Why are these questions useful?: 
 
-* Should we use LLMs to do evaluation? (And related tasks like pre-screening, grants)
-* Or, how should we use it as a complement? 
-* (application) Value of The Unjournal reports
-* Insights into research and insight capabilities of LLMs (e.g., do they rate certain things particularly well?)
-* LLM agreement as a measure of consensus is in an academic sub-field [ 
+- Should we use LLMs to do evaluation? (And related tasks like pre-screening, grants)
+
+- Or, how should we use it as a complement? 
+
+-  (application) Value of The Unjournal reports
+
+- Insights into research and insight capabilities of LLMs (e.g., do they rate certain things particularly well?)
+
+-  LLM agreement as a measure of consensus is in an academic sub-field  
 
 
 How will we measure and test these?
@@ -200,10 +208,13 @@ How will we measure and test these?
 
 This might need to be qualitative/informal. I'm not sure how to make it quantitative. 
 
-* Which of our rating categories or rating frameworks does its overall assessment tend to correlate with more? (E.g., credibility, innovation, comms)
-* Specific opinions on methodological divides? That seems pretty unlikely to be inherent.
-* Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs. incorrectly? (E.g., causal identification, statistical inference, experimental design...)
-* Characterization of results — “importance hacking” 
+- Which of our rating categories or rating frameworks does its overall assessment tend to correlate with more? (E.g., credibility, innovation, comms)
+
+- Specific opinions on methodological divides? That seems pretty unlikely to be inherent.
+
+- Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs. incorrectly? (E.g., causal identification, statistical inference, experimental design...)
+
+- Characterization of results — "importance hacking"
 
 
 
@@ -224,60 +235,81 @@ I suggest
 1. Focus on 2-3 'likely best setups', supported by previous work and intuition, for full comparisons
 2. For 1-2 of these 'best setups' varying other dimensions one at a time, comparing key ratings only.
 
+"(+)" Indicates the most promising options to try first.
+
 ## Dimensions of variation 
 
 ### Which baseline model
 
-- 3o
-- 5 pro
-- Deep research (5?)
+- GPT5 pro (+) (or o3 until it's available)
+- Deep research (GPT5) -- (comes with web search natively?, may be compatible with supplementary materials)
 - Other providers (\*)
 
 
-## Prompt variations  
+## Prompt variations
 
-- "Evaluate as an economist" vs "predict"
+- "Evaluate as an economist" (+)
+-  vs "predict what an Unjournal evaluator would say" 
 
-- Exact guidelines for evaluators vs. LLM-specific tailoring
+- Exact guidelines for evaluators (+)
+- LLM-specific tailoring
 
-- Mention The Unjournal vs. Don't mention
+- Don't mention The Unjournal (+)
+- Mention The Unjournal 
+
 
 ### Paper+ context variations
 
--   Abstract only
--   Paper only
--   Paper + supplementary materials + preregistration etc.
--   Paper + human evaluations (contamination risk?)
+- Abstract only (if we have time to strip these)
+- Paper only (+)
+- Paper + supplementary materials + preregistration etc. (When we can)
+- Paper + human evaluations (contamination risk?)
 
-### Ordering of prompts
+### Ordering and separation of prompts
 
--   Ratings first, then discussion
--   Discussion first, then ratings
--   Explicitly asked to consider discussion in ratings
--   Ratings only
+- A single rating (tier) first
+
+- Ratings first, then discussion
+- Discussion first, then ratings
+- Explicitly asked to consider discussion in ratings
+- Ratings only
+
+TMZ: This probably doesn't matter because it's a reasoning model
+
+- Split each rating and task into a separate prompt (*)
+
 
 ### De-identification and debiasing
 
--   No de-identification, no debiasing instructions
+[Note: remember to use non-journal versions of PDFs where possible.]
 
--   No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.")
+- No de-identification, no debiasing instructions (+)
 
--   Remove author names, institutions, acknowledgements, funding sources
+- No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.") (+)
 
--   Check if it still guesses the authors etc.
+-  Remove author names, institutions, acknowledgements, funding sources (needs to be done with text to pdf conversion first processing)
 
--   Replace author names with fake prestigious / non-prestigious names (\*)
+<!-- Steps -- can ask Gemini to id 'what should be removed, and then remove it ' -->
 
--   Replace institutions with fake prestigious / non-prestigious institutions (\*)
+*To do: Check if it still guesses the authors etc.*
+
+- Replace author names with fake prestigious / non-prestigious names (\*)
+
+- Replace institutions with fake prestigious / non-prestigious institutions (\*)
 
 
 ### Parameter variations
 
--   Temperature
--   Top-p
--   Number of runs (for aggregation)
+Skip for now? 
+
+-   Temperature (Maybe this is fixed at 1 for reasoning models?)
+
+-   Top-p (Rem: distribution of possible tokens to sample from)
+
+-   Number of runs (for aggregation) (Just do it 1x for now)
 
 ## Between prompt-stability measures
 
-
 > Within‑model repeatability: run k independent generations per prompt; report within‑LLM variance of ratings and text similarity across runs (cosine similarity of embeddings; quanteda.textstats::textstat_simil() or text::textSimilarity())
+
+
