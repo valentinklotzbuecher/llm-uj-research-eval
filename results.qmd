@@ -6,6 +6,12 @@ format:
 engine: knitr
 --- 
 
+```{r} 
+#| label: setup call
+#| code-summary: "Include global setup and parameters"
+
+source("setup_params.R")
+```
 
 ```{r}
 #| label: setup
@@ -140,7 +146,7 @@ tok_sum <- metrics_meta |>
 
 
 
-reasining_example = metrics_meta |>
+reasoning_example = metrics_meta |>
   filter(!is.na(reasoning_summary), 
          paper == "Williams et al. 2024")
 
@@ -367,7 +373,7 @@ We evaluated `r tok_sum$n_papers` papers using `r currentmodel`, reading each ma
 <!-- Before looking at the output, it is instructive to look at the reported reasoning summary of the LLM (only partially available).   -->
 <!-- For example, this is what `r currentmodel` reports about its reasoning for @Williams2024: -->
 
-<!-- r sprintf(reasining_example$reasoning_summary) -->
+<!-- r sprintf(reasoning_example$reasoning_summary) -->
 
 
 
