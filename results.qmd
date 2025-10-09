@@ -14,15 +14,14 @@ source("setup_params.R")
 ```
 
 ```{r}
-#| label: setup
-
+#| label: setup-libs
 
 library("tidyverse")
 library("janitor")
 library("stringr")
-library("stringi")
+library("stringi") #probably redundant?
 library("lubridate")
-library("readr")
+#library("readr") #redundant?
 library("here") 
 library("knitr") 
 library("ggforce") 
@@ -30,6 +29,15 @@ library("ggrepel")
 library("glue")
 library("ggalluvial")
 library("scales")
+library("viridis")       # For colorblind-friendly palettes
+library("ggbreak")
+
+
+```
+
+```{r}
+#| label: setup-themes
+
  
 UJ_ORANGE <- "#f19e4b"   # LLM
 UJ_GREEN  <- "#99bb66"   # Human
@@ -42,7 +50,12 @@ theme_uj <- function(base_size = 11) {
       legend.position = "bottom"
     )
 }
+
  
+```
+```{r}
+#| label: functions-summaries
+
 fix_bounds <- function(df, lo, hi) {
   lo2 <- suppressWarnings(as.numeric(df[[lo]]))
   hi2 <- suppressWarnings(as.numeric(df[[hi]]))
@@ -227,6 +240,81 @@ write_rds(
 
 ```
 
+```{r}
+#| label: forest-improved
+#| fig-height: 15
+#| fig-cap: "Journal tiers -- LLM vs individual Human ratings. Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (CI when available) offset per rater."
+
+ggplot() +
+  # Background grid lines for each paper row
+  geom_hline(yintercept = pos_map$pos, color = "grey90", linewidth = 0.4) +
+  
+  # Human intervals: dashed lines for distinction
+  geom_errorbarh(
+    data = H_indiv |> filter(is.finite(lo), is.finite(hi)),
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, alpha = 0.5, linewidth = 1.0, linetype = "dashed"
+  ) +
+  
+  # Human points: larger, semi-transparent for visibility
+  geom_point(
+    data = H_indiv,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 2.8, alpha = 0.9
+  ) +
+  
+  # LLM intervals: thicker solid lines
+  geom_errorbarh(
+    data = L_llm,
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, linewidth = 1.2
+  ) +
+  
+  # LLM points: diamond shape, largest
+  geom_point(
+    data = L_llm,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 3.4, stroke = 1
+  ) +
+  
+ scale_color_manual(
+    values = c(LLM = UJ_ORANGE, Human = "#669933"),
+    name = NULL,
+    labels = c(LLM = "LLM", Human = "Human")
+  ) +
+  scale_shape_manual(
+    values = c(LLM = 18, Human = 16),
+    name = NULL,
+    labels = c(LLM = "LLM", Human = "Human")
+  ) +
+  
+  scale_y_reverse(
+    breaks = pos_map$pos,
+    labels = pos_map$paper_lab,
+    expand = expansion(mult = c(0.02, 0.06))
+  ) +
+  coord_cartesian(xlim = xlim_use) +
+  labs(x = NULL, y = NULL) +
+  
+  guides(
+    colour = guide_legend(override.aes = list(alpha = 1, size = 3.4)),
+    shape  = guide_legend(override.aes = list(size = 3.4))
+  ) +
+  
+  theme_uj() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(hjust = 0.98, size = 12),
+    legend.position = "bottom",
+    plot.margin = margin(10, 30, 10, 30)
+  ) 
+
+
+# Optional: For interactive exploration in HTML output
+ library(plotly)
+ ggplotly(last_plot())
+
+```
 
 
 ```{r}
@@ -234,7 +322,6 @@ write_rds(
 #| fig-cap: "Journal tiers -- LLM vs individual Human ratings. Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (CI when available) offset per rater."
 #| fig-height: 13
 #| fig-width: 8
-
 
 
 jtiers <- jtiers |>
@@ -484,7 +571,6 @@ llm_raw <- all_ratings |>
   ) |>
   distinct()
  
-
 
 
 
