@@ -664,10 +664,10 @@ ggplot() +
 
 ```{r}
 #| label: forest-improved
-#| fig-height: 15
+#| fig-height: 14
 #| fig-cap: "Journal tiers -- LLM vs individual Human ratings. Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (CI when available) offset per rater."
 
-ggplot() +
+p <- ggplot() +
   # Background grid lines for each paper row
   geom_hline(yintercept = pos_map$pos, color = "grey90", linewidth = 0.4) +
   
@@ -734,7 +734,7 @@ ggplot() +
 
 # Optional: For interactive exploration in HTML output
  library(plotly)
- ggplotly(last_plot())
+ ggplotly(p)
 
 ```
 
