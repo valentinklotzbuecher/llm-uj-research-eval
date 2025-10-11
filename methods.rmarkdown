@@ -9,6 +9,7 @@ title: "Data and methods"
 source("setup_params.R")
 ```
 
+
 We draw on two main sources:
 
 1) Human evaluations from [The Unjournal’s public evaluation data](https://unjournal.github.io/unjournaldata/index.html) (PubPub reports and the Coda evaluation form export).  
@@ -33,6 +34,7 @@ For the journal rankings measure, we ask both "what journal ranking tier should 
 We captured the versions of each paper that was evaluated by The Unjournal's human evaluators, downloading from the links provided in The Unjournal's Coda database. <!-- Add link to this -- is it correct? Are we sure these are the ones evaluated? --> 
 
 We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.
+
 
 
 ```{python}
@@ -250,11 +252,13 @@ def _extract_json(s: str) -> Dict[str, Any]:
 
 
 
+
 We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each, as well as a short rationale for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
 
 We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence
 
 We request brief rationales to allow the LLM to clarify the evidence and the process that drove it's rating. This could help us understand it's prioritization and taste, and might help us spot if it misunderstood our instructions. However, we cannot be confident that it's response to this question accurate reveals the process or the reasoning steps behind the ratings. E.g., this might reflect an ex-post attempt to construct a concise and believable story, when in fact the process that may have been far more random, too complicated to discuss in words, or reflecting biases.  
+
 
 
 ```{python}
@@ -482,12 +486,14 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
 ```
 
 
+
 We use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate "ingestion" stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.
+
 
 
 ```{python}
 #| label: eval-many-metrics
-#| eval: false
+#| eval: true
 #| code-fold: true
 #| code-summary: "Batch evaluate PDFs"
 
@@ -582,6 +588,7 @@ else:
 
 
 ```
+
 
 
 
@@ -1173,6 +1180,7 @@ else:
 
 
 <!-- ``` -->
+
 
 
 
