@@ -1,0 +1,505 @@
+---
+title: "Public Research Evaluation: Unjournal.org and LLMs"
+date: "October 17, 2025"
+author:
+    - name: "David Reinstein"
+      affiliation: "The Unjournal"
+      email: davidreinstein@unjournal.org
+      orcid: 0000-0002-0470-4991
+    - name: "Valentin Klotzbücher"
+      orcid: 0000-0001-9382-6757
+      email: valentin.klotzbuecher@usb.ch
+      affiliation: "University of Basel & University Hospital Basel"
+bibliography:
+  - references.bib
+csl: "the-quarterly-journal-of-economics.csl"
+format:
+  revealjs:
+    incremental: false
+    scrollable: false
+    theme: custom.scss
+    logo: "unjournal_logo.JPG"
+    width: 1920
+    height: 1080
+    margin: 0.1
+    menu:
+      side: right
+      width: wide
+    center: true
+    numbers: true
+    slide-number: true
+    show-slide-number: all
+    embed-resources: true
+---
+
+
+## The Unjournal
+
+*Public Journal-Independent Evaluation of Impactful Research*
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+
+- Focus: rigorous, policy‑relevant social science and economics  
+- Not a venue. No accept/reject. We publish evaluations, not papers  
+- Everything citable and reusable 
+
+:::
+
+::: {.column width="50%"}
+
+![](Unjournal_logo.jpg)
+
+:::
+
+:::
+
+<!-- --- -->
+
+<!-- ## Why this exists -->
+
+<!-- - Traditional peer review is slow and opaque   -->
+<!-- - Accept/reject is a poor signal for synthesis and hiring   -->
+<!-- - We make evaluations themselves the data: structured, comparable, open -->
+
+
+
+---
+
+## How it works
+
+- **Nominate & prioritize**: team curates promising works; capacity‑limited  
+- **Contact authors**: inform and coordinate; get materials if needed  
+- **Commission experts**: 2–3 evaluators recruited for fit and credibility  
+- **Compensate**: evaluators and evaluation managers are **paid** for work ($350 on average) 
+- **Evaluate**: narrative reports + rubric‑anchored ratings and predictions  
+- **Publish & update**: PubPub package, DOIs, summaries, author responses
+
+
+---
+
+## Output
+
+
+---
+
+
+## Quantitative metrics
+
+
+- Overall
+
+
+
+---
+
+
+
+## LLM evaluation output, comparison to Unjournal ratings (and evaluations)
+
+Our goals and questions
+
+
+- Literature: @Pataranutaporn2025; @Zhang2025
+
+
+
+
+
+---
+
+
+
+Our process so far
+
+
+
+
+
+```{r}
+#| label: setup-libs
+
+library("tidyverse")
+library("janitor")
+library("stringr")
+library("stringi") #probably redundant?
+library("lubridate")
+#library("readr") #redundant?
+library("here") 
+library("knitr") 
+library("ggforce") 
+library("ggrepel")
+library("glue")
+# library("ggalluvial")
+library("scales")
+# library("ggbreak")
+
+library("plotly")
+
+
+UJ_ORANGE <- "#f19e4b"   # LLM
+UJ_GREEN  <- "#99bb66"   # Human
+
+theme_uj <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      legend.position = "bottom"
+    )
+}
+
+ 
+```
+
+
+```{r}
+#| label: load-data-tiers
+
+
+# paper_authors <- read_delim("data/paper_authors.csv", delim = ",")
+
+# Mapping paper keys - short titles
+UJmap <- read_delim("data/UJ_map.csv", delim = ";") |>
+  mutate(label_paper_title = research,
+         label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+
+# Unjournal ratings
+rsx <- read_csv("data/rsx_evalr_rating.csv", show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
+
+
+# UJ evaluated research
+research <- read_csv("data/research.csv", show_col_types = FALSE) |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>  
+  left_join(UJmap, by = c("label_paper_title")) |>
+  mutate(doi = str_trim(doi)) |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w31162", "Walker et al. 2023", label_paper, missing = label_paper)) |>
+  mutate(label_paper = if_else(doi == "doi.org/10.3386/w32728", "Hahn et al. 2025", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w30011", "Bhat et al. 2022", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "10.1093/wbro/lkae010", "Crawfurd et al. 2023", label_paper, missing = label_paper))  |>
+  left_join(rsx, by = c("label_paper_title"))
+ 
+
+jtiers_llm <- read_csv("data/tiers_long.csv", show_col_types = FALSE) |>
+  mutate(middle_rating = score,
+         lower_ci = lo,
+         upper_ci = hi,
+         criteria = if_else(tier_kind == "tier_will", "journal_predict", "merits_journal"),
+         evaluator = "gpt-5",
+         label_paper = paper
+         ) |>
+  select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
+
+
+jtiers_uj <- research |>
+  filter(criteria== "merits_journal" | criteria == "journal_predict") |>
+  mutate(paper = label_paper,
+         rationale = "")  |>
+  select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
+
+
+jtiers <- jtiers_uj |>
+  rbind(jtiers_llm) |>
+  mutate(human = if_else(evaluator == "o3", "Human", "o3"),
+         lower_ci = if_else(lower_ci > 10, lower_ci/10, lower_ci))
+
+
+# write_csv(all_ratings, "data/all_jtiers.csv")
+write_rds(
+  jtiers,
+  "data/all_jtiers.rds",
+  compress = "none"
+  )
+
+# utilities + clean columns for plotting
+
+lane_offsets_center <- function(m, gap = 0.18) {
+  if (m <= 0) return(numeric(0))
+  if (m == 1) return(0)
+  k <- floor((m - 1)/2)
+  offs <- sort(c(-seq_len(k), 0, seq_len(k))) * gap
+  offs[seq_len(m)]
+}
+lane_offsets_skip0 <- function(m, gap = 0.18) {
+  if (m <= 0) return(numeric(0))
+  if (m == 1) return(gap)
+  k <- ceiling(m/2)
+  offs <- sort(c(-seq_len(k), seq_len(k))) * gap
+  offs[seq_len(m)]
+}
+
+jt_use <- jtiers |>
+  transmute(
+    label_paper,
+    criteria,
+    who = if_else(evaluator == "gpt-5", "LLM", "Human"),
+    mid = as.numeric(middle_rating),
+    lo  = suppressWarnings(as.numeric(lower_ci)),
+    hi  = suppressWarnings(as.numeric(upper_ci))
+  ) |>
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(1, pmin(5, lo)), NA_real_),
+    hi = ifelse(is.finite(hi), pmax(1, pmin(5, hi)), NA_real_)
+  )
+
+tier_metric <- "merits_journal"  # change "merits_journal" to "journal_predict" for the other slide
+
+```
+
+
+```{r}
+#| label: load-data-metrics
+# Rebuild 0–100 metrics cleanly (LLM + all human ratings)
+
+canon_metric <- function(x) dplyr::recode(
+  x,
+  "advancing_knowledge" = "adv_knowledge",
+  "open_science"        = "open_sci",
+  "logic_communication" = "logic_comms",
+  "global_relevance"    = "gp_relevance",
+  "claims_evidence"     = "claims",
+  .default = x
+)
+
+# LLM metrics
+metrics_llm <- readr::read_csv(here("data","metrics_long.csv"), show_col_types = FALSE) |>
+  janitor::clean_names() |>
+  mutate(
+    label_paper = stringr::str_replace(paper, "et al ", "et al. "),
+    criteria    = canon_metric(metric),
+    mid = as.numeric(midpoint),
+    lo  = suppressWarnings(as.numeric(lower_bound)),
+    hi  = suppressWarnings(as.numeric(upper_bound)),
+    who = "LLM"
+  ) |>
+  transmute(label_paper, criteria, who, mid, lo, hi) |>
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(0, pmin(100, lo)), NA_real_),
+    hi = ifelse(is.finite(hi), pmax(0, pmin(100, hi)), NA_real_)
+  )
+
+# Human metrics (use your earlier rsx + research mapping)
+rsx_research <- rsx |>
+  left_join(research |> select(label_paper_title, label_paper), by = "label_paper_title")
+
+metrics_human <- rsx_research |>
+  mutate(criteria = canon_metric(criteria)) |>
+  filter(criteria %in% c("overall","claims","methods","adv_knowledge","logic_comms","open_sci","gp_relevance")) |>
+  transmute(
+    label_paper,
+    criteria,
+    who = "Human",
+    mid = as.numeric(middle_rating),
+    lo  = suppressWarnings(as.numeric(lower_ci)),
+    hi  = suppressWarnings(as.numeric(upper_ci))
+  ) |>
+  filter(!is.na(label_paper), !is.na(mid)) |>
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(0, pmin(100, lo)), NA_real_),
+    hi = ifelse(is.finite(hi), pmax(0, pmin(100, hi)), NA_real_)
+  )
+
+metrics_use <- bind_rows(metrics_human, metrics_llm)
+
+```
+
+
+---
+
+## Overall ratings: Unjournal vs GPT-5
+
+Overall rating 
+
+
+```{r}
+#| label: fig-scatter-overall-metrics
+#| fig-width: 20
+#| fig-height: 8
+
+library(plotly)
+
+Hm <- metrics_use |> filter(criteria == "overall", who == "Human") |>
+  transmute(label_paper, mid_h = mid, lo_h = lo, hi_h = hi)
+
+Lm <- metrics_use |> filter(criteria == "overall", who == "LLM") |>
+  transmute(label_paper, mid_l = mid, lo_l = lo, hi_l = hi) |>
+  distinct()
+
+HLM <- Hm |> inner_join(Lm, by = "label_paper") |>
+  mutate(
+    ex  = pmax(0, hi_h - mid_h),  exm = pmax(0, mid_h - lo_h),
+    eyy = pmax(0, hi_l - mid_l),  eym = pmax(0, mid_l - lo_l),
+    diff = mid_l - mid_h,
+    hover = sprintf("<b>%s</b><br>Human: %.1f [%.1f, %.1f]<br>LLM: %.1f [%.1f, %.1f]<br>\u0394=%.1f",
+                    label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff)
+  )
+
+AXm <- list(range = c(0,100), dtick = 10, title = "Human (overall)",
+            zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 26), titlefont = list(size = 28))
+AYm <- list(range = c(0,100), dtick = 10, title = "LLM (overall)",
+            zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 26), titlefont = list(size = 28))
+
+plot_ly(HLM) |>
+  add_markers(x = ~mid_h, y = ~mid_l,
+              marker = list(size = 24, color = UJ_ORANGE, line = list(width = 0), alpha = 0.8),
+              # error_x = list(type = "data", array = ~ex,  arrayminus = ~exm, thickness = 3, color = UJ_GREEN),
+              # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE),
+              hovertemplate = ~hover, showlegend = FALSE) |>
+  add_lines(x = c(0,100), y = c(0,100),
+            line = list(dash = "dash", width = 2, color = "gray60"),
+            hoverinfo = "none", showlegend = FALSE) |>
+  layout(xaxis = AXm, yaxis = AYm,
+         hoverlabel = list(font = list(size = 24)),
+         margin = list(l = 60, r = 30, t = 50, b = 50))
+
+```
+
+
+
+
+---
+
+## Journal tier rating: Unjournal vs GPT-5
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+
+
+- Where *should* this be published?
+
+```{r}
+#| label: scatter-tiers-rating
+#| fig-width: 8
+#| fig-height: 8
+#| fig-align: center
+
+library(plotly)
+
+# Humans and LLM for the chosen tier metric
+H <- jt_use |> filter(criteria == tier_metric, who == "Human",
+                      is.finite(mid)) |>
+  select(label_paper, who, mid_h = mid, lo_h = lo, hi_h = hi)
+
+L <- jt_use |> filter(criteria == tier_metric, who == "LLM") |>
+  select(label_paper, mid_l = mid, lo_l = lo, hi_l = hi)
+
+HL <- H |> inner_join(L, by = "label_paper") |>
+  mutate(
+    ex  = pmax(0, hi_h - mid_h), exm = pmax(0, mid_h - lo_h),
+    eyy = pmax(0, hi_l - mid_l), eym = pmax(0, mid_l - lo_l),
+    diff = mid_l - mid_h,
+    hover = sprintf(
+      "<b>%s</b><br>Human: %.2f [%.2f, %.2f]<br>LLM: %.2f [%.2f, %.2f]<br>\u0394=LLM−Human: %.2f",
+      label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff)
+  )
+
+AX <- list(range = c(1,5), dtick = 1, title = "Human tier",
+           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
+AY <- list(range = c(1,5), dtick = 1, title = "LLM tier",
+           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
+
+plot_ly(HL) |>
+  add_markers(x = ~mid_h, y = ~mid_l, name = "Paper",
+              marker = list(size = 22, color = UJ_GREEN, line = list(width = 0), alpha = 0.7),
+              # error_x = list(type = "data", array = ~ex, arrayminus = ~exm, thickness = 3, color = UJ_GREEN),
+              # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE),
+              hovertemplate = ~hover, showlegend = FALSE) |>
+  add_lines(x = c(1,5), y = c(1,5), name = "y = x",
+            line = list(dash = "dash", width = 2, color = "gray60"),
+            hoverinfo = "none", showlegend = FALSE) |>
+  layout(xaxis = AX, yaxis = AY,
+         hoverlabel = list(font = list(size = 24)),
+         margin = list(l = 60, r = 30, t = 50, b = 50))
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+- Where *will* this be published?
+
+```{r}
+#| label: scatter-tier-predict
+#| fig-width: 8
+#| fig-height: 8
+#| fig-align: center
+
+
+tier_metric <- "journal_predict"  # change "merits_journal" to "journal_predict" for the other slide
+
+
+# Humans and LLM for the chosen tier metric
+H <- jt_use |> filter(criteria == tier_metric, who == "Human",
+                      is.finite(mid)) |>
+  select(label_paper, who, mid_h = mid, lo_h = lo, hi_h = hi)
+
+L <- jt_use |> filter(criteria == tier_metric, who == "LLM") |>
+  select(label_paper, mid_l = mid, lo_l = lo, hi_l = hi)
+
+HL <- H |> inner_join(L, by = "label_paper") |>
+  mutate(
+    ex  = pmax(0, hi_h - mid_h), exm = pmax(0, mid_h - lo_h),
+    eyy = pmax(0, hi_l - mid_l), eym = pmax(0, mid_l - lo_l),
+    diff = mid_l - mid_h,
+    hover = sprintf(
+      "<b>%s</b><br>Human: %.2f [%.2f, %.2f]<br>LLM: %.2f [%.2f, %.2f]<br>\u0394=LLM−Human: %.2f",
+      label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff)
+  )
+
+AX <- list(range = c(1,5), dtick = 1, title = "Human tier",
+           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
+AY <- list(range = c(1,5), dtick = 1, title = "LLM tier",
+           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
+
+plot_ly(HL) |>
+  add_markers(x = ~mid_h, y = ~mid_l, name = "Paper",
+              marker = list(size = 22, color = UJ_GREEN, line = list(width = 0), alpha = 0.7),
+              # error_x = list(type = "data", array = ~ex, arrayminus = ~exm, thickness = 3, color = UJ_GREEN),
+              # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE),
+              hovertemplate = ~hover, showlegend = FALSE) |>
+  add_lines(x = c(1,5), y = c(1,5), name = "y = x",
+            line = list(dash = "dash", width = 2, color = "gray60"),
+            hoverinfo = "none", showlegend = FALSE) |>
+  layout(xaxis = AX, yaxis = AY,
+         hoverlabel = list(font = list(size = 24)),
+         margin = list(l = 60, r = 30, t = 50, b = 50))
+
+```
+
+:::
+
+:::
+
+---
+
+## Thank you!
+
+
+![](unjournal-qr-functional.svg){width=90%}
+
+
+Scan to visit  
+[unjournal.org](https://unjournal.org)
+
+
+
+
+---
+
+
+## References {.unnumbered}
+
+
+::: {#refs}
+:::
