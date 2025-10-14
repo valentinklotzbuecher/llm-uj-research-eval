@@ -59,7 +59,7 @@ if not os.getenv("OPENAI_API_KEY"):
 client = OpenAI()
 
 # --- Model
-MODEL = os.getenv("UJ_MODEL", "gpt-5")
+MODEL = os.getenv("UJ_MODEL", "gpt-5-pro")
 
 # --- File-id cache (content-hash keyed)
 FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
@@ -499,31 +499,6 @@ def evaluate_paper(pdf_path, model=None, use_reasoning=True, parse_retry=1):
             {"type": "input_text", "text": "Output a single JSON object only. No markdown. No explanation."}
         )
         resp = call_with_retries(lambda: client.responses.create(**payload))
-        text = _get_output_text(resp)
-        out = _extract_json(text)
-
-    meta = _reasoning_meta(resp)
-    return {**out, **meta}
-
-    def _make_call():
-        return client.responses.create(**_payload())
-
-    # First attempt
-    resp = call_with_retries(_make_call)
-    text = _get_output_text(resp)
-    try:
-        out = _extract_json(text)
-    except Exception:
-        if parse_retry <= 0:
-            raise
-        # One more attempt with a stricter nudge
-        def _make_call_2():
-            payload = _payload()
-            payload["input"][-1]["content"].append(
-                {"type": "input_text", "text": "Output a single JSON object only. No markdown. No explanation."}
-            )
-            return client.responses.create(**payload)
-        resp = call_with_retries(_make_call_2)
         text = _get_output_text(resp)
         out = _extract_json(text)
 
