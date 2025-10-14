@@ -439,15 +439,16 @@ Be specific and terse in rationales. Do not include citations or external URLs. 
 """.strip()
 
 # --- Meta extraction
-def _reasoning_meta(resp) -> Dict[str, Any]:
+def _reasoning_meta(resp):
     d = _resp_as_dict(resp)
     rid, summary_text = None, None
-    out = d.get("output") or []
-    if out and isinstance(out, list) and out[0].get("type") == "reasoning":
-        rid = out[0].get("id")
-        summ = out[0].get("summary") or []
-        if summ and isinstance(summ, list):
-            summary_text = summ[0].get("text")
+    for it in d.get("output") or []:
+        if it.get("type") == "reasoning":
+            rid = it.get("id")
+            summ = it.get("summary") or []
+            if summ and isinstance(summ, list):
+                summary_text = summ[0].get("text")
+            break
     usage = d.get("usage") or {}
     odet  = usage.get("output_tokens_details") or {}
     return {
@@ -459,6 +460,7 @@ def _reasoning_meta(resp) -> Dict[str, Any]:
         "reasoning_tokens": odet.get("reasoning_tokens"),
     }
 
+
 # --- Core evaluator
 
 def evaluate_paper(pdf_path, model=None, use_reasoning=True, parse_retry=1):
@@ -467,7 +469,7 @@ def evaluate_paper(pdf_path, model=None, use_reasoning=True, parse_retry=1):
 
     payload = dict(
         model=model,
-        response_format=RESPONSE_FORMAT,                 # <-- fixed
+        response_format=RESPONSE_FORMAT,
         input=[
             {"role": "system", "content": [
                 {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
@@ -477,14 +479,30 @@ def evaluate_paper(pdf_path, model=None, use_reasoning=True, parse_retry=1):
                 {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
             ]},
         ],
-        max_output_tokens=2000,                          # caps total output incl. reasoning tokens
+        max_output_tokens=2000,
         store=False,
-        service_tier=os.getenv("UJ_SERVICE_TIER", "flex")  # <-- enable Flex
+        service_tier=os.getenv("UJ_SERVICE_TIER", "flex"),
     )
     if use_reasoning:
-        payload["reasoning"] = {"effort": "high", "summary": "auto"}  # <-- maximum reasoning
+        payload["reasoning"] = {"effort": "high", "summary": "auto"}
 
-    return call_with_retries(lambda: client.responses.create(**payload))
+    # Call + parse to dict for downstream code
+    resp = call_with_retries(lambda: client.responses.create(**payload))
+    text = _get_output_text(resp)
+    try:
+        out = _extract_json(text)
+    except Exception:
+        if parse_retry <= 0:
+            raise
+        payload["input"][-1]["content"].append(
+            {"type": "input_text", "text": "Output a single JSON object only. No markdown. No explanation."}
+        )
+        resp = call_with_retries(lambda: client.responses.create(**payload))
+        text = _get_output_text(resp)
+        out = _extract_json(text)
+
+    meta = _reasoning_meta(resp)
+    return {**out, **meta}
 
     def _make_call():
         return client.responses.create(**_payload())
