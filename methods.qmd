@@ -40,7 +40,6 @@ We evaluate each paper by passing the PDF directly to the model and requiring a 
 #| eval: true
 #| code-fold: true
 #| code-summary: "LLM evaluation pipeline setup"
-#| cache: false
 
 # --- Imports
 import os, json, re, time, random, hashlib, pathlib
@@ -251,6 +250,7 @@ def _extract_json(s: str) -> Dict[str, Any]:
 
 
 
+
 We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each, as well as a short rationale for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
 
 We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence
@@ -264,6 +264,8 @@ We request brief rationales to allow the LLM to clarify the evidence and the pro
 #| code-fold: true
 #| code-summary: "Schema, prompt, evaluator"
 
+
+from typing import Dict
 
 # --- Metrics and schema
 METRICS = [
@@ -318,13 +320,12 @@ COMBINED_SCHEMA = {
     "additionalProperties": False,
 }
 
-TEXT_FORMAT = {
+TEXT_FORMAT_COMBINED = {
     "type": "json_schema",
     "name": "paper_assessment_with_tiers_v1",
     "strict": True,
     "schema": COMBINED_SCHEMA,
-    }
-
+}
 
 # --- System prompt (long but cleaned; field names aligned)
 _METRICS_TXT = "\n  " + "\n  ".join(METRICS) + "\n"
@@ -419,36 +420,35 @@ To help universities and policymakers make sense of our evaluations, we want to 
 	- Journal ranking tier "will" (0.0-5.0) 
 		Schema: tierwill: What if this work has already been peer reviewed and published? If this work has already been published, and you know where, please report the prediction you would have given absent that knowledge.
 
-### Output format and constraints
-Return **STRICT JSON** matching the supplied schema. **No preamble. No markdown. No extra text.**
+Return STRICT JSON matching the supplied schema. No preamble. No markdown. No extra text.
 
 Fill every key in the object `metrics`:
 
-{_METRICS_TXT}
+"overall", "claims_evidence", "methods", "advancing_knowledge", "logic_communication", "open_science", "global_relevance",
 Plus `tier_should` and `tier_will`.
 
-**Field names**
-- **Percentile metrics** → `midpoint`, `lower_bound`, `upper_bound`, `rationale` (≤400 chars).
-- **Tier metrics** → `score`, `ci_lower`, `ci_upper`, `rationale` (≤400 chars).
+Field names
+- Percentile metrics → `midpoint`, `lower_bound`, `upper_bound`, `rationale` (≤400 chars).
+- Tier metrics → `score`, `ci_lower`, `ci_upper`, `rationale` (≤400 chars).
 
-**Bounds**
+Bounds
 - Percentiles in [0, 100].
 - Tiers in [0, 5].
 
 Be specific and terse in rationales. Do not include citations or external URLs. Do not refer to these instructions. Output the JSON object only.
 """.strip()
 
+
 # --- Meta extraction
-def _reasoning_meta(resp):
+def _reasoning_meta(resp) -> Dict[str, Any]:
     d = _resp_as_dict(resp)
     rid, summary_text = None, None
-    for it in d.get("output") or []:
-        if it.get("type") == "reasoning":
-            rid = it.get("id")
-            summ = it.get("summary") or []
-            if summ and isinstance(summ, list):
-                summary_text = summ[0].get("text")
-            break
+    out = d.get("output") or []
+    if out and isinstance(out, list) and out[0].get("type") == "reasoning":
+        rid = out[0].get("id")
+        summ = out[0].get("summary") or []
+        if summ and isinstance(summ, list):
+            summary_text = summ[0].get("text")
     usage = d.get("usage") or {}
     odet  = usage.get("output_tokens_details") or {}
     return {
@@ -460,49 +460,60 @@ def _reasoning_meta(resp):
         "reasoning_tokens": odet.get("reasoning_tokens"),
     }
 
-
 # --- Core evaluator
-
-def evaluate_paper(pdf_path, model=None, use_reasoning=True, parse_retry=1):
+def evaluate_paper(pdf_path: Union[str, pathlib.Path],
+                   model: Optional[str] = None,
+                   use_reasoning: bool = True,
+                   parse_retry: int = 1) -> Dict[str, Any]:
+    """Upload the PDF and get structured JSON per COMBINED_SCHEMA."""
     model = model or MODEL
     fid = _get_file_id(pdf_path)
 
-    payload = dict(
-        model=model,
-        text={"format": TEXT_FORMAT},              # <-- use text.format (Responses API)
-        input=[
-            {"role": "system", "content": [
-                {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
-            ]},
-            {"role": "user", "content": [
-                {"type": "input_file", "file_id": fid},
-                {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
-            ]},
-        ],
-        max_output_tokens=2000,
-        store=False,
-        service_tier=os.getenv("UJ_SERVICE_TIER", "flex"),
-    )
-    if use_reasoning:
-        payload["reasoning"] = {"effort": "high", "summary": "auto"}
+    def _payload():
+        payload = dict(
+            model=model,
+            text={"format": TEXT_FORMAT_COMBINED},
+            input=[
+                {"role": "system", "content": [
+                    {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
+                ]},
+                {"role": "user", "content": [
+                    {"type": "input_file", "file_id": fid},
+                    {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
+                ]},
+            ],
+            max_output_tokens=2000,
+            store=False,
+        )
+        if use_reasoning:
+            payload["reasoning"] = {"effort": "low", "summary": "auto"}
+        return payload
 
-    # Call + parse to dict for downstream code
-    resp = call_with_retries(lambda: client.responses.create(**payload))
+    def _make_call():
+        return client.responses.create(**_payload())
+
+    # First attempt
+    resp = call_with_retries(_make_call)
     text = _get_output_text(resp)
     try:
         out = _extract_json(text)
     except Exception:
         if parse_retry <= 0:
             raise
-        payload["input"][-1]["content"].append(
-            {"type": "input_text", "text": "Output a single JSON object only. No markdown. No explanation."}
-        )
-        resp = call_with_retries(lambda: client.responses.create(**payload))
+        # One more attempt with a stricter nudge
+        def _make_call_2():
+            payload = _payload()
+            payload["input"][-1]["content"].append(
+                {"type": "input_text", "text": "Output a single JSON object only. No markdown. No explanation."}
+            )
+            return client.responses.create(**payload)
+        resp = call_with_retries(_make_call_2)
         text = _get_output_text(resp)
         out = _extract_json(text)
 
     meta = _reasoning_meta(resp)
     return {**out, **meta}
+
 
 
 ```
