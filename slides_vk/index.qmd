@@ -347,10 +347,9 @@ LLMs asked: "make a publication recommendation" ... 6-point scale from "1 = Defi
 
 ::: {.fragment}
 
-
 Also, a 10-point scale for originality, rigor, scope, impact...
 
-And 330 papers with various 'remove or change names and institutions' treatments
+And 330 papers w/ various 'remove/change names/institutions' treatments
 
 :::
 
@@ -358,7 +357,7 @@ And 330 papers with various 'remove or change names and institutions' treatments
 
 ::: {.fragment}
 
-**Results:**  Aligned w/ journal REPEC rankings, evidence of bias (gender, institution)
+**Results:**  Align w/ journal REPEC rankings, evidence of bias (gender, instn.)
 
 :::
 
@@ -437,12 +436,7 @@ We could also ask/pay future evaluators & authors to act as enumerators to judge
 
 **Prompt**
 
-Copied from evaluator guidelines, removed mention of "Unjournal" 
-
-Added 'role' and ~debiasing instructions
-
-
-<br style="line-height:0.5">
+Copied from evaluator guidelines, removed mention of "Unjournal", added 'role' & ~debiasing instructions
 
 ::: {.tiny-text}
 
@@ -682,7 +676,7 @@ metrics_use <- bind_rows(metrics_human, metrics_llm)
 :::
 
 
-<bs>
+<br>
 
 2. Associations between (untrained) LLM & human ratings & predictions
 
@@ -697,7 +691,7 @@ metrics_use <- bind_rows(metrics_human, metrics_llm)
 
 :::
 
-<bs>
+<br>
 
 3. Informal exploration of "strong LLM-human ratings gaps" 
 
@@ -708,7 +702,7 @@ metrics_use <- bind_rows(metrics_human, metrics_llm)
 
 ---
 
-### Overall ratings: Unjournal vs GPT-5
+### Overall ratings: Unjournal vs GPT-5 (exploratory)
 
 Overall rating 
 
@@ -755,13 +749,24 @@ plot_ly(HLM) |>
          margin = list(l = 60, r = 30, t = 50, b = 50))
 
 ```
+<!-- DR @VK let's add a few statistics here as quick signs or in the notes ... the correlation measures or 'slopes' and p-values, for a start 
+--> 
 
+<!-- DR @VK consider adding to graph/adjusting:
+- somewhat smaller dots
+- colors by paper category 
+- some 'line of best fit'
+- Lines for 'median LLM rating' and 'median CI rating' (or a single 'centroid dot' for both)
+- A view permitting better view of the 'action' (less in lower left, more in lower right)
 
+?Additional graph -- present the 'ovals of CIs' for each, but for a subset, to avoicd clutter
 
+--> 
 
 ---
 
-### Journal tier rating: Unjournal vs GPT-5
+### Journal tier rating: Unjournal vs GPT-5 (exploratory)
+
 
 ::: {.columns}
 
@@ -875,8 +880,53 @@ plot_ly(HL) |>
 
 :::
 
+
+<!-- To do
+Now? Color by 'applied' or by cause area?
+
+
+In future: different shapes or colors for publication *outcomes*, separately depicted if 'known at time of evaluation 
+
+-->
+
 ---
 
+
+
+## Overall characteristics of ratings
+
+### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
+
+1. Means and medians
+2. Range and SD
+
+<!-- (Time-permitting: PCA: characteristics of first and second component, how much variation is explained by each -- see DHJ work --> 
+  
+
+## Measures of association & consistency
+
+*Some of these metrics, for each rating category* (or just some key ones, if it gets too busy)
+
+- Mean absolute "error" (MAE)
+- Correlation (Pearson & Spearman)
+- rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure)
+- (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI?
+- Inter-rater reliability (probably Krippendorff’s alpha is best for now)
+
+<!-- Later: construct full imputed distributions from CIs, measures of surprisal --> 
+
+
+Do this: 
+
+1. For LLM vs Human
+2. For humans vs humans 
+
+
+## LLM-human ratings gaps (informal explorations)
+
+Bezier plot, highlight/discuss 1-2 examples
+
+Simple crosstabs of 'size of gap by paper characteristics' (or naive regression of the gap on available characteristics)
 
 
 ## Our next steps (feedback invited)
@@ -887,7 +937,7 @@ plot_ly(HL) |>
 
 - Intuitive information theoretic and Bayesian measures and tests 
 
-- Multi-level modeling (random and mixed effects)
+- Multi-level modeling (random and mixed effects for raters, paper, rating category, etc.)
 
 2. Content-swap 'bias tests' (ala @Pataranutaporn2025)
 
@@ -895,7 +945,7 @@ plot_ly(HL) |>
 
 4. Refine LLM model, compare dimensions, test
 
-5. Explore/analyse descriptive evaluation content 
+5. Explore/analyze descriptive evaluation content 
 
 6. Human enumerators
 
