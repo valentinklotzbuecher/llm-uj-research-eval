@@ -2,19 +2,18 @@
 title: "Discussion: Questions, metrics, tests"
 ---
 
-```{r} 
+```{r}
 #| label: setup call
 #| code-summary: "Include global setup and parameters"
 
 source("setup_params.R")
 ```
 
-
 See [Coda here](https://coda.io/d/Comparing-LLM-Generated-Reviews-to-Human-Evaluations-in-Social-S_dSJIQH2CJD3/Questions-and-metrics_suHIfnI2#_lu2K-xEW) for now (will integrate back into this Qmd once we have converged on reasonable measures and tests.)
 
 Relying on insights from GPT-pro (see [here](https://chatgpt.com/share/e/68e3e48d-7d44-8011-b58d-37bc12909236) and [here](https://chatgpt.com/share/e/68e3d71d-b018-8011-8366-bc931b1c6a43)).
 
-*Note: the (\*) indicates deferred questions and measures, requiring additional data collection, etc.
+\*Note: the (\*) indicates deferred questions and measures, requiring additional data collection, etc.
 
 # Comparing models: prompts and environment engineering for effective LLM evaluation
 
@@ -22,29 +21,27 @@ Relying on insights from GPT-pro (see [here](https://chatgpt.com/share/e/68e3e48
 
 ## Predicting human ratings (#PREDICT_HUMAN_RATINGS)
 
-Which best produces a vector of ratings that is the closest to human research ratings, in meaningful dimensions?
-(Beware overfitting; we need clean testing data.)
+Which best produces a vector of ratings that is the closest to human research ratings, in meaningful dimensions? (Beware overfitting; we need clean testing data.)
 
 *For each of these we should also compare how well one human rater predicts another human rater. This is high-value for The Unjournal and provides an interesting benchmark for the LLMs.*
 
 ### Simplest comparisons among models
 
-For face-value sanity checks, report and compare models 'predictions' of human ratings by:
--   Mean absolute error (MAE)
--   Root mean squared error (RMSE)
--   Correlation (Pearson and Spearman)
+\[\~GPT\] For face-value sanity checks, report and compare models 'predictions' of human ratings by: Mean absolute error (MAE), Root mean squared error (RMSE), Correlation (Pearson and Spearman)
 
-Possibly also:
--   Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure)
--   (Pseudo)-calibration of LLM CIs: How often does the human point estimate fall within the LLM CI?
+Possibly also: Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure), (Pseudo)-calibration of LLM CIs: How often does the human point estimate fall within the LLM CI?
 
 ### Desirable metrics for comparing point estimates
 
-^[DR: I think most of the following should work for both the continuous 0-100 ratings and the 0-5 journal tier ratings. I believe these are *agreement coefficients*, which correct for chance agreement.]
+[^questions_answers-1]
 
-Intraclass correlation:^[DR: As I understand it, the share of the variance attributable of the *paper* rather than the identity of the *rater*.]
+[^questions_answers-1]: DR: I think most of the following should work for both the continuous 0-100 ratings and the 0-5 journal tier ratings. I believe these are *agreement coefficients*, which correct for chance agreement.
 
-> [GPT] measures absolute agreement across raters viewing the same targets; report CIs and the specific ICC form. Use Koo & Li’s guideline to choose/report ICC form and interpret magnitudes. irr::icc(...). 
+Intraclass correlation:[^questions_answers-2]
+
+[^questions_answers-2]: DR: As I understand it, the share of the variance attributable of the *paper* rather than the identity of the *rater*.
+
+> \[GPT\] measures absolute agreement across raters viewing the same targets; report CIs and the specific ICC form. Use Koo & Li’s guideline to choose/report ICC form and interpret magnitudes. irr::icc(...).
 
 > `R: irr::icc()` (set `model="twoway", type="agreement", unit="single"` for single‑rater agreement; average if you aggregate multiple LLM runs).
 
@@ -52,35 +49,33 @@ Krippendorff’s $\alpha$: "handles missingness, multiple raters, and different 
 
 We have missingness and multiple raters; and this also could allow us to combine across scale types (e.g. 0-100 and 0-5). But for 'combinations', should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?
 
+**Maybe also estimate**
 
-**Maybe also estimate** 
-
-> [GPT] Concordance of rank‑orders across papers: Spearman $\rho$ or Kendall $\tau$ if you also collect overall 'rankings' of paper quality. cor(..., method = "spearman"|"kendall"); DescTools::KendallW() for many raters. 
+> \[GPT\] Concordance of rank‑orders across papers: Spearman $\rho$ or Kendall $\tau$ if you also collect overall 'rankings' of paper quality. cor(..., method = "spearman"\|"kendall"); DescTools::KendallW() for many raters.
 
 We don't ask evaluators to do rankings, but we do make these comparisons, and we could see 'human evaluators' as a class. And the rank-sensitivity seems compelling. But why choose Kendall vs Spearman?
 
-Probably skip:^[Quadratic‑weighted $\kappa$  (Cohen’s weighted kappa) "penalizes big disagreements more than small ones" intuitive 0–1 scale.  DR: I don't think we want to penalize big disagreements nonlinearly.]
+Probably skip:[^questions_answers-3]
 
+[^questions_answers-3]: Quadratic‑weighted $\kappa$ (Cohen’s weighted kappa) "penalizes big disagreements more than small ones" intuitive 0–1 scale. DR: I don't think we want to penalize big disagreements nonlinearly.
 
 ### Desirable for comparing distributions (imputed from CIs)
 
-> Distributional similarity / information theory 
+> Distributional similarity / information theory
 
-> Jensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive "distance between distributions". `philentropy::JSD()`  
+> Jensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive "distance between distributions". `philentropy::JSD()`
 
 K-L divergence: Directional: focus on how well the LLM models predict the humans, i.e., how 'surprising' the human distributions are to the LLMs.
 
-Probably skip:^["Mutual information between human and LLM ratings — 'how many nats/bits of information one gives about the other'." -- I don't think our measures are reasonably expressed in bits?] 
+Probably skip:[^questions_answers-4]
 
-
-
+[^questions_answers-4]: "Mutual information between human and LLM ratings — 'how many nats/bits of information one gives about the other'." -- I don't think our measures are reasonably expressed in bits?
 
 ### Desirable: Hierarchical models for identifying systematic patterns (with caveats)
 
-> [GPT] Use hierarchical ordinal models: `brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative("logit"))` to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist). 
+> \[GPT\] Use hierarchical ordinal models: `brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative("logit"))` to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist).
 
 We could add parameters for paper characteristics, especially field/cause area, method, and source. However, these should not be treated as causal effects, as they may be confounded with paper quality and rater characteristics. Even the implied 'interactions' with 'method' (LLM vs human) may be confounded. But it seems descriptively useful and suggestive.
-
 
 ## Predicting bibliometrics (\*) (#PREDICT_BIBLIOMETRICS)
 
@@ -88,12 +83,11 @@ Making the most accurate predictions for publication outcomes and bibliometrics 
 
 *Contamination is a substantial concern here* (also for human ratings), so we'd need to focus on papers currently in early stages.
 
-Possible outcomes: Top-tier journal (binary), journal REPEC-index, (weighted) citation counts 2y/5y, time to publication in tier above threshold. 
+Possible outcomes: Top-tier journal (binary), journal REPEC-index, (weighted) citation counts 2y/5y, time to publication in tier above threshold.
 
 Metrics (return to this, we are not likely to have this data for a while).
 
-
-
+```{=html}
 <!-- Commenting this section out for now because it will be a while until we are ready to do this 
 
 ## Human-like discussion (\*) (#DISCUSSION_HUMANLIKE)
@@ -131,6 +125,7 @@ REVIEWER_MISTAKES: Making the fewest misstatements and false positives ‘errors
 
 
 -->
+```
 
 ## Why are these questions useful?:
 
@@ -144,23 +139,23 @@ To be fleshed out in the sections above.
 
 [GPT-pro guidance, following my prompt](https://chatgpt.com/share/e/68e3d71d-b018-8011-8366-bc931b1c6a43):
 
-> Measurements that are useful, intuitive, valid (incl. information‑theoretic), with R recipes. [^questions_answers-1]
+> Measurements that are useful, intuitive, valid (incl. information‑theoretic), with R recipes. [^questions_answers-5]
 
-[^questions_answers-1]: DR: As per my request
+[^questions_answers-5]: DR: As per my request
 
 > Design backbone (applies throughout):
 
-> Unit of analysis = paper × rater/model × metric.[^questions_answers-2]
+> Unit of analysis = paper × rater/model × metric.[^questions_answers-6]
 
-[^questions_answers-2]: DR: OK, but we want to enable some aggregation and some higher-level effects.
+[^questions_answers-6]: DR: OK, but we want to enable some aggregation and some higher-level effects.
 
-> Use held‑out test sets and time‑based splits (train on past, test on future) to avoid leakage/contamination the proposal warns about.[^questions_answers-3]
+> Use held‑out test sets and time‑based splits (train on past, test on future) to avoid leakage/contamination the proposal warns about.[^questions_answers-7]
 
-[^questions_answers-3]: DR: Aiming to do this using the prospective evaluations. There are two issues here: 1. The usual overfitting issues 2. The possibility of actual model contamination
+[^questions_answers-7]: DR: Aiming to do this using the prospective evaluations. There are two issues here: 1. The usual overfitting issues 2. The possibility of actual model contamination
 
-> Prefer proper scoring rules, agreement coefficients, and hierarchical (mixed) models with paper and rater random effects for inference and uncertainty.[^questions_answers-4]
+> Prefer proper scoring rules, agreement coefficients, and hierarchical (mixed) models with paper and rater random effects for inference and uncertainty.[^questions_answers-8]
 
-[^questions_answers-4]: DR: I was unsure about the "proper scoring rules" as I thought that was about incentives for human forecasters, but it applies here as well. These have good properties, including "ensures that models are ranked by true predictive accuracy, not by quirks of scale, variance, or overconfidence."
+[^questions_answers-8]: DR: I was unsure about the "proper scoring rules" as I thought that was about incentives for human forecasters, but it applies here as well. These have good properties, including "ensures that models are ranked by true predictive accuracy, not by quirks of scale, variance, or overconfidence."
 
 Adding some 'pro tips' that seemed useful:
 
@@ -170,145 +165,131 @@ Adding some 'pro tips' that seemed useful:
 
 # How do human and LLM evaluations compare? Which is 'better', and by how much...?
 
-##  Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES) (/*)
+## Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES) (/\*)
 
-[BETTER_REVIEW_SUBJECTIVE] Which review discussion is better?
+\[BETTER_REVIEW_SUBJECTIVE\] Which review discussion is better?
 
--  According to the subjective judgment of outside expert readers; 
-  - ideally blinded as to which is AI, but that’s a challenge to implement 
--  Divide this up by categories; readability, insight into econometrics, understanding of context, etc.
--  Metrics for 'how much' could refer to a percentile distribution of human evaluators.
+-   According to the subjective judgment of outside expert readers;
+-   ideally blinded as to which is AI, but that’s a challenge to implement
+-   Divide this up by categories; readability, insight into econometrics, understanding of context, etc.
+-   Metrics for 'how much' could refer to a percentile distribution of human evaluators.
 
-
-[BETTER_REVIEWS_LLM_JUDGES] According to the judgment of other LLMs (perhaps those with system prompts that humans rate as useful and good at judging the strength of evaluations — overambitious? Consider — could judging the quality be easier than producing the review?) 
-
+\[BETTER_REVIEWS_LLM_JUDGES\] According to the judgment of other LLMs (perhaps those with system prompts that humans rate as useful and good at judging the strength of evaluations — overambitious? Consider — could judging the quality be easier than producing the review?)
 
 ## Better ratings (#BETTER_RATINGS_SUBJECTIVE)
 
-[BETTER_RATINGS_SUBJECTIVE] Which set of ratings is better (same considerations as for the review discussion)  
+\[BETTER_RATINGS_SUBJECTIVE\] Which set of ratings is better (same considerations as for the review discussion)
 
-[FEEDBACK_TO_AUTHORS] In terms of the authors' ratings for useful feedback?
+\[FEEDBACK_TO_AUTHORS\] In terms of the authors' ratings for useful feedback?
 
+\[PREDICT_BIBLIOMETRICS_COMPARISON\] At making predictions for journal, bibliometric, measurable impact, and replication outcomes?
 
-[PREDICT_BIBLIOMETRICS_COMPARISON] At making predictions for journal, bibliometric, measurable impact, and replication outcomes?
+\[ERROR_FINDING\] At finding errors of particular types? (Flesh these out; simple math errors, mischaracterizing results, unrealistic assumptions, use of unjustified and inferior methods, etc. )
 
+Why are these questions useful?:
 
-[ERROR_FINDING] At finding errors of particular types? (Flesh these out; simple math errors, mischaracterizing results, unrealistic assumptions, use of unjustified and inferior methods, etc. )
+-   Should we use LLMs to do evaluation? (And related tasks like pre-screening, grants)
 
+-   Or, how should we use it as a complement?
 
-Why are these questions useful?: 
+-   (application) Value of The Unjournal reports
 
-- Should we use LLMs to do evaluation? (And related tasks like pre-screening, grants)
+-   Insights into research and insight capabilities of LLMs (e.g., do they rate certain things particularly well?)
 
-- Or, how should we use it as a complement? 
-
--  (application) Value of The Unjournal reports
-
-- Insights into research and insight capabilities of LLMs (e.g., do they rate certain things particularly well?)
-
--  LLM agreement as a measure of consensus is in an academic sub-field  
-
+-   LLM agreement as a measure of consensus is in an academic sub-field
 
 How will we measure and test these?
 
+# Research taste, strengths and limitations
 
-# Research taste, strengths and limitations 
+This might need to be qualitative/informal. I'm not sure how to make it quantitative.
 
-This might need to be qualitative/informal. I'm not sure how to make it quantitative. 
+-   Which of our rating categories or rating frameworks does its overall assessment tend to correlate with more? (E.g., credibility, innovation, comms)
 
-- Which of our rating categories or rating frameworks does its overall assessment tend to correlate with more? (E.g., credibility, innovation, comms)
+-   Specific opinions on methodological divides? That seems pretty unlikely to be inherent.
 
-- Specific opinions on methodological divides? That seems pretty unlikely to be inherent.
+-   Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs. incorrectly? (E.g., causal identification, statistical inference, experimental design...)
 
-- Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs. incorrectly? (E.g., causal identification, statistical inference, experimental design...)
-
-- Characterization of results — "importance hacking"
-
-
+-   Characterization of results — "importance hacking"
 
 How ‘malleable’ is it’s taste based on prompts?
 
-
-
-What are some deeper but still concrete definitions of different types of either ‘taste’ or ‘research skills’ or more generally ‘cognitive skills.’ 
-
-
+What are some deeper but still concrete definitions of different types of either ‘taste’ or ‘research skills’ or more generally ‘cognitive skills.’
 
 # Prompt and context variation
 
-*These could be assembled in a sheet or data frame.* 
-There are probably too many variations here for a full factorial design, or for designs reporting and comparing all ratings across all designs (at least this seems overwhelming). 
+*These could be assembled in a sheet or data frame.* There are probably too many variations here for a full factorial design, or for designs reporting and comparing all ratings across all designs (at least this seems overwhelming).
 
-I suggest 
-1. Focus on 2-3 'likely best setups', supported by previous work and intuition, for full comparisons
-2. For 1-2 of these 'best setups' varying other dimensions one at a time, comparing key ratings only.
+I suggest 1. Focus on 2-3 'likely best setups', supported by previous work and intuition, for full comparisons 2. For 1-2 of these 'best setups' varying other dimensions one at a time, comparing key ratings only.
 
 "(+)" Indicates the most promising options to try first.
 
-## Dimensions of variation 
+## Dimensions of variation
 
 ### Which baseline model
 
-- GPT5 pro (+) (or o3 until it's available)
-- Deep research (GPT5) -- (comes with web search natively?, may be compatible with supplementary materials)
-- Other providers (\*)
-
+-   GPT5 pro (+) (or o3 until it's available)
+-   Deep research (GPT5) -- (comes with web search natively?, may be compatible with supplementary materials)
+-   Other providers (\*)
 
 ## Prompt variations
 
-- "Evaluate as an economist" (+)
--  vs "predict what an Unjournal evaluator would say" 
+-   "Evaluate as an economist" (+)
 
-- Exact guidelines for evaluators (+)
-- LLM-specific tailoring
+-   vs "predict what an Unjournal evaluator would say"
 
-- Don't mention The Unjournal (+)
-- Mention The Unjournal 
+-   Exact guidelines for evaluators (+)
 
+-   LLM-specific tailoring
+
+-   Don't mention The Unjournal (+)
+
+-   Mention The Unjournal
 
 ### Paper+ context variations
 
-- Abstract only (if we have time to strip these)
-- Paper only (+)
-- Paper + supplementary materials + preregistration etc. (When we can)
-- Paper + human evaluations (contamination risk?)
+-   Abstract only (if we have time to strip these)
+-   Paper only (+)
+-   Paper + supplementary materials + preregistration etc. (When we can)
+-   Paper + human evaluations (contamination risk?)
 
 ### Ordering and separation of prompts
 
-- A single rating (tier) first
+-   A single rating (tier) first
 
-- Ratings first, then discussion
-- Discussion first, then ratings
-- Explicitly asked to consider discussion in ratings
-- Ratings only
+-   Ratings first, then discussion
+
+-   Discussion first, then ratings
+
+-   Explicitly asked to consider discussion in ratings
+
+-   Ratings only
 
 TMZ: This probably doesn't matter because it's a reasoning model
 
-- Split each rating and task into a separate prompt (*)
-
+-   Split each rating and task into a separate prompt (\*)
 
 ### De-identification and debiasing
 
-[Note: remember to use non-journal versions of PDFs where possible.]
+\[Note: remember to use non-journal versions of PDFs where possible.\]
 
-- No de-identification, no debiasing instructions (+)
+-   No de-identification, no debiasing instructions (+)
 
-- No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.") (+)
+-   No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.") (+)
 
--  Remove author names, institutions, acknowledgements, funding sources (needs to be done with text to pdf conversion first processing)
+-   Remove author names, institutions, acknowledgements, funding sources (needs to be done with text to pdf conversion first processing)
 
 <!-- Steps -- can ask Gemini to id 'what should be removed, and then remove it ' -->
 
 *To do: Check if it still guesses the authors etc.*
 
-- Replace author names with fake prestigious / non-prestigious names (\*)
+-   Replace author names with fake prestigious / non-prestigious names (\*)
 
-- Replace institutions with fake prestigious / non-prestigious institutions (\*)
-
+-   Replace institutions with fake prestigious / non-prestigious institutions (\*)
 
 ### Parameter variations
 
-Skip for now? 
+Skip for now?
 
 -   Temperature (Maybe this is fixed at 1 for reasoning models?)
 
@@ -319,5 +300,3 @@ Skip for now?
 ## Between prompt-stability measures
 
 > Within‑model repeatability: run k independent generations per prompt; report within‑LLM variance of ratings and text similarity across runs (cosine similarity of embeddings; quanteda.textstats::textstat_simil() or text::textSimilarity())
-
-
