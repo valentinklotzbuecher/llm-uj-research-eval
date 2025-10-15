@@ -188,6 +188,91 @@ We also ask for the 'midpoint', the center dot on that slider. Essentially, we a
 
 </details>
 
+#### **What journal ranking tier&#x20;**_**should**_**&#x20;this work be published in?**
+
+
+To help universities and policymakers make sense of our evaluations, we want to benchmark them against how research is currently judged. So, we would like you to assess the paper in terms of journal rankings. We ask for two assessments:&#x20;
+
+1. a normative judgment about 'how well the research _should_ publish';&#x20;
+2. a prediction about where the research _will_ be published.
+
+Journal ranking tiers are on a 0-5 scale, as follows:
+
+* 0/5: "[Won't publish](#user-content-fn-17)[^17]/little to no value".  Unlikely to be cited by credible researchers
+* 1/5: OK/Somewhat valuable journal
+* 2/5: Marginal B-journal/Decent field journal
+* 3/5: Top B-journal/Strong field journal
+* 4/5: Marginal A-Journal/Top field journal
+* 5/5: A-journal/Top journal
+
+
+[^17]: Not publishable in any journal that uses any scrutiny,  nor in any credible working paper series.
+
+[^18]: E.g., if a paper/project would be most likely to be (or merits being) published in a journal that would rank about halfway between a top tier 'A journal' and a second tier (4/5) journal, you should rate it a 4.5. \
+    \
+    Similarly, if you think it has an 80%  chance of (being/meriting) publication in a 'marginal B-journal' and a 20% chance of a Top B-journal, you should rate it 2.2.\
+    \
+    Please also use this continuous scale for providing credible _intervals_.
+
+E.g., if a paper/project would be most likely to be (or merits being) published in a journal that would rank about halfway between a top tier 'A journal' and a second tier (4/5) journal, you should rate it a 4.5. \
+
+
+{% hint style="info" %}
+_**We give some example journal rankings** belowbased on SJR and ABS ratings.
+
+Journal_rating,5/5,,,4/5,,,3/5,,,2/5,,,1/5,,,0/5
+Guide metric:,,8+,4*,,3.5-8,4,,2-3.5,3,,1-2,2,,0.5-1,1-2,
+,A-journal/ Top Journal,SJR,ABS list,Marginal A-Journal/ top field journal,SJR,ABS list,Top B-journal/strong field journal,SJR,ABS list,Marginal B-journal/decent field journal,SJR,ABS list,OK/Somewhat valuable journal,SJR,ABS list,Marginally respectable/Little to no value: SJR<0.5; ABS 0-1
+Economics/Finance/Business ,Econometrica,13.2,4*,Journal of Labor Economics,5.39,4,Journal of Development Economics,3.26,3,Journal of Macroeconomics,1.65,2,Research in Transportation Economics,0.759,1,
+,Journal of Finance,16.46,4*,Economic Journal,5.11,4,World development,2.297,3,Economics and Politics,1.12,2,Journal of Business Economics ,0.808,2,
+,Academy of Management Annals,14.78,4*,American Economic Journal: Economic Policy,8.64,3,Economic Policy,2.69,3,Journal of Economics and Management Strategy,1.40,3,Southern Economic Journal,0.731,2,
+,,,,,,,Experimental Economics,2.19,3,,,,,,,
+,,,,,,,Oxford Bulletin of Economics and Statistics,1.654,3,,,,,,,
+,,,,,,,,,,,,,,,,
+Psychology,Annual Review of Psychology,8.80,4,Psychological Review,4.36,4,,,,,,,,,,
+,,,,Journal of Consumer Psychology,3.05,4*,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+Other,Science,14.59,,American Political Science Review,5.82,,,,,,,,,,,
+,Administrative Science Quarterly,17.36,4*,Nature Climate Change,6.13,,,,,,,,,,,
+,,,,Journal of the American Statistical Association,4.41,4,,,,,,,,,,
+,,,,Journal of Operations Management,3.36,4*,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+
+"NOTES: These are not precise, they are meant to give a flavor for what the rating intends. Where the two metrics disagree or we are very uncertain the journal is in italics",,,,,,,,,,,,,,,,
+
+
+
+_We encourage you to_ [_consider a non-integer score_](#user-content-fn-18)[^18], e.g. 4.6 or 2.2.&#x20;
+
+As before, we ask for a 90% credible interval.&#x20;
+
+_Journal ranking tier (0.0-5.0)_
+
+Schema: tier_should
+
+Assess this paper on the journal ranking scale described above, considering only its merit, giving some weight to the category metrics we discussed above.
+
+Equivalently, [where would this paper be published](#user-content-fn-20)[^20] if:
+
+1. the journal process was fair, unbiased, and free of noise, and that status, social connections, and lobbying to get the paper published didn’t matter;
+2. journals assessed research according to the category metrics we discussed above.
+
+#### What journal ranking tier _will_ this work be published in?
+
+_Journal ranking tier (0.0-5.0)_
+
+Schema: tier_will
+
+
+<details>
+
+<summary>What if this work has <em>already</em> been peer reviewed and published?</summary>
+
+If this work has already been published, and you know where, please report the prediction you would have given absent that knowledge.
+
+</details>
+
 
 
 Return STRICT JSON matching the supplied schema.
@@ -196,13 +281,17 @@ Fill every key in the object `metrics`:
 
   {', '.join(METRICS)}
 
-Definitions are percentile scores (0 – 100) versus serious work in the field from the last 3 years.
+For each category (other than tier_should and tier_will) definitions are percentile rankings (0 – 100) relative to a reference group, as discussed above.
+
+For tier_should and tier_will these definitions are journal ranking tier assessments/predictions (0.0 – 5.0) as discussed above.
 
 Field meanings
   midpoint      → best-guess percentile
-  lower_bound   → 5th-percentile plausible value
-  upper_bound   → 95th-percentile plausible value
+  lower_bound   → 5th-percentile plausible value (90% credible interval lower bound)
+  upper_bound   → 95th-percentile plausible value (90% credible interval upper bound)
   rationale     → ≤100 words; terse but informative. Be specific.
+  
+
 
 Do **not** wrap the JSON in markdown fences or add extra text.
 """).strip()
