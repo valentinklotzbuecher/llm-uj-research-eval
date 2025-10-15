@@ -59,7 +59,7 @@ if not os.getenv("OPENAI_API_KEY"):
 client = OpenAI()
 
 # --- Model
-MODEL = os.getenv("UJ_MODEL", "gpt-5-pro")
+MODEL = os.getenv("UJ_MODEL", "gpt-5")
 
 # --- File-id cache (content-hash keyed)
 FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
@@ -318,14 +318,13 @@ COMBINED_SCHEMA = {
     "additionalProperties": False,
 }
 
-RESPONSE_FORMAT = {
+TEXT_FORMAT = {
     "type": "json_schema",
-    "json_schema": {
-        "name": "paper_assessment_with_tiers_v1",
-        "strict": True,
-        "schema": COMBINED_SCHEMA,
-    },
-}
+    "name": "paper_assessment_with_tiers_v1",
+    "strict": True,
+    "schema": COMBINED_SCHEMA,
+    }
+
 
 # --- System prompt (long but cleaned; field names aligned)
 _METRICS_TXT = "\n  " + "\n  ".join(METRICS) + "\n"
@@ -470,7 +469,7 @@ def evaluate_paper(pdf_path, model=None, use_reasoning=True, parse_retry=1):
 
     payload = dict(
         model=model,
-        response_format=RESPONSE_FORMAT,
+        text={"format": TEXT_FORMAT},              # <-- use text.format (Responses API)
         input=[
             {"role": "system", "content": [
                 {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
