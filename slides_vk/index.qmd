@@ -33,8 +33,19 @@ format:
     slide-number: true
     show-slide-number: all
     embed-resources: true
+    slide-separator: "---"
+    vertical-separator: "----"
     self-contained: true
+    
 ---
+
+<style>
+.reveal section p,
+.reveal section li {
+  line-height: 1.5;
+  margin-bottom: 0.25em;
+}
+</style>
 
 
 ## The Unjournal
@@ -62,42 +73,29 @@ format:
 
 :::
 
-<!-- --- -->
 
-<!-- ## Why this exists -->
-
-<!-- - Traditional peer review is slow and opaque   -->
-<!-- - Accept/reject is a poor signal for research synthesis and hiring   -->
-<!-- - We make evaluations themselves the data: structured, comparable, open --> <!-- DR: not sure what this point is? -->
-
-<!-- 
-
-1. Efficiency, speed, incentives: 1+ public rating rather than many 'reject and resubmits' 
-
-2. *Open*  evaluation helps other researchers and research users learn. And transparency is good,
-
-3. Benchmarked percentile/journal tier ratings (and criteria ratings) are more informative than accept/reject and vague journal tiers
-
-4. Open access to research c
-
-5. Enable dynamic transparent formats, not just pdf prisons, 
-   - supporting robustness, replication, 
-   - research conversations, 
-
--->
-
----
+----
 
 
-## How it works
+### How it works
 
-- **Evaluations**: 
-  + Narrative reports focusing on credibility and usefulness 
-  + Claim ID & assessment 
-  + Structured percentile ratings: overall + 7 criteria
-  + Journal tier ratings and predictions
-  
-- **Publish & update**: PubPub package, DOIs, summaries, author responses
+**Evaluations**: 
+
+- Narrative reports focusing on credibility and usefulness 
+
+- Claim ID & assessment 
+
+- Structured percentile ratings: overall + 7 criteria
+
+- Journal tier ratings and predictions
+
+<br> 
+
+::: {.fragment}
+
+**Publish & update**: PubPub package, DOIs, summaries, author responses
+
+:::
 
 
 ::: {.notes}
@@ -109,39 +107,54 @@ Skip this slide if going through Google slides detour
 
 ## Quantitative ratings
 
+> Percentile ratings: For each of the criteria below, please rank this paper relative to all serious research in the same area that you have encountered in the last three years.
 
-- **Overall assessment** — Heuristic judgment of quality, credibility, importance
+<br> 
 
-::: {.columns}
-::: {.column width="30%"}
+::: {.fragment}
+
+I. **Overall assessment** — Heuristic judgment of quality, credibility, importance
+
+::: {.column width="50%"}
+
 - Midpoint rating
+
 - 90% credible interval (CI)
+
 ::: 
+
 
 ::: {.column width="70%"}
 ![](UJ_evalform.JPG)
 
 ::: 
-::: 
+
+:::
 
 
 ---
 
-## Quantitative ratings
+## Quantitative ratings (0 - 100 pctl.)
 
-- **Claims, strength and characterization of evidence** 
+<br>
 
+II. **Claims**, strength and characterization of evidence
+ 
 ::: {.notes}
 Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
 :::
 
-- **Methods: Justification, reasonableness, validity, robustness assessment** 
+<br style="line-height:0.5">
+
+III.  **Methods:** Justification, reasonableness, validity, robustness assessment 
 
 ::: {.notes}
 ....clearly justified and explained? Are methods and their underlying assumptions reasonable and appropriate? Are the results likely to be robust to changes in the assumptions? Have the authors avoided bias and questionable research practices? 
 :::
 
-- **Advancing knowledge and practice** 
+<br style="line-height:0.5">
+
+III. **Advancing knowledge & practice** 
 
 ::: {.notes}
 *Contribution to the field and relevance to impactful interventions*
@@ -152,9 +165,13 @@ To what extent does the project contribute to the field or to practice, particul
 
 ---
 
-## Quantitative ratings
+## Quant. ratings (0 - 100)
 
-- **Logic and communication** 
+<br>
+
+IV. **Logic & communication** 
+
+
 
 ::: {.notes}
 
@@ -164,7 +181,11 @@ To what extent does the project contribute to the field or to practice, particul
 
 :::
 
-- **Open, collaborative, replicable**
+
+<br style="line-height:0.5">
+
+V. **Open, collaborative, replicable**
+
 
 ::: {.notes}
 
@@ -175,7 +196,9 @@ Would another researcher be able to replicate the analysis? Are the method and i
 :::
 
 
-- **Relevance to global priorities, usefulness for practitioners**
+<br style="line-height:0.5">
+
+VI. **Relevance** to global priorities, **usefulness** for practitioners
 
 ::: {.notes}
 
@@ -205,9 +228,13 @@ E.g.,
 :::
 
 
-1. *Normative*: Where this work **should** be published if the process were fair, unbiased, and ~aligned to the category metrics above.
+<br>
+
+1. **Normative**: Where this **should** be published if the process were fair, unbiased, and ~aligned to the category metrics above.
    
-2. *Prediction*: Where this work **will** likely be published given real‑world processes.
+<br>
+   
+2. **Predictive**: Where this **will** likely be published given real‑world processes.
 
 
 ---
@@ -221,8 +248,9 @@ E.g.,
 
 
 
+## LLM evaluation output, comparison to Unjournal human evaluator ratings
 
-## LLM evaluation output, comparison to Unjournal ratings (and evaluations)
+<!-- DR @VK -- not sure what you wanted for this section -->
 
 
 ---
@@ -230,7 +258,7 @@ E.g.,
 ### Our goals and questions: General 
 
 
-1. Measure the value of "frontier" AI research-evaluation relative to human peer review 
+1. Measure the value of *frontier* AI research-eval. relative to human peer review 
 
 ::: {.notes}
 Is state-of-the-art AI research evaluation reliable and useful enough to replace human peer review in any contexts? 
@@ -240,11 +268,8 @@ Reverse question (Unjournal was asked): "Are human evaluations worth it"?
 How well can it predict what humans will report? 
 
 What are its strengths & weaknesses relative to humans, e.g., in terms of?
-- Predicting journal outcomes, citations, etc. 
-- Generating feedback deemed most useful by humans
-- Spotting research errors
-- Diagnosing different types of strengths and limitations (e.g., reasoning transparency, justification of methods and assumptions, communication)
-- Judging content without biases/statistical discrimination based on prestige labels, etc.
+
+(1) Predicting journal outcomes, citations, etc. (2) Generating feedback deemed most useful by humans (30 Spotting research errors (4) Diagnosing different types of strengths and limitations (e.g., reasoning transparency, justification of methods and assumptions, communication) (5) Judging content without biases/statistical discrimination based on prestige labels, etc.
 
 :::
 
@@ -274,12 +299,6 @@ What gets closest to the 'frontier', doing better in terms of outcomes like thos
 
 
 
----
-
-### Initial concrete questions (~exploratory/descriptive)
-
-<!-- NEED TO REFINE -- DR @VK: I suggest we only state questions here that we are actually providing evidence on below, and try to state the questions very specifically -->
-
 
 
 <!-- 
@@ -291,29 +310,35 @@ What gets closest to the 'frontier', doing better in terms of outcomes like thos
 -->
 
 
----
 
-### Followup concrete questions
+## Literature 
 
+**@Pataranutaporn2025 **
 
+<br style="line-height:0.5">
 
----
+1220 papers "from 110 economics journals excluded from the training data of current LLMs"
 
-### Literature 
+LLMs asked: "make a publication recommendation" ... 6-point scale from "1 = Definite Reject..." to "6. Accept As Is...".
 
-@Pataranutaporn2025 
+<br style="line-height:0.5">
 
-- 1220 papers "from 110 economics journals excluded from the training data of current LLMs"
-- LLMs asked to "make a publication recommendation using a 6-point scale ranging from "1 = Definite Reject..." to "6. Accept As Is...".
-- Asked to evaluate each a 10-point scale for originality, rigor, scope, impact, and whether it was 'written by AI'
-- Also 330 papers with various 'remove or change names and institutions' treatments
+::: {.fragment}
 
 
-Results: 
+Also, a 10-point scale for originality, rigor, scope, impact...
 
-- General alignment with journal REPEC rankings
-- Evidence of biases (gender, institution)
+And 330 papers with various 'remove or change names and institutions' treatments
 
+:::
+
+<br style="line-height:0.5">
+
+::: {.fragment}
+
+**Results:**  Alignment w/ journal REPEC rankings, evidence of biases (gender, institution)
+
+:::
 
 
 <!--
@@ -324,45 +349,69 @@ They compare the LLMs' ratings with the RePEC rankings for the journals the pape
 
 ---
 
-@Zhang2025Replication
+**@Zhang2025Replication**
 
-- AI conference paper data
-- LLM agents perform pairwise comparisons among manuscripts 
-- Pairwise comparison outperformed (LLM) rating-based methods in identifying high-impact papers (by citation metrics)
-- Accept/reject decisions: "level of agreement between AI and human reviewers is roughly on par with the consistency observed between independent human review committees"
-- Some evidence of biases/~statistical discrimination towards, e.g., ‘papers from established research institutions'
+<br> 
+
+AI conference paper data
+ 
+LLM agents performed pairwise comparisons among manuscripts
+
+<br> 
+
+::: {.fragment}
+
+
+*Accept/reject decisions:* "agreement between AI & human reviewers... roughly on par with the consistency observed between independent human review committees"
+
+<br style="line-height:0.5">
+
+Again, evidence of biases/~statistical discrimination towards, e.g., "‘"papers from established research institutions"
+:::
+
+::: {.notes}
+
+Pairwise comparison outperformed (LLM) rating-based methods in identifying high-impact papers (by citation metrics).
+
+Maybe we should consider pairwise comparison algorithms in our future prompting.
+
+:::
 
 --- 
 
 ### Our context, advantages
 
-*Already:* 
-
 - Actual *human* evaluations of research 
 
-- In economics and adjacent fields 
+- In econ. & adjacent 
 
-- Including both reports, ~benchmarked ratings, and predictions (journal-tier ground-truth)
+- Reports, ~benchmarked ratings, predictions (journal-tier ground-truth)
 
-
-... 
 
 <br>
 
+::: {.fragment}
+
 *Potential:* 
 
-- Train and benchmark the models on human evaluations
+- Train & benchmark models on human evals
 
-- Pipeline of future evaluations for clean out-of-training-data predictions and evaluation
+- Future eval. pipeline: clean out-of-time predictions & evaluation
 
-- Multi-armed trials on future human evals (cf. Brodeur et al, '25; Qazi et al, '25); hybrid human-AI potential
+- Multi-armed trials on future human/hybrid evals (cf. Brodeur et al, '25; Qazi et al, '25)
+
+:::
+
+::: {.notes}
+We could also ask/pay future evaluators & authors to act as enumerators to judge LLM content
+:::
 
 
---- 
 
 
+## Our initial LLM pipeline
 
-### Our process so far
+<!-- DR @VK: I think we need at least 1-2 slides about our prompt, the model we used, how we fed it the papers, etc. -->
 
 
 
@@ -560,9 +609,50 @@ metrics_use <- bind_rows(metrics_human, metrics_llm)
 ```
 
 
+### Initial concrete questions (~exploratory/descriptive)
+
+<!-- NEED TO REFINE -- DR @VK: I suggest we only state questions here that we are actually providing evidence on below, and try to state the questions very specifically -->
+
+
+1. Overall characteristics of ratings
+
+::: {.notes}
+
+1A. Mean ratings by rating and paper category  
+
+1B. Scale use, dispersion, clustering
+
+1C. Multi-dimensionality of ratings (~PCA)
+
+:::
+
+
+<bs>
+
+2. Associations between (untrained) LLM & human ratings & predictions
+
+::: {.notes}
+2A. For overall ratings
+
+2B. For journal tier ratings/predictions
+
+2C. For multi-dimensional criteria
+
+2D. LLM vs human vs inter-human inter-rater reliability 
+
+:::
+
+<bs>
+
+3. Informal exploration of "strong LLM-human ratings gaps" 
+
+
+
+
+
 ---
 
-## Overall ratings: Unjournal vs GPT-5
+### Overall ratings: Unjournal vs GPT-5
 
 Overall rating 
 
@@ -615,7 +705,7 @@ plot_ly(HLM) |>
 
 ---
 
-## Journal tier rating: Unjournal vs GPT-5
+### Journal tier rating: Unjournal vs GPT-5
 
 ::: {.columns}
 
@@ -730,6 +820,40 @@ plot_ly(HL) |>
 :::
 
 ---
+
+
+
+## Our next steps (feedback invited)
+
+::: {.notes}
+
+1. Statistical analyses we want to do 
+
+- Intuitive information theoretic and Bayesian measures and tests 
+
+- Multi-level modeling (random and mixed effects)
+
+2. Content-swap 'bias tests' (ala @Pataranutaporn2025)
+
+3. Predict journal-outcome/bibliometrics horse-race 
+
+4. Refine LLM model, compare dimensions, test
+
+5. Explore/analyse descriptive evaluation content 
+
+6. Human enumerators
+
+7. Train 'predict human evaluations' model, preregister for future evaluations (out-of-time validation)
+
+8. Possible hybrid human-AI trials
+
+9. Consider "policy measures"; how do we decide and agree upon whether AI, Human, or Hybrid are 'better' at this?
+
+10. Implications for Unjournal/evaluation processes
+
+:::
+
+
 
 ## Thank you!
 
