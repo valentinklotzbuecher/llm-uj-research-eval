@@ -779,11 +779,101 @@ Model: GPT-5 or GPT-5 pro
 
 Overall rating 
 
+---
+
+```{r}
+#| label: forest-overall-human-only
+#| fig-width: 8
+#| fig-height: 10
+# Matched papers for "overall"
+matched <- intersect(
+  metrics_use %>% filter(who=="LLM", criteria=="overall") %>% pull(label_paper),
+  metrics_use %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
+)
+
+# Human individual rows
+H_ind <- metrics_human %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  mutate(lo = pmax(0, ifelse(is.finite(lo), lo, NA_real_)),
+         hi = pmin(100, ifelse(is.finite(hi), hi, NA_real_)))
+
+# Order by human mean
+ord <- H_ind %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
+  arrange(desc(h_mean)) %>%
+  mutate(pos = row_number())
+
+H_plot <- H_ind %>%
+  inner_join(ord, by="label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.22,
+         y   = pos + off) %>%
+  ungroup()
+
+ggplot() +
+  geom_hline(data = ord, aes(yintercept = pos), color="grey92", linewidth=0.3) +
+  geom_errorbarh(data = subset(H_plot, is.finite(lo) & is.finite(hi)),
+                 aes(y = y, xmin = lo, xmax = hi),
+                 height = 0, linewidth = 0.5, alpha = 0.55, color = UJ_GREEN) +
+  geom_point(data = H_plot, aes(x = mid, y = y),
+             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
+  scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
+  coord_cartesian(xlim = c(0,100)) +
+  labs(x = NULL, y = NULL) +
+  theme_uj() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank())
+
+```
+
+
+---
+
+```{r}
+#| label: forest-overall-human-plus-llm
+#| fig-width: 8
+#| fig-height: 10
+# LLM per paper
+L_c <- metrics_llm %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  group_by(label_paper) %>%
+  summarise(mid = mean(mid, na.rm=TRUE),
+            lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+            hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+            .groups="drop") %>%
+  inner_join(ord, by="label_paper") %>%
+  mutate(y = pos)
+
+ggplot() +
+  geom_hline(data = ord, aes(yintercept = pos), color="grey92", linewidth=0.3) +
+  # humans
+  geom_errorbarh(data = subset(H_plot, is.finite(lo) & is.finite(hi)),
+                 aes(y = y, xmin = lo, xmax = hi),
+                 height = 0, linewidth = 0.5, alpha = 0.5, color = UJ_GREEN) +
+  geom_point(data = H_plot, aes(x = mid, y = y),
+             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
+  # LLM overlay at center lane
+  geom_errorbarh(data = L_c %>% filter(is.finite(lo) & is.finite(hi)),
+                 aes(y = y, xmin = lo, xmax = hi),
+                 height = 0, linewidth = 0.9, color = UJ_ORANGE) +
+  geom_point(data = L_c, aes(x = mid, y = y),
+             size = 2.6, shape = 18, color = UJ_ORANGE) +
+  scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
+  coord_cartesian(xlim = c(0,100)) +
+  labs(x = NULL, y = NULL) +
+  theme_uj() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank())
+
+```
+
+----
 
 ```{r}
 #| label: fig-scatter-overall-metrics
-#| fig-width: 20
-#| fig-height: 8
+#| fig-width: 10
+#| fig-height: 10
 
 library(plotly)
 
@@ -810,7 +900,7 @@ AYm <- list(range = c(0,100), dtick = 10, title = "LLM (overall)",
 
 plot_ly(HLM) |>
   add_markers(x = ~mid_h, y = ~mid_l,
-              marker = list(size = 24, color = UJ_ORANGE, line = list(width = 0), alpha = 0.8),
+              marker = list(size = 18, color = UJ_ORANGE, line = list(width = 0), alpha = 0.8),
               # error_x = list(type = "data", array = ~ex,  arrayminus = ~exm, thickness = 3, color = UJ_GREEN),
               # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE),
               hovertemplate = ~hover, showlegend = FALSE) |>
@@ -822,6 +912,7 @@ plot_ly(HLM) |>
          margin = list(l = 60, r = 30, t = 50, b = 50))
 
 ```
+
 <!-- DR @VK let's add a few statistics here as quick signs or in the notes ... the correlation measures or 'slopes' and p-values, for a start 
 --> 
 
@@ -1091,168 +1182,57 @@ merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
 ```
 
 
-```{r}
-#| label: tbl-agreement-metrics
-#| message: false
-#| warning: false
-
-library(broom)
-library(knitr)
-
-summ_metrics <- merged_metrics |>
-  group_by(criteria) |>
-  summarise(
-    n = n(),
-    pearson  = suppressWarnings(cor(midpoint_llm, midpoint_human, method="pearson", use="pairwise.complete.obs")),
-    spearman = suppressWarnings(cor(midpoint_llm, midpoint_human, method="spearman", use="pairwise.complete.obs")),
-    slope    = { fit <- try(lm(midpoint_llm ~ midpoint_human), silent=TRUE);
-                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[2] },
-    intercept= { fit <- try(lm(midpoint_llm ~ midpoint_human), silent=TRUE);
-                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[1] },
-    MAE      = mean(abs(midpoint_llm - midpoint_human)),
-    MedAE    = median(abs(midpoint_llm - midpoint_human)),
-    RMSE     = sqrt(mean((midpoint_llm - midpoint_human)^2)),
-    pct_within_10 = mean(abs(midpoint_llm - midpoint_human) <= 10),
-    cov_H_in_LLM  = mean(midpoint_human >= llm_lo & midpoint_human <= llm_hi, na.rm=TRUE),
-    cov_LLM_in_H  = mean(midpoint_llm >= human_lo & midpoint_llm <= human_hi, na.rm=TRUE),
-    kappa_unwtd   = { b <- bin_together(midpoint_llm, midpoint_human, n_bins=5,"quantile"); 
-                      weighted_kappa(b$a_bin, b$b_bin, k=b$k, weights="unweighted") },
-    kappa_quad    = { b <- bin_together(midpoint_llm, midpoint_human, n_bins=5,"quantile"); 
-                      weighted_kappa(b$a_bin, b$b_bin, k=b$k, weights="quadratic") },
-    .groups = "drop"
-  ) |>
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
-
-kable(summ_metrics, caption = "LLM vs Human agreement on 0–100 metrics")
-
-```
-
-----
-
 
 ```{r}
-#| label: tbl-agreement-tiers
+#| label: combined-alpha-interval-metrics
 #| message: false
 #| warning: false
+if (!requireNamespace("irr", quietly = TRUE)) stop("Package 'irr' needed.")
 
-summ_tiers <- merged_tiers |>
-  group_by(criteria) |>
-  summarise(
-    n = n(),
-    pearson  = suppressWarnings(cor(l_mid, h_mid, method="pearson", use="pairwise.complete.obs")),
-    spearman = suppressWarnings(cor(l_mid, h_mid, method="spearman", use="pairwise.complete.obs")),
-    slope    = { fit <- try(lm(l_mid ~ h_mid), silent=TRUE);
-                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[2] },
-    intercept= { fit <- try(lm(l_mid ~ h_mid), silent=TRUE);
-                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[1] },
-    MAE      = mean(abs(l_mid - h_mid)),
-    MedAE    = median(abs(l_mid - h_mid)),
-    RMSE     = sqrt(mean((l_mid - h_mid)^2)),
-    pct_within_1tier = mean(abs(l_mid - h_mid) <= 1),
-    cov_H_in_LLM  = mean(h_mid >= l_lo & h_mid <= l_hi, na.rm=TRUE),
-    cov_LLM_in_H  = mean(l_mid >= h_lo & l_mid <= h_hi, na.rm=TRUE),
-    .groups = "drop"
-  ) |>
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
-
-kable(summ_tiers, caption = "LLM vs Human agreement on journal tiers (1–5)")
-
-```
-
-
-----
-
-
-## Human vs human agreement {.smaller}
-
-```{r}
-#| label: hh_metrics_pairwise
-#| message: false
-#| warning: false
-
-
-# human-only long
-hh <- metrics_human %>%
-  select(label_paper, criteria, evaluator, mid, lo, hi)
-
-# all rater pairs on same paper × criterion
-hh_pairs <- hh %>%
-  inner_join(hh, by = c("label_paper","criteria"), suffix = c("_a","_b")) %>%
-  filter(evaluator_a < evaluator_b)
-
-# pairwise stats per criterion and rater pair
-hh_pairstats <- hh_pairs %>%
-  group_by(criteria, evaluator_a, evaluator_b) %>%
-  summarise(
-    n = sum(is.finite(mid_a) & is.finite(mid_b)),
-    pearson  = suppressWarnings(cor(mid_a, mid_b, method = "pearson",  use = "pairwise.complete.obs")),
-    spearman = suppressWarnings(cor(mid_a, mid_b, method = "spearman", use = "pairwise.complete.obs")),
-    MAE      = mean(abs(mid_a - mid_b)),
-    RMSE     = sqrt(mean((mid_a - mid_b)^2)),
-    pct_within_10 = mean(abs(mid_a - mid_b) <= 10),
-    cov_a_in_b = mean(mid_a >= hi_b | mid_a <= lo_b, na.rm = TRUE),   # CI coverage proxies; NA-tolerant
-    cov_b_in_a = mean(mid_b >= hi_a | mid_b <= lo_a, na.rm = TRUE),
-    # binned κ for comparability with LLM↔Human
-    # kappa_unwtd = { b <- bin_together(mid_a, mid_b, n_bins = 5, strategy = "quantile");
-    #                 weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "unweighted") },
-    # kappa_quad  = { b <- bin_together(mid_a, mid_b, n_bins = 5, strategy = "quantile");
-    #                 weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "quadratic") },
-    .groups = "drop"
-  )
-
-# summary across rater pairs per criterion
-hh_metrics_summary <- hh_pairstats %>%
-  group_by(criteria) %>%
-  summarise(
-    pairs = dplyr::n(),
-    n_median = median(n, na.rm = TRUE),
-    pearson_mean  = mean(pearson,  na.rm = TRUE),
-    spearman_mean = mean(spearman, na.rm = TRUE),
-    MAE_mean      = mean(MAE,      na.rm = TRUE),
-    RMSE_mean     = mean(RMSE,     na.rm = TRUE),
-    within10_mean = mean(pct_within_10, na.rm = TRUE),
-    # kappa_u_mean  = mean(kappa_unwtd,   na.rm = TRUE),
-    # kappa_q_mean  = mean(kappa_quad,    na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
-
-knitr::kable(hh_metrics_summary, caption = "Human↔Human agreement (0–100 metrics): mean across rater pairs")
-
-```
-
-----
-
-## Human vs human agreement {.smaller}
-
-
-```{r}
-#| label: hh_kripp
-#| message: false
-#| warning: false
-
-kripp_tbl <- metrics_human %>%
+# LLM↔Human stats on 0–100 metrics (matched items)
+llm_h_stats <- metrics_use %>%
   group_by(criteria) %>%
   group_modify(function(df, key){
-    if (!requireNamespace("irr", quietly = TRUE)) {
-      return(tibble(kripp_alpha_interval = NA_real_))
-    }
-    wide <- df %>%
+    H <- df %>% filter(who=="Human") %>%
+      group_by(label_paper) %>% summarise(Human = mean(mid, na.rm=TRUE), .groups="drop")
+    L <- df %>% filter(who=="LLM") %>%
+      group_by(label_paper) %>% summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
+    D <- inner_join(H, L, by="label_paper")
+    if (nrow(D) < 2) return(tibble(n_items = nrow(D), pearson=NA_real_, spearman=NA_real_, MAE=NA_real_ , alpha_llm_h = NA_real_))
+    M <- rbind(Human = D$Human, LLM = D$LLM)
+    tibble(
+      n_items  = nrow(D),
+      pearson  = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
+      spearman = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
+      MAE      = mean(abs(D$LLM - D$Human)),
+      alpha_llm_h = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
+    )
+  }) %>% ungroup()
+
+# Human↔Human α on 0–100 metrics (all raters)
+hh_alpha_metrics <- metrics_human %>%
+  group_by(criteria) %>%
+  group_modify(function(df, key){
+    W <- df %>%
       distinct(evaluator, label_paper, mid) %>%
       tidyr::pivot_wider(names_from = label_paper, values_from = mid)
-    mat <- as.matrix(wide[,-1, drop = FALSE]); rownames(mat) <- wide$evaluator
-    val <- tryCatch(irr::kripp.alpha(mat, method = "interval")$value, error = function(e) NA_real_)
-    tibble(kripp_alpha_interval = val)
-  }) %>%
-  ungroup() %>%
-  mutate(kripp_alpha_interval = round(kripp_alpha_interval, 3))
+    if (ncol(W) < 3) return(tibble(alpha_hh = NA_real_))
+    M <- as.matrix(W[,-1, drop=FALSE]); rownames(M) <- W$evaluator
+    tibble(alpha_hh = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
+  }) %>% ungroup()
 
-knitr::kable(kripp_tbl, caption = "Krippendorff’s α (interval) for human raters by criterion")
+combined_metrics <- llm_h_stats %>%
+  left_join(hh_alpha_metrics, by="criteria") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+knitr::kable(combined_metrics,
+             caption = "0–100 metrics: LLM↔Human vs Human↔Human agreement (Krippendorff’s α interval) with LLM↔Human correlations and MAE")
 
 ```
 
----
 
+
+---
 
 ## LLM-human ratings gaps (informal explorations)
 
