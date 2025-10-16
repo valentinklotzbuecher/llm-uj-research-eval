@@ -775,29 +775,26 @@ Model: GPT-5 or GPT-5 pro
 
 ---
 
-### Overall ratings: Unjournal vs GPT-5 (exploratory)
-
-Overall rating 
-
----
+### Overall ratings: Unjournal 
 
 ```{r}
-#| label: forest-overall-human-only
-#| fig-width: 8
-#| fig-height: 10
-# Matched papers for "overall"
-matched <- intersect(
-  metrics_use %>% filter(who=="LLM", criteria=="overall") %>% pull(label_paper),
+#| label: forest-overall-human-vertical
+#| fig-width: 14
+#| fig-height: 5
+library(dplyr); library(ggplot2)
+
+matched_overall <- intersect(
+  metrics_use %>% filter(who=="LLM",   criteria=="overall") %>% pull(label_paper),
   metrics_use %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
 )
 
-# Human individual rows
 H_ind <- metrics_human %>%
-  filter(criteria=="overall", label_paper %in% matched) %>%
-  mutate(lo = pmax(0, ifelse(is.finite(lo), lo, NA_real_)),
-         hi = pmin(100, ifelse(is.finite(hi), hi, NA_real_)))
+  filter(criteria=="overall", label_paper %in% matched_overall) %>%
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(0, lo), NA_real_),
+    hi = ifelse(is.finite(hi), pmin(100, hi), NA_real_)
+  )
 
-# Order by human mean
 ord <- H_ind %>%
   group_by(label_paper) %>%
   summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
@@ -807,34 +804,114 @@ ord <- H_ind %>%
 H_plot <- H_ind %>%
   inner_join(ord, by="label_paper") %>%
   group_by(label_paper) %>%
-  mutate(off = (row_number() - (n()+1)/2) * 0.22,
-         y   = pos + off) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.18,
+         x   = pos + off) %>%
   ungroup()
 
 ggplot() +
-  geom_hline(data = ord, aes(yintercept = pos), color="grey92", linewidth=0.3) +
-  geom_errorbarh(data = subset(H_plot, is.finite(lo) & is.finite(hi)),
-                 aes(y = y, xmin = lo, xmax = hi),
-                 height = 0, linewidth = 0.5, alpha = 0.55, color = UJ_GREEN) +
-  geom_point(data = H_plot, aes(x = mid, y = y),
-             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
-  scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
-  coord_cartesian(xlim = c(0,100)) +
-  labs(x = NULL, y = NULL) +
+  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  geom_errorbar(data = subset(H_plot, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1, alpha = 0.55, color = UJ_GREEN) +
+  geom_point(data = H_plot, aes(x = x, y = mid),
+             size = 3.0, alpha = 0.9, color = UJ_GREEN) +
+  coord_cartesian(ylim = c(0,100)) +
+  labs(x = NULL, y = "Percentile rating (0–100)") +
   theme_uj() +
-  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-        panel.grid.major.y = element_blank())
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank())
+
 
 ```
 
 
----
+----
+
+
+### Overall ratings: Unjournal vs GPT-5
+
+
 
 ```{r}
-#| label: forest-overall-human-plus-llm
-#| fig-width: 8
-#| fig-height: 10
-# LLM per paper
+#| label: forest-overall-human-llm-vertical
+#| fig-width: 14
+#| fig-height: 5
+
+
+L_c <- metrics_llm %>%
+  filter(criteria=="overall", label_paper %in% matched_overall) %>%
+  group_by(label_paper) %>%
+  summarise(
+    mid = mean(mid, na.rm=TRUE),
+    lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+    hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+    .groups="drop"
+  ) %>%
+  inner_join(ord, by="label_paper") %>%
+  mutate(x = pos)
+
+ggplot() +
+  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  # humans
+  geom_errorbar(data = subset(H_plot, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1, alpha = 0.5, color = UJ_GREEN) +
+  geom_point(data = H_plot, aes(x = x, y = mid),
+             size = 3.0, alpha = 0.9, color = UJ_GREEN) +
+  # LLM center lane
+  geom_errorbar(data = subset(L_c, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1.0, color = UJ_ORANGE) +
+  geom_point(data = L_c, aes(x = x, y = mid),
+             size = 3.6, shape = 18, color = UJ_ORANGE) +
+  coord_cartesian(ylim = c(0,100)) +
+  labs(x = NULL, y = "Percentile rating (0–100)") +
+  theme_uj() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank())
+
+```
+
+
+
+
+----
+
+
+
+```{r}
+#| label: highlight-paper
+highlight_paper <- "Banerjee et al. 2022"
+
+```
+
+```{r}
+#| label: forest-overall-vert-highlight
+#| fig-width: 14
+#| fig-height: 5
+library(dplyr); library(ggplot2); library(ggrepel)
+
+matched <- intersect(
+  metrics_use %>% filter(who=="LLM",   criteria=="overall") %>% pull(label_paper),
+  metrics_use %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
+)
+
+H_ind <- metrics_human %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  mutate(lo = ifelse(is.finite(lo), pmax(0,lo), NA_real_),
+         hi = ifelse(is.finite(hi), pmin(100,hi), NA_real_))
+
+ord <- H_ind %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
+  arrange(desc(h_mean)) %>% mutate(pos = row_number())
+
+H_plot <- H_ind %>%
+  inner_join(ord, by="label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.18,
+         x   = pos + off) %>% ungroup()
+
 L_c <- metrics_llm %>%
   filter(criteria=="overall", label_paper %in% matched) %>%
   group_by(label_paper) %>%
@@ -843,32 +920,67 @@ L_c <- metrics_llm %>%
             hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
             .groups="drop") %>%
   inner_join(ord, by="label_paper") %>%
-  mutate(y = pos)
+  mutate(x = pos)
+
+lab <- L_c %>% filter(label_paper == highlight_paper)
 
 ggplot() +
-  geom_hline(data = ord, aes(yintercept = pos), color="grey92", linewidth=0.3) +
-  # humans
-  geom_errorbarh(data = subset(H_plot, is.finite(lo) & is.finite(hi)),
-                 aes(y = y, xmin = lo, xmax = hi),
-                 height = 0, linewidth = 0.5, alpha = 0.5, color = UJ_GREEN) +
-  geom_point(data = H_plot, aes(x = mid, y = y),
-             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
-  # LLM overlay at center lane
-  geom_errorbarh(data = L_c %>% filter(is.finite(lo) & is.finite(hi)),
-                 aes(y = y, xmin = lo, xmax = hi),
-                 height = 0, linewidth = 0.9, color = UJ_ORANGE) +
-  geom_point(data = L_c, aes(x = mid, y = y),
-             size = 2.6, shape = 18, color = UJ_ORANGE) +
-  scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
-  coord_cartesian(xlim = c(0,100)) +
-  labs(x = NULL, y = NULL) +
+  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  geom_errorbar(data = subset(H_plot, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=0.6, alpha=0.5, color=UJ_GREEN) +
+  geom_point(data = H_plot, aes(x=x, y=mid), size=2.0, alpha=0.9, color=UJ_GREEN) +
+  geom_errorbar(data = subset(L_c, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1.0, color=UJ_ORANGE) +
+  geom_point(data = L_c, aes(x=x, y=mid), size=2.6, shape=18, color=UJ_ORANGE) +
+  geom_label_repel(data = lab,
+                   aes(x = x, y = mid, label = label_paper),
+                   min.segment.length = 0, seed = 1, size = 3.2,
+                   fill = "white", label.r = unit(0.1,"lines")) +
+  coord_cartesian(ylim = c(0,100)) +
+  labs(x=NULL, y="Percentile (0–100)") +
   theme_uj() +
-  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-        panel.grid.major.y = element_blank())
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+        panel.grid.major.x=element_blank())
 
 ```
 
 ----
+
+```{r}
+#| label: scatter-overall-static-highlight
+#| fig-width: 7
+#| fig-height: 5
+
+
+D <- metrics_use %>%
+  filter(criteria=="overall") %>%
+  group_by(who, label_paper) %>%
+  summarise(mid = mean(mid, na.rm=TRUE), .groups="drop") %>%
+  tidyr::pivot_wider(names_from = who, values_from = mid) %>%
+  filter(is.finite(Human), is.finite(LLM))
+
+ggplot(D, aes(x = Human, y = LLM)) +
+  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.6, color="grey60") +
+  geom_point(color=UJ_ORANGE, size=2.0, alpha=0.8) +
+  geom_point(data = D %>% filter(label_paper==highlight_paper),
+             aes(x=Human, y=LLM), color=UJ_ORANGE, size=3.0, shape=18) +
+  # ggrepel::geom_text_repel(data = D %>% filter(label_paper==highlight_paper),
+  #                          aes(label = label_paper),
+  #                          min.segment.length = 0, seed = 1, size = 3.2) +
+  stat_smooth(method="lm", se=FALSE, linewidth=0.4, color="lightgrey") +
+  coord_equal(xlim=c(0,100), ylim=c(0,100), expand=FALSE) +
+  labs(x="Human overall (0–100)", y="LLM overall (0–100)") +
+  theme_uj()
+
+```
+
+
+
+
+----
+
 
 ```{r}
 #| label: fig-scatter-overall-metrics
@@ -927,9 +1039,343 @@ plot_ly(HLM) |>
 
 --> 
 
+
 ---
 
-### Journal tier rating: Unjournal vs GPT-5 (exploratory)
+### Human-LLM rating differences across criteria
+
+
+```{r}
+#| label: heatmap-human-minus-llm
+#| fig-width: 14
+#| fig-height: 7
+
+
+metric_order <- c("overall","claims","methods","adv_knowledge","logic_comms","open_sci","gp_relevance")
+metric_lab <- c(
+  overall="Overall",
+  claims="Claims & evidence",
+  methods="Methods",
+  adv_knowledge="Adv. knowledge",
+  logic_comms="Logic & comms",
+  open_sci="Open science",
+  gp_relevance="Global relevance"
+)
+
+H_mean <- metrics_use %>%
+  filter(who=="Human", criteria %in% metric_order) %>%
+  group_by(label_paper, criteria) %>%
+  summarise(h = mean(mid, na.rm=TRUE), .groups="drop")
+
+L_mean <- metrics_use %>%
+  filter(who=="LLM", criteria %in% metric_order) %>%
+  group_by(label_paper, criteria) %>%
+  summarise(l = mean(mid, na.rm=TRUE), .groups="drop")
+
+Ddiff <- inner_join(H_mean, L_mean, by=c("label_paper","criteria")) %>%
+  mutate(diff = h - l) %>%  # positive = Human higher
+  mutate(crit = factor(criteria, levels = metric_order, labels = metric_lab[metric_order]))
+
+# order papers by overall difference (Human−LLM)
+ord_p <- Ddiff %>%
+  filter(criteria=="overall") %>%
+  arrange(desc(diff)) %>%
+  pull(label_paper)
+
+ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff)) +
+  geom_tile(color = "white", linewidth = 0.25) +
+  scale_fill_gradient2(low = UJ_ORANGE, mid = "grey95", high = UJ_GREEN, midpoint = 0,
+                       name = "Human − LLM") +
+  labs(x = NULL, y = NULL) +
+  theme_uj() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8), 
+        axis.text.y = element_text(size = 12),
+        panel.grid = element_blank())
+
+```
+
+
+
+---
+
+
+
+<!-- To do
+Now? Color by 'applied' or by cause area?
+
+
+In future: different shapes or colors for publication *outcomes*, separately depicted if 'known at time of evaluation 
+
+-->
+
+---
+
+
+
+## Overall characteristics of ratings
+
+### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
+
+1. Means and medians
+2. Range and SD
+
+<!-- (Time-permitting: PCA: characteristics of first and second component, how much variation is explained by each -- see DHJ work --> 
+  
+
+## Measures of association & consistency
+
+*Some of these metrics, for each rating category* (or just some key ones, if it gets too busy)
+
+- Mean absolute "error" (MAE)
+- Correlation (Pearson & Spearman)
+- rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure)
+- (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI?
+- Inter-rater reliability (probably Krippendorff’s alpha is best for now)
+
+<!-- Later: construct full imputed distributions from CIs, measures of surprisal --> 
+
+
+Do this: 
+
+1. For LLM vs Human
+2. For humans vs humans 
+
+
+## LLM vs Human agreement {.smaller}
+
+
+```{r}
+#| label: agreement-helpers
+#| message: false
+#| warning: false
+
+bin_together <- function(a, b, n_bins = 5, strategy = c("quantile","equal")) {
+  strategy <- match.arg(strategy)
+  x <- c(a, b); x <- x[is.finite(x)]
+  if (length(unique(x)) <= max(3, n_bins)) {
+    u <- sort(unique(x)); f <- function(v) match(v, u) - 1L
+    return(list(a_bin = f(a), b_bin = f(b), k = length(u)))
+  }
+  if (strategy == "quantile") {
+    qs <- unique(quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE))
+    if (length(qs) - 1L >= 2L) {
+      edges <- qs
+    } else {
+      strategy <- "equal"
+    }
+  }
+  if (strategy == "equal") {
+    lo <- min(x, na.rm = TRUE); hi <- max(x, na.rm = TRUE)
+    edges <- seq(lo, hi, length.out = n_bins + 1)
+  }
+  edges[1] <- edges[1] - 1e-9; edges[length(edges)] <- edges[length(edges)] + 1e-9
+  a_bin <- cut(a, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  b_bin <- cut(b, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  k <- max(c(a_bin, b_bin), na.rm = TRUE) + 1L
+  list(a_bin = a_bin, b_bin = b_bin, k = k)
+}
+
+weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","linear","unweighted")) {
+  weights <- match.arg(weights)
+  a <- as.integer(a_bin); b <- as.integer(b_bin)
+  keep <- is.finite(a) & is.finite(b); a <- a[keep]; b <- b[keep]
+  if (!length(a)) return(NA_real_); if (is.null(k)) k <- max(c(a,b)) + 1L
+  M <- matrix(0, k, k); for (i in seq_along(a)) M[a[i]+1L, b[i]+1L] <- M[a[i]+1L, b[i]+1L] + 1
+  if (sum(M)==0) return(NA_real_); M <- M / sum(M); r <- rowSums(M); csum <- colSums(M); E <- r %*% t(csum)
+  I <- matrix(rep(0:(k-1), times = k), nrow = k); J <- t(I)
+  W <- switch(weights,
+              quadratic = ((I - J)^2) / ((k - 1)^2),
+              linear    = abs(I - J) / (k - 1),
+              unweighted= 1 - diag(1, k))
+  num <- sum(W * M); den <- sum(W * E); if (den == 0) NA_real_ else 1 - num/den
+}
+
+```
+
+
+
+```{r}
+#| label: merge-for-agreement
+#| message: false
+#| warning: false
+
+# 0–100 metrics (aggregate human within paper×criterion)
+H_m <- metrics_use |> 
+  filter(who == "Human") |>
+  group_by(label_paper, criteria) |>
+  summarise(midpoint_human = mean(mid, na.rm = TRUE),
+            human_lo = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
+            human_hi = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
+            .groups = "drop")
+
+L_m <- metrics_use |> 
+  filter(who == "LLM") |>
+  group_by(label_paper, criteria) |>
+  summarise(midpoint_llm = mean(mid, na.rm = TRUE),
+            llm_lo = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
+            llm_hi = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
+            .groups = "drop")
+
+merged_metrics <- inner_join(H_m, L_m, by = c("label_paper","criteria"))
+
+# 1–5 journal tiers
+H_tier <- jt_use |> filter(who=="Human") |>
+  group_by(label_paper, criteria) |>
+  summarise(h_mid = mean(mid, na.rm=TRUE),
+            h_lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+            h_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+            .groups="drop")
+
+L_tier <- jt_use |> filter(who=="LLM") |>
+  group_by(label_paper, criteria) |>
+  summarise(l_mid = mean(mid, na.rm=TRUE),
+            l_lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+            l_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+            .groups="drop")
+
+merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
+
+```
+
+
+
+
+```{r}
+#| label: combined-alpha-interval-metrics
+#| message: false
+#| warning: false
+if (!requireNamespace("irr", quietly = TRUE)) stop("Package 'irr' needed.")
+
+# LLM↔Human stats on 0–100 metrics (matched items)
+llm_h_stats <- metrics_use %>%
+  group_by(criteria) %>%
+  group_modify(function(df, key){
+    H <- df %>% filter(who=="Human") %>%
+      group_by(label_paper) %>% summarise(Human = mean(mid, na.rm=TRUE), .groups="drop")
+    L <- df %>% filter(who=="LLM") %>%
+      group_by(label_paper) %>% summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
+    D <- inner_join(H, L, by="label_paper")
+    if (nrow(D) < 2) return(tibble(n_items = nrow(D), pearson=NA_real_, spearman=NA_real_, MAE=NA_real_ , alpha_llm_h = NA_real_))
+    M <- rbind(Human = D$Human, LLM = D$LLM)
+    tibble(
+      n_items  = nrow(D),
+      pearson  = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
+      spearman = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
+      MAE      = mean(abs(D$LLM - D$Human)),
+      alpha_llm_h = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
+    )
+  }) %>% ungroup()
+
+# Human↔Human α on 0–100 metrics (all raters)
+hh_alpha_metrics <- metrics_human %>%
+  group_by(criteria) %>%
+  group_modify(function(df, key){
+    W <- df %>%
+      distinct(evaluator, label_paper, mid) %>%
+      tidyr::pivot_wider(names_from = label_paper, values_from = mid)
+    if (ncol(W) < 3) return(tibble(alpha_hh = NA_real_))
+    M <- as.matrix(W[,-1, drop=FALSE]); rownames(M) <- W$evaluator
+    tibble(alpha_hh = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
+  }) %>% ungroup()
+
+combined_metrics <- llm_h_stats %>%
+  left_join(hh_alpha_metrics, by="criteria") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+knitr::kable(combined_metrics,
+             caption = "0–100 metrics: LLM↔Human vs Human↔Human agreement (Krippendorff’s α interval) with LLM↔Human correlations and MAE")
+
+```
+
+
+
+---
+
+## LLM-human ratings gaps (informal explorations)
+
+Bezier plot, highlight/discuss 1-2 examples
+
+Simple crosstabs of 'size of gap by paper characteristics' (or naive regression of the gap on available characteristics)
+
+
+## Our next steps (feedback invited)
+
+::: {.notes}
+
+1. Statistical analyses we want to do 
+
+- Intuitive information theoretic and Bayesian measures and tests 
+
+- Multi-level modeling (random and mixed effects for raters, paper, rating category, etc.)
+
+2. Content-swap 'bias tests' (ala @Pataranutaporn2025)
+
+3. Predict journal-outcome/bibliometrics horse-race 
+
+4. Refine LLM model, compare dimensions, test
+
+5. Explore/analyze descriptive evaluation content 
+
+6. Human enumerators
+
+7. Train 'predict human evaluations' model, preregister for future evaluations (out-of-time validation)
+
+8. Possible hybrid human-AI trials
+
+9. Consider "policy measures"; how do we decide and agree upon whether AI, Human, or Hybrid are 'better' at this?
+
+10. Implications for Unjournal/evaluation processes
+
+:::
+
+
+
+## Thank you!
+
+
+![](unjournal-qr-functional.svg){width=90%}
+
+  
+Scan to visit  
+[unjournal.org](https://unjournal.org)
+
+
+
+
+---
+
+
+## References {.unnumbered}
+
+
+::: {#refs}
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Appendix
+
+
+
+
+---
+
+
+
+
+---
+
+### Journal tier rating: Unjournal vs GPT-5
 
 
 ::: {.columns}
@@ -1044,252 +1490,98 @@ plot_ly(HL) |>
 
 :::
 
-
-<!-- To do
-Now? Color by 'applied' or by cause area?
-
-
-In future: different shapes or colors for publication *outcomes*, separately depicted if 'known at time of evaluation 
-
--->
-
----
+----
 
 
 
-## Overall characteristics of ratings
-
-### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
-
-1. Means and medians
-2. Range and SD
-
-<!-- (Time-permitting: PCA: characteristics of first and second component, how much variation is explained by each -- see DHJ work --> 
-  
-
-## Measures of association & consistency
-
-*Some of these metrics, for each rating category* (or just some key ones, if it gets too busy)
-
-- Mean absolute "error" (MAE)
-- Correlation (Pearson & Spearman)
-- rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure)
-- (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI?
-- Inter-rater reliability (probably Krippendorff’s alpha is best for now)
-
-<!-- Later: construct full imputed distributions from CIs, measures of surprisal --> 
-
-
-Do this: 
-
-1. For LLM vs Human
-2. For humans vs humans 
-
-
-## LLM vs Human agreement {.smaller}
-
+### Journal tier rating "should": Unjournal 
 
 ```{r}
-#| label: agreement-helpers
-#| message: false
-#| warning: false
+#| label: forest-tiers-should-human-vertical
+#| fig-width: 14
+#| fig-height: 5
+HH <- jt_use %>% filter(criteria=="merits_journal", who=="Human")
+LL <- jt_use %>% filter(criteria=="merits_journal", who=="LLM")
+matched_should <- intersect(HH$label_paper, LL$label_paper)
 
-bin_together <- function(a, b, n_bins = 5, strategy = c("quantile","equal")) {
-  strategy <- match.arg(strategy)
-  x <- c(a, b); x <- x[is.finite(x)]
-  if (length(unique(x)) <= max(3, n_bins)) {
-    u <- sort(unique(x)); f <- function(v) match(v, u) - 1L
-    return(list(a_bin = f(a), b_bin = f(b), k = length(u)))
-  }
-  if (strategy == "quantile") {
-    qs <- unique(quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE))
-    if (length(qs) - 1L >= 2L) {
-      edges <- qs
-    } else {
-      strategy <- "equal"
-    }
-  }
-  if (strategy == "equal") {
-    lo <- min(x, na.rm = TRUE); hi <- max(x, na.rm = TRUE)
-    edges <- seq(lo, hi, length.out = n_bins + 1)
-  }
-  edges[1] <- edges[1] - 1e-9; edges[length(edges)] <- edges[length(edges)] + 1e-9
-  a_bin <- cut(a, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
-  b_bin <- cut(b, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
-  k <- max(c(a_bin, b_bin), na.rm = TRUE) + 1L
-  list(a_bin = a_bin, b_bin = b_bin, k = k)
-}
+H_t <- HH %>%
+  filter(label_paper %in% matched_should) %>%
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(1, lo), NA_real_),
+    hi = ifelse(is.finite(hi), pmin(5, hi), NA_real_)
+  )
 
-weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","linear","unweighted")) {
-  weights <- match.arg(weights)
-  a <- as.integer(a_bin); b <- as.integer(b_bin)
-  keep <- is.finite(a) & is.finite(b); a <- a[keep]; b <- b[keep]
-  if (!length(a)) return(NA_real_); if (is.null(k)) k <- max(c(a,b)) + 1L
-  M <- matrix(0, k, k); for (i in seq_along(a)) M[a[i]+1L, b[i]+1L] <- M[a[i]+1L, b[i]+1L] + 1
-  if (sum(M)==0) return(NA_real_); M <- M / sum(M); r <- rowSums(M); csum <- colSums(M); E <- r %*% t(csum)
-  I <- matrix(rep(0:(k-1), times = k), nrow = k); J <- t(I)
-  W <- switch(weights,
-              quadratic = ((I - J)^2) / ((k - 1)^2),
-              linear    = abs(I - J) / (k - 1),
-              unweighted= 1 - diag(1, k))
-  num <- sum(W * M); den <- sum(W * E); if (den == 0) NA_real_ else 1 - num/den
-}
+ord_t <- H_t %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
+  arrange(desc(h_mean)) %>%
+  mutate(pos = row_number())
+
+H_tplot <- H_t %>%
+  inner_join(ord_t, by="label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.18,
+         x   = pos + off) %>%
+  ungroup()
+
+ggplot() +
+  geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 0.6, alpha = 0.55, color = UJ_GREEN) +
+  geom_point(data = H_tplot, aes(x = x, y = mid),
+             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
+  coord_cartesian(ylim = c(1,5)) +
+  labs(x = NULL, y = "Journal tier (1–5)") +
+  theme_uj() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank())
 
 ```
 
 
+----
+
+
+### Journal tier rating "should": Unjournal vs GPT-5
+
 ```{r}
-#| label: merge-for-agreement
-#| message: false
-#| warning: false
+#| label: forest-tiers-should-human-llm-vertical
+#| fig-width: 14
+#| fig-height: 5
+L_t <- LL %>%
+  filter(label_paper %in% matched_should) %>%
+  group_by(label_paper) %>%
+  summarise(
+    mid = mean(mid, na.rm=TRUE),
+    lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+    hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+    .groups="drop"
+  ) %>%
+  inner_join(ord_t, by="label_paper") %>%
+  mutate(x = pos)
 
-# 0–100 metrics (aggregate human within paper×criterion)
-H_m <- metrics_use |> 
-  filter(who == "Human") |>
-  group_by(label_paper, criteria) |>
-  summarise(midpoint_human = mean(mid, na.rm = TRUE),
-            human_lo = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
-            human_hi = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
-            .groups = "drop")
-
-L_m <- metrics_use |> 
-  filter(who == "LLM") |>
-  group_by(label_paper, criteria) |>
-  summarise(midpoint_llm = mean(mid, na.rm = TRUE),
-            llm_lo = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
-            llm_hi = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
-            .groups = "drop")
-
-merged_metrics <- inner_join(H_m, L_m, by = c("label_paper","criteria"))
-
-# 1–5 journal tiers
-H_tier <- jt_use |> filter(who=="Human") |>
-  group_by(label_paper, criteria) |>
-  summarise(h_mid = mean(mid, na.rm=TRUE),
-            h_lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
-            h_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
-            .groups="drop")
-
-L_tier <- jt_use |> filter(who=="LLM") |>
-  group_by(label_paper, criteria) |>
-  summarise(l_mid = mean(mid, na.rm=TRUE),
-            l_lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
-            l_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
-            .groups="drop")
-
-merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
+ggplot() +
+  geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  # humans
+  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 0.6, alpha = 0.5, color = UJ_GREEN) +
+  geom_point(data = H_tplot, aes(x = x, y = mid),
+             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
+  # LLM
+  geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1.0, color = UJ_ORANGE) +
+  geom_point(data = L_t, aes(x = x, y = mid),
+             size = 2.6, shape = 18, color = UJ_ORANGE) +
+  coord_cartesian(ylim = c(1,5)) +
+  labs(x = NULL, y = "Journal tier (1–5)") +
+  theme_uj() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank())
 
 ```
 
 
-
-```{r}
-#| label: combined-alpha-interval-metrics
-#| message: false
-#| warning: false
-if (!requireNamespace("irr", quietly = TRUE)) stop("Package 'irr' needed.")
-
-# LLM↔Human stats on 0–100 metrics (matched items)
-llm_h_stats <- metrics_use %>%
-  group_by(criteria) %>%
-  group_modify(function(df, key){
-    H <- df %>% filter(who=="Human") %>%
-      group_by(label_paper) %>% summarise(Human = mean(mid, na.rm=TRUE), .groups="drop")
-    L <- df %>% filter(who=="LLM") %>%
-      group_by(label_paper) %>% summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
-    D <- inner_join(H, L, by="label_paper")
-    if (nrow(D) < 2) return(tibble(n_items = nrow(D), pearson=NA_real_, spearman=NA_real_, MAE=NA_real_ , alpha_llm_h = NA_real_))
-    M <- rbind(Human = D$Human, LLM = D$LLM)
-    tibble(
-      n_items  = nrow(D),
-      pearson  = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
-      spearman = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
-      MAE      = mean(abs(D$LLM - D$Human)),
-      alpha_llm_h = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
-    )
-  }) %>% ungroup()
-
-# Human↔Human α on 0–100 metrics (all raters)
-hh_alpha_metrics <- metrics_human %>%
-  group_by(criteria) %>%
-  group_modify(function(df, key){
-    W <- df %>%
-      distinct(evaluator, label_paper, mid) %>%
-      tidyr::pivot_wider(names_from = label_paper, values_from = mid)
-    if (ncol(W) < 3) return(tibble(alpha_hh = NA_real_))
-    M <- as.matrix(W[,-1, drop=FALSE]); rownames(M) <- W$evaluator
-    tibble(alpha_hh = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
-  }) %>% ungroup()
-
-combined_metrics <- llm_h_stats %>%
-  left_join(hh_alpha_metrics, by="criteria") %>%
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
-
-knitr::kable(combined_metrics,
-             caption = "0–100 metrics: LLM↔Human vs Human↔Human agreement (Krippendorff’s α interval) with LLM↔Human correlations and MAE")
-
-```
-
-
-
----
-
-## LLM-human ratings gaps (informal explorations)
-
-Bezier plot, highlight/discuss 1-2 examples
-
-Simple crosstabs of 'size of gap by paper characteristics' (or naive regression of the gap on available characteristics)
-
-
-## Our next steps (feedback invited)
-
-::: {.notes}
-
-1. Statistical analyses we want to do 
-
-- Intuitive information theoretic and Bayesian measures and tests 
-
-- Multi-level modeling (random and mixed effects for raters, paper, rating category, etc.)
-
-2. Content-swap 'bias tests' (ala @Pataranutaporn2025)
-
-3. Predict journal-outcome/bibliometrics horse-race 
-
-4. Refine LLM model, compare dimensions, test
-
-5. Explore/analyze descriptive evaluation content 
-
-6. Human enumerators
-
-7. Train 'predict human evaluations' model, preregister for future evaluations (out-of-time validation)
-
-8. Possible hybrid human-AI trials
-
-9. Consider "policy measures"; how do we decide and agree upon whether AI, Human, or Hybrid are 'better' at this?
-
-10. Implications for Unjournal/evaluation processes
-
-:::
-
-
-
-## Thank you!
-
-
-![](unjournal-qr-functional.svg){width=90%}
-
-  
-Scan to visit  
-[unjournal.org](https://unjournal.org)
-
-
-
-
----
-
-
-## References {.unnumbered}
-
-
-::: {#refs}
-:::
+----
