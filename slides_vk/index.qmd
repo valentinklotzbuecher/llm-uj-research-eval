@@ -268,7 +268,6 @@ E.g.,
 ## Output: Example
 
 
-
 ```{r}
 #| label: setup-libs
 
@@ -480,16 +479,24 @@ metrics_human <- rsx_research |>
 
 metrics_use <- bind_rows(metrics_human, metrics_llm)
 
+matched_overall <- intersect(
+  metrics_use %>% filter(who=="LLM", criteria=="overall") %>% pull(label_paper),
+  metrics_use %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
+)
+metrics_use <- metrics_use %>% mutate(is_matched_overall = label_paper %in% matched_overall)
+
+
 ```
 
  
+
 
 
 ```{r}
 #| label: profile_humans_fixed
 #| fig-width: 9
 #| fig-height: 6
-library(dplyr); library(ggplot2); library(forcats)
+
 
 papers_requested <- c("Banerjee et al. 2022","Bettle 2023","Williams et al. 2024")
 papers <- intersect(papers_requested, unique(metrics_use$label_paper))
@@ -802,11 +809,12 @@ highlight_paper <- "Banerjee et al. 2022"
 
 
 
+
 ```{r}
 #| label: forest-overall-vert-x
 #| fig-width: 14
-#| fig-height: 5.5
-library(dplyr); library(ggplot2); library(ggrepel)
+#| fig-height: 6
+
 
 highlight_paper <- "Banerjee et al. 2022"
 
@@ -894,8 +902,8 @@ ggplot() +
 ```{r}
 #| label: forest-overall-vert-annotate
 #| fig-width: 14
-#| fig-height: 5.5
-library(dplyr); library(ggplot2); library(ggrepel)
+#| fig-height: 6
+
 
 highlight_paper <- "Kremer et al. 2022 XXX" # Select here to annotate
 
@@ -983,7 +991,7 @@ ggplot() +
 <!-- #| fig-width: 10 -->
 <!-- #| fig-height: 10 -->
 
-<!-- library(plotly) -->
+
 
 <!-- Hm <- metrics_use |> filter(criteria == "overall", who == "Human") |> -->
 <!--   transmute(label_paper, mid_h = mid, lo_h = lo, hi_h = hi) -->
@@ -1055,9 +1063,9 @@ alpha_overall <- tryCatch({
 n <- nrow(D)
 
 ggplot(D, aes(x = Human, y = LLM)) +
-  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.6, color="grey60") +
-  geom_point(color=UJ_GREEN, size=2.1, alpha=0.9) +
-  stat_smooth(method="lm", se=FALSE, linewidth=0.3, color=UJ_ORANGE) +
+  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.8, color="grey60") +
+  geom_point(color=UJ_GREEN, size=4, alpha=0.9) +
+  stat_smooth(method="lm", se=FALSE, linewidth=0.5, color=UJ_ORANGE) +
   coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
   # annotate("text", x = 4, y = 98,
   #          label = sprintf("n=%d   r=%.2f   ρ=%.2f   α=%.2f   MAE=%.1f", n, r, rho, alpha_overall, MAE),
@@ -1119,36 +1127,101 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 
 
 
-## Overall characteristics of ratings
+## Overall characteristics of ratings {.smaller}
 
 ### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
 
-1. Means and medians
-2. Range and SD
+<!-- 1. Means and medians -->
+<!-- 2. Range and SD -->
 
 <!-- (Time-permitting: PCA: characteristics of first and second component, how much variation is explained by each -- see DHJ work --> 
-  
 
-## Measures of association & consistency
-
-*Some of these metrics, for each rating category* (or just some key ones, if it gets too busy)
-
-- Mean absolute "error" (MAE)
-- Correlation (Pearson & Spearman)
-- rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure)
-- (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI?
-- Inter-rater reliability (probably Krippendorff’s alpha is best for now)
-
-<!-- Later: construct full imputed distributions from CIs, measures of surprisal --> 
+<!-- , caption = "Ratings (0–100): per‑paper summaries by criterion, matched papers only" -->
 
 
-Do this: 
 
-1. For LLM vs Human
-2. For humans vs humans 
+```{r}
+#| label: tbl-basic-metrics-matched
+#| message: false
+#| warning: false
+
+paper_means <- metrics_use %>%
+  group_by(who, label_paper, criteria) %>%
+  summarise(mid = mean(mid, na.rm = TRUE), .groups = "drop")
+
+# summ_basic <- paper_means %>%
+#   group_by(who, criteria) %>%
+#   summarise(
+#     n_papers = n_distinct(label_paper),
+#     mean  = mean(mid, na.rm = TRUE),
+#     sd    = sd(mid,   na.rm = TRUE),
+#     median= median(mid, na.rm = TRUE),
+#     iqr   = IQR(mid,    na.rm = TRUE),
+#     min   = min(mid,    na.rm = TRUE),
+#     max   = max(mid,    na.rm = TRUE),
+#     .groups = "drop"
+#   ) %>%
+#   mutate(across(c(mean, sd, median, iqr, min, max), ~ round(.x, 1)))
+# 
+# summ_basic_wide <- summ_basic %>%
+#   pivot_wider(names_from = who,
+#               values_from = c(n_papers, mean, sd, median, iqr, min, max),
+#               names_glue = "{.value}_{who}") %>%
+#   arrange(criteria)
 
 
-## LLM vs Human agreement {.smaller}
+
+matched_set <- paper_means %>%
+  distinct(label_paper, criteria, who) %>%
+  pivot_wider(names_from = who, values_from = who) %>%
+  filter(!is.na(Human), !is.na(LLM)) %>%
+  select(label_paper, criteria)
+
+paper_means_matched <- paper_means %>%
+  inner_join(matched_set, by = c("label_paper","criteria"))
+
+summ_basic_matched <- paper_means_matched %>%
+  group_by(who, criteria) %>%
+  summarise(
+    n_papers = n_distinct(label_paper),
+    mean  = mean(mid, na.rm = TRUE),
+    sd    = sd(mid,   na.rm = TRUE),
+    median= median(mid, na.rm = TRUE),
+    iqr   = IQR(mid,    na.rm = TRUE),
+    min   = min(mid,    na.rm = TRUE),
+    max   = max(mid,    na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(across(c(mean, sd, median, iqr, min, max), ~ round(.x, 1))) %>%
+  pivot_wider(names_from = who,
+              values_from = c(n_papers, mean, sd, median, iqr, min, max),
+              names_glue = "{.value}_{who}") %>%
+  arrange(criteria)
+
+knitr::kable(summ_basic_matched)
+
+
+```
+
+
+## Measures of association & consistency {.smaller}
+
+<!-- *Some of these metrics, for each rating category* (or just some key ones, if it gets too busy) -->
+
+<!-- - Mean absolute "error" (MAE) -->
+<!-- - Correlation (Pearson & Spearman) -->
+<!-- - rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure) -->
+<!-- - (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI? -->
+<!-- - Inter-rater reliability (probably Krippendorff’s alpha is best for now) -->
+
+<!-- <!-- Later: construct full imputed distributions from CIs, measures of surprisal -->  -->
+
+
+<!-- Do this:  -->
+
+<!-- 1. For LLM vs Human -->
+<!-- 2. For humans vs humans  -->
+ 
 
 
 ```{r}
@@ -1234,8 +1307,6 @@ L_tier <- jt_use |> filter(who=="LLM") |>
 merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
 
 ```
-
-
 
 
 ```{r}
@@ -1443,7 +1514,7 @@ Scan to visit
 <!-- #| fig-height: 8 -->
 <!-- #| fig-align: center -->
 
-<!-- library(plotly) -->
+
 
 <!-- # Humans and LLM for the chosen tier metric -->
 <!-- H <- jt_use |> filter(criteria == tier_metric, who == "Human", -->
