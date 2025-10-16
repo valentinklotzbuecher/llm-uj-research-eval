@@ -948,31 +948,125 @@ ggplot() +
 
 ----
 
+
 ```{r}
-#| label: scatter-overall-static-highlight
+#| label: forest-overall-vert-annotate
+#| fig-width: 14
+#| fig-height: 5
+library(dplyr); library(ggplot2); library(ggrepel)
+
+highlight_paper <- "Banerjee et al. 2022"
+
+matched <- intersect(
+  metrics_use %>% filter(who=="LLM",   criteria=="overall") %>% pull(label_paper),
+  metrics_use %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
+)
+
+H_ind <- metrics_human %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  mutate(lo = ifelse(is.finite(lo), pmax(0,lo), NA_real_),
+         hi = ifelse(is.finite(hi), pmin(100,hi), NA_real_))
+
+ord <- H_ind %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
+  arrange(desc(h_mean)) %>% mutate(pos = row_number())
+
+H_plot <- H_ind %>%
+  inner_join(ord, by="label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.18,
+         x   = pos + off) %>% ungroup()
+
+# per-paper human mean and LLM summary
+H_pp <- H_ind %>% group_by(label_paper) %>% summarise(h_mean = mean(mid), .groups="drop")
+L_c <- metrics_llm %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  group_by(label_paper) %>%
+  summarise(mid = mean(mid, na.rm=TRUE),
+            lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+            hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+            .groups="drop") %>%
+  inner_join(ord, by="label_paper") %>%
+  mutate(x = pos)
+
+lab <- L_c %>% filter(label_paper == highlight_paper)
+
+# overall means to show as horizontal reference lines
+hbar <- mean(H_pp$h_mean, na.rm=TRUE)
+lbar <- mean(L_c$mid,     na.rm=TRUE)
+
+ggplot() +
+  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  # mean lines
+  geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dotted", linewidth = 0.8) +
+  geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
+  # humans
+  geom_errorbar(data = subset(H_plot, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1, alpha=0.5, color=UJ_GREEN) +
+  geom_point(data = H_plot, aes(x=x, y=mid), size=3.0, alpha=0.9, color=UJ_GREEN) +
+  # LLM
+  geom_errorbar(data = subset(L_c, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1.0, color=UJ_ORANGE) +
+  geom_point(data = L_c, aes(x=x, y=mid), size=3.6, shape=18, color=UJ_ORANGE) +
+  # label highlight
+  geom_label_repel(data = lab,
+                   aes(x = x, y = mid, label = label_paper),
+                   min.segment.length = 0, seed = 1, size = 3.2,
+                   fill = "white", label.r = unit(0.1,"lines")) +
+  # x-axis paper labels
+  scale_x_continuous(breaks = ord$pos, labels = ord$label_paper, expand = expansion(mult = c(0.01, 0.03))) +
+  coord_cartesian(ylim = c(0,100), clip = "off") +
+  labs(x=NULL, y="Percentile (0–100)",
+       caption = sprintf("Means — Human: %.1f   LLM: %.1f", hbar, lbar)) +
+  theme_uj() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+        panel.grid.major.x=element_blank(),
+        plot.margin = margin(5, 40, 5, 5))
+
+```
+
+
+
+
+----
+
+```{r}
+#| label: scatter-overall-static-stats
 #| fig-width: 7
 #| fig-height: 5
-
 
 D <- metrics_use %>%
   filter(criteria=="overall") %>%
   group_by(who, label_paper) %>%
   summarise(mid = mean(mid, na.rm=TRUE), .groups="drop") %>%
   tidyr::pivot_wider(names_from = who, values_from = mid) %>%
-  filter(is.finite(Human), is.finite(LLM))
+  filter(is.finite(Human), is.finite(LLM))   # all matched papers
+
+# stats
+r    <- suppressWarnings(cor(D$Human, D$LLM, method="pearson"))
+rho  <- suppressWarnings(cor(D$Human, D$LLM, method="spearman"))
+MAE  <- mean(abs(D$LLM - D$Human))
+alpha_overall <- tryCatch({
+  if (requireNamespace("irr", quietly = TRUE)) {
+    M <- rbind(D$Human, D$LLM); irr::kripp.alpha(M, method = "interval")$value
+  } else NA_real_
+}, error = function(e) NA_real_)
+n <- nrow(D)
 
 ggplot(D, aes(x = Human, y = LLM)) +
   geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.6, color="grey60") +
-  geom_point(color=UJ_ORANGE, size=2.0, alpha=0.8) +
-  geom_point(data = D %>% filter(label_paper==highlight_paper),
-             aes(x=Human, y=LLM), color=UJ_ORANGE, size=3.0, shape=18) +
-  # ggrepel::geom_text_repel(data = D %>% filter(label_paper==highlight_paper),
-  #                          aes(label = label_paper),
-  #                          min.segment.length = 0, seed = 1, size = 3.2) +
-  stat_smooth(method="lm", se=FALSE, linewidth=0.4, color="lightgrey") +
+  geom_point(color="grey55", size=2.1, alpha=0.9) +
+  stat_smooth(method="lm", se=FALSE, linewidth=0.8, color="black") +
   coord_equal(xlim=c(0,100), ylim=c(0,100), expand=FALSE) +
+  annotate("text", x = 4, y = 96,
+           label = sprintf("n=%d   r=%.2f   ρ=%.2f   α=%.2f   MAE=%.1f", n, r, rho, alpha_overall, MAE),
+           hjust = 0, size = 3.5) +
   labs(x="Human overall (0–100)", y="LLM overall (0–100)") +
   theme_uj()
+
 
 ```
 
@@ -1106,9 +1200,7 @@ Now? Color by 'applied' or by cause area?
 
 In future: different shapes or colors for publication *outcomes*, separately depicted if 'known at time of evaluation 
 
--->
-
----
+--> 
 
 
 
@@ -1246,7 +1338,7 @@ merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
 #| warning: false
 if (!requireNamespace("irr", quietly = TRUE)) stop("Package 'irr' needed.")
 
-# LLM↔Human stats on 0–100 metrics (matched items)
+# LLM-Human stats on 0–100 metrics (matched items)
 llm_h_stats <- metrics_use %>%
   group_by(criteria) %>%
   group_modify(function(df, key){
@@ -1266,7 +1358,7 @@ llm_h_stats <- metrics_use %>%
     )
   }) %>% ungroup()
 
-# Human↔Human α on 0–100 metrics (all raters)
+# Human-Human α on 0–100 metrics (all raters)
 hh_alpha_metrics <- metrics_human %>%
   group_by(criteria) %>%
   group_modify(function(df, key){
@@ -1283,7 +1375,7 @@ combined_metrics <- llm_h_stats %>%
   mutate(across(where(is.numeric), ~ round(.x, 3)))
 
 knitr::kable(combined_metrics,
-             caption = "0–100 metrics: LLM↔Human vs Human↔Human agreement (Krippendorff’s α interval) with LLM↔Human correlations and MAE")
+             caption = "0–100 metrics: LLM-Human vs Human-Human agreement (Krippendorff’s alpha interval) with LLM-Human correlations and MAE")
 
 ```
 
@@ -1363,225 +1455,224 @@ Scan to visit
 
 
 
-# Appendix
+<!-- # Appendix -->
 
 
 
 
----
+<!-- --- -->
 
 
 
 
----
+<!-- --- -->
 
-### Journal tier rating: Unjournal vs GPT-5
-
-
-::: {.columns}
-
-::: {.column width="50%"}
+<!-- ### Journal tier rating: Unjournal vs GPT-5 -->
 
 
+<!-- ::: {.columns} -->
 
-- Where *should* this be published?
-
-```{r}
-#| label: scatter-tiers-rating
-#| fig-width: 8
-#| fig-height: 8
-#| fig-align: center
-
-library(plotly)
-
-# Humans and LLM for the chosen tier metric
-H <- jt_use |> filter(criteria == tier_metric, who == "Human",
-                      is.finite(mid)) |>
-  select(label_paper, who, mid_h = mid, lo_h = lo, hi_h = hi)
-
-L <- jt_use |> filter(criteria == tier_metric, who == "LLM") |>
-  select(label_paper, mid_l = mid, lo_l = lo, hi_l = hi)
-
-HL <- H |> inner_join(L, by = "label_paper") |>
-  mutate(
-    ex  = pmax(0, hi_h - mid_h), exm = pmax(0, mid_h - lo_h),
-    eyy = pmax(0, hi_l - mid_l), eym = pmax(0, mid_l - lo_l),
-    diff = mid_l - mid_h,
-    hover = sprintf(
-      "<b>%s</b><br>Human: %.2f [%.2f, %.2f]<br>LLM: %.2f [%.2f, %.2f]<br>\u0394=LLM−Human: %.2f",
-      label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff)
-  )
-
-AX <- list(range = c(1,5), dtick = 1, title = "Human tier",
-           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
-AY <- list(range = c(1,5), dtick = 1, title = "LLM tier",
-           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
-
-plot_ly(HL) |>
-  add_markers(x = ~mid_h, y = ~mid_l, name = "Paper",
-              marker = list(size = 22, color = UJ_GREEN, line = list(width = 0), alpha = 0.7),
-              # error_x = list(type = "data", array = ~ex, arrayminus = ~exm, thickness = 3, color = UJ_GREEN),
-              # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE),
-              hovertemplate = ~hover, showlegend = FALSE) |>
-  add_lines(x = c(1,5), y = c(1,5), name = "y = x",
-            line = list(dash = "dash", width = 2, color = "gray60"),
-            hoverinfo = "none", showlegend = FALSE) |>
-  layout(xaxis = AX, yaxis = AY,
-         hoverlabel = list(font = list(size = 24)),
-         margin = list(l = 60, r = 30, t = 50, b = 50))
-
-```
-
-:::
-
-::: {.column width="50%"}
-
-- Where *will* this be published?
-
-```{r}
-#| label: scatter-tier-predict
-#| fig-width: 8
-#| fig-height: 8
-#| fig-align: center
-
-
-tier_metric <- "journal_predict"  # change "merits_journal" to "journal_predict" for the other slide
-
-
-# Humans and LLM for the chosen tier metric
-H <- jt_use |> filter(criteria == tier_metric, who == "Human",
-                      is.finite(mid)) |>
-  select(label_paper, who, mid_h = mid, lo_h = lo, hi_h = hi)
-
-L <- jt_use |> filter(criteria == tier_metric, who == "LLM") |>
-  select(label_paper, mid_l = mid, lo_l = lo, hi_l = hi)
-
-HL <- H |> inner_join(L, by = "label_paper") |>
-  mutate(
-    ex  = pmax(0, hi_h - mid_h), exm = pmax(0, mid_h - lo_h),
-    eyy = pmax(0, hi_l - mid_l), eym = pmax(0, mid_l - lo_l),
-    diff = mid_l - mid_h,
-    hover = sprintf(
-      "<b>%s</b><br>Human: %.2f [%.2f, %.2f]<br>LLM: %.2f [%.2f, %.2f]<br>\u0394=LLM−Human: %.2f",
-      label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff)
-  )
-
-AX <- list(range = c(1,5), dtick = 1, title = "Human tier",
-           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
-AY <- list(range = c(1,5), dtick = 1, title = "LLM tier",
-           zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28))
-
-plot_ly(HL) |>
-  add_markers(x = ~mid_h, y = ~mid_l, name = "Paper",
-              marker = list(size = 22, color = UJ_GREEN, line = list(width = 0), alpha = 0.7),
-              # error_x = list(type = "data", array = ~ex, arrayminus = ~exm, thickness = 3, color = UJ_GREEN),
-              # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE),
-              hovertemplate = ~hover, showlegend = FALSE) |>
-  add_lines(x = c(1,5), y = c(1,5), name = "y = x",
-            line = list(dash = "dash", width = 2, color = "gray60"),
-            hoverinfo = "none", showlegend = FALSE) |>
-  layout(xaxis = AX, yaxis = AY,
-         hoverlabel = list(font = list(size = 24)),
-         margin = list(l = 60, r = 30, t = 50, b = 50))
-
-```
-
-:::
-
-:::
-
-----
+<!-- ::: {.column width="50%"} -->
 
 
 
-### Journal tier rating "should": Unjournal 
+<!-- - Where *should* this be published? -->
 
-```{r}
-#| label: forest-tiers-should-human-vertical
-#| fig-width: 14
-#| fig-height: 5
-HH <- jt_use %>% filter(criteria=="merits_journal", who=="Human")
-LL <- jt_use %>% filter(criteria=="merits_journal", who=="LLM")
-matched_should <- intersect(HH$label_paper, LL$label_paper)
+<!-- ```{r} -->
+<!-- #| label: scatter-tiers-rating -->
+<!-- #| fig-width: 8 -->
+<!-- #| fig-height: 8 -->
+<!-- #| fig-align: center -->
 
-H_t <- HH %>%
-  filter(label_paper %in% matched_should) %>%
-  mutate(
-    lo = ifelse(is.finite(lo), pmax(1, lo), NA_real_),
-    hi = ifelse(is.finite(hi), pmin(5, hi), NA_real_)
-  )
+<!-- library(plotly) -->
 
-ord_t <- H_t %>%
-  group_by(label_paper) %>%
-  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
-  arrange(desc(h_mean)) %>%
-  mutate(pos = row_number())
+<!-- # Humans and LLM for the chosen tier metric -->
+<!-- H <- jt_use |> filter(criteria == tier_metric, who == "Human", -->
+<!--                       is.finite(mid)) |> -->
+<!--   select(label_paper, who, mid_h = mid, lo_h = lo, hi_h = hi) -->
 
-H_tplot <- H_t %>%
-  inner_join(ord_t, by="label_paper") %>%
-  group_by(label_paper) %>%
-  mutate(off = (row_number() - (n()+1)/2) * 0.18,
-         x   = pos + off) %>%
-  ungroup()
+<!-- L <- jt_use |> filter(criteria == tier_metric, who == "LLM") |> -->
+<!--   select(label_paper, mid_l = mid, lo_l = lo, hi_l = hi) -->
 
-ggplot() +
-  geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) +
-  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
-                aes(x = x, ymin = lo, ymax = hi),
-                width = 0, linewidth = 0.6, alpha = 0.55, color = UJ_GREEN) +
-  geom_point(data = H_tplot, aes(x = x, y = mid),
-             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
-  coord_cartesian(ylim = c(1,5)) +
-  labs(x = NULL, y = "Journal tier (1–5)") +
-  theme_uj() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-        panel.grid.major.x = element_blank())
+<!-- HL <- H |> inner_join(L, by = "label_paper") |> -->
+<!--   mutate( -->
+<!--     ex  = pmax(0, hi_h - mid_h), exm = pmax(0, mid_h - lo_h), -->
+<!--     eyy = pmax(0, hi_l - mid_l), eym = pmax(0, mid_l - lo_l), -->
+<!--     diff = mid_l - mid_h, -->
+<!--     hover = sprintf( -->
+<!--       "<b>%s</b><br>Human: %.2f [%.2f, %.2f]<br>LLM: %.2f [%.2f, %.2f]<br>\u0394=LLM−Human: %.2f", -->
+<!--       label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff) -->
+<!--   ) -->
 
-```
+<!-- AX <- list(range = c(1,5), dtick = 1, title = "Human tier", -->
+<!--            zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28)) -->
+<!-- AY <- list(range = c(1,5), dtick = 1, title = "LLM tier", -->
+<!--            zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28)) -->
 
+<!-- plot_ly(HL) |> -->
+<!--   add_markers(x = ~mid_h, y = ~mid_l, name = "Paper", -->
+<!--               marker = list(size = 22, color = UJ_GREEN, line = list(width = 0), alpha = 0.7), -->
+<!--               # error_x = list(type = "data", array = ~ex, arrayminus = ~exm, thickness = 3, color = UJ_GREEN), -->
+<!--               # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE), -->
+<!--               hovertemplate = ~hover, showlegend = FALSE) |> -->
+<!--   add_lines(x = c(1,5), y = c(1,5), name = "y = x", -->
+<!--             line = list(dash = "dash", width = 2, color = "gray60"), -->
+<!--             hoverinfo = "none", showlegend = FALSE) |> -->
+<!--   layout(xaxis = AX, yaxis = AY, -->
+<!--          hoverlabel = list(font = list(size = 24)), -->
+<!--          margin = list(l = 60, r = 30, t = 50, b = 50)) -->
 
-----
+<!-- ``` -->
 
+<!-- ::: -->
 
-### Journal tier rating "should": Unjournal vs GPT-5
+<!-- ::: {.column width="50%"} -->
 
-```{r}
-#| label: forest-tiers-should-human-llm-vertical
-#| fig-width: 14
-#| fig-height: 5
-L_t <- LL %>%
-  filter(label_paper %in% matched_should) %>%
-  group_by(label_paper) %>%
-  summarise(
-    mid = mean(mid, na.rm=TRUE),
-    lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
-    hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
-    .groups="drop"
-  ) %>%
-  inner_join(ord_t, by="label_paper") %>%
-  mutate(x = pos)
+<!-- - Where *will* this be published? -->
 
-ggplot() +
-  geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) +
-  # humans
-  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
-                aes(x = x, ymin = lo, ymax = hi),
-                width = 0, linewidth = 0.6, alpha = 0.5, color = UJ_GREEN) +
-  geom_point(data = H_tplot, aes(x = x, y = mid),
-             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
-  # LLM
-  geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)),
-                aes(x = x, ymin = lo, ymax = hi),
-                width = 0, linewidth = 1.0, color = UJ_ORANGE) +
-  geom_point(data = L_t, aes(x = x, y = mid),
-             size = 2.6, shape = 18, color = UJ_ORANGE) +
-  coord_cartesian(ylim = c(1,5)) +
-  labs(x = NULL, y = "Journal tier (1–5)") +
-  theme_uj() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-        panel.grid.major.x = element_blank())
-
-```
+<!-- ```{r} -->
+<!-- #| label: scatter-tier-predict -->
+<!-- #| fig-width: 8 -->
+<!-- #| fig-height: 8 -->
+<!-- #| fig-align: center -->
 
 
-----
+<!-- tier_metric <- "journal_predict"  # change "merits_journal" to "journal_predict" for the other slide -->
+
+
+<!-- # Humans and LLM for the chosen tier metric -->
+<!-- H <- jt_use |> filter(criteria == tier_metric, who == "Human", -->
+<!--                       is.finite(mid)) |> -->
+<!--   select(label_paper, who, mid_h = mid, lo_h = lo, hi_h = hi) -->
+
+<!-- L <- jt_use |> filter(criteria == tier_metric, who == "LLM") |> -->
+<!--   select(label_paper, mid_l = mid, lo_l = lo, hi_l = hi) -->
+
+<!-- HL <- H |> inner_join(L, by = "label_paper") |> -->
+<!--   mutate( -->
+<!--     ex  = pmax(0, hi_h - mid_h), exm = pmax(0, mid_h - lo_h), -->
+<!--     eyy = pmax(0, hi_l - mid_l), eym = pmax(0, mid_l - lo_l), -->
+<!--     diff = mid_l - mid_h, -->
+<!--     hover = sprintf( -->
+<!--       "<b>%s</b><br>Human: %.2f [%.2f, %.2f]<br>LLM: %.2f [%.2f, %.2f]<br>\u0394=LLM−Human: %.2f", -->
+<!--       label_paper, mid_h, lo_h, hi_h, mid_l, lo_l, hi_l, diff) -->
+<!--   ) -->
+
+<!-- AX <- list(range = c(1,5), dtick = 1, title = "Human tier", -->
+<!--            zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28)) -->
+<!-- AY <- list(range = c(1,5), dtick = 1, title = "LLM tier", -->
+<!--            zeroline = FALSE, showgrid = FALSE, tickfont = list(size = 28), titlefont = list(size = 28)) -->
+
+<!-- plot_ly(HL) |> -->
+<!--   add_markers(x = ~mid_h, y = ~mid_l, name = "Paper", -->
+<!--               marker = list(size = 22, color = UJ_GREEN, line = list(width = 0), alpha = 0.7), -->
+<!--               # error_x = list(type = "data", array = ~ex, arrayminus = ~exm, thickness = 3, color = UJ_GREEN), -->
+<!--               # error_y = list(type = "data", array = ~eyy, arrayminus = ~eym, thickness = 3, color = UJ_ORANGE), -->
+<!--               hovertemplate = ~hover, showlegend = FALSE) |> -->
+<!--   add_lines(x = c(1,5), y = c(1,5), name = "y = x", -->
+<!--             line = list(dash = "dash", width = 2, color = "gray60"), -->
+<!--             hoverinfo = "none", showlegend = FALSE) |> -->
+<!--   layout(xaxis = AX, yaxis = AY, -->
+<!--          hoverlabel = list(font = list(size = 24)), -->
+<!--          margin = list(l = 60, r = 30, t = 50, b = 50)) -->
+
+<!-- ``` -->
+
+<!-- ::: -->
+
+<!-- ::: -->
+
+<!-- ---- -->
+
+
+
+<!-- ### Journal tier rating "should": Unjournal  -->
+
+<!-- ```{r} -->
+<!-- #| label: forest-tiers-should-human-vertical -->
+<!-- #| fig-width: 14 -->
+<!-- #| fig-height: 5 -->
+<!-- HH <- jt_use %>% filter(criteria=="merits_journal", who=="Human") -->
+<!-- LL <- jt_use %>% filter(criteria=="merits_journal", who=="LLM") -->
+<!-- matched_should <- intersect(HH$label_paper, LL$label_paper) -->
+
+<!-- H_t <- HH %>% -->
+<!--   filter(label_paper %in% matched_should) %>% -->
+<!--   mutate( -->
+<!--     lo = ifelse(is.finite(lo), pmax(1, lo), NA_real_), -->
+<!--     hi = ifelse(is.finite(hi), pmin(5, hi), NA_real_) -->
+<!--   ) -->
+
+<!-- ord_t <- H_t %>% -->
+<!--   group_by(label_paper) %>% -->
+<!--   summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>% -->
+<!--   arrange(desc(h_mean)) %>% -->
+<!--   mutate(pos = row_number()) -->
+
+<!-- H_tplot <- H_t %>% -->
+<!--   inner_join(ord_t, by="label_paper") %>% -->
+<!--   group_by(label_paper) %>% -->
+<!--   mutate(off = (row_number() - (n()+1)/2) * 0.18, -->
+<!--          x   = pos + off) %>% -->
+<!--   ungroup() -->
+
+<!-- ggplot() + -->
+<!--   geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) + -->
+<!--   geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)), -->
+<!--                 aes(x = x, ymin = lo, ymax = hi), -->
+<!--                 width = 0, linewidth = 0.6, alpha = 0.55, color = UJ_GREEN) + -->
+<!--   geom_point(data = H_tplot, aes(x = x, y = mid), -->
+<!--              size = 2.0, alpha = 0.9, color = UJ_GREEN) + -->
+<!--   coord_cartesian(ylim = c(1,5)) + -->
+<!--   labs(x = NULL, y = "Journal tier (1–5)") + -->
+<!--   theme_uj() + -->
+<!--   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), -->
+<!--         panel.grid.major.x = element_blank()) -->
+
+<!-- ``` -->
+
+
+<!-- ---- -->
+
+
+<!-- ### Journal tier rating "should": Unjournal vs GPT-5 -->
+
+<!-- ```{r} -->
+<!-- #| label: forest-tiers-should-human-llm-vertical -->
+<!-- #| fig-width: 14 -->
+<!-- #| fig-height: 5 -->
+<!-- L_t <- LL %>% -->
+<!--   filter(label_paper %in% matched_should) %>% -->
+<!--   group_by(label_paper) %>% -->
+<!--   summarise( -->
+<!--     mid = mean(mid, na.rm=TRUE), -->
+<!--     lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)), -->
+<!--     hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)), -->
+<!--     .groups="drop" -->
+<!--   ) %>% -->
+<!--   inner_join(ord_t, by="label_paper") %>% -->
+<!--   mutate(x = pos) -->
+
+<!-- ggplot() + -->
+<!--   geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) + -->
+<!--   # humans -->
+<!--   geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)), -->
+<!--                 aes(x = x, ymin = lo, ymax = hi), -->
+<!--                 width = 0, linewidth = 0.6, alpha = 0.5, color = UJ_GREEN) + -->
+<!--   geom_point(data = H_tplot, aes(x = x, y = mid), -->
+<!--              size = 2.0, alpha = 0.9, color = UJ_GREEN) + -->
+<!--   # LLM -->
+<!--   geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)), -->
+<!--                 aes(x = x, ymin = lo, ymax = hi), -->
+<!--                 width = 0, linewidth = 1.0, color = UJ_ORANGE) + -->
+<!--   geom_point(data = L_t, aes(x = x, y = mid), -->
+<!--              size = 2.6, shape = 18, color = UJ_ORANGE) + -->
+<!--   coord_cartesian(ylim = c(1,5)) + -->
+<!--   labs(x = NULL, y = "Journal tier (1–5)") + -->
+<!--   theme_uj() + -->
+<!--   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), -->
+<!--         panel.grid.major.x = element_blank()) -->
+
+<!-- ``` -->
+
+ 
