@@ -1240,43 +1240,58 @@ AY <- list(range = c(1,5), dtick = 1, title = "LLM tier",
 ```{r}
 #| label: forest-tiers-should-human-vertical
 #| fig-width: 14
-#| fig-height: 5
-HH <- jt_use %>% filter(criteria=="merits_journal", who=="Human")
-LL <- jt_use %>% filter(criteria=="merits_journal", who=="LLM")
-matched_should <- intersect(HH$label_paper, LL$label_paper)
+#| fig-height: 6
+
+# Uses current tier_metric
+
+HH <- jt_use %>% filter(criteria == tier_metric, who == "Human")
+LL <- jt_use %>% filter(criteria == tier_metric, who == "LLM")
+matched <- intersect(unique(HH$label_paper), unique(LL$label_paper))
 
 H_t <- HH %>%
-  filter(label_paper %in% matched_should) %>%
-  mutate(
-    lo = ifelse(is.finite(lo), pmax(1, lo), NA_real_),
-    hi = ifelse(is.finite(hi), pmin(5, hi), NA_real_)
-  )
+filter(label_paper %in% matched) %>%
+mutate(
+lo = ifelse(is.finite(lo), pmax(1, lo), NA_real_),
+hi = ifelse(is.finite(hi), pmin(5, hi), NA_real_)
+)
 
 ord_t <- H_t %>%
-  group_by(label_paper) %>%
-  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
-  arrange(desc(h_mean)) %>%
-  mutate(pos = row_number())
+group_by(label_paper) %>%
+summarise(h_mean = mean(mid, na.rm = TRUE), .groups = "drop") %>%
+arrange(desc(h_mean)) %>%
+mutate(pos = row_number())
 
 H_tplot <- H_t %>%
-  inner_join(ord_t, by="label_paper") %>%
-  group_by(label_paper) %>%
-  mutate(off = (row_number() - (n()+1)/2) * 0.18,
-         x   = pos + off) %>%
-  ungroup()
+inner_join(ord_t, by = "label_paper") %>%
+group_by(label_paper) %>%
+mutate(off = (row_number() - (n() + 1) / 2) * 0.18,
+x   = pos + off) %>%
+ungroup()
+
+H_pp  <- H_t %>% group_by(label_paper) %>% summarise(h_mean = mean(mid), .groups = "drop")
+hbar  <- mean(H_pp$h_mean, na.rm = TRUE)
+x_ann <- if (nrow(ord_t)) min(ord_t$pos) + 0.3 else 0
 
 ggplot() +
-  geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) +
-  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
-                aes(x = x, ymin = lo, ymax = hi),
-                width = 0, linewidth = 0.6, alpha = 0.55, color = UJ_GREEN) +
-  geom_point(data = H_tplot, aes(x = x, y = mid),
-             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
-  coord_cartesian(ylim = c(1,5)) +
-  labs(x = NULL, y = "Journal tier (1–5)") +
-  theme_uj() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-        panel.grid.major.x = element_blank())
+geom_vline(data = ord_t, aes(xintercept = pos), color = "grey92", linewidth = 0.3) +
+geom_hline(yintercept = hbar, color = UJ_GREEN, linetype = "dotted", linewidth = 0.8) +
+geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
+aes(x = x, ymin = lo, ymax = hi),
+width = 0, linewidth = 1, alpha = 0.5, color = UJ_GREEN) +
+geom_point(data = H_tplot, aes(x = x, y = mid),
+size = 3.0, alpha = 0.9, color = UJ_GREEN) +
+scale_x_continuous(breaks = ord_t$pos, labels = ord_t$label_paper,
+expand = expansion(mult = c(0.01, 0.03))) +
+coord_cartesian(ylim = c(1, 5), clip = "off") +
+labs(x = NULL, y = "Journal tier (1–5)") +
+theme_uj() +
+annotate("text", x = x_ann, y = 1.4,
+label = sprintf("Mean — Human: %.2f", hbar),
+hjust = 0, size = 4) +
+theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+panel.grid.major.x = element_blank(),
+plot.margin = margin(5, 40, 5, 5))
+
 
 ```
 
@@ -1289,39 +1304,91 @@ ggplot() +
 ```{r}
 #| label: forest-tiers-should-human-llm-vertical
 #| fig-width: 14
-#| fig-height: 5
-#| 
+#| fig-height: 6
+
+# Optional: set a paper to annotate; leave NA for none
+
+highlight_paper <- NA_character_
+
+HH <- jt_use %>% filter(criteria == tier_metric, who == "Human")
+LL <- jt_use %>% filter(criteria == tier_metric, who == "LLM")
+matched <- intersect(unique(HH$label_paper), unique(LL$label_paper))
+
+H_t <- HH %>%
+filter(label_paper %in% matched) %>%
+mutate(
+lo = ifelse(is.finite(lo), pmax(1, lo), NA_real_),
+hi = ifelse(is.finite(hi), pmin(5, hi), NA_real_)
+)
+
+ord_t <- H_t %>%
+group_by(label_paper) %>%
+summarise(h_mean = mean(mid, na.rm = TRUE), .groups = "drop") %>%
+arrange(desc(h_mean)) %>%
+mutate(pos = row_number())
+
+H_tplot <- H_t %>%
+inner_join(ord_t, by = "label_paper") %>%
+group_by(label_paper) %>%
+mutate(off = (row_number() - (n() + 1) / 2) * 0.18,
+x   = pos + off) %>%
+ungroup()
+
 L_t <- LL %>%
-  filter(label_paper %in% matched_should) %>%
-  group_by(label_paper) %>%
-  summarise(
-    mid = mean(mid, na.rm=TRUE),
-    lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
-    hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
-    .groups="drop"
-  ) %>%
-  inner_join(ord_t, by="label_paper") %>%
-  mutate(x = pos)
+filter(label_paper %in% matched) %>%
+group_by(label_paper) %>%
+summarise(
+mid = mean(mid, na.rm = TRUE),
+lo  = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
+hi  = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
+.groups = "drop"
+) %>%
+inner_join(ord_t, by = "label_paper") %>%
+mutate(x = pos)
+
+H_pp <- H_t %>% group_by(label_paper) %>% summarise(h_mean = mean(mid), .groups = "drop")
+hbar <- mean(H_pp$h_mean, na.rm = TRUE)
+lbar <- mean(L_t$mid,     na.rm = TRUE)
+
+lab <- L_t %>% filter(label_paper == highlight_paper)
+x_ann <- if (nrow(ord_t)) min(ord_t$pos) + 0.3 else 0
 
 ggplot() +
-  geom_vline(data = ord_t, aes(xintercept = pos), color="grey92", linewidth=0.3) +
-  # humans
-  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
-                aes(x = x, ymin = lo, ymax = hi),
-                width = 0, linewidth = 0.6, alpha = 0.5, color = UJ_GREEN) +
-  geom_point(data = H_tplot, aes(x = x, y = mid),
-             size = 2.0, alpha = 0.9, color = UJ_GREEN) +
-  # LLM
-  geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)),
-                aes(x = x, ymin = lo, ymax = hi),
-                width = 0, linewidth = 1.0, color = UJ_ORANGE) +
-  geom_point(data = L_t, aes(x = x, y = mid),
-             size = 2.6, shape = 18, color = UJ_ORANGE) +
-  coord_cartesian(ylim = c(1,5)) +
-  labs(x = NULL, y = "Journal tier (1–5)") +
-  theme_uj() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-        panel.grid.major.x = element_blank())
+geom_vline(data = ord_t, aes(xintercept = pos), color = "grey92", linewidth = 0.3) +
+geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dashed", linewidth = 0.8) +
+geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
+
+# Humans
+
+geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
+aes(x = x, ymin = lo, ymax = hi),
+width = 0, linewidth = 1, alpha = 0.5, color = UJ_GREEN) +
+geom_point(data = H_tplot, aes(x = x, y = mid),
+size = 3.0, alpha = 0.9, color = UJ_GREEN) +
+
+# LLM
+
+geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)),
+aes(x = x, ymin = lo, ymax = hi),
+width = 0, linewidth = 1.0, color = UJ_ORANGE) +
+geom_point(data = L_t, aes(x = x, y = mid),
+size = 3.6, shape = 18, color = UJ_ORANGE) +
+geom_label_repel(data = lab,
+aes(x = x, y = mid, label = label_paper),
+min.segment.length = 0, seed = 1, size = 3.2,
+fill = "white", label.r = unit(0.1, "lines")) +
+scale_x_continuous(breaks = ord_t$pos, labels = ord_t$label_paper,
+expand = expansion(mult = c(0.01, 0.03))) +
+coord_cartesian(ylim = c(1, 5), clip = "off") +
+labs(x = NULL, y = "Journal tier (1–5)") +
+theme_uj() +
+annotate("text", x = x_ann, y = 1.4,
+label = sprintf("Means — Human: %.2f   LLM: %.2f", hbar, lbar),
+hjust = 0, size = 4) +
+theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+panel.grid.major.x = element_blank(),
+plot.margin = margin(5, 40, 5, 5))
+
 
 ```
 
@@ -1343,7 +1410,7 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 
 ## Overall characteristics of ratings {.smaller}
 
-### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
+Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
 
 <!-- 1. Means and medians -->
 <!-- 2. Range and SD -->
@@ -1429,7 +1496,7 @@ knitr::kable(summ_basic_matched)
 <!-- - (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI? -->
 <!-- - Inter-rater reliability (probably Krippendorff’s alpha is best for now) -->
 
-<!-- <!-- Later: construct full imputed distributions from CIs, measures of surprisal -->  -->
+ <!-- Later: construct full imputed distributions from CIs, measures of surprisal -->
 
 
 <!-- Do this:  -->
@@ -1567,7 +1634,7 @@ combined_metrics <- llm_h_stats %>%
   mutate(across(where(is.numeric), ~ round(.x, 3)))
 
 knitr::kable(combined_metrics,
-             caption = "0–100 metrics: LLM-Human vs Human-Human agreement (Krippendorff’s alpha interval) with LLM-Human correlations and MAE")
+             caption = "LLM-Human vs Human-Human agreement (Krippendorff’s alpha interval), and LLM-Human correlations and MAE")
 
 ```
 
