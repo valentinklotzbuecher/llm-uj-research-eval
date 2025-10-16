@@ -268,199 +268,6 @@ E.g.,
 ## Output: Example
 
 
-![](PubPubscreenshot.JPG)
-
----
-
-
-
-## LLM evaluation output, comparison to Unjournal human evaluator ratings
-
-<!-- DR @VK -- not sure what you wanted for this section -->
-
-
----
-
-### Our goals and questions: General 
-
-
-1. Measure the value of *frontier* AI research-eval. relative to human peer review 
-
-::: {.notes}
-Is state-of-the-art AI research evaluation reliable and useful enough to replace human peer review in any contexts? 
-
-Reverse question (Unjournal was asked): "Are human evaluations worth it"?
-
-How well can it predict what humans will report? 
-
-What are its strengths & weaknesses relative to humans, e.g., in terms of?
-
-(1) Predicting journal outcomes, citations, etc. (2) Generating feedback deemed most useful by humans (30 Spotting research errors (4) Diagnosing different types of strengths and limitations (e.g., reasoning transparency, justification of methods and assumptions, communication) (5) Judging content without biases/statistical discrimination based on prestige labels, etc.
-
-:::
-
-
-2. Compare *methods* for AI research-evaluation, find the best approaches
-
-::: {.notes}
-
-Which come closer to (the desirable features of) human evaluations and in which ways? 
-
-What gets closest to the 'frontier', doing better in terms of outcomes like those  mentioned above?
-
-:::
-
-
-3. The nature of frontier AI 'preferences & tastes' over research
-
-::: {.notes}
-
-1. Which types of papers and approaches do default models tend to 'like' more/less relative to humans when given the same guidelines?
-
-2. Do we see signs of characteristic preferences that help us understand how AIs are likely to prioritize, conduct, and evaluate research? 
-
-:::
-
-4. Hybrid human-AI performance (later)
-
-
-
-
-
-<!-- 
-
-1. Which types of papers do default models tend to 'like' more/less relative to humans when given the same guidelines?
-
-2. How do it's criteria ratings tend to differ from humans?
-
--->
-
-
-
-## Literature 
-
-**@Pataranutaporn2025 **
-
-<br style="line-height:0.5">
-
-1220 papers "from 110 economics journals excluded from the training data of current LLMs"
-
-LLMs asked: "make a publication recommendation" ... 6-point scale from "1 = Definite Reject..." to "6. Accept As Is...".
-
-<br style="line-height:0.5">
-
-::: {.fragment}
-
-Also, a 10-point scale for originality, rigor, scope, impact...
-
-And 330 papers w/ various 'remove/change names/institutions' treatments
-
-:::
-
-<br style="line-height:0.5">
-
-::: {.fragment}
-
-**Results:**  Align w/ journal REPEC rankings, evidence of bias (gender, instn.)
-
-:::
-
-
-<!--
-@Pataranutaporn2025 asked four nearly state-of-the-art LLM models (GPT-4o mini, Claude 3.5 Haiku, Gemma 3 27B, and LLaMA 3.3 70B) to consider 1220 unique papers "drawn from 110 economics journals excluded from the training data of current LLMs". They prompted the models to act "in your capacity as a reviewer for [a top-5 economics journal]" and make a publication recommendation using a 6-point scale ranging from "1 = Definite Reject..." to "6. Accept As Is...". They asked it to evaluate each paper on a 10-point scale for originality, rigor, scope, impact, and whether it was 'written by AI'. They also (separately) had LLMs rate 330 papers with the authors' identities removed, or replacing the names with fake male/female names and real elite or non-elite institutions (check this) or with prominent male or female economists attached. 
-
-They compare the LLMs' ratings with the RePEC rankings for the journals the papers were published in, finding general alignment. They find mixed results on detecting AI-generated papers. In the names/institutions comparisons, they also find the LLMs show biases towards named high-prestige male authors relative to high-prestige female authors, as well as biases towards elite institutions and US/UK universities. (Doublecheck the details here). 
---> 
-
----
-
-**@Zhang2025Replication**
-
-<br> 
-
-AI conference paper data
- 
-LLM agents performed pairwise comparisons among manuscripts
-
-<br> 
-
-::: {.fragment}
-
-
-*Accept/reject decisions:* "agreement between AI & human reviewers... roughly on par with the consistency observed between independent human review committees"
-
-<br style="line-height:0.5">
-
-Again, evidence of biases/~statistical discrimination towards, e.g., "‘"papers from established research institutions"
-:::
-
-::: {.notes}
-
-Pairwise comparison outperformed (LLM) rating-based methods in identifying high-impact papers (by citation metrics).
-
-Maybe we should consider pairwise comparison algorithms in our future prompting.
-
-:::
-
---- 
-
-### Our context, advantages
-
-- Actual *human* evaluations of research 
-
-- In econ. & adjacent 
-
-- Reports, ~benchmarked ratings, predictions (journal-tier ground-truth)
-
-
-<br>
-
-::: {.fragment}
-
-*Potential:* 
-
-- Train & benchmark models on human evals
-
-- Future eval. pipeline: clean out-of-time predictions & evaluation
-
-- Multi-armed trials on future human/hybrid evals (cf. Brodeur et al, '25; Qazi et al, '25)
-
-:::
-
-::: {.notes}
-We could also ask/pay future evaluators & authors to act as enumerators to judge LLM content
-:::
-
-
-
-
-## Our initial LLM pipeline
-
-<!-- DR @VK: I think we need at least 1-2 slides about our prompt, the model we used, how we fed it the papers, etc. -->
-
-**Prompt**
-
-Copied from evaluator guidelines, removed mention of "Unjournal", added 'role' & ~debiasing instructions
-
-::: {.tiny-text}
-
-
-> Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer. 
-
-> Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment -- give these ratings based on the *content* of the papers alone; do the assessment based on your knowledge and insights. 
-
-:::
-
-<br style="line-height:0.5">
-
-Enforce JSON Schema: midpoint and bounds for each criteria, short rationale
-
-
----
-
-Model: GPT-5 or GPT-5 pro
-
-
 
 ```{r}
 #| label: setup-libs
@@ -658,6 +465,268 @@ metrics_human <- rsx_research |>
 metrics_use <- bind_rows(metrics_human, metrics_llm)
 
 ```
+
+ 
+
+
+```{r}
+#| label: profile_humans_fixed
+#| fig-width: 9
+#| fig-height: 6
+library(dplyr); library(ggplot2); library(forcats)
+
+papers_requested <- c("Banerjee et al. 2022","Bettle 2023","Williams et al. 2024")
+papers <- intersect(papers_requested, unique(metrics_use$label_paper))
+if (length(papers) == 0) stop("Requested papers not found.")
+
+metric_order <- c("overall","adv_knowledge","logic_comms","methods",
+                  "open_sci","gp_relevance","merits_journal","journal_predict")
+metric_lab <- c(
+  overall="Overall assessment",
+  adv_knowledge="Advancing our knowledge and practice",
+  logic_comms="Logic and communication",
+  methods="Methods",
+  open_sci="Open, collaborative, replicable science",
+  gp_relevance="Relevance to global priorities",
+  merits_journal="Deserved journal tier",
+  journal_predict="Predicted journal tier"
+)
+
+# humans 0–100
+H_m <- metrics_use %>%
+  filter(who=="Human", criteria %in% metric_order) %>%
+  group_by(label_paper, criteria) %>%
+  summarise(x100 = mean(mid, na.rm=TRUE), .groups="drop")
+
+# humans tiers 1–5 -> 0–100
+H_t <- jt_use %>%
+  filter(who=="Human", criteria %in% c("merits_journal","journal_predict")) %>%
+  group_by(label_paper, criteria) %>%
+  summarise(x100 = 20*mean(mid, na.rm=TRUE), .groups="drop")
+
+H_prof <- H_m %>%
+  filter(!criteria %in% c("merits_journal","journal_predict")) %>%
+  bind_rows(H_t) %>%
+  filter(label_paper %in% papers) %>%
+  mutate(
+    metric = factor(criteria, levels = metric_order, labels = metric_lab[metric_order]),
+    paper  = factor(label_paper, levels = papers),
+    ord    = as.integer(metric)   # 1..8 top→bottom before reversing
+  ) %>%
+  arrange(paper, desc(ord))       # sort rows so paths follow top→bottom after y is reversed
+
+pal3 <- c("#e15759","#59a14f","#4e79a7")
+
+ggplot(H_prof, aes(x = x100, y = metric, group = paper, color = paper)) +
+  geom_path(linewidth = 1) +
+  geom_point(size = 2.4) +
+  scale_color_manual(values = pal3, name = NULL) +
+  scale_y_discrete(limits = rev(levels(H_prof$metric))) +
+  scale_x_continuous(
+    limits = c(0,100), breaks = seq(0,100,20), name = "Percentile rank",
+    sec.axis = sec_axis(~ . / 20, breaks = 0:5, name = "Journal tier")
+  ) +
+  theme_uj() +
+  theme(panel.grid.major.y = element_line(colour="grey92"),
+        legend.position = "top")
+
+
+```
+
+
+
+---
+
+
+
+## LLM evaluation output, comparison to Unjournal human evaluator ratings
+
+<!-- DR @VK -- not sure what you wanted for this section -->
+
+
+---
+
+### Our goals and questions: General 
+
+
+1. Measure the value of *frontier* AI research-eval. relative to human peer review 
+
+::: {.notes}
+Is state-of-the-art AI research evaluation reliable and useful enough to replace human peer review in any contexts? 
+
+Reverse question (Unjournal was asked): "Are human evaluations worth it"?
+
+How well can it predict what humans will report? 
+
+What are its strengths & weaknesses relative to humans, e.g., in terms of?
+
+(1) Predicting journal outcomes, citations, etc. (2) Generating feedback deemed most useful by humans (30 Spotting research errors (4) Diagnosing different types of strengths and limitations (e.g., reasoning transparency, justification of methods and assumptions, communication) (5) Judging content without biases/statistical discrimination based on prestige labels, etc.
+
+:::
+
+
+2. Compare *methods* for AI research-evaluation, find the best approaches
+
+::: {.notes}
+
+Which come closer to (the desirable features of) human evaluations and in which ways? 
+
+What gets closest to the 'frontier', doing better in terms of outcomes like those  mentioned above?
+
+:::
+
+
+3. The nature of frontier AI 'preferences & tastes' over research
+
+::: {.notes}
+
+1. Which types of papers and approaches do default models tend to 'like' more/less relative to humans when given the same guidelines?
+
+2. Do we see signs of characteristic preferences that help us understand how AIs are likely to prioritize, conduct, and evaluate research? 
+
+:::
+
+4. Hybrid human-AI performance (later)
+
+
+
+
+
+<!-- 
+
+1. Which types of papers do default models tend to 'like' more/less relative to humans when given the same guidelines?
+
+2. How do it's criteria ratings tend to differ from humans?
+
+-->
+
+
+
+## Literature 
+
+**@Pataranutaporn2025 **
+
+<br style="line-height:0.5">
+
+1220 papers "from 110 economics journals excluded from the training data of current LLMs"
+
+LLMs asked: "make a publication recommendation" ... 6-point scale from "1 = Definite Reject..." to "6. Accept As Is...".
+
+<br style="line-height:0.5">
+
+::: {.fragment}
+
+Also, a 10-point scale for originality, rigor, scope, impact...
+
+And 330 papers w/ various 'remove/change names/institutions' treatments
+
+:::
+
+<br style="line-height:0.5">
+
+::: {.fragment}
+
+**Results:**  Align w/ journal REPEC rankings, evidence of bias (gender, instn.)
+
+:::
+
+
+<!--
+@Pataranutaporn2025 asked four nearly state-of-the-art LLM models (GPT-4o mini, Claude 3.5 Haiku, Gemma 3 27B, and LLaMA 3.3 70B) to consider 1220 unique papers "drawn from 110 economics journals excluded from the training data of current LLMs". They prompted the models to act "in your capacity as a reviewer for [a top-5 economics journal]" and make a publication recommendation using a 6-point scale ranging from "1 = Definite Reject..." to "6. Accept As Is...". They asked it to evaluate each paper on a 10-point scale for originality, rigor, scope, impact, and whether it was 'written by AI'. They also (separately) had LLMs rate 330 papers with the authors' identities removed, or replacing the names with fake male/female names and real elite or non-elite institutions (check this) or with prominent male or female economists attached. 
+
+They compare the LLMs' ratings with the RePEC rankings for the journals the papers were published in, finding general alignment. They find mixed results on detecting AI-generated papers. In the names/institutions comparisons, they also find the LLMs show biases towards named high-prestige male authors relative to high-prestige female authors, as well as biases towards elite institutions and US/UK universities. (Doublecheck the details here). 
+--> 
+
+---
+
+**@Zhang2025Replication**
+
+<br> 
+
+AI conference paper data
+ 
+LLM agents performed pairwise comparisons among manuscripts
+
+<br> 
+
+::: {.fragment}
+
+
+*Accept/reject decisions:* "agreement between AI & human reviewers... roughly on par with the consistency observed between independent human review committees"
+
+<br style="line-height:0.5">
+
+Again, evidence of biases/~statistical discrimination towards, e.g., "‘"papers from established research institutions"
+:::
+
+::: {.notes}
+
+Pairwise comparison outperformed (LLM) rating-based methods in identifying high-impact papers (by citation metrics).
+
+Maybe we should consider pairwise comparison algorithms in our future prompting.
+
+:::
+
+--- 
+
+### Our context, advantages
+
+- Actual *human* evaluations of research 
+
+- In econ. & adjacent 
+
+- Reports, ~benchmarked ratings, predictions (journal-tier ground-truth)
+
+
+<br>
+
+::: {.fragment}
+
+*Potential:* 
+
+- Train & benchmark models on human evals
+
+- Future eval. pipeline: clean out-of-time predictions & evaluation
+
+- Multi-armed trials on future human/hybrid evals (cf. Brodeur et al, '25; Qazi et al, '25)
+
+:::
+
+::: {.notes}
+We could also ask/pay future evaluators & authors to act as enumerators to judge LLM content
+:::
+
+
+
+
+## Our initial LLM pipeline
+
+<!-- DR @VK: I think we need at least 1-2 slides about our prompt, the model we used, how we fed it the papers, etc. -->
+
+**Prompt**
+
+Copied from evaluator guidelines, removed mention of "Unjournal", added 'role' & ~debiasing instructions
+
+::: {.tiny-text}
+
+
+> Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer. 
+
+> Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment -- give these ratings based on the *content* of the papers alone; do the assessment based on your knowledge and insights. 
+
+:::
+
+<br style="line-height:0.5">
+
+Enforce JSON Schema: midpoint and bounds for each criteria, short rationale
+
+
+---
+
+Model: GPT-5 or GPT-5 pro
+
+
+
 
 --- 
 
@@ -924,6 +993,265 @@ Do this:
 
 1. For LLM vs Human
 2. For humans vs humans 
+
+
+## LLM vs Human agreement {.smaller}
+
+
+```{r}
+#| label: agreement-helpers
+#| message: false
+#| warning: false
+
+bin_together <- function(a, b, n_bins = 5, strategy = c("quantile","equal")) {
+  strategy <- match.arg(strategy)
+  x <- c(a, b); x <- x[is.finite(x)]
+  if (length(unique(x)) <= max(3, n_bins)) {
+    u <- sort(unique(x)); f <- function(v) match(v, u) - 1L
+    return(list(a_bin = f(a), b_bin = f(b), k = length(u)))
+  }
+  if (strategy == "quantile") {
+    qs <- unique(quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE))
+    if (length(qs) - 1L >= 2L) {
+      edges <- qs
+    } else {
+      strategy <- "equal"
+    }
+  }
+  if (strategy == "equal") {
+    lo <- min(x, na.rm = TRUE); hi <- max(x, na.rm = TRUE)
+    edges <- seq(lo, hi, length.out = n_bins + 1)
+  }
+  edges[1] <- edges[1] - 1e-9; edges[length(edges)] <- edges[length(edges)] + 1e-9
+  a_bin <- cut(a, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  b_bin <- cut(b, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  k <- max(c(a_bin, b_bin), na.rm = TRUE) + 1L
+  list(a_bin = a_bin, b_bin = b_bin, k = k)
+}
+
+weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","linear","unweighted")) {
+  weights <- match.arg(weights)
+  a <- as.integer(a_bin); b <- as.integer(b_bin)
+  keep <- is.finite(a) & is.finite(b); a <- a[keep]; b <- b[keep]
+  if (!length(a)) return(NA_real_); if (is.null(k)) k <- max(c(a,b)) + 1L
+  M <- matrix(0, k, k); for (i in seq_along(a)) M[a[i]+1L, b[i]+1L] <- M[a[i]+1L, b[i]+1L] + 1
+  if (sum(M)==0) return(NA_real_); M <- M / sum(M); r <- rowSums(M); csum <- colSums(M); E <- r %*% t(csum)
+  I <- matrix(rep(0:(k-1), times = k), nrow = k); J <- t(I)
+  W <- switch(weights,
+              quadratic = ((I - J)^2) / ((k - 1)^2),
+              linear    = abs(I - J) / (k - 1),
+              unweighted= 1 - diag(1, k))
+  num <- sum(W * M); den <- sum(W * E); if (den == 0) NA_real_ else 1 - num/den
+}
+
+```
+
+
+```{r}
+#| label: merge-for-agreement
+#| message: false
+#| warning: false
+
+# 0–100 metrics (aggregate human within paper×criterion)
+H_m <- metrics_use |> 
+  filter(who == "Human") |>
+  group_by(label_paper, criteria) |>
+  summarise(midpoint_human = mean(mid, na.rm = TRUE),
+            human_lo = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
+            human_hi = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
+            .groups = "drop")
+
+L_m <- metrics_use |> 
+  filter(who == "LLM") |>
+  group_by(label_paper, criteria) |>
+  summarise(midpoint_llm = mean(mid, na.rm = TRUE),
+            llm_lo = suppressWarnings(min(coalesce(lo, mid), na.rm = TRUE)),
+            llm_hi = suppressWarnings(max(coalesce(hi, mid), na.rm = TRUE)),
+            .groups = "drop")
+
+merged_metrics <- inner_join(H_m, L_m, by = c("label_paper","criteria"))
+
+# 1–5 journal tiers
+H_tier <- jt_use |> filter(who=="Human") |>
+  group_by(label_paper, criteria) |>
+  summarise(h_mid = mean(mid, na.rm=TRUE),
+            h_lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+            h_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+            .groups="drop")
+
+L_tier <- jt_use |> filter(who=="LLM") |>
+  group_by(label_paper, criteria) |>
+  summarise(l_mid = mean(mid, na.rm=TRUE),
+            l_lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
+            l_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
+            .groups="drop")
+
+merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
+
+```
+
+
+```{r}
+#| label: tbl-agreement-metrics
+#| message: false
+#| warning: false
+
+library(broom)
+library(knitr)
+
+summ_metrics <- merged_metrics |>
+  group_by(criteria) |>
+  summarise(
+    n = n(),
+    pearson  = suppressWarnings(cor(midpoint_llm, midpoint_human, method="pearson", use="pairwise.complete.obs")),
+    spearman = suppressWarnings(cor(midpoint_llm, midpoint_human, method="spearman", use="pairwise.complete.obs")),
+    slope    = { fit <- try(lm(midpoint_llm ~ midpoint_human), silent=TRUE);
+                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[2] },
+    intercept= { fit <- try(lm(midpoint_llm ~ midpoint_human), silent=TRUE);
+                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[1] },
+    MAE      = mean(abs(midpoint_llm - midpoint_human)),
+    MedAE    = median(abs(midpoint_llm - midpoint_human)),
+    RMSE     = sqrt(mean((midpoint_llm - midpoint_human)^2)),
+    pct_within_10 = mean(abs(midpoint_llm - midpoint_human) <= 10),
+    cov_H_in_LLM  = mean(midpoint_human >= llm_lo & midpoint_human <= llm_hi, na.rm=TRUE),
+    cov_LLM_in_H  = mean(midpoint_llm >= human_lo & midpoint_llm <= human_hi, na.rm=TRUE),
+    kappa_unwtd   = { b <- bin_together(midpoint_llm, midpoint_human, n_bins=5,"quantile"); 
+                      weighted_kappa(b$a_bin, b$b_bin, k=b$k, weights="unweighted") },
+    kappa_quad    = { b <- bin_together(midpoint_llm, midpoint_human, n_bins=5,"quantile"); 
+                      weighted_kappa(b$a_bin, b$b_bin, k=b$k, weights="quadratic") },
+    .groups = "drop"
+  ) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+kable(summ_metrics, caption = "LLM vs Human agreement on 0–100 metrics")
+
+```
+
+----
+
+
+```{r}
+#| label: tbl-agreement-tiers
+#| message: false
+#| warning: false
+
+summ_tiers <- merged_tiers |>
+  group_by(criteria) |>
+  summarise(
+    n = n(),
+    pearson  = suppressWarnings(cor(l_mid, h_mid, method="pearson", use="pairwise.complete.obs")),
+    spearman = suppressWarnings(cor(l_mid, h_mid, method="spearman", use="pairwise.complete.obs")),
+    slope    = { fit <- try(lm(l_mid ~ h_mid), silent=TRUE);
+                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[2] },
+    intercept= { fit <- try(lm(l_mid ~ h_mid), silent=TRUE);
+                 if (inherits(fit,"try-error")) NA_real_ else coef(fit)[1] },
+    MAE      = mean(abs(l_mid - h_mid)),
+    MedAE    = median(abs(l_mid - h_mid)),
+    RMSE     = sqrt(mean((l_mid - h_mid)^2)),
+    pct_within_1tier = mean(abs(l_mid - h_mid) <= 1),
+    cov_H_in_LLM  = mean(h_mid >= l_lo & h_mid <= l_hi, na.rm=TRUE),
+    cov_LLM_in_H  = mean(l_mid >= h_lo & l_mid <= h_hi, na.rm=TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+kable(summ_tiers, caption = "LLM vs Human agreement on journal tiers (1–5)")
+
+```
+
+
+----
+
+
+## Human vs human agreement {.smaller}
+
+```{r}
+#| label: hh_metrics_pairwise
+#| message: false
+#| warning: false
+
+
+# human-only long
+hh <- metrics_human %>%
+  select(label_paper, criteria, evaluator, mid, lo, hi)
+
+# all rater pairs on same paper × criterion
+hh_pairs <- hh %>%
+  inner_join(hh, by = c("label_paper","criteria"), suffix = c("_a","_b")) %>%
+  filter(evaluator_a < evaluator_b)
+
+# pairwise stats per criterion and rater pair
+hh_pairstats <- hh_pairs %>%
+  group_by(criteria, evaluator_a, evaluator_b) %>%
+  summarise(
+    n = sum(is.finite(mid_a) & is.finite(mid_b)),
+    pearson  = suppressWarnings(cor(mid_a, mid_b, method = "pearson",  use = "pairwise.complete.obs")),
+    spearman = suppressWarnings(cor(mid_a, mid_b, method = "spearman", use = "pairwise.complete.obs")),
+    MAE      = mean(abs(mid_a - mid_b)),
+    RMSE     = sqrt(mean((mid_a - mid_b)^2)),
+    pct_within_10 = mean(abs(mid_a - mid_b) <= 10),
+    cov_a_in_b = mean(mid_a >= hi_b | mid_a <= lo_b, na.rm = TRUE),   # CI coverage proxies; NA-tolerant
+    cov_b_in_a = mean(mid_b >= hi_a | mid_b <= lo_a, na.rm = TRUE),
+    # binned κ for comparability with LLM↔Human
+    # kappa_unwtd = { b <- bin_together(mid_a, mid_b, n_bins = 5, strategy = "quantile");
+    #                 weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "unweighted") },
+    # kappa_quad  = { b <- bin_together(mid_a, mid_b, n_bins = 5, strategy = "quantile");
+    #                 weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "quadratic") },
+    .groups = "drop"
+  )
+
+# summary across rater pairs per criterion
+hh_metrics_summary <- hh_pairstats %>%
+  group_by(criteria) %>%
+  summarise(
+    pairs = dplyr::n(),
+    n_median = median(n, na.rm = TRUE),
+    pearson_mean  = mean(pearson,  na.rm = TRUE),
+    spearman_mean = mean(spearman, na.rm = TRUE),
+    MAE_mean      = mean(MAE,      na.rm = TRUE),
+    RMSE_mean     = mean(RMSE,     na.rm = TRUE),
+    within10_mean = mean(pct_within_10, na.rm = TRUE),
+    # kappa_u_mean  = mean(kappa_unwtd,   na.rm = TRUE),
+    # kappa_q_mean  = mean(kappa_quad,    na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+knitr::kable(hh_metrics_summary, caption = "Human↔Human agreement (0–100 metrics): mean across rater pairs")
+
+```
+
+----
+
+## Human vs human agreement {.smaller}
+
+
+```{r}
+#| label: hh_kripp
+#| message: false
+#| warning: false
+
+kripp_tbl <- metrics_human %>%
+  group_by(criteria) %>%
+  group_modify(function(df, key){
+    if (!requireNamespace("irr", quietly = TRUE)) {
+      return(tibble(kripp_alpha_interval = NA_real_))
+    }
+    wide <- df %>%
+      distinct(evaluator, label_paper, mid) %>%
+      tidyr::pivot_wider(names_from = label_paper, values_from = mid)
+    mat <- as.matrix(wide[,-1, drop = FALSE]); rownames(mat) <- wide$evaluator
+    val <- tryCatch(irr::kripp.alpha(mat, method = "interval")$value, error = function(e) NA_real_)
+    tibble(kripp_alpha_interval = val)
+  }) %>%
+  ungroup() %>%
+  mutate(kripp_alpha_interval = round(kripp_alpha_interval, 3))
+
+knitr::kable(kripp_tbl, caption = "Krippendorff’s α (interval) for human raters by criterion")
+
+```
+
+---
 
 
 ## LLM-human ratings gaps (informal explorations)

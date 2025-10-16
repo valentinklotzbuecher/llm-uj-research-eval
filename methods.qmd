@@ -58,7 +58,7 @@ if not os.getenv("OPENAI_API_KEY"):
 client = OpenAI()
 
 # --- Model
-MODEL = os.getenv("UJ_MODEL", "gpt-5")
+MODEL = os.getenv("UJ_MODEL", "gpt-5-pro")
 
 # --- File-id cache (content-hash keyed)
 FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
@@ -482,11 +482,12 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
                     {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
                 ]},
             ],
-            max_output_tokens=2000,
+            max_output_tokens=3000,
             store=False,
+            # service_tier = os.getenv("UJ_SERVICE_TIER", "flex"),      NOT AVAILABLE FOR gpt-5-pro
         )
         if use_reasoning:
-            payload["reasoning"] = {"effort": "low", "summary": "auto"}
+            payload["reasoning"] = {"effort": "high", "summary": "auto"}
         return payload
 
     def _make_call():
@@ -552,6 +553,7 @@ for pdf in pdfs:
         res["paper"] = pdf.stem
         records.append(res)
         time.sleep(0.8)  # extra RPM guard
+        print(f"Done with {pdf.name}")
     except Exception as e:
         print(f"⚠️ {pdf.name}: {e}")
 
