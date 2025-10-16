@@ -39,6 +39,7 @@ format:
     
 ---
 
+
 <style>
 .reveal section p,
 .reveal section li {
@@ -268,6 +269,7 @@ E.g.,
 ## Output: Example
 
 
+
 ```{r}
 #| label: setup-libs
 
@@ -302,7 +304,6 @@ theme_uj <- function(base_size = 11) {
 
  
 ```
-
 
 ```{r}
 #| label: load-data-tiers
@@ -403,7 +404,6 @@ tier_metric <- "merits_journal"  # change "merits_journal" to "journal_predict" 
 
 ```
 
-
 ```{r}
 #| label: load-data-metrics
 # Rebuild 0–100 metrics cleanly (LLM + all human ratings)
@@ -488,10 +488,6 @@ metrics_use <- metrics_use %>% mutate(is_matched_overall = label_paper %in% matc
 
 ```
 
- 
-
-
-
 ```{r}
 #| label: profile_humans_fixed
 #| fig-width: 9
@@ -555,6 +551,7 @@ ggplot(H_prof, aes(x = x100, y = metric, group = paper, color = paper)) +
 
 
 ```
+
 
 
 
@@ -679,7 +676,7 @@ LLM agents performed pairwise comparisons among manuscripts
 
 <br style="line-height:0.5">
 
-Again, evidence of biases/~statistical discrimination towards, e.g., "papers from established research institutions"
+Again, evidence of biases/~statistical discrimination towards, e.g., "‘"papers from established research institutions"
 :::
 
 ::: {.notes}
@@ -801,14 +798,12 @@ Model: GPT-5 or GPT-5 pro
 ### Overall ratings: Unjournal 
 
 
+
 ```{r}
 #| label: highlight-paper
 highlight_paper <- "Banerjee et al. 2022"
 
 ```
-
-
-
 
 ```{r}
 #| label: forest-overall-vert-x
@@ -892,10 +887,12 @@ ggplot() +
 ```
 
 
+
 ----
 
 
 ### Overall ratings: Unjournal vs GPT-5
+
 
 
 
@@ -981,6 +978,7 @@ ggplot() +
 ```
 
 
+
 <!-- ---- -->
 
 <!-- ### Overall ratings: Unjournal vs GPT-5 -->
@@ -1039,6 +1037,7 @@ ggplot() +
 ::: {.column width="75%"}
 
 
+
 ```{r}
 #| label: scatter-overall-static-stats
 #| fig-width: 10
@@ -1076,6 +1075,7 @@ ggplot(D, aes(x = Human, y = LLM)) +
 
 
 ```
+
 
 
 :::
@@ -1136,17 +1136,8 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 
 <!-- (Time-permitting: PCA: characteristics of first and second component, how much variation is explained by each -- see DHJ work --> 
 
-## Measures of association & consistency
+<!-- , caption = "Ratings (0–100): per‑paper summaries by criterion, matched papers only" -->
 
-*Some of these metrics, for each rating category* (or just some key ones, if it gets too busy)
-
-- Mean absolute "error" (MAE)
-- Correlation (Pearson & Spearman)
-- rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure)
-- (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI?
-- Inter-rater reliability (probably Krippendorff’s alpha is best for now)
-
-<!-- Later: construct full imputed distributions from CIs, measures of surprisal --> 
 
 
 
@@ -1214,6 +1205,7 @@ knitr::kable(summ_basic_matched)
 ```
 
 
+
 ## Measures of association & consistency {.smaller}
 
 <!-- *Some of these metrics, for each rating category* (or just some key ones, if it gets too busy) -->
@@ -1233,6 +1225,7 @@ knitr::kable(summ_basic_matched)
 <!-- 1. For LLM vs Human -->
 <!-- 2. For humans vs humans  -->
  
+
 
 
 ```{r}
@@ -1319,7 +1312,6 @@ merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
 
 ```
 
-
 ```{r}
 #| label: combined-alpha-interval-metrics
 #| message: false
@@ -1367,6 +1359,7 @@ knitr::kable(combined_metrics,
 
 ```
 
+
  
 
 
@@ -1380,6 +1373,7 @@ knitr::kable(combined_metrics,
 
 
  
+
 
 ```{r}
 #| label: heatmap-human-minus-llm
@@ -1429,6 +1423,7 @@ ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff
         panel.grid = element_blank())
 
 ```
+
 
 
 ---
@@ -1717,3 +1712,4 @@ Scan to visit
 <!-- ``` -->
 
  
+
