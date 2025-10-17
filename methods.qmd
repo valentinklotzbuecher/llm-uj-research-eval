@@ -58,7 +58,7 @@ if not os.getenv("OPENAI_API_KEY"):
 client = OpenAI()
 
 # --- Model
-MODEL = os.getenv("UJ_MODEL", "gpt-5-pro")
+MODEL = os.getenv("UJ_MODEL", "gpt-5-pro") #  o3
 
 # --- File-id cache (content-hash keyed)
 FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
@@ -460,19 +460,37 @@ def _reasoning_meta(resp) -> Dict[str, Any]:
         "reasoning_tokens": odet.get("reasoning_tokens"),
     }
 
-# --- Core evaluator
+# 1) background poller
+def wait_for_background(client, response_id, timeout_s=7200,
+                        initial_delay=1.0, max_delay=8.0, backoff=1.5):
+    start = time.time()
+    delay = initial_delay
+    while True:
+        r = client.responses.retrieve(response_id)
+        d = _resp_as_dict(r)
+        s = d.get("status")
+        if s == "completed":
+            return r
+        if s in ("failed", "cancelled", "expired"):
+            raise RuntimeError(f"status={s}, details={d.get('incomplete_details')}")
+        if time.time() - start > timeout_s:
+            raise TimeoutError(f"timeout waiting for {response_id}, last status={s}")
+        time.sleep(delay)
+        delay = min(max_delay, delay * backoff)
+
+
+# 2) evaluate_paper using background + text.format (no response_format)
 def evaluate_paper(pdf_path: Union[str, pathlib.Path],
                    model: Optional[str] = None,
                    use_reasoning: bool = True,
                    parse_retry: int = 1) -> Dict[str, Any]:
-    """Upload the PDF and get structured JSON per COMBINED_SCHEMA."""
     model = model or MODEL
     fid = _get_file_id(pdf_path)
 
     def _payload():
-        payload = dict(
+        p = dict(
             model=model,
-            text={"format": TEXT_FORMAT_COMBINED},
+            text={"format": TEXT_FORMAT_COMBINED},  # keep if your model accepts it
             input=[
                 {"role": "system", "content": [
                     {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
@@ -483,37 +501,38 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
                 ]},
             ],
             max_output_tokens=3000,
+            background=True,
             store=False,
-            # service_tier = os.getenv("UJ_SERVICE_TIER", "flex"),      NOT AVAILABLE FOR gpt-5-pro
         )
         if use_reasoning:
-            payload["reasoning"] = {"effort": "high", "summary": "auto"}
-        return payload
+            p["reasoning"] = {"effort": "high", "summary": "auto"}
+        return p
 
-    def _make_call():
-        return client.responses.create(**_payload())
+    kickoff = call_with_retries(lambda: client.responses.create(**_payload()))
+    kd = _resp_as_dict(kickoff)
+    rid = kd.get("id")
+    resp = kickoff if kd.get("status") == "completed" else wait_for_background(client, rid)
 
-    # First attempt
-    resp = call_with_retries(_make_call)
     text = _get_output_text(resp)
     try:
         out = _extract_json(text)
     except Exception:
         if parse_retry <= 0:
             raise
-        # One more attempt with a stricter nudge
-        def _make_call_2():
-            payload = _payload()
-            payload["input"][-1]["content"].append(
+        # one strict retry, still in background
+        def _payload2():
+            p = _payload()
+            p["input"][-1]["content"].append(
                 {"type": "input_text", "text": "Output a single JSON object only. No markdown. No explanation."}
             )
-            return client.responses.create(**payload)
-        resp = call_with_retries(_make_call_2)
-        text = _get_output_text(resp)
-        out = _extract_json(text)
+            return p
+        k2 = call_with_retries(lambda: client.responses.create(**_payload2()))
+        resp = wait_for_background(client, _resp_as_dict(k2).get("id"))
+        out = _extract_json(_get_output_text(resp))
 
     meta = _reasoning_meta(resp)
     return {**out, **meta}
+
 
 
 
