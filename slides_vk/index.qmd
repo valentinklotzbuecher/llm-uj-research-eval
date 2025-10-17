@@ -199,7 +199,7 @@ IV. **Logic & communication**
 :::
 
 
-<br style="line-height:0.5">
+<br style="line-height:0.2">
 
 V. **Open, collaborative, replicable**
 
@@ -213,14 +213,14 @@ Would another researcher be able to replicate the analysis? Are the method and i
 :::
 
 
-<br style="line-height:0.5">
+<br style="line-height:0.2">
 
 VI. **Relevance** to global priorities, **usefulness** for practitioners
 
 
 
 ::: {.center}
-![](eval_form_claim.png){width=35%}
+![](eval_form_claim.png){width=50%}
 
 
 ::: 
@@ -572,7 +572,7 @@ ggplot(H_prof, aes(x = x100, y = metric, group = paper, color = paper)) +
 ### Our goals and questions: General 
 
 
-1. Measure the value of *frontier* AI research-eval. relative to human peer review 
+1. **Measure the value of *frontier* AI research-eval. relative to human peer review**
 
 ::: {.notes}
 Is state-of-the-art AI research evaluation reliable and useful enough to replace human peer review in any contexts? 
@@ -739,17 +739,20 @@ Copied from evaluator guidelines, removed mention of "Unjournal", added 'role' &
 
 :::
 
-<br style="line-height:0.5">
 
-Enforce JSON Schema: midpoint and bounds for each criteria, short rationale
 
 
 ---
 
-Model: GPT-5 or GPT-5 pro
+- API calls via Python script
 
+- PDFs passed directly to the model (direct ingestion, includes tables, graphs, etc.)
 
+- Enforce JSON Schema: midpoint and bounds for each criteria, short rationale
 
+- Model: GPT-5 or GPT-5 Pro
+
+<!-- DR @VK: Anything more to add about the process? --> 
 
 --- 
 
@@ -1138,6 +1141,7 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 
 ## Measures of association & consistency
 
+<!--
 *Some of these metrics, for each rating category* (or just some key ones, if it gets too busy)
 
 - Mean absolute "error" (MAE)
@@ -1145,6 +1149,7 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 - rate of landing within ±10 points of each percentile rating (or +/- 1 tier for the 0.0-5.0 measure)
 - (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI?
 - Inter-rater reliability (probably Krippendorff’s alpha is best for now)
+--> 
 
 <!-- Later: construct full imputed distributions from CIs, measures of surprisal --> 
 
@@ -1216,6 +1221,8 @@ knitr::kable(summ_basic_matched)
 
 ## Measures of association & consistency {.smaller}
 
+<!-- DR @VK, maybe add at least 1 correlation measure for human-human for a comparison? And put human-human results in another color, or in italics, to make the comparison easier? Also could use fewer digits to reduce clutter. --> 
+
 <!-- *Some of these metrics, for each rating category* (or just some key ones, if it gets too busy) -->
 
 <!-- - Mean absolute "error" (MAE) -->
@@ -1225,7 +1232,7 @@ knitr::kable(summ_basic_matched)
 <!-- - (Pseudo)-calibration of LLM CIs: How often does the 'other's' point estimate fall within the stated CI CI? -->
 <!-- - Inter-rater reliability (probably Krippendorff’s alpha is best for now) -->
 
-<!-- <!-- Later: construct full imputed distributions from CIs, measures of surprisal -->  -->
+<!--  Later: construct full imputed distributions from CIs, measures of surprisal  -->
 
 
 <!-- Do this:  -->
@@ -1369,7 +1376,16 @@ knitr::kable(combined_metrics,
 
  
 
+<!-- DR @VK -- I believe these are the only papers we designated as in the 'applied stream', in case you want to remove these and consider whether it makes the association between humans and LLMs a lot closer 
 
+Forecasting Existential Risks: Evidence From a Long-Run Forecasting Tournament
+Forecasts estimate limited cultured meat production through 2050 (EA forum post)
+Replicability & Generalisability:  A Guide to CEA discounts
+The Returns to Science In the Presence of Technological Risks
+Towards best practices in AGI safety and governance
+
+
+-->
 ---
 
 ## LLM-human ratings gaps (informal explorations)
