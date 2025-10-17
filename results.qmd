@@ -315,6 +315,126 @@ ggplot(jplot, aes(x = mid, y = paper_fac, colour = who, shape = who)) +
 ```
 
 
+### Journal tier correlations with quality metrics
+
+Similar to [the analysis for human evaluations](https://unjournal.github.io/unjournaldata/posts/uj-data-update-2025/#fig-journal-quality-cors), we examine how both LLM and Human "where should this paper publish" ratings correlate with their respective other quality metrics. This reveals what dimensions each evaluator weighs most heavily when assessing journal placement.
+
+```{r}
+#| label: fig-tier-cors-comparison
+#| fig-cap: "Comparison of journal tier correlations: LLM vs Human evaluators. Green dots show Human correlations, orange dots show LLM correlations. Lines connect the same metric."
+#| fig-height: 6
+#| fig-width: 9
+
+# === LLM Correlations ===
+llm_cors_data <- llm_raw |>
+  select(label_paper, criteria, midpoint_llm) |>
+  pivot_wider(names_from = criteria, values_from = midpoint_llm)
+
+tier_should_llm <- jtiers_llm |>
+  filter(criteria == "merits_journal") |>
+  select(label_paper, tier_should = middle_rating)
+
+llm_cors_data <- llm_cors_data |>
+  left_join(tier_should_llm, by = "label_paper") |>
+  filter(!is.na(tier_should))
+
+metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge",
+                    "logic_comms", "open_sci", "gp_relevance")
+
+cors_llm <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, function(m) {
+    if (m %in% names(llm_cors_data)) {
+      cor(llm_cors_data[[m]], llm_cors_data$tier_should,
+          use = "pairwise.complete.obs")
+    } else {
+      NA_real_
+    }
+  }),
+  source = "LLM"
+) |>
+  filter(!is.na(correlation))
+
+# === Human Correlations ===
+human_cors_data <- human_raw |>
+  select(label_paper, criteria, middle_rating) |>
+  group_by(label_paper, criteria) |>
+  summarise(midpoint_human = mean(middle_rating, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = criteria, values_from = midpoint_human)
+
+tier_should_human <- jtiers_uj |>
+  filter(criteria == "merits_journal") |>
+  group_by(label_paper) |>
+  summarise(tier_should = mean(middle_rating, na.rm = TRUE), .groups = "drop")
+
+human_cors_data <- human_cors_data |>
+  left_join(tier_should_human, by = "label_paper") |>
+  filter(!is.na(tier_should))
+
+cors_human <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, function(m) {
+    if (m %in% names(human_cors_data)) {
+      cor(human_cors_data[[m]], human_cors_data$tier_should,
+          use = "pairwise.complete.obs")
+    } else {
+      NA_real_
+    }
+  }),
+  source = "Human"
+) |>
+  filter(!is.na(correlation))
+
+# === Combine and create dumbbell plot ===
+cors_combined <- bind_rows(cors_llm, cors_human) |>
+  mutate(
+    metric_label = case_when(
+      metric == "overall" ~ "Overall",
+      metric == "claims" ~ "Claims & Evidence",
+      metric == "methods" ~ "Methods",
+      metric == "adv_knowledge" ~ "Advancing Knowledge",
+      metric == "logic_comms" ~ "Logic & Communication",
+      metric == "open_sci" ~ "Open Science",
+      metric == "gp_relevance" ~ "Global Relevance",
+      TRUE ~ metric
+    )
+  )
+
+cors_wide <- cors_combined |>
+  pivot_wider(names_from = source, values_from = correlation) |>
+  mutate(
+    avg_cor = (Human + LLM) / 2,
+    metric_label = fct_reorder(metric_label, avg_cor)
+  )
+
+# Dumbbell plot
+ggplot(cors_wide, aes(y = metric_label)) +
+  geom_segment(aes(x = Human, xend = LLM, yend = metric_label),
+               color = "gray50", linewidth = 1.2, alpha = 0.4) +
+  geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) +
+  geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray40", alpha = 0.5) +
+  geom_text(aes(x = Human, label = sprintf("%.2f", Human)),
+            hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") +
+  geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)),
+            hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") +
+  scale_x_continuous(limits = c(min(c(cors_wide$Human, cors_wide$LLM)) - 0.2,
+                                 max(c(cors_wide$Human, cors_wide$LLM)) + 0.2)) +
+  labs(
+    x = "Correlation with 'Where should this publish?'",
+    y = NULL,
+    title = "How quality metrics predict journal tier: LLM vs Human evaluators",
+    subtitle = paste0("Green = Human evaluators | Orange = ", currentmodel, " | Higher values = stronger weight in tier prediction")
+  ) +
+  theme_uj() +
+  theme(
+    panel.grid.major.x = element_line(color = "grey90"),
+    panel.grid.major.y = element_blank(),
+    plot.title.position = "plot"
+  )
+```
+
+This visualization reveals interesting differences in how LLM and human evaluators weight different quality dimensions when predicting journal placement. For instance, if the LLM's orange dot is much higher than the human's green dot for a particular metric, it suggests the LLM relies more heavily on that dimension when making its "should publish" assessment.
 
 ## Quantitative ratings
 
@@ -928,12 +1048,22 @@ rationale_outlier = all_ratings |>
 For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r sprintf(rationale_outlier$rationale)`
 
 
+## Statistical analyses of agreement (will move/integrate with Q&A)
 
+
+
+
+
+Krippendorff’s alpha
 
 ## Claim identification
 
 
 ## Qualitative assessments
+
+
+
+
 
 
 
