@@ -37,214 +37,33 @@ We evaluate each paper by passing the PDF directly to the model and requiring a 
 
 ```{python}
 #| label: llm-setup-all
-#| eval: true
+#| eval: false
 #| code-fold: true
-#| code-summary: "LLM evaluation pipeline setup"
+#| code-summary: "LLM evaluation pipeline setup (now modularized)"
 
-# --- Imports
-import os, json, re, time, random, hashlib, pathlib
-from collections import deque
-from typing import Union, Optional, Dict, Any
-import pandas as pd
-import numpy as np
+# Import configuration and utilities from modules
+# (Code has been extracted to config.py and llm_utils.py for better organization)
+
+import os
+import pathlib
 from openai import OpenAI
 
-# --- API key and client
-key_path = pathlib.Path("key/openai_key.txt")
-if os.getenv("OPENAI_API_KEY") is None and key_path.exists():
-    os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
+from config import API_KEY_PATH, MODEL
+
+# Initialize OpenAI client
+if os.getenv("OPENAI_API_KEY") is None and API_KEY_PATH.exists():
+    os.environ["OPENAI_API_KEY"] = API_KEY_PATH.read_text().strip()
 if not os.getenv("OPENAI_API_KEY"):
     raise ValueError("No API key found. Put it in key/openai_key.txt or set OPENAI_API_KEY.")
+
 client = OpenAI()
 
-# --- Model
-MODEL = os.getenv("UJ_MODEL", "gpt-5-pro") #  o3
-
-# --- File-id cache (content-hash keyed)
-FILES_CACHE_PATH = pathlib.Path("cache/file_ids.json")
-FILES_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-_file_ids: Dict[str, str] = {}
-if FILES_CACHE_PATH.exists():
-    try:
-        _file_ids.update(json.loads(FILES_CACHE_PATH.read_text()))
-    except Exception:
-        _file_ids = {}
-
-def _sha256_of_file(p: pathlib.Path) -> str:
-    h = hashlib.sha256()
-    with open(p, "rb") as fh:
-        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-def _get_file_id(pdf_path: Union[str, pathlib.Path]) -> str:
-    p = pathlib.Path(pdf_path)
-    if not p.exists():
-        raise FileNotFoundError(f"File not found: {p}")
-    key = _sha256_of_file(p)
-    if key in _file_ids:
-        fid = _file_ids[key]
-        try:
-            client.files.retrieve(fid)
-            return fid
-        except Exception:
-            pass  # stale id → re-upload
-    with open(p, "rb") as fh:
-        up = client.files.create(file=fh, purpose="assistants")
-    _file_ids[key] = up.id
-    FILES_CACHE_PATH.write_text(json.dumps(_file_ids, ensure_ascii=False, indent=2))
-    return up.id
-
-# --- Rate pacer (TPM + RPM)
-class TokenPacer:
-    def __init__(self, tpm_limit=30000, rpm_limit=50, safety=0.9, warmup_est=8000):
-        self.tpm = int(tpm_limit * safety)
-        self.rpm = int(rpm_limit * safety)
-        self.token_events = deque()
-        self.call_events = deque()
-        self.est = warmup_est
-    def _purge(self):
-        now = time.time()
-        while self.token_events and now - self.token_events[0][0] > 60:
-            self.token_events.popleft()
-        while self.call_events and now - self.call_events[0][0] > 60:
-            self.call_events.popleft()
-    def before(self, est_tokens=None):
-        est = self.est if est_tokens is None else est_tokens
-        self._purge()
-        now = time.time()
-        used_tokens = sum(t for _, t in self.token_events)
-        need_sleep = 0.0
-        if used_tokens + est > self.tpm and self.token_events:
-            need_sleep = max(need_sleep, 60 - (now - self.token_events[0][0]))
-        if len(self.call_events) + 1 > self.rpm and self.call_events:
-            need_sleep = max(need_sleep, 60 - (now - self.call_events[0][0]))
-        if need_sleep > 0:
-            time.sleep(need_sleep + random.random() * 0.3)
-    def after(self, resp):
-        self._purge()
-        self.call_events.append((time.time(),))
-        d = _resp_as_dict(resp)
-        u = d.get("usage") or {}
-        tok = (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0)
-        od = (u.get("output_tokens_details") or {})
-        tok += od.get("reasoning_tokens") or 0
-        self.token_events.append((time.time(), tok))
-        self.est = max(1000, 0.5 * self.est + 0.5 * tok)
-        return tok
-
-PACER = TokenPacer(
-    tpm_limit=int(os.getenv("UJ_TPM", "30000")),
-    rpm_limit=int(os.getenv("UJ_RPM", "50")),
-    safety=0.9,
-    warmup_est=8000,
-)
-
-def _sleep_from_429_text(msg: str, base=3.0) -> float:
-    m = re.search(r"try again in ([0-9.]+)s", msg, flags=re.I)
-    return (float(m.group(1)) if m else base) + random.random() * 0.5
-
-def call_with_retries(make_call, max_tries=6):
-    delay = 2.0
-    for _ in range(max_tries):
-        PACER.before()
-        try:
-            resp = make_call()
-            PACER.after(resp)
-            return resp
-        except Exception as e:
-            s = str(e).lower()
-            if "rate limit" in s or "429" in s or "tpm" in s:
-                time.sleep(_sleep_from_429_text(str(e), base=delay))
-                delay = min(delay * 1.7, 20.0)
-                continue
-            if any(t in s for t in ("timeout", "service unavailable", "gateway", "overloaded")):
-                time.sleep(delay + random.random() * 0.5)
-                delay = min(delay * 1.7, 20.0)
-                continue
-            raise
-    raise RuntimeError("Too many retries.")
-
-# --- Responses helpers
-def _resp_as_dict(resp) -> Dict[str, Any]:
-    try:
-        return resp.model_dump()
-    except Exception:
-        pass
-    try:
-        return resp.to_dict()
-    except Exception:
-        pass
-    if isinstance(resp, dict):
-        return resp
-    return {}
-
-def _get_output_text(resp) -> str:
-    try:
-        t = getattr(resp, "output_text", None)
-        if t:
-            return t
-    except Exception:
-        pass
-    d = _resp_as_dict(resp)
-    if not d:
-        return ""
-    if d.get("output_text"):
-        return d["output_text"]
-    parts = []
-    for item in d.get("output", []) or []:
-        if item.get("type") == "message":
-            for c in item.get("content") or []:
-                txt = c.get("text")
-                if txt:
-                    parts.append(txt)
-    return "".join(parts).strip()
-
-def _strip_code_fences(s: str) -> str:
-    if "```" not in s:
-        return s
-    first = s.find("```")
-    if first == -1:
-        return s
-    second = s.find("```", first + 3)
-    if second == -1:
-        return s
-    inner = s[first + 3:second]
-    return re.sub(r"^\s*json\r?\n", "", inner, flags=re.I)
-
-def _extract_json(s: str) -> Dict[str, Any]:
-    try:
-        return json.loads(s)
-    except Exception:
-        pass
-    s2 = _strip_code_fences(s).strip()
-    start = s2.find("{")
-    if start == -1:
-        raise ValueError("No JSON object start found.")
-    depth = 0
-    in_str = False
-    esc = False
-    for i in range(start, len(s2)):
-        ch = s2[i]
-        if in_str:
-            if esc:
-                esc = False
-            elif ch == "\\":
-                esc = True
-            elif ch == '"':
-                in_str = False
-        else:
-            if ch == '"':
-                in_str = True
-            elif ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    candidate = s2[start:i+1]
-                    return json.loads(candidate)
-    raise ValueError("Unterminated JSON object in model output.")
-
+# All utility functions and classes are now in llm_utils.py:
+# - TokenPacer class for rate limiting
+# - get_file_id() for file caching
+# - call_with_retries() for API retry logic
+# - extract_json() for parsing responses
+# - wait_for_background() for async polling
 
 ```
 
@@ -260,7 +79,7 @@ We request brief rationales to allow the LLM to clarify the evidence and the pro
 
 ```{python}
 #| label: schema-prompt
-#| eval: true
+#| eval: false
 #| code-fold: true
 #| code-summary: "Schema, prompt, evaluator"
 
