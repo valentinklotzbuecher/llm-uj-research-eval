@@ -142,7 +142,7 @@ I. **Overall assessment** — Heuristic judgment of quality, credibility, import
 :::
 
 ::: {.fragment .center}
-![](eval_form_overall.png){width=50%}
+![](eval_form_overall.png){width=70%}
 :::
 
 
@@ -161,7 +161,7 @@ II. **Claims**, strength and characterization of evidence
 Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
 :::
 
-<br style="line-height:0.5">
+<br style="line-height:0.2">
 
 III.  **Methods:** Justification, reasonableness, validity, robustness assessment 
 
@@ -169,7 +169,7 @@ III.  **Methods:** Justification, reasonableness, validity, robustness assessmen
 ....clearly justified and explained? Are methods and their underlying assumptions reasonable and appropriate? Are the results likely to be robust to changes in the assumptions? Have the authors avoided bias and questionable research practices? 
 :::
 
-<br style="line-height:0.5">
+<br style="line-height:0.2">
 
 III. **Advancing knowledge & practice** 
 
@@ -178,6 +178,12 @@ III. **Advancing knowledge & practice**
 
 To what extent does the project contribute to the field or to practice, particularly in ways that are directly or indirectly relevant to global priorities and impactful interventions?
 ::: 
+
+::: {.center}
+![](eval_form_claim.png){width=70%}
+
+::: 
+
 
 
 ---
@@ -219,11 +225,6 @@ VI. **Relevance** to global priorities, **usefulness** for practitioners
 
 
 
-::: {.center}
-![](eval_form_claim.png){width=50%}
-
-
-::: 
 
 ::: {.notes}
 
@@ -277,7 +278,8 @@ library("stringr")
 library("stringi") #probably redundant?
 library("lubridate")
 library("here") 
-library("knitr") 
+library("knitr")
+library("kableExtra")
 library("ggforce") 
 library("ggrepel")
 library("glue")
@@ -565,14 +567,6 @@ ggplot(H_prof, aes(x = x100, y = metric, group = paper, color = paper)) +
 ---
 
 
-
-## LLM evaluation output, comparison to Unjournal human evaluator ratings
-
-<!-- DR @VK -- not sure what you wanted for this section -->
-
-
----
-
 ### Our goals and questions: General 
 
 
@@ -715,7 +709,7 @@ Maybe we should consider pairwise comparison algorithms in our future prompting.
 
 - Future eval. pipeline: clean out-of-time predictions & evaluation
 
-- Multi-armed trials on future human/hybrid evals (cf. Brodeur et al, '25; Qazi et al, '25)
+- Multi-armed trials on  human/hybrid evals (cf. Brodeur et al, '25; Qazi et al, '25)
 
 :::
 
@@ -732,7 +726,7 @@ We could also ask/pay future evaluators & authors to act as enumerators to judge
 
 **Prompt**
 
-Copied from evaluator guidelines, removed mention of "Unjournal", added 'role' & ~debiasing instructions
+Copied from Unjournal [evaluator guidelines](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators), removed mention of "Unjournal", added 'role' & ~debiasing instructions
 
 ::: {.tiny-text}
 
@@ -1131,7 +1125,7 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 
 ## Overall characteristics of ratings {.smaller}
 
-### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic')
+<!-- ### Humans vs LLMs: tables by rating category &  'cause' (or by 'applied/academic') -->
 
 <!-- 1. Means and medians -->
 <!-- 2. Range and SD -->
@@ -1192,27 +1186,42 @@ matched_set <- paper_means %>%
   select(label_paper, criteria)
 
 paper_means_matched <- paper_means %>%
-  inner_join(matched_set, by = c("label_paper","criteria"))
-
+  left_join(matched_set, by = c("label_paper","criteria"))
 summ_basic_matched <- paper_means_matched %>%
   group_by(who, criteria) %>%
   summarise(
-    n_papers = n_distinct(label_paper),
     mean  = mean(mid, na.rm = TRUE),
-    sd    = sd(mid,   na.rm = TRUE),
-    median= median(mid, na.rm = TRUE),
-    iqr   = IQR(mid,    na.rm = TRUE),
-    min   = min(mid,    na.rm = TRUE),
-    max   = max(mid,    na.rm = TRUE),
+    sd  = sd(mid,   na.rm = TRUE),
+    iqr = IQR(mid,  na.rm = TRUE),
+    min = min(mid,  na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  mutate(across(c(mean, sd, median, iqr, min, max), ~ round(.x, 1))) %>%
-  pivot_wider(names_from = who,
-              values_from = c(n_papers, mean, sd, median, iqr, min, max),
-              names_glue = "{.value}_{who}") %>%
+  mutate(across(c(mean, sd, iqr, min), ~ round(.x, 0))) %>%
+  tidyr::pivot_wider(
+    names_from = who,
+    values_from = c(mean, sd, iqr, min),
+    names_glue = "{.value}: {who}"
+  ) %>%
   arrange(criteria)
 
-knitr::kable(summ_basic_matched)
+# Wrap headers onto two lines
+colnames(summ_basic_matched) <- gsub(":", ":<br>", colnames(summ_basic_matched))
+colnames(summ_basic_matched)[1] <- "criteria<br>(metric)"
+
+# Render nicely, with no caption and tighter header spacing
+summ_basic_matched %>%
+  kbl(
+    escape = FALSE,
+    align = "lcccccccc",
+    booktabs = TRUE
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover"),
+    font_size = 22        # larger numeric table font
+  ) %>%
+  row_spec(0, extra_css = "line-height:0.9; font-size:24px; font-weight:bold;")
 
 
 ```
@@ -1321,9 +1330,10 @@ L_tier <- jt_use |> filter(who=="LLM") |>
             l_hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
             .groups="drop")
 
-merged_tiers <- inner_join(H_tier, L_tier, by = c("label_paper","criteria"))
+merged_tiers <- left_join(H_tier, L_tier, by = c("label_paper","criteria"))
 
 ```
+
 
 
 ```{r}
@@ -1367,10 +1377,10 @@ hh_alpha_metrics <- metrics_human %>%
 combined_metrics <- llm_h_stats %>%
   left_join(hh_alpha_metrics, by="criteria") %>%
   mutate(across(c(r, ρ, MAE, α_LH, α_HH), ~ round(.x, 2))) %>%
-  select(criteria, n, r, ρ, α_LH, α_HH, MAE)
+  select(criteria, n, r, ρ, MAE, α_LH, α_HH)
 
 knitr::kable(combined_metrics, align = c("l", rep("r", 6)),
-             caption = "LLM-Human agreement: r=Pearson, ρ=Spearman, α=Krippendorff alpha, MAE=mean abs error")
+             caption = "LLM-Human agreement: r=Pearson, ρ=Spearman. α=Krippendorff alpha (interval); LH: human-LLM, HH: human-human")
 
 ```
 
@@ -1387,7 +1397,6 @@ Towards best practices in AGI safety and governance
 
 -->
 ## LLM 'rationales','tastes': informal exploration 
-
 
 
 
@@ -1573,52 +1582,8 @@ ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff
 
 ```
 
-
-### Papers with highest human preference vs. AI
-
-```{r}
-#| label: top-human-preference
-#| results: asis
-
-# Function to truncate title at 70 characters without cutting words
-truncate_title <- function(title, max_len = 70) {
-  if (nchar(title) <= max_len) return(title)
-  # Find last space before or at max_len
-  substr_text <- substr(title, 1, max_len)
-  last_space <- max(gregexpr(" ", substr_text)[[1]])
-  if (last_space > 0) {
-    return(paste0(substr(title, 1, last_space - 1), "..."))
-  }
-  return(paste0(substr(title, 1, max_len), "..."))
-}
-
-# Calculate overall rating differences (Human - LLM)
-H_overall <- metrics_use %>%
-  filter(who == "Human", criteria == "overall") %>%
-  group_by(label_paper) %>%
-  summarise(human_rating = mean(mid, na.rm = TRUE), .groups = "drop")
-
-L_overall <- metrics_use %>%
-  filter(who == "LLM", criteria == "overall") %>%
-  group_by(label_paper) %>%
-  summarise(llm_rating = mean(mid, na.rm = TRUE), .groups = "drop")
-
-# Get paper titles
-paper_titles <- research %>%
-  distinct(label_paper, label_paper_title) %>%
-  filter(!is.na(label_paper_title))
-
-rating_diffs <- H_overall %>%
-  inner_join(L_overall, by = "label_paper") %>%
-  left_join(paper_titles, by = "label_paper") %>%
-  mutate(
-    diff = human_rating - llm_rating,
-    title_display = sapply(label_paper_title, truncate_title)
-  ) %>%
-  arrange(desc(diff))
-```
-
 ---
+
 
 ### Papers with highest relative human vs. AI preference
 
@@ -1718,9 +1683,8 @@ cat('</table>\n')
 
 ---
 
-### Example: Williams et al. 2024, Global potential for natural regeneration...
+### Example: Williams et al. '24, Global potential...
 
-LLM ratings, rationale (overall, methods) for Williams et al. 2024:
 
 ```{r}
 #| label: ratings-williams-2024
@@ -1746,31 +1710,17 @@ williams_ratings %>%
   arrange(match(Criterion,
                 c("overall","importance","credibility","methods",
                   "clarity","replicability"))) %>%
-  knitr::kable(format = "markdown", digits = 1)
+  knitr::kable(format = "markdown", digits = 0)
 
-# ---- Select target paper ----
-target_paper <- "Williams"
+```
+---
 
-# ---- Filter all human and LLM ratings ----
-williams_ratings <- metrics_use %>%
-  filter(grepl(target_paper, label_paper, ignore.case = TRUE)) %>%
-  select(who, criteria, mid) %>%
-  group_by(who, criteria) %>%
-  summarise(rating = mean(mid, na.rm = TRUE), .groups = "drop") %>%
-  tidyr::pivot_wider(names_from = who, values_from = rating)
+```{r}
+#| label: rationales_williams
+#| results: asis
+#| echo: false
 
-# ---- Nicely formatted markdown table ----
-cat("#### ⭐ Ratings for *Williams et al. (2024)*\n\n")
-
-williams_ratings %>%
-  rename(Criterion = criteria,
-         `Human rating` = Human,
-         `LLM rating` = LLM) %>%
-  arrange(match(Criterion,
-                c("overall", "importance", "credibility",
-                  "methods", "clarity", "replicability"))) %>%
-  knitr::kable(format = "markdown", digits = 1)
-
+  
 # ---- Pull rationales from metrics_llm_full ----
 llm_rationales <- metrics_llm_full %>%
   filter(str_detect(label_paper, regex(target_paper, ignore_case = TRUE)),
@@ -1778,7 +1728,6 @@ llm_rationales <- metrics_llm_full %>%
   select(criteria, rationale) %>%
   distinct()
 
-cat("\n\n---\n\n")
 cat("#### 🤖 LLM rationale excerpts\n\n")
 
 cat(sprintf("**%s**\n\n> %s\n\n", "Overall", llm_rationales[1,2]))
@@ -1816,13 +1765,16 @@ Prompt:
 
 Identifies a number of critiques overlapping our evaluators, e.g., 
 
+::: {.fragment}
+
 ::: {.tiny-text}
 
 > 4. Post‑treatment leakage. “Land use/land cover” is from 2015 (within the outcome window 2000–2016) and is included in the final biophysical model (variable “landuse” in Extended Data Fig. 2). Because positives often became forest by 2015 while negatives did not, this can leak outcome information into x and inflate fit. ...
 
-:::
-
 Both evaluators identified this leakage issue, E1 specifically mentioning the land use variable.
+
+:::
+:::
 
 
 ---
@@ -1893,7 +1845,7 @@ Scan to visit
 
 
 
-<!-- # Appendix -->
+# Appendix {.appendix}
 
 
 
