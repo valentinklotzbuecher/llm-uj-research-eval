@@ -36,7 +36,6 @@ format:
     show-slide-number: all
     embed-resources: true
     self-contained: true
-    
 ---
 
 <style>
@@ -177,11 +176,6 @@ III. **Advancing knowledge & practice**
 *Contribution to the field and relevance to impactful interventions*
 
 To what extent does the project contribute to the field or to practice, particularly in ways that are directly or indirectly relevant to global priorities and impactful interventions?
-::: 
-
-::: {.center}
-![](eval_form_claim.png){width=70%}
-
 ::: 
 
 
@@ -801,7 +795,7 @@ Copied from Unjournal [evaluator guidelines](https://globalimpact.gitbook.io/the
 
 - Enforce JSON Schema: midpoint and bounds for each criteria, short rationale
 
-- Model: GPT-5 or GPT-5 Pro
+- Model: GPT-5 Pro (GPT-5)
 
 <!-- DR @VK: Anything more to add about the process? --> 
 
@@ -949,7 +943,7 @@ ggplot() +
 ----
 
 
-### Overall ratings: Unjournal vs GPT-5
+### Overall ratings: Unjournal vs GPT-5 Pro
 
 
 
@@ -1036,91 +1030,6 @@ ggplot() +
 
 ---
 
-### Overall ratings: Unjournal vs GPT-5 Pro
-
-
-```{r}
-#| label: forest-overall-vert-pro
-#| fig-width: 14
-#| fig-height: 6
-
-
-highlight_paper <- "Kremer et al. 2022 XXX" # Select here to annotate
-
-matched <- intersect(
-  metrics_use_2llms %>% filter(who=="LLM",   criteria=="overall") %>% pull(label_paper),
-  metrics_use_2llms %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
-)
-
-H_ind <- metrics_human %>%
-  filter(criteria=="overall", label_paper %in% matched) %>%
-  mutate(lo = ifelse(is.finite(lo), pmax(0,lo), NA_real_),
-         hi = ifelse(is.finite(hi), pmin(100,hi), NA_real_))
-
-ord <- H_ind %>%
-  group_by(label_paper) %>%
-  summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>%
-  arrange(desc(h_mean)) %>% mutate(pos = row_number())
-
-H_plot <- H_ind %>%
-  inner_join(ord, by="label_paper") %>%
-  group_by(label_paper) %>%
-  mutate(off = (row_number() - (n()+1)/2) * 0.18,
-         x   = pos + off) %>% ungroup()
-
-# per-paper human mean and LLM summary
-H_pp <- H_ind %>% group_by(label_paper) %>% summarise(h_mean = mean(mid), .groups="drop")
-L_c <- metrics_llm_pro %>%
-  filter(criteria=="overall", label_paper %in% matched) %>%
-  group_by(label_paper) %>%
-  summarise(mid = mean(mid, na.rm=TRUE),
-            lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)),
-            hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)),
-            .groups="drop") %>%
-  inner_join(ord, by="label_paper") %>%
-  mutate(x = pos)
-
-lab <- L_c %>% filter(label_paper == highlight_paper)
-
-# overall means to show as horizontal reference lines
-hbar <- mean(H_pp$h_mean, na.rm=TRUE)
-lbar <- mean(L_c$mid,     na.rm=TRUE)
-
-ggplot() +
-  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
-  # mean lines
-  geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dotted", linewidth = 0.8) +
-  geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
-  # humans
-  geom_errorbar(data = subset(H_plot, is.finite(lo)&is.finite(hi)),
-                aes(x=x, ymin=lo, ymax=hi),
-                width=0, linewidth=1, alpha=0.5, color=UJ_GREEN) +
-  geom_point(data = H_plot, aes(x=x, y=mid), size=3.0, alpha=0.9, color=UJ_GREEN) +
-  # LLM
-  geom_errorbar(data = subset(L_c, is.finite(lo)&is.finite(hi)),
-                aes(x=x, ymin=lo, ymax=hi),
-                width=0, linewidth=1.0, color=UJ_ORANGE) +
-  geom_point(data = L_c, aes(x=x, y=mid), size=3.6, shape=17, color=UJ_ORANGE) +
-  # label highlight
-  geom_label_repel(data = lab,
-                   aes(x = x, y = mid, label = label_paper),
-                   min.segment.length = 0, seed = 1, size = 3.2,
-                   fill = "white", label.r = unit(0.1,"lines")) +
-  # x-axis paper labels
-  scale_x_continuous(breaks = ord$pos, labels = ord$label_paper, expand = expansion(mult = c(0.01, 0.03))) +
-  coord_cartesian(ylim = c(0,100), clip = "off") +
-  labs(x=NULL, y="Percentile (0–100)") +
-  theme_uj() +  
-  annotate("text", x = 4, y = 40,
-           label = sprintf("Means — Human: %.1f   LLM: %.1f", hbar, lbar),
-           hjust = 0, size = 4) +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
-        panel.grid.major.x=element_blank(),
-        plot.margin = margin(5, 40, 5, 5))
-
-```
-
-
 <!-- ---- -->
 
 <!-- ### Overall ratings: Unjournal vs GPT-5 -->
@@ -1172,7 +1081,7 @@ ggplot() +
 
 ----
  
-### Overall ratings: Unjournal vs GPT-5 {.smaller}
+### Overall ratings: Unjournal vs GPT-5 Pro {.smaller}
 
 ::: {.columns}
 
@@ -1722,10 +1631,9 @@ ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff
 
 ```
 
----
+--- {.smaller}
 
-
-### Papers with highest relative human vs. AI preference {.smaller}
+### Papers with highest relative human vs. AI preference 
 
 ```{r}
 #| label: top-human-and-ai-pref
@@ -2006,6 +1914,45 @@ Scan to visit
 
 
 
+----
+
+## GPT-5 vs GPT-5 Pro
+
+```{r}
+#| label: scatter-overall-both-llms
+#| fig-width: 10
+#| fig-height: 10
+
+# human means
+H_sc <- metrics_use_2llms %>%
+  filter(who=="Human", criteria=="overall") %>%
+  group_by(label_paper) %>%
+  summarise(Human = mean(mid, na.rm=TRUE), .groups="drop")
+
+# LLM means for each version
+L_sc <- metrics_llm_both %>%
+  filter(criteria=="overall") %>%
+  group_by(label_paper, version) %>%
+  summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
+
+D_sc <- inner_join(H_sc, L_sc, by="label_paper") %>%
+  filter(is.finite(Human), is.finite(LLM))
+
+ggplot(D_sc, aes(x = Human, y = LLM, color = version, shape = version)) +
+  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.8, color="grey60") +
+  geom_point(size = 3.8, alpha = 0.8) +
+  stat_smooth(method="lm", se=FALSE, linewidth=0.6) +
+  coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
+  scale_color_manual(
+    values = c("GPT-5 Pro" = UJ_ORANGE, "GPT-5" = UJ_GREEN),
+    name = NULL
+  ) +
+  scale_shape_manual(values = c("GPT-5 Pro" = 18, "GPT-5" = 15), name = NULL) +
+  labs(x="Human overall (0–100)", y="LLM overall (0–100)") +
+  theme_uj() +
+  theme(legend.position = "top")
+
+```
 
 
 
@@ -2013,13 +1960,11 @@ Scan to visit
 
 
 
-
-# Appendix {.appendix}
-
+---
 
 
 
-### Where *should* this research be published: Unjournal
+## Where *should* this be published: Unjournal
 
 ```{r}
 #| label: forest-tiers-should-human-vertical
@@ -2083,7 +2028,7 @@ plot.margin = margin(5, 40, 5, 5))
 ----
 
 
-### Where *should* this research be published: Unjournal vs GPT-5
+## Where *should* this be published: GPT-5 Pro
 
 ```{r}
 #| label: forest-tiers-should-human-llm-vertical
@@ -2178,47 +2123,91 @@ plot.margin = margin(5, 40, 5, 5))
 
 
 
-----
-
-## GPT-5 vs GPT-5 Pro
-
-```{r}
-#| label: scatter-overall-both-llms
-#| fig-width: 10
-#| fig-height: 10
-
-# human means
-H_sc <- metrics_use_2llms %>%
-  filter(who=="Human", criteria=="overall") %>%
-  group_by(label_paper) %>%
-  summarise(Human = mean(mid, na.rm=TRUE), .groups="drop")
-
-# LLM means for each version
-L_sc <- metrics_llm_both %>%
-  filter(criteria=="overall") %>%
-  group_by(label_paper, version) %>%
-  summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
-
-D_sc <- inner_join(H_sc, L_sc, by="label_paper") %>%
-  filter(is.finite(Human), is.finite(LLM))
-
-ggplot(D_sc, aes(x = Human, y = LLM, color = version, shape = version)) +
-  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.8, color="grey60") +
-  geom_point(size = 3.8, alpha = 0.8) +
-  stat_smooth(method="lm", se=FALSE, linewidth=0.6) +
-  coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
-  scale_color_manual(
-    values = c("GPT-5 Pro" = UJ_ORANGE, "GPT-5" = UJ_GREEN),
-    name = NULL
-  ) +
-  scale_shape_manual(values = c("GPT-5 Pro" = 18, "GPT-5" = 15), name = NULL) +
-  labs(x="Human overall (0–100)", y="LLM overall (0–100)") +
-  theme_uj() +
-  theme(legend.position = "top")
-
-```
 
 
+<!-- ### Overall ratings: Unjournal vs GPT-5 Pro -->
+
+
+<!-- ```{r} -->
+<!-- #| label: forest-overall-vert-pro -->
+<!-- #| fig-width: 14 -->
+<!-- #| fig-height: 6 -->
+
+
+<!-- highlight_paper <- "Kremer et al. 2022 XXX" # Select here to annotate -->
+
+<!-- matched <- intersect( -->
+<!--   metrics_use_2llms %>% filter(who=="LLM",   criteria=="overall") %>% pull(label_paper), -->
+<!--   metrics_use_2llms %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper) -->
+<!-- ) -->
+
+<!-- H_ind <- metrics_human %>% -->
+<!--   filter(criteria=="overall", label_paper %in% matched) %>% -->
+<!--   mutate(lo = ifelse(is.finite(lo), pmax(0,lo), NA_real_), -->
+<!--          hi = ifelse(is.finite(hi), pmin(100,hi), NA_real_)) -->
+
+<!-- ord <- H_ind %>% -->
+<!--   group_by(label_paper) %>% -->
+<!--   summarise(h_mean = mean(mid, na.rm=TRUE), .groups="drop") %>% -->
+<!--   arrange(desc(h_mean)) %>% mutate(pos = row_number()) -->
+
+<!-- H_plot <- H_ind %>% -->
+<!--   inner_join(ord, by="label_paper") %>% -->
+<!--   group_by(label_paper) %>% -->
+<!--   mutate(off = (row_number() - (n()+1)/2) * 0.18, -->
+<!--          x   = pos + off) %>% ungroup() -->
+
+<!-- # per-paper human mean and LLM summary -->
+<!-- H_pp <- H_ind %>% group_by(label_paper) %>% summarise(h_mean = mean(mid), .groups="drop") -->
+<!-- L_c <- metrics_llm_pro %>% -->
+<!--   filter(criteria=="overall", label_paper %in% matched) %>% -->
+<!--   group_by(label_paper) %>% -->
+<!--   summarise(mid = mean(mid, na.rm=TRUE), -->
+<!--             lo  = suppressWarnings(min(coalesce(lo, mid), na.rm=TRUE)), -->
+<!--             hi  = suppressWarnings(max(coalesce(hi, mid), na.rm=TRUE)), -->
+<!--             .groups="drop") %>% -->
+<!--   inner_join(ord, by="label_paper") %>% -->
+<!--   mutate(x = pos) -->
+
+<!-- lab <- L_c %>% filter(label_paper == highlight_paper) -->
+
+<!-- # overall means to show as horizontal reference lines -->
+<!-- hbar <- mean(H_pp$h_mean, na.rm=TRUE) -->
+<!-- lbar <- mean(L_c$mid,     na.rm=TRUE) -->
+
+<!-- ggplot() + -->
+<!--   geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) + -->
+<!--   # mean lines -->
+<!--   geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dotted", linewidth = 0.8) + -->
+<!--   geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) + -->
+<!--   # humans -->
+<!--   geom_errorbar(data = subset(H_plot, is.finite(lo)&is.finite(hi)), -->
+<!--                 aes(x=x, ymin=lo, ymax=hi), -->
+<!--                 width=0, linewidth=1, alpha=0.5, color=UJ_GREEN) + -->
+<!--   geom_point(data = H_plot, aes(x=x, y=mid), size=3.0, alpha=0.9, color=UJ_GREEN) + -->
+<!--   # LLM -->
+<!--   geom_errorbar(data = subset(L_c, is.finite(lo)&is.finite(hi)), -->
+<!--                 aes(x=x, ymin=lo, ymax=hi), -->
+<!--                 width=0, linewidth=1.0, color=UJ_ORANGE) + -->
+<!--   geom_point(data = L_c, aes(x=x, y=mid), size=3.6, shape=17, color=UJ_ORANGE) + -->
+<!--   # label highlight -->
+<!--   geom_label_repel(data = lab, -->
+<!--                    aes(x = x, y = mid, label = label_paper), -->
+<!--                    min.segment.length = 0, seed = 1, size = 3.2, -->
+<!--                    fill = "white", label.r = unit(0.1,"lines")) + -->
+<!--   # x-axis paper labels -->
+<!--   scale_x_continuous(breaks = ord$pos, labels = ord$label_paper, expand = expansion(mult = c(0.01, 0.03))) + -->
+<!--   coord_cartesian(ylim = c(0,100), clip = "off") + -->
+<!--   labs(x=NULL, y="Percentile (0–100)") + -->
+<!--   theme_uj() +   -->
+<!--   annotate("text", x = 4, y = 40, -->
+<!--            label = sprintf("Means — Human: %.1f   LLM: %.1f", hbar, lbar), -->
+<!--            hjust = 0, size = 4) + -->
+<!--   theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8), -->
+<!--         panel.grid.major.x=element_blank(), -->
+<!--         plot.margin = margin(5, 40, 5, 5)) -->
+
+<!-- ``` -->
 
 
 
