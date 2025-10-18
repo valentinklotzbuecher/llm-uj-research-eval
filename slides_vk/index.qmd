@@ -1362,6 +1362,26 @@ llm_h_stats <- metrics_use %>%
     )
   }) %>% ungroup()
 
+# LLM-Human stats on 1-5 tier ratings
+llm_h_tiers <- jt_use %>%
+  group_by(criteria) %>%
+  group_modify(function(df, key){
+    H <- df %>% filter(who=="Human") %>%
+      group_by(label_paper) %>% summarise(Human = mean(mid, na.rm=TRUE), .groups="drop")
+    L <- df %>% filter(who=="LLM") %>%
+      group_by(label_paper) %>% summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
+    D <- inner_join(H, L, by="label_paper")
+    if (nrow(D) < 2) return(tibble(n = nrow(D), r=NA_real_, ρ=NA_real_, MAE=NA_real_, α_LH = NA_real_))
+    M <- rbind(Human = D$Human, LLM = D$LLM)
+    tibble(
+      n    = nrow(D),
+      r    = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
+      ρ    = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
+      MAE  = mean(abs(D$LLM - D$Human)),
+      α_LH = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
+    )
+  }) %>% ungroup()
+
 # Human-Human α on 0–100 metrics (all raters)
 hh_alpha_metrics <- metrics_human %>%
   group_by(criteria) %>%
@@ -1374,13 +1394,28 @@ hh_alpha_metrics <- metrics_human %>%
     tibble(α_HH = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
   }) %>% ungroup()
 
-combined_metrics <- llm_h_stats %>%
-  left_join(hh_alpha_metrics, by="criteria") %>%
+# Human-Human α on 1-5 tier ratings (all raters - from research/rsx data)
+hh_alpha_tiers <- research %>%
+  filter(criteria %in% c("merits_journal", "journal_predict")) %>%
+  group_by(criteria) %>%
+  group_modify(function(df, key){
+    W <- df %>%
+      filter(!is.na(middle_rating), !is.na(evaluator)) %>%
+      distinct(evaluator, label_paper, middle_rating) %>%
+      tidyr::pivot_wider(names_from = label_paper, values_from = middle_rating)
+    if (ncol(W) < 3) return(tibble(α_HH = NA_real_))
+    M <- as.matrix(W[,-1, drop=FALSE]); rownames(M) <- W$evaluator
+    tibble(α_HH = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
+  }) %>% ungroup()
+
+# Combine all stats
+combined_metrics <- bind_rows(llm_h_stats, llm_h_tiers) %>%
+  left_join(bind_rows(hh_alpha_metrics, hh_alpha_tiers), by="criteria") %>%
   mutate(across(c(r, ρ, MAE, α_LH, α_HH), ~ round(.x, 2))) %>%
   select(criteria, n, r, ρ, MAE, α_LH, α_HH)
 
 knitr::kable(combined_metrics, align = c("l", rep("r", 6)),
-             caption = "LLM-Human agreement: r=Pearson, ρ=Spearman. α=Krippendorff alpha (interval); LH: human-LLM, HH: human-human")
+             caption = "LLM-Human agreement: r=Pearson, ρ=Spearman, MAE=Mean Absolute Error. α=Krippendorff alpha (interval); LH: human-LLM, HH: human-human. Tier ratings on 1-5 scale, others 0-100.")
 
 ```
 
