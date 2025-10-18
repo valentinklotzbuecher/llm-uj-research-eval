@@ -1631,9 +1631,9 @@ ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff
 
 ```
 
---- {.smaller}
+--- 
 
-### Papers with highest relative human vs. AI preference 
+### Papers with highest relative human vs. AI preference {.smaller}
 
 ```{r}
 #| label: top-human-and-ai-pref
@@ -1940,8 +1940,8 @@ D_sc <- inner_join(H_sc, L_sc, by="label_paper") %>%
 
 ggplot(D_sc, aes(x = Human, y = LLM, color = version, shape = version)) +
   geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.8, color="grey60") +
-  geom_point(size = 3.8, alpha = 0.8) +
-  stat_smooth(method="lm", se=FALSE, linewidth=0.6) +
+  geom_point(size = 4, alpha = 0.8) +
+  stat_smooth(method="lm", se=FALSE, linewidth=1) +
   coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
   scale_color_manual(
     values = c("GPT-5 Pro" = UJ_ORANGE, "GPT-5" = UJ_GREEN),
@@ -1960,7 +1960,7 @@ ggplot(D_sc, aes(x = Human, y = LLM, color = version, shape = version)) +
 
 
 
----
+----
 
 
 
