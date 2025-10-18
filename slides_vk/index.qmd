@@ -1625,6 +1625,7 @@ rating_diffs <- H_overall %>%
 ```{r}
 #| label: top-human-and-ai-pref
 #| echo: false
+#| results: asis
 
 # Helper: truncate long titles gracefully
 truncate_title <- function(title, max_len = 70) {
@@ -1676,45 +1677,44 @@ top_llm_pref <- rating_diffs %>%
   filter(diff < 0) %>%
   arrange(diff) %>%
   slice_head(n = 5)
-```
 
-::: {.columns}
+# Build HTML table
+cat('<table style="width:100%; border-collapse: collapse;">\n')
+cat('<thead>\n')
+cat('<tr>\n')
+cat('<th style="width:50%; padding: 10px; border-right: 2px solid #ddd; vertical-align: top; text-align: left;">Most human-preferred (Δ > 0)</th>\n')
+cat('<th style="width:50%; padding: 10px; vertical-align: top; text-align: left;">Most AI-preferred (Δ < 0)</th>\n')
+cat('</tr>\n')
+cat('</thead>\n')
+cat('<tbody>\n')
+cat('<tr>\n')
 
-::: {.column width="50%"}
-
-**Most human-preferred** (Δ > 0)
-
-```{r}
-#| echo: false
-#| results: asis
+# Left column: human-preferred
+cat('<td style="padding: 10px; border-right: 2px solid #ddd; vertical-align: top;">\n')
+cat('<ol style="margin: 0; padding-left: 20px;">\n')
 for (i in 1:nrow(top_human_pref)) {
-  cat(sprintf("%d. *%s* <span style='color:#99bb66;'>(+%.1f)</span>\n\n",
-              i,
+  cat(sprintf('<li style="margin-bottom: 8px;"><em>%s</em> <span style="color:#99bb66; font-weight: bold;">(+%.1f)</span></li>\n',
               top_human_pref$title_display[i],
               top_human_pref$diff[i]))
 }
-```
+cat('</ol>\n')
+cat('</td>\n')
 
-:::
-
-::: {.column width="50%"}
-
-**Most AI-preferred** (Δ < 0)
-
-```{r}
-#| echo: false
-#| results: asis
+# Right column: AI-preferred
+cat('<td style="padding: 10px; vertical-align: top;">\n')
+cat('<ol style="margin: 0; padding-left: 20px;">\n')
 for (i in 1:nrow(top_llm_pref)) {
-  cat(sprintf("%d. *%s* <span style='color:#f19e4b;'>(%.1f)</span>\n\n",
-              i,
+  cat(sprintf('<li style="margin-bottom: 8px;"><em>%s</em> <span style="color:#f19e4b; font-weight: bold;">(%.1f)</span></li>\n',
               top_llm_pref$title_display[i],
               top_llm_pref$diff[i]))
 }
+cat('</ol>\n')
+cat('</td>\n')
+
+cat('</tr>\n')
+cat('</tbody>\n')
+cat('</table>\n')
 ```
-
-:::
-
-:::
 
 ---
 
