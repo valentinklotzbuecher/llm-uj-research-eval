@@ -441,6 +441,7 @@ metrics_llm <- metrics_llm_full |>
     hi = ifelse(is.finite(hi), pmax(0, pmin(100, hi)), NA_real_)
   )
 
+
 # 1) Build a 1-row-per-title key from `research`
 key_map <- research %>%
   transmute(label_paper_title = stringr::str_trim(label_paper_title),
@@ -1069,7 +1070,7 @@ ggplot(D, aes(x = Human, y = LLM)) +
   stat_smooth(method="lm", se=FALSE, linewidth=0.5, color=UJ_ORANGE) +
   coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
   # annotate("text", x = 4, y = 98,
-  #          label = sprintf("n=%d   r=%.2f   ρ=%.2f   α=%.2f   MAE=%.1f", n, r, rho, alpha_overall, MAE),
+  #          label = sprintf("n=%d   r=%.2f   rho=%.2f   α=%.2f   MAE=%.1f", n, r, rho, alpha_overall, MAE),
   #          hjust = 0, size = 3.5) +
   labs(x="Human overall (0–100)", y="LLM overall (0–100)") +
   theme_uj()
@@ -1085,7 +1086,7 @@ ggplot(D, aes(x = Human, y = LLM)) +
 
 - Matched papers: `r n`
 - Pearson r: `r sprintf("%.2f", r)`
-- Spearman ρ: `r sprintf("%.2f", rho)`
+- Spearman rho: `r sprintf("%.2f", rho)`
 - Krippendorff α (interval): `r if (is.na(alpha)) "NA" else sprintf("%.2f", alpha_overall)`
 - MAE (points): `r sprintf("%.1f", MAE)`
 
@@ -1149,7 +1150,7 @@ In future: different shapes or colors for publication *outcomes*, separately dep
 
 
 ```{r}
-#| label: tbl-basic-metrics-matched
+#| label: tab-basic-metrics-matched
 #| message: false
 #| warning: false
 
@@ -1340,7 +1341,8 @@ merged_tiers <- left_join(H_tier, L_tier, by = c("label_paper","criteria"))
 #| label: combined-alpha-interval-metrics
 #| message: false
 #| warning: false
-if (!requireNamespace("irr", quietly = TRUE)) stop("Package 'irr' needed.")
+
+
 
 # LLM-Human stats on 0–100 metrics (matched items)
 llm_h_stats <- metrics_use %>%
@@ -1351,12 +1353,12 @@ llm_h_stats <- metrics_use %>%
     L <- df %>% filter(who=="LLM") %>%
       group_by(label_paper) %>% summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
     D <- inner_join(H, L, by="label_paper")
-    if (nrow(D) < 2) return(tibble(n = nrow(D), r=NA_real_, ρ=NA_real_, MAE=NA_real_, α_LH = NA_real_))
+    if (nrow(D) < 2) return(tibble(n = nrow(D), r=NA_real_, rho=NA_real_, MAE=NA_real_, α_LH = NA_real_))
     M <- rbind(Human = D$Human, LLM = D$LLM)
     tibble(
       n    = nrow(D),
       r    = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
-      ρ    = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
+      rho    = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
       MAE  = mean(abs(D$LLM - D$Human)),
       α_LH = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
     )
@@ -1376,11 +1378,10 @@ hh_alpha_metrics <- metrics_human %>%
 
 combined_metrics <- llm_h_stats %>%
   left_join(hh_alpha_metrics, by="criteria") %>%
-  mutate(across(c(r, ρ, MAE, α_LH, α_HH), ~ round(.x, 2))) %>%
-  select(criteria, n, r, ρ, MAE, α_LH, α_HH)
+  mutate(across(c(r, rho, MAE, α_LH, α_HH), ~ round(.x, 2))) %>%
+  select(criteria, n, r, rho, MAE, α_LH, α_HH)
 
-knitr::kable(combined_metrics, align = c("l", rep("r", 6)),
-             caption = "LLM-Human agreement: r=Pearson, ρ=Spearman. α=Krippendorff alpha (interval); LH: human-LLM, HH: human-human")
+knitr::kable(combined_metrics, align = c("l", rep("r", 6)))
 
 ```
 
@@ -1585,7 +1586,7 @@ ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff
 ---
 
 
-### Papers with highest relative human vs. AI preference
+### Papers with highest relative human vs. AI preference {.smaller}
 
 ```{r}
 #| label: top-human-and-ai-pref
@@ -1647,8 +1648,8 @@ top_llm_pref <- rating_diffs %>%
 cat('<table style="width:100%; border-collapse: collapse;">\n')
 cat('<thead>\n')
 cat('<tr>\n')
-cat('<th style="width:50%; padding: 10px; border-right: 2px solid #ddd; vertical-align: top; text-align: left;">Most human-preferred (Δ > 0)</th>\n')
-cat('<th style="width:50%; padding: 10px; vertical-align: top; text-align: left;">Most AI-preferred (Δ < 0)</th>\n')
+cat('<th style="width:50%; padding: 10px; border-right: 2px solid #ddd; vertical-align: top; text-align: left;">Most human-preferred (Delta > 0)</th>\n')
+cat('<th style="width:50%; padding: 10px; vertical-align: top; text-align: left;">Most AI-preferred (Delta < 0)</th>\n')
 cat('</tr>\n')
 cat('</thead>\n')
 cat('<tbody>\n')
@@ -1683,7 +1684,7 @@ cat('</table>\n')
 
 ---
 
-### Example: Williams et al. '24, Global potential...
+### Example: Williams et al. '24, Global potential... {.smaller}
 
 
 ```{r}
@@ -1691,17 +1692,45 @@ cat('</table>\n')
 #| results: asis
 #| echo: false
 
+
+metrics_llm_full_gpt_5 <- readr::read_csv(here("data","metrics_long_gpt-5.csv"), show_col_types = FALSE) |>
+  janitor::clean_names() |>
+  mutate(
+    label_paper = stringr::str_replace(paper, "et al ", "et al. "),
+    criteria    = canon_metric(metric),
+    mid = as.numeric(midpoint),
+    lo  = suppressWarnings(as.numeric(lower_bound)),
+    hi  = suppressWarnings(as.numeric(upper_bound)),
+    who = "LLM",
+    evaluator = "gpt-5"
+  )
+
+
+metrics_llm <- metrics_llm_full_gpt_5 |>
+  transmute(label_paper, criteria, who, mid, lo, hi) |>
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(0, pmin(100, lo)), NA_real_),
+    hi = ifelse(is.finite(hi), pmax(0, pmin(100, hi)), NA_real_)
+  )
+
+metrics_use_gpt_5 <- bind_rows(metrics_human, metrics_llm)
+
+matched_overall <- intersect(
+  metrics_use_gpt_5 %>% filter(who=="LLM", criteria=="overall") %>% pull(label_paper),
+  metrics_use_gpt_5 %>% filter(who=="Human", criteria=="overall") %>% pull(label_paper)
+)
+metrics_use_gpt_5 <- metrics_use_gpt_5 %>% mutate(is_matched_overall = label_paper %in% matched_overall)
+
 target_paper <- "Williams"
 
-# ---- Ratings table from metrics_use ----
-williams_ratings <- metrics_use %>%
+williams_ratings <- metrics_use_gpt_5 %>%
   filter(grepl(target_paper, label_paper, ignore.case = TRUE)) %>%
   select(who, criteria, mid) %>%
   group_by(who, criteria) %>%
   summarise(rating = mean(mid, na.rm = TRUE), .groups = "drop") %>%
   pivot_wider(names_from = who, values_from = rating)
 
-cat("#### ⭐ Ratings for *Williams et al. (2024)*\n\n")
+cat("#### Ratings for *Williams et al. (2024)*\n\n")
 
 williams_ratings %>%
   rename(Criterion = criteria,
@@ -1713,6 +1742,7 @@ williams_ratings %>%
   knitr::kable(format = "markdown", digits = 0)
 
 ```
+
 ---
 
 ```{r}
@@ -1721,14 +1751,14 @@ williams_ratings %>%
 #| echo: false
 
   
-# ---- Pull rationales from metrics_llm_full ----
-llm_rationales <- metrics_llm_full %>%
+# ---- Pull rationales from metrics_llm_full_gpt_5 ----
+llm_rationales <- metrics_llm_full_gpt_5 %>%
   filter(str_detect(label_paper, regex(target_paper, ignore_case = TRUE)),
          criteria %in% c("overall","methods")) %>%
   select(criteria, rationale) %>%
   distinct()
 
-cat("#### 🤖 LLM rationale excerpts\n\n")
+cat("#### LLM rationale excerpts\n\n")
 
 cat(sprintf("**%s**\n\n> %s\n\n", "Overall", llm_rationales[1,2]))
   
