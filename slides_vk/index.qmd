@@ -265,7 +265,7 @@ E.g.,
 
 ---
 
-## Output: Example
+## Output: Example (mean human eval. ratings)
 
 
 ```{r}
@@ -418,8 +418,8 @@ canon_metric <- function(x) dplyr::recode(
   .default = x
 )
 
-# LLM metrics
-metrics_llm <- readr::read_csv(here("data","metrics_long.csv"), show_col_types = FALSE) |>
+# LLM metrics (with rationales)
+metrics_llm_full <- readr::read_csv(here("data","metrics_long.csv"), show_col_types = FALSE) |>
   janitor::clean_names() |>
   mutate(
     label_paper = stringr::str_replace(paper, "et al ", "et al. "),
@@ -427,8 +427,12 @@ metrics_llm <- readr::read_csv(here("data","metrics_long.csv"), show_col_types =
     mid = as.numeric(midpoint),
     lo  = suppressWarnings(as.numeric(lower_bound)),
     hi  = suppressWarnings(as.numeric(upper_bound)),
-    who = "LLM"
-  ) |>
+    who = "LLM",
+    evaluator = "gpt-5"
+  )
+
+# LLM metrics (for plotting)
+metrics_llm <- metrics_llm_full |>
   transmute(label_paper, criteria, who, mid, lo, hi) |>
   mutate(
     lo = ifelse(is.finite(lo), pmax(0, pmin(100, lo)), NA_real_),
@@ -572,7 +576,7 @@ ggplot(H_prof, aes(x = x100, y = metric, group = paper, color = paper)) +
 ### Our goals and questions: General 
 
 
-1. **Measure the value of *frontier* AI research-eval. relative to human peer review**
+1. **Measure the value of *frontier* AI research-eval. vs. human peer review**
 
 ::: {.notes}
 Is state-of-the-art AI research evaluation reliable and useful enough to replace human peer review in any contexts? 
@@ -746,7 +750,7 @@ Copied from evaluator guidelines, removed mention of "Unjournal", added 'role' &
 
 - API calls via Python script
 
-- PDFs passed directly to the model (direct ingestion, includes tables, graphs, etc.)
+- PDFs passed directly to model (direct ingestion, includes tables, graphs...)
 
 - Enforce JSON Schema: midpoint and bounds for each criteria, short rationale
 
@@ -1077,7 +1081,6 @@ ggplot(D, aes(x = Human, y = LLM)) +
   theme_uj()
 
 
-
 ```
 
 
@@ -1097,9 +1100,7 @@ ggplot(D, aes(x = Human, y = LLM)) +
 
 :::
 
-
  
-
 
 <!-- DR @VK let's add a few statistics here as quick signs or in the notes ... the correlation measures or 'slopes' and p-values, for a start 
 --> 
@@ -1117,16 +1118,14 @@ ggplot(D, aes(x = Human, y = LLM)) +
 
 
 
----
-
 
 <!-- To do
 Now? Color by 'applied' or by cause area?
 
 
-In future: different shapes or colors for publication *outcomes*, separately depicted if 'known at time of evaluation 
+In future: different shapes or colors for publication *outcomes*, separately depicted if 'known at time of evaluation
 
---> 
+-->
 
 
 
@@ -1342,14 +1341,14 @@ llm_h_stats <- metrics_use %>%
     L <- df %>% filter(who=="LLM") %>%
       group_by(label_paper) %>% summarise(LLM = mean(mid, na.rm=TRUE), .groups="drop")
     D <- inner_join(H, L, by="label_paper")
-    if (nrow(D) < 2) return(tibble(n_items = nrow(D), pearson=NA_real_, spearman=NA_real_, MAE=NA_real_ , alpha_llm_h = NA_real_))
+    if (nrow(D) < 2) return(tibble(n = nrow(D), r=NA_real_, ρ=NA_real_, MAE=NA_real_, α_LH = NA_real_))
     M <- rbind(Human = D$Human, LLM = D$LLM)
     tibble(
-      n_items  = nrow(D),
-      pearson  = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
-      spearman = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
-      MAE      = mean(abs(D$LLM - D$Human)),
-      alpha_llm_h = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
+      n    = nrow(D),
+      r    = suppressWarnings(cor(D$LLM, D$Human, method="pearson")),
+      ρ    = suppressWarnings(cor(D$LLM, D$Human, method="spearman")),
+      MAE  = mean(abs(D$LLM - D$Human)),
+      α_LH = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_)
     )
   }) %>% ungroup()
 
@@ -1360,17 +1359,18 @@ hh_alpha_metrics <- metrics_human %>%
     W <- df %>%
       distinct(evaluator, label_paper, mid) %>%
       tidyr::pivot_wider(names_from = label_paper, values_from = mid)
-    if (ncol(W) < 3) return(tibble(alpha_hh = NA_real_))
+    if (ncol(W) < 3) return(tibble(α_HH = NA_real_))
     M <- as.matrix(W[,-1, drop=FALSE]); rownames(M) <- W$evaluator
-    tibble(alpha_hh = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
+    tibble(α_HH = tryCatch(irr::kripp.alpha(M, method="interval")$value, error=function(e) NA_real_))
   }) %>% ungroup()
 
 combined_metrics <- llm_h_stats %>%
   left_join(hh_alpha_metrics, by="criteria") %>%
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
+  mutate(across(c(r, ρ, MAE, α_LH, α_HH), ~ round(.x, 2))) %>%
+  select(criteria, n, r, ρ, α_LH, α_HH, MAE)
 
-knitr::kable(combined_metrics,
-             caption = "0–100 metrics: LLM-Human vs Human-Human agreement (Krippendorff’s alpha interval) with LLM-Human correlations and MAE")
+knitr::kable(combined_metrics, align = c("l", rep("r", 6)),
+             caption = "LLM-Human agreement: r=Pearson, ρ=Spearman, α=Krippendorff alpha, MAE=mean abs error")
 
 ```
 
@@ -1386,7 +1386,134 @@ Towards best practices in AGI safety and governance
 
 
 -->
+## LLM 'rationales','tastes': informal exploration 
+
+
+
+
+### Journal tier correlations with quality metrics (orange: LLM)
+
+```{r}
+#| label: tier-correlations-comparison
+#| fig-width: 14
+#| fig-height: 8
+
+metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge",
+                    "logic_comms", "open_sci", "gp_relevance")
+
+# === LLM Correlations ===
+# Prepare wide-format data with all metrics
+llm_cors_data <- metrics_llm %>%
+  filter(criteria %in% metrics_to_cor) %>%
+  select(label_paper, criteria, mid) %>%
+  group_by(label_paper, criteria) %>%
+  summarise(mid = mean(mid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = criteria, values_from = mid)
+
+# Get LLM tier predictions (use jt_use which has standardized format)
+llm_tier <- jt_use %>%
+  filter(who == "LLM", criteria == "merits_journal") %>%
+  group_by(label_paper) %>%
+  summarise(tier_should = mean(mid, na.rm = TRUE), .groups = "drop")
+
+# Join and compute correlations
+llm_cors_data <- llm_cors_data %>%
+  inner_join(llm_tier, by = "label_paper")
+
+cors_llm <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, ~cor(llm_cors_data[[.x]],
+                                              llm_cors_data$tier_should,
+                                              use = "pairwise.complete.obs")),
+  source = "LLM"
+)
+
+# === Human Correlations ===
+# Average human ratings across evaluators
+human_cors_data <- metrics_human %>%
+  filter(criteria %in% metrics_to_cor) %>%
+  select(label_paper, criteria, mid) %>%
+  group_by(label_paper, criteria) %>%
+  summarise(mid = mean(mid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = criteria, values_from = mid)
+
+# Get human tier predictions
+human_tier <- jt_use %>%
+  filter(who == "Human", criteria == "merits_journal") %>%
+  group_by(label_paper) %>%
+  summarise(tier_should = mean(mid, na.rm = TRUE), .groups = "drop")
+
+# Join and compute correlations
+human_cors_data <- human_cors_data %>%
+  inner_join(human_tier, by = "label_paper")
+
+cors_human <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, ~cor(human_cors_data[[.x]],
+                                              human_cors_data$tier_should,
+                                              use = "pairwise.complete.obs")),
+  source = "Human"
+)
+
+# === Combine and plot ===
+cors_combined <- bind_rows(cors_llm, cors_human) %>%
+  mutate(
+    metric_label = case_when(
+      metric == "overall" ~ "Overall",
+      metric == "claims" ~ "Claims & Evidence",
+      metric == "methods" ~ "Methods",
+      metric == "adv_knowledge" ~ "Advancing Knowledge",
+      metric == "logic_comms" ~ "Logic & Communication",
+      metric == "open_sci" ~ "Open Science",
+      metric == "gp_relevance" ~ "Global Relevance",
+      TRUE ~ metric
+    )
+  )
+
+# Order by average correlation
+metric_order_cors <- cors_combined %>%
+  group_by(metric_label) %>%
+  summarise(avg_cor = mean(correlation, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(avg_cor)) %>%
+  pull(metric_label)
+
+cors_wide <- cors_combined %>%
+  mutate(metric_label = factor(metric_label, levels = metric_order_cors)) %>%
+  pivot_wider(names_from = source, values_from = correlation)
+
+# Dumbbell plot
+ggplot(cors_wide, aes(y = metric_label)) +
+  geom_segment(aes(x = Human, xend = LLM, yend = metric_label),
+               color = "gray50", linewidth = 1.2, alpha = 0.4) +
+  geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) +
+  geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
+  geom_text(aes(x = Human, label = sprintf("%.2f", Human)),
+            hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") +
+  geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)),
+            hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") +
+  scale_x_continuous(
+    limits = c(min(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) - 0.15,
+               max(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) + 0.15)
+  ) +
+  labs(
+    x = "Correlation with 'Where should this publish?'",
+    y = NULL
+  ) +
+  theme_uj() +
+  theme(
+    panel.grid.major.x = element_line(color = "grey90"),
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(size = 11)
+  )
+```
+
+::: {.notes}
+This plot compares how LLM and Human evaluators' journal tier predictions ("where should this publish?") correlate with their other quality ratings. Green dots show Human correlations, orange dots show LLM correlations. Lines connect the same metric. Larger divergences suggest different evaluation priorities between LLM and Human evaluators.
+:::
+
 ---
+
 
 ## LLM-human ratings gaps (informal explorations)
 
@@ -1447,7 +1574,259 @@ ggplot(Ddiff, aes(x = factor(label_paper, levels = ord_p), y = crit, fill = diff
 ```
 
 
+### Papers with highest human preference vs. AI
+
+```{r}
+#| label: top-human-preference
+#| results: asis
+
+# Function to truncate title at 70 characters without cutting words
+truncate_title <- function(title, max_len = 70) {
+  if (nchar(title) <= max_len) return(title)
+  # Find last space before or at max_len
+  substr_text <- substr(title, 1, max_len)
+  last_space <- max(gregexpr(" ", substr_text)[[1]])
+  if (last_space > 0) {
+    return(paste0(substr(title, 1, last_space - 1), "..."))
+  }
+  return(paste0(substr(title, 1, max_len), "..."))
+}
+
+# Calculate overall rating differences (Human - LLM)
+H_overall <- metrics_use %>%
+  filter(who == "Human", criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(human_rating = mean(mid, na.rm = TRUE), .groups = "drop")
+
+L_overall <- metrics_use %>%
+  filter(who == "LLM", criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(llm_rating = mean(mid, na.rm = TRUE), .groups = "drop")
+
+# Get paper titles
+paper_titles <- research %>%
+  distinct(label_paper, label_paper_title) %>%
+  filter(!is.na(label_paper_title))
+
+rating_diffs <- H_overall %>%
+  inner_join(L_overall, by = "label_paper") %>%
+  left_join(paper_titles, by = "label_paper") %>%
+  mutate(
+    diff = human_rating - llm_rating,
+    title_display = sapply(label_paper_title, truncate_title)
+  ) %>%
+  arrange(desc(diff))
+```
+
 ---
+
+### Papers with highest relative human vs. AI preference
+
+```{r}
+#| label: top-human-and-ai-pref
+#| echo: false
+
+# Helper: truncate long titles gracefully
+truncate_title <- function(title, max_len = 70) {
+  if (nchar(title) <= max_len) return(title)
+  substr_text <- substr(title, 1, max_len)
+  last_space <- max(gregexpr(" ", substr_text)[[1]])
+  if (last_space > 0) {
+    return(paste0(substr(title, 1, last_space - 1), "..."))
+  }
+  paste0(substr(title, 1, max_len), "...")
+}
+
+# Compute mean "overall" ratings per paper and source
+H_overall <- metrics_use %>%
+  filter(who == "Human", criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(human_rating = mean(mid, na.rm = TRUE), .groups = "drop")
+
+L_overall <- metrics_use %>%
+  filter(who == "LLM", criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(llm_rating = mean(mid, na.rm = TRUE), .groups = "drop")
+
+# Merge, compute diffs, add titles
+paper_titles <- research %>%
+  distinct(label_paper, label_paper_title) %>%
+  filter(!is.na(label_paper_title))
+
+rating_diffs <- H_overall %>%
+  inner_join(L_overall, by = "label_paper") %>%
+  left_join(paper_titles, by = "label_paper") %>%
+  mutate(
+    diff = human_rating - llm_rating,
+    title_display = sapply(label_paper_title, truncate_title)
+  )
+
+# Filter to non-ties only
+rating_diffs <- rating_diffs %>%
+  filter(diff != 0)
+
+# Top 5 where humans rated higher
+top_human_pref <- rating_diffs %>%
+  filter(diff > 0) %>%
+  arrange(desc(diff)) %>%
+  slice_head(n = 5)
+
+# Top 5 where LLM rated higher
+top_llm_pref <- rating_diffs %>%
+  filter(diff < 0) %>%
+  arrange(diff) %>%
+  slice_head(n = 5)
+```
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+**Most human-preferred** (Δ > 0)
+
+```{r}
+#| echo: false
+#| results: asis
+for (i in 1:nrow(top_human_pref)) {
+  cat(sprintf("%d. *%s* <span style='color:#99bb66;'>(+%.1f)</span>\n\n",
+              i,
+              top_human_pref$title_display[i],
+              top_human_pref$diff[i]))
+}
+```
+
+:::
+
+::: {.column width="50%"}
+
+**Most AI-preferred** (Δ < 0)
+
+```{r}
+#| echo: false
+#| results: asis
+for (i in 1:nrow(top_llm_pref)) {
+  cat(sprintf("%d. *%s* <span style='color:#f19e4b;'>(%.1f)</span>\n\n",
+              i,
+              top_llm_pref$title_display[i],
+              top_llm_pref$diff[i]))
+}
+```
+
+:::
+
+:::
+
+---
+
+### Example: Williams et al. 2024, Global potential for natural regeneration...
+
+LLM ratings, rationale (overall, methods) for Williams et al. 2024:
+
+```{r}
+#| label: ratings-williams-2024
+#| results: asis
+#| echo: false
+
+target_paper <- "Williams"
+
+# ---- Ratings table from metrics_use ----
+williams_ratings <- metrics_use %>%
+  filter(grepl(target_paper, label_paper, ignore.case = TRUE)) %>%
+  select(who, criteria, mid) %>%
+  group_by(who, criteria) %>%
+  summarise(rating = mean(mid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = who, values_from = rating)
+
+cat("#### ⭐ Ratings for *Williams et al. (2024)*\n\n")
+
+williams_ratings %>%
+  rename(Criterion = criteria,
+         `Human rating` = Human,
+         `LLM rating` = LLM) %>%
+  arrange(match(Criterion,
+                c("overall","importance","credibility","methods",
+                  "clarity","replicability"))) %>%
+  knitr::kable(format = "markdown", digits = 1)
+
+# ---- Select target paper ----
+target_paper <- "Williams"
+
+# ---- Filter all human and LLM ratings ----
+williams_ratings <- metrics_use %>%
+  filter(grepl(target_paper, label_paper, ignore.case = TRUE)) %>%
+  select(who, criteria, mid) %>%
+  group_by(who, criteria) %>%
+  summarise(rating = mean(mid, na.rm = TRUE), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = who, values_from = rating)
+
+# ---- Nicely formatted markdown table ----
+cat("#### ⭐ Ratings for *Williams et al. (2024)*\n\n")
+
+williams_ratings %>%
+  rename(Criterion = criteria,
+         `Human rating` = Human,
+         `LLM rating` = LLM) %>%
+  arrange(match(Criterion,
+                c("overall", "importance", "credibility",
+                  "methods", "clarity", "replicability"))) %>%
+  knitr::kable(format = "markdown", digits = 1)
+
+# ---- Pull rationales from metrics_llm_full ----
+llm_rationales <- metrics_llm_full %>%
+  filter(str_detect(label_paper, regex(target_paper, ignore_case = TRUE)),
+         criteria %in% c("overall","methods")) %>%
+  select(criteria, rationale) %>%
+  distinct()
+
+cat("\n\n---\n\n")
+cat("#### 🤖 LLM rationale excerpts\n\n")
+
+cat(sprintf("**%s**\n\n> %s\n\n", "Overall", llm_rationales[1,2]))
+  
+cat(sprintf("**%s**\n\n %s\n\n", "Methods", llm_rationales[2,2]))
+
+```
+
+--- 
+
+**Humans for ‘methods’ (paraphrased)**
+
+E1: 20 (15 - 25): ~"(1) the trained model does not enable prediction into the future given currently observed conditions, (2) the predictions do not represent pure biophysical potential, and (3) regrowth longevity is not addressed."
+
+<br style="line-height:0.5">
+
+E2: 30 (10 - 50): ~ Data Leakage Concerns, Variables potentially derived using outcome data, Variables potentially incorporating post-2000 outcome data, Underestimation of Uncertainty,  Reliance on Older GFC Gain Data, Neglect of Intensive Margin Regrowth.
+
+ 
+
+---
+
+## But GPT-5 Pro shows potential (chat mode test, web search off)
+
+
+Prompt: 
+
+::: {.tiny-text}
+> Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer.
+... Please check for methodological error/weaknesses in particular
+
+:::
+
+<br> 
+
+Identifies a number of critiques overlapping our evaluators, e.g., 
+
+::: {.tiny-text}
+
+> 4. Post‑treatment leakage. “Land use/land cover” is from 2015 (within the outcome window 2000–2016) and is included in the final biophysical model (variable “landuse” in Extended Data Fig. 2). Because positives often became forest by 2015 while negatives did not, this can leak outcome information into x and inflate fit. ...
+
+:::
+
+Both evaluators identified this leakage issue, E1 specifically mentioning the land use variable.
+
+
+---
+
 
 ## Our next steps (feedback invited)
 
