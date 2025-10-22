@@ -22,15 +22,17 @@ library("stringr")
 library("stringi") #probably redundant?
 library("lubridate")
 #library("readr") #redundant?
-library("here") 
-library("knitr") 
-library("ggforce") 
+library("here")
+library("knitr")
+library("kableExtra")    # For better table formatting
+library("ggforce")
 library("ggrepel")
 library("glue")
 library("ggalluvial")
 library("scales")
 library("viridis")       # For colorblind-friendly palettes
 library("ggbreak")
+library("irr")           # For Krippendorff's alpha
 
 
 ```
@@ -58,6 +60,17 @@ theme_uj <- function(base_size = 11) {
 
 ```{r}
 #| label: functions-summaries
+
+# Canonical metric name mapping
+canon_metric <- function(x) dplyr::recode(
+  x,
+  "advancing_knowledge" = "adv_knowledge",
+  "open_science"        = "open_sci",
+  "logic_communication" = "logic_comms",
+  "global_relevance"    = "gp_relevance",
+  "claims_evidence"     = "claims",
+  .default = x
+)
 
 fix_bounds <- function(df, lo, hi) {
   lo2 <- suppressWarnings(as.numeric(df[[lo]]))
@@ -264,12 +277,7 @@ metrics <- metrics |> clean_names() |>
          middle_rating = midpoint,
          lower_ci = lower_bound,
          upper_ci = upper_bound,
-         criteria = metric) |>
-  mutate(criteria = if_else(criteria == "advancing_knowledge", "adv_knowledge", criteria)) |>
-  mutate(criteria = if_else(criteria == "open_science", "open_sci", criteria)) |>
-  mutate(criteria = if_else(criteria == "logic_communication", "logic_comms", criteria)) |>
-  mutate(criteria = if_else(criteria == "global_relevance", "gp_relevance", criteria)) |>
-  mutate(criteria = if_else(criteria == "claims_evidence", "claims", criteria)) |>
+         criteria = canon_metric(metric)) |>  # Use canon_metric function
   # mutate(criteria = factor(criteria)) |>
   left_join(UJmap, by = c("label_paper")) |>
   select(c("label_paper", "label_paper_title", "evaluator", "criteria", "middle_rating", "lower_ci", "upper_ci", "rationale"))
@@ -455,8 +463,141 @@ ggplot(jplot, aes(x = mid, y = paper_fac, colour = who, shape = who)) +
 Similar to [the analysis for human evaluations](https://unjournal.github.io/unjournaldata/posts/uj-data-update-2025/#fig-journal-quality-cors), we examine how both LLM and Human "where should this paper publish" ratings correlate with their respective other quality metrics. This reveals what dimensions each evaluator weighs most heavily when assessing journal placement.
 
 
+```{r}
+#| label: fig-tier-cors-comparison
+#| fig-cap: "How quality metrics predict journal tier: LLM vs Human evaluators"
+#| fig-height: 7
+#| fig-width: 10
+
+metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge",
+                    "logic_comms", "open_sci", "gp_relevance")
+
+# === LLM Correlations ===
+llm_cors_data <- llm_raw |>
+  filter(criteria %in% metrics_to_cor) |>
+  select(label_paper, criteria, midpoint_llm) |>
+  mutate(label_paper = as.character(label_paper),
+         criteria = as.character(criteria),
+         midpoint_llm = as.numeric(midpoint_llm)) |>
+  pivot_wider(names_from = criteria, values_from = midpoint_llm)
+
+# Get LLM tier predictions from jtiers data
+tier_should_llm <- jtiers_llm |>
+  filter(criteria == "merits_journal") |>
+  mutate(label_paper = as.character(label_paper)) |>
+  select(label_paper, tier_should = middle_rating) |>
+  mutate(tier_should = as.numeric(tier_should))
+
+llm_cors_data <- llm_cors_data |>
+  inner_join(tier_should_llm, by = "label_paper") |>
+  filter(!is.na(tier_should))
+
+cors_llm <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, function(m) {
+    if (m %in% names(llm_cors_data) && is.numeric(llm_cors_data[[m]])) {
+      cor(llm_cors_data[[m]], llm_cors_data$tier_should, use = "pairwise.complete.obs")
+    } else NA_real_
+  }),
+  source = "LLM"
+) |> filter(!is.na(correlation))
+
+# === Human Correlations ===
+human_cors_data <- human_use |>
+  filter(criteria %in% metrics_to_cor) |>
+  select(label_paper, criteria, midpoint_human) |>
+  mutate(label_paper = as.character(label_paper),
+         criteria = as.character(criteria),
+         midpoint_human = as.numeric(midpoint_human)) |>
+  pivot_wider(names_from = criteria, values_from = midpoint_human)
+
+tier_should_human <- jtiers_uj |>
+  filter(criteria == "merits_journal") |>
+  mutate(label_paper = as.character(label_paper)) |>
+  group_by(label_paper) |>
+  summarise(tier_should = mean(as.numeric(middle_rating), na.rm = TRUE), .groups = "drop")
+
+human_cors_data <- human_cors_data |>
+  inner_join(tier_should_human, by = "label_paper") |>
+  filter(!is.na(tier_should))
+
+cors_human <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, function(m) {
+    if (m %in% names(human_cors_data) && is.numeric(human_cors_data[[m]])) {
+      cor(human_cors_data[[m]], human_cors_data$tier_should, use = "pairwise.complete.obs")
+    } else NA_real_
+  }),
+  source = "Human"
+) |> filter(!is.na(correlation))
+
+# === Combine and create dumbbell plot ===
+cors_combined <- bind_rows(cors_llm, cors_human) |>
+  mutate(
+    metric_label = case_when(
+      metric == "overall" ~ "Overall",
+      metric == "claims" ~ "Claims & Evidence",
+      metric == "methods" ~ "Methods",
+      metric == "adv_knowledge" ~ "Advancing Knowledge",
+      metric == "logic_comms" ~ "Logic & Communication",
+      metric == "open_sci" ~ "Open Science",
+      metric == "gp_relevance" ~ "Global Relevance",
+      TRUE ~ metric
+    )
+  )
+
+cors_wide <- cors_combined |>
+  pivot_wider(names_from = source, values_from = correlation)
+
+# Compute avg_cor and reorder
+cors_wide <- cors_wide |>
+  rowwise() |>
+  mutate(avg_cor = mean(c_across(where(is.numeric)), na.rm = TRUE)) |>
+  ungroup() |>
+  mutate(metric_label = fct_reorder(metric_label, avg_cor))
+
+# Dumbbell plot
+# Only create plot if we have data for both Human and LLM
+if ("Human" %in% names(cors_wide) && "LLM" %in% names(cors_wide) &&
+    nrow(cors_wide) > 0 && sum(!is.na(cors_wide$Human)) > 0 && sum(!is.na(cors_wide$LLM)) > 0) {
+
+  ggplot(cors_wide, aes(y = metric_label)) +
+    geom_segment(aes(x = Human, xend = LLM, yend = metric_label),
+                 color = "gray50", linewidth = 1.2, alpha = 0.4) +
+    geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) +
+    geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray40", alpha = 0.5) +
+    geom_text(aes(x = Human, label = sprintf("%.2f", Human)),
+              hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") +
+    geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)),
+              hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") +
+    scale_x_continuous(limits = c(min(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) - 0.2,
+                                   max(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) + 0.2)) +
+    labs(
+      x = "Correlation with 'Where should this publish?'",
+      y = NULL,
+      title = "How quality metrics predict journal tier: LLM vs Human evaluators",
+      subtitle = paste0("Green = Human evaluators | Orange = ", currentmodel, " | Higher values = stronger weight in tier prediction")
+    ) +
+    theme_uj() +
+    theme(
+      panel.grid.major.x = element_line(color = "grey90"),
+      panel.grid.major.y = element_blank(),
+      plot.title.position = "plot"
+    )
+} else {
+  # Fallback message if data is missing
+  ggplot() +
+    annotate("text", x = 0.5, y = 0.5,
+             label = "Insufficient data for tier correlation plot.\nCheck that both LLM and Human tier predictions are available.",
+             hjust = 0.5, vjust = 0.5, size = 5) +
+    theme_void()
+}
+```
+
+<!-- Legacy commented code below - kept for reference
 <!-- ```{r} -->
-<!-- #| label: fig-tier-cors-comparison -->
+<!-- #| label: fig-tier-cors-comparison-old -->
 <!-- #| fig-cap: "Comparison of journal tier correlations: LLM vs Human evaluators. Green dots show Human correlations, orange dots show LLM correlations. Lines connect the same metric." -->
 <!-- #| fig-height: 6 -->
 <!-- #| fig-width: 9 -->
@@ -949,83 +1090,127 @@ The overall pattern suggests that the AI and humans broadly agree on some top pe
 
 ### Individual metrics
 
-We then look closer at the specific ratings on the criterion level. @fig-heat displays LLM − Human differences by paper × metric. Each row is a paper (the rows here are ordered by the difference in overall score, with papers at the top being those the AI scored lower than humans overall, and at the bottom those the AI scored higher). Each column is one of the criteria: Claims & Evidence, Methods, Advancing Knowledge, Logic & Communication, Open Science, Global Relevance, and Overall. The cell color shows the AI score minus the human score for that paper on that criterion. Orange shades mean the AI’s score is higher; green shades mean the AI’s score is lower. White or light gray indicates the AI and human scores were about the same.
+We then look closer at the specific ratings on the criterion level. @fig-heat displays Human − LLM differences by paper × metric. Each row is a paper (the rows here are ordered by the difference in overall score, with papers at the top being those humans scored higher than the AI, and at the bottom those the AI scored higher than humans). Each column is one of the criteria: Claims & Evidence, Methods, Advancing Knowledge, Logic & Communication, Open Science, Global Relevance, and Overall. The cell color shows the human score minus the AI score for that paper on that criterion. Green shades mean humans rated higher; orange shades mean the AI rated higher. White or light gray indicates the AI and human scores were about the same.
 
 ```{r}
 #| label: fig-heat
 #| fig-height: 7
-#| fig-cap: "LLM − Human differences by paper × metric; sorted by 'greatest LLM relative preference'"
+#| fig-cap: "Human − LLM differences by paper × metric (green=humans rated higher, orange=LLM rated higher)"
 
 pair <- merged |>
   transmute(paper = label_paper, metric = criteria,
-            diff = midpoint_llm - midpoint_human)
+            diff = midpoint_human - midpoint_llm)  # NOTE: Inverted to Human - LLM
 
-# Row order by signed difference on 'overall' (if present)
+# Row order by signed difference on 'overall' (descending)
 order_overall <- pair |>
   filter(metric == "overall") |>
   group_by(paper) |>
   summarise(d = mean(diff, na.rm = TRUE), .groups = "drop") |>
-  arrange(d) |>
+  arrange(desc(d)) |>  # Descending order
   pull(paper)
 
 pair$paper <- factor(pair$paper, levels = unique(c(order_overall, pair$paper)))
 
+# Better metric labels
+metric_labels <- c(
+  "overall" = "Overall",
+  "claims" = "Claims & Evidence",
+  "methods" = "Methods",
+  "adv_knowledge" = "Adv. Knowledge",
+  "logic_comms" = "Logic & Comms",
+  "open_sci" = "Open Science",
+  "gp_relevance" = "Global Relevance"
+)
+
+pair <- pair |>
+  mutate(metric = factor(metric, levels = names(metric_labels), labels = unname(metric_labels)))
 
 ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
-  geom_tile(color = "white", size = 0.4) +
-  scale_fill_gradient2(low = UJ_GREEN, mid = "grey95", high = UJ_ORANGE,
+  geom_tile(color = "white", linewidth = 0.4) +
+  scale_fill_gradient2(low = UJ_ORANGE, mid = "grey95", high = UJ_GREEN,
                        midpoint = 0,
-                       name = "LLM − Human") +
-  labs(x = NULL, y = NULL) +
+                       name = "Human − LLM") +
+  labs(x = NULL, y = NULL,
+       title = "Differences in ratings: Human minus LLM",
+       subtitle = "Green = humans rated higher | Orange = LLM rated higher") +
   theme_uj() +
-  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title.position = "plot")
 
 ```
 
 
 
 This figure provides a more granular view of where AI and human evaluations diverge. A quick scan reveals a few systematic tendencies:
- 
-For some criteria,  the AI tended to score papers higher than humans.  For example, in the Logic & Communication column, we see many light-orange cells – the AI often thought papers were a bit clearer or better argued (by its judgment) than the human evaluators did.
 
-In contrast, the Open Science column shows a notable amount of green. Here the AI frequently gave lower scores than the humans. This suggests that the AI was harsher about transparency/reproducibility issues. Indeed, GPT often noted lack of code or data sharing in papers and penalized for it, whereas some human reviewers may have been more forgiving or did not emphasize open-science practices as strongly, or may have had lower expectations, especially for pre-journal-publication work. As a result, for many papers the AI’s Open Science score is 5–10 points below the human average.
+For some criteria, the AI tended to score papers higher than humans. For example, in the Logic & Communication column, we see many orange cells – the AI often thought papers were a bit clearer or better argued (by its judgment) than the human evaluators did.
 
-@tbl-agreement show agreement metrics across rating criteria. To quantify the agreements and differences observed, we calculated several statistics comparing LLM scores to the human scores, aggregated by criterion:
+In contrast, the Open Science column shows a notable amount of green. Here humans frequently gave higher scores than the AI. This suggests that the AI was harsher about transparency/reproducibility issues. Indeed, GPT often noted lack of code or data sharing in papers and penalized for it, whereas some human reviewers may have been more forgiving or did not emphasize open-science practices as strongly, or may have had lower expectations, especially for pre-journal-publication work. As a result, for many papers the AI's Open Science score is 5–10 points below the human average.
 
-Correlation (Pearson’s r) between the AI’s and human scores across papers: This tells us, for example, if a paper that humans gave a high score also tended to get a high score from AI (regardless of absolute difference). For the Overall scores, Pearson r ≈ 0.30, indicating a weak-to-moderate positive correlation. In other words, there is some alignment – the AI does often rate the generally “better” papers higher – but there is considerable noise. Some criteria showed essentially no linear correlation (for Logic & Communication, r ~ 0, meaning the AI’s clarity ratings had no linear relationship with human ratings).
+@tbl-agreement shows agreement metrics across rating criteria. To quantify the agreements and differences observed, we calculated several statistics comparing LLM scores to human scores, aggregated by criterion:
 
-We also computed Spearman rank correlation, where for Overall it was a bit higher (around 0.40), suggesting the AI is moderately good at ranking papers in roughly the same order as humans even if the exact scores differ. Notably, the Methods criterion had one of the higher Spearman correlations (~0.43), implying AI and humans somewhat agree on which papers have stronger methods, whereas Global Relevance and Communication had very low or even slight negative correlation, implying essentially no agreement on those fronts.
+**Correlation (Pearson's r)** between the AI's and human scores across papers: This tells us, for example, if a paper that humans gave a high score also tended to get a high score from AI (regardless of absolute difference). The correlations vary by criterion, with some showing weak-to-moderate positive correlation, indicating partial alignment where the AI often rates the generally "better" papers higher, but with considerable noise. Some criteria show essentially no linear correlation, meaning the AI's ratings have no linear relationship with human ratings.
 
-Inter-rater reliability (Cohen’s κ): We treated the AI as one “reviewer” and the average human as another, and asked: how often do they effectively give similar ratings, beyond what chance alignment would predict? For overall scores, Cohen’s κ (with quadratic weighting for partial agreement) came out around 0.25–0.30. This would be characterized as “fair” agreement at best – a significant gap remains between AI and human judgments. For most specific criteria, the weighted κ was lower, often in the 0.1–0.2 range (and for one category, effectively 0). A κ of 0 would mean no more agreement than random chance (given the distribution of scores), so some categories are bordering on that. In contrast, typical inter-human agreement on these kinds of scoring tasks can also be low, but usually one would hope for κ in the 0.3–0.6 range among trained reviewers on well-defined criteria. Our finding of κ < 0.3 in all cases suggests that the AI’s ratings are not interchangeable with a human reviewer’s – at least not without further calibration.
+**Spearman rank correlation (ρ)** provides a non-parametric measure of ranking agreement. This is often slightly higher than Pearson correlation, suggesting the AI is moderately good at ranking papers in roughly the same order as humans even if the exact scores differ. Some criteria (like Methods) show higher rank correlation, implying AI and humans somewhat agree on relative rankings, whereas others show very low or even slight negative correlation, implying essentially no agreement on those dimensions.
+
+**Mean Absolute Error (MAE)** provides an intuitive measure of the average points difference between LLM and human ratings on the 0-100 scale. This helps quantify the practical magnitude of disagreements.
+
+**Inter-rater reliability (Krippendorff's α)**: We use Krippendorff's alpha, which is specifically designed for interval-scale data like our percentile ratings. The table shows both α_LH (LLM-Human agreement) and α_HH (Human-Human agreement for context). Alpha values range from -1 to 1, where 1 indicates perfect agreement, 0 indicates agreement no better than chance, and negative values indicate systematic disagreement. Importantly, the α_HH column provides crucial context: even among human evaluators, agreement is often modest on subjective research evaluation tasks. By comparing α_LH to α_HH, we can assess whether the AI's agreement with humans is comparable to inter-human agreement. In general, α values below 0.40 are considered poor agreement, 0.40-0.60 moderate, and above 0.60 substantial agreement. Our results show that both LLM-human and human-human agreement vary considerably by criterion, with some dimensions showing near-zero agreement, suggesting these are particularly subjective or that evaluators (both human and AI) interpret these criteria differently.
 
 ```{r}
 #| label: tbl-agreement
-#| tbl-cap: "Overall agreement across all metrics"
+#| tbl-cap: "Overall agreement metrics: LLM vs Human and Human vs Human"
 
-# Replace: agreement_summary() and display
-agreement_summary <- function(df, n_bins = 5, bin_strategy = "quantile") {
-  df |>
-    group_by(criteria) |>
-    summarise(
-      n             = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
-      pearson       = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
-      spearman      = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
-      # mean_bias     = mean(midpoint_llm - midpoint_human, na.rm = TRUE),
-      # median_bias   = median(midpoint_llm - midpoint_human, na.rm = TRUE),
-      # MAE           = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
-      # MedAE         = median(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
-      # RMSE          = sqrt(mean((midpoint_llm - midpoint_human)^2, na.rm = TRUE)),
-      kappa_unwtd   = { b <- bin_together(midpoint_llm, midpoint_human, n_bins, bin_strategy); weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "unweighted") },
-      kappa_quad    = { b <- bin_together(midpoint_llm, midpoint_human, n_bins, bin_strategy); weighted_kappa(b$a_bin, b$b_bin, k = b$k, weights = "quadratic") },
-      .groups = "drop"
-    ) |>
-    arrange(criteria)
-}
+# LLM-Human agreement metrics
+llm_h_stats <- merged |>
+  group_by(criteria) |>
+  summarise(
+    n = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
+    pearson = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
+    spearman = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
+    MAE = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+    .groups = "drop"
+  )
 
-agree_view <- agreement_summary(merged, n_bins = 5, bin_strategy = "quantile") |>
-  mutate(across(where(is.numeric), ~ round(.x, 3)))
+# LLM-Human Krippendorff's alpha
+llm_h_alpha <- merged |>
+  group_by(criteria) |>
+  group_modify(function(df, key){
+    M <- rbind(LLM = df$midpoint_llm, Human = df$midpoint_human)
+    tibble(
+      alpha_LH = tryCatch(
+        irr::kripp.alpha(M, method = "interval")$value,
+        error = function(e) NA_real_
+      )
+    )
+  }) |> ungroup()
 
-kable(agree_view)
+# Human-Human Krippendorff's alpha (for comparison context)
+hh_alpha <- human_raw |>
+  group_by(criteria) |>
+  group_modify(function(df, key){
+    wide <- df |>
+      distinct(evaluator, label_paper, middle_rating) |>
+      pivot_wider(names_from = label_paper, values_from = middle_rating)
+    if (ncol(wide) < 3) return(tibble(alpha_HH = NA_real_))
+    M <- as.matrix(wide[,-1, drop=FALSE])
+    rownames(M) <- wide$evaluator
+    tibble(
+      alpha_HH = tryCatch(
+        irr::kripp.alpha(M, method = "interval")$value,
+        error = function(e) NA_real_
+      )
+    )
+  }) |> ungroup()
+
+# Combine all metrics
+combined_agreement <- llm_h_stats |>
+  left_join(llm_h_alpha, by = "criteria") |>
+  left_join(hh_alpha, by = "criteria") |>
+  mutate(across(where(is.numeric), ~ round(.x, 3))) |>
+  arrange(criteria)
+
+kable(combined_agreement)
 
 
 
