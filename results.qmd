@@ -457,6 +457,91 @@ ggplot(jplot, aes(x = mid, y = paper_fac, colour = who, shape = who)) +
         legend.position = "bottom")
 ```
 
+### Vertical comparison: Journal tier ratings
+
+@fig-forest-tiers-vertical provides an alternative view of the journal tier ratings, displayed vertically for easier comparison with paper labels visible. The horizontal lines show mean ratings.
+
+```{r}
+#| label: fig-forest-tiers-vertical
+#| fig-cap: "Journal tier ratings: vertical format with means. Where should this paper be published? Human (green) vs LLM (orange)."
+#| fig-height: 6
+#| fig-width: 14
+
+tier_metric_use <- "merits_journal"  # "where should this be published"
+
+HH <- jtiers %>% filter(criteria == tier_metric_use, human == "Human")
+LL <- jtiers %>% filter(criteria == tier_metric_use, human != "Human")
+matched_tiers <- intersect(unique(HH$label_paper), unique(LL$label_paper))
+
+H_t <- HH %>%
+  filter(label_paper %in% matched_tiers) %>%
+  mutate(
+    lo = ifelse(is.finite(lower_ci), pmax(1, lower_ci), NA_real_),
+    hi = ifelse(is.finite(upper_ci), pmin(5, upper_ci), NA_real_)
+  )
+
+ord_t <- H_t %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(middle_rating, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(h_mean)) %>%
+  mutate(pos = row_number())
+
+H_tplot <- H_t %>%
+  inner_join(ord_t, by = "label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n() + 1) / 2) * 0.18,
+         x   = pos + off) %>%
+  ungroup()
+
+L_t <- LL %>%
+  filter(label_paper %in% matched_tiers) %>%
+  group_by(label_paper) %>%
+  summarise(
+    mid = mean(middle_rating, na.rm = TRUE),
+    lo  = suppressWarnings(min(coalesce(lower_ci, middle_rating), na.rm = TRUE)),
+    hi  = suppressWarnings(max(coalesce(upper_ci, middle_rating), na.rm = TRUE)),
+    .groups = "drop"
+  ) %>%
+  inner_join(ord_t, by = "label_paper") %>%
+  mutate(x = pos)
+
+H_pp <- H_t %>% group_by(label_paper) %>% summarise(h_mean = mean(middle_rating), .groups = "drop")
+hbar <- mean(H_pp$h_mean, na.rm = TRUE)
+lbar <- mean(L_t$mid,     na.rm = TRUE)
+
+x_ann <- if (nrow(ord_t) > 0) min(ord_t$pos) + 0.3 else 0
+
+ggplot() +
+  geom_vline(data = ord_t, aes(xintercept = pos), color = "grey92", linewidth = 0.3) +
+  geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dashed", linewidth = 0.8) +
+  geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
+  # Humans
+  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1, alpha = 0.5, color = UJ_GREEN) +
+  geom_point(data = H_tplot, aes(x = x, y = middle_rating),
+             size = 3.0, alpha = 0.9, color = UJ_GREEN) +
+  # LLM
+  geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1.0, color = UJ_ORANGE) +
+  geom_point(data = L_t, aes(x = x, y = mid),
+             size = 3.6, shape = 18, color = UJ_ORANGE) +
+  scale_x_continuous(breaks = ord_t$pos, labels = ord_t$label_paper,
+                     expand = expansion(mult = c(0.01, 0.03))) +
+  coord_cartesian(ylim = c(1, 5), clip = "off") +
+  labs(x = NULL, y = "Journal tier (1–5)",
+       title = "Where should this paper be published?") +
+  theme_uj() +
+  annotate("text", x = x_ann, y = 1.4,
+           label = sprintf("Means — Human: %.2f   LLM: %.2f", hbar, lbar),
+           hjust = 0, size = 4) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+        panel.grid.major.x = element_blank(),
+        plot.margin = margin(5, 40, 5, 5))
+
+```
+
 
 ### Journal tier correlations with quality metrics
 
@@ -936,6 +1021,125 @@ p <- ggplot() +
 
 ```
 
+
+Next, @fig-forest-both shows the same data in a different format, with both human and LLM ratings displayed vertically. The horizontal dotted lines show the mean ratings for each group, making it easy to see the overall difference in rating levels between humans and AI.
+
+```{r}
+#| label: fig-forest-both
+#| fig-cap: "Overall ratings: Human (green circles) vs LLM (orange diamonds). Horizontal dotted lines show mean ratings."
+#| fig-height: 6
+#| fig-width: 14
+
+# Forest plot with both humans and LLM, vertical format with means
+
+matched <- intersect(
+  all_ratings %>% filter(evaluator == currentmodel, criteria=="overall") %>% pull(label_paper),
+  all_ratings %>% filter(evaluator != currentmodel, criteria=="overall") %>% pull(label_paper)
+)
+
+H_ind <- human_raw %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  mutate(lo = ifelse(is.finite(lower_ci), pmax(0, lower_ci), NA_real_),
+         hi = ifelse(is.finite(upper_ci), pmin(100, upper_ci), NA_real_))
+
+ord <- H_ind %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(middle_rating, na.rm=TRUE), .groups="drop") %>%
+  arrange(desc(h_mean)) %>% mutate(pos = row_number())
+
+H_plot <- H_ind %>%
+  inner_join(ord, by="label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.18,
+         x   = pos + off) %>% ungroup()
+
+# per-paper human mean and LLM summary
+H_pp <- H_ind %>% group_by(label_paper) %>% summarise(h_mean = mean(middle_rating), .groups="drop")
+L_c <- llm_raw %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  group_by(label_paper) %>%
+  summarise(mid = mean(midpoint_llm, na.rm=TRUE),
+            lo  = suppressWarnings(min(coalesce(lower_llm, midpoint_llm), na.rm=TRUE)),
+            hi  = suppressWarnings(max(coalesce(upper_llm, midpoint_llm), na.rm=TRUE)),
+            .groups="drop") %>%
+  inner_join(ord, by="label_paper") %>%
+  mutate(x = pos)
+
+# overall means to show as horizontal reference lines
+hbar <- mean(H_pp$h_mean, na.rm=TRUE)
+lbar <- mean(L_c$mid,     na.rm=TRUE)
+
+ggplot() +
+  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  # mean lines
+  geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dotted", linewidth = 0.8) +
+  geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
+  # humans
+  geom_errorbar(data = subset(H_plot, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1, alpha=0.5, color=UJ_GREEN) +
+  geom_point(data = H_plot, aes(x=x, y=middle_rating), size=3.0, alpha=0.9, color=UJ_GREEN) +
+  # LLM
+  geom_errorbar(data = subset(L_c, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1.0, color=UJ_ORANGE) +
+  geom_point(data = L_c, aes(x=x, y=mid), size=3.6, shape=18, color=UJ_ORANGE) +
+  # x-axis paper labels
+  scale_x_continuous(breaks = ord$pos, labels = ord$label_paper, expand = expansion(mult = c(0.01, 0.03))) +
+  coord_cartesian(ylim = c(0,100), clip = "off") +
+  labs(x=NULL, y="Percentile (0–100)") +
+  theme_uj() +
+  annotate("text", x = 4, y = 40,
+           label = sprintf("Means — Human: %.1f   LLM: %.1f", hbar, lbar),
+           hjust = 0, size = 4) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+        panel.grid.major.x=element_blank(),
+        plot.margin = margin(5, 40, 5, 5))
+
+```
+
+### Scatter plot with association measures
+
+@fig-scatter-overall shows the correlation between human and LLM overall ratings, with a fitted regression line and key statistics.
+
+```{r}
+#| label: fig-scatter-overall
+#| fig-cap: "Scatter plot: Human vs LLM overall ratings with fitted line"
+#| fig-height: 8
+#| fig-width: 8
+
+D <- merged %>%
+  filter(criteria=="overall") %>%
+  transmute(Human = midpoint_human, LLM = midpoint_llm) %>%
+  filter(is.finite(Human), is.finite(LLM))
+
+# stats
+r    <- suppressWarnings(cor(D$Human, D$LLM, method="pearson"))
+rho  <- suppressWarnings(cor(D$Human, D$LLM, method="spearman"))
+MAE  <- mean(abs(D$LLM - D$Human))
+alpha_overall <- tryCatch({
+  if (requireNamespace("irr", quietly = TRUE)) {
+    M <- rbind(D$Human, D$LLM); irr::kripp.alpha(M, method = "interval")$value
+  } else NA_real_
+}, error = function(e) NA_real_)
+n <- nrow(D)
+
+ggplot(D, aes(x = Human, y = LLM)) +
+  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.8, color="grey60") +
+  geom_point(color=UJ_GREEN, size=4, alpha=0.9) +
+  stat_smooth(method="lm", se=FALSE, linewidth=1.5, color=UJ_ORANGE) +
+  coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
+  annotate("text", x = 30, y = 95,
+           label = sprintf("n=%d | r=%.2f | ρ=%.2f | α=%.2f | MAE=%.1f",
+                          n, r, rho, alpha_overall, MAE),
+           hjust = 0, size = 4.5) +
+  labs(x="Human overall (0–100)", y="LLM overall (0–100)",
+       title = "Overall Rating: Human vs LLM Agreement") +
+  theme_uj()
+
+```
+
+
 Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. This visualization directly compares how the AI and the human reviewers rank each paper in terms of overall quality. Each paper is represented by a curve connecting two ranked lists: on the left, the papers are ordered top-to-bottom by the human overall score (rank 1 = highest rated by humans); on the right, the papers are ordered by the AI’s overall score (rank 1 = highest rated by AI). A paper that occupies the same rank in both lists would appear as a straight horizontal line. If the AI ranks a paper higher than the humans did, the line for that paper will slope upward from left to right (starting lower on the left and ending higher on the right). Those lines are drawn in orange, indicating “AI higher than human.” Conversely, if the AI ranks a paper lower, the line slopes downward (green line indicating “AI lower than human”).
 
  
@@ -1140,6 +1344,102 @@ ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
 ```
 
 
+### Papers with highest relative human vs. AI preference
+
+The following table shows which papers humans rated most highly relative to AI (left column) and which papers AI rated most highly relative to humans (right column), based on overall ratings.
+
+```{r}
+#| label: tbl-top-preferences
+#| tbl-cap: "Papers with highest relative human vs. AI preference"
+
+# Helper: truncate long titles gracefully
+truncate_title <- function(title, max_len = 70) {
+  if (nchar(title) <= max_len) return(title)
+  substr_text <- substr(title, 1, max_len)
+  last_space <- max(gregexpr(" ", substr_text)[[1]])
+  if (last_space > 0) {
+    return(paste0(substr(title, 1, last_space - 1), "..."))
+  }
+  paste0(substr(title, 1, max_len), "...")
+}
+
+# Compute mean "overall" ratings per paper and source
+H_overall <- merged %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(human_rating = mean(midpoint_human, na.rm = TRUE), .groups = "drop")
+
+L_overall <- merged %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(llm_rating = mean(midpoint_llm, na.rm = TRUE), .groups = "drop")
+
+# Merge, compute diffs, add titles
+paper_titles <- research %>%
+  distinct(label_paper, label_paper_title) %>%
+  filter(!is.na(label_paper_title))
+
+rating_diffs <- H_overall %>%
+  inner_join(L_overall, by = "label_paper") %>%
+  left_join(paper_titles, by = "label_paper") %>%
+  mutate(
+    diff = human_rating - llm_rating,
+    title_display = sapply(label_paper_title, truncate_title)
+  )
+
+# Filter to non-ties only
+rating_diffs <- rating_diffs %>%
+  filter(diff != 0)
+
+# Top 5 where humans rated higher
+top_human_pref <- rating_diffs %>%
+  filter(diff > 0) %>%
+  arrange(desc(diff)) %>%
+  slice_head(n = 5) %>%
+  transmute(
+    Paper = title_display,
+    Delta = sprintf("+%.1f", diff)
+  )
+
+# Top 5 where LLM rated higher
+top_llm_pref <- rating_diffs %>%
+  filter(diff < 0) %>%
+  arrange(diff) %>%
+  slice_head(n = 5) %>%
+  transmute(
+    Paper = title_display,
+    Delta = sprintf("%.1f", diff)
+  )
+
+# Create side-by-side table
+max_rows <- max(nrow(top_human_pref), nrow(top_llm_pref))
+
+# Pad shorter table
+if (nrow(top_human_pref) < max_rows) {
+  top_human_pref <- top_human_pref %>%
+    bind_rows(tibble(Paper = rep("", max_rows - nrow(top_human_pref)),
+                     Delta = rep("", max_rows - nrow(top_human_pref))))
+}
+if (nrow(top_llm_pref) < max_rows) {
+  top_llm_pref <- top_llm_pref %>%
+    bind_rows(tibble(Paper = rep("", max_rows - nrow(top_llm_pref)),
+                     Delta = rep("", max_rows - nrow(top_llm_pref))))
+}
+
+combined_table <- bind_cols(
+  top_human_pref %>% rename(`Most human-preferred (Delta > 0)` = Paper, `Δ` = Delta),
+  top_llm_pref %>% rename(`Most AI-preferred (Delta < 0)` = Paper, `Δ` = Delta)
+)
+
+kable(combined_table, align = c("l", "r", "l", "r")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) %>%
+  column_spec(1, width = "40%") %>%
+  column_spec(2, width = "10%", color = UJ_GREEN, bold = TRUE) %>%
+  column_spec(3, width = "40%") %>%
+  column_spec(4, width = "10%", color = UJ_ORANGE, bold = TRUE)
+
+```
+
 
 This figure provides a more granular view of where AI and human evaluations diverge. A quick scan reveals a few systematic tendencies:
 
@@ -1233,6 +1533,155 @@ rationale_outlier = all_ratings |>
 
 
 For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r sprintf(rationale_outlier$rationale)`
+
+### Detailed example: Williams et al. (2024)
+
+As an illustrative case of where LLM and human ratings diverge, let's examine @Williams2024 in detail. This paper received notably different ratings from humans and the LLM across multiple criteria.
+
+```{r}
+#| label: tbl-williams-ratings
+#| tbl-cap: "Comparison of Human and LLM ratings for Williams et al. (2024)"
+
+williams_ratings <- all_ratings %>%
+  filter(grepl("Williams", label_paper, ignore.case = TRUE)) %>%
+  select(evaluator, criteria, middle_rating) %>%
+  mutate(is_llm = evaluator == currentmodel) %>%
+  group_by(is_llm, criteria) %>%
+  summarise(rating = mean(middle_rating, na.rm = TRUE), .groups = "drop") %>%
+  mutate(who = ifelse(is_llm, "LLM", "Human")) %>%
+  select(-is_llm) %>%
+  pivot_wider(names_from = who, values_from = rating) %>%
+  mutate(Difference = LLM - Human) %>%
+  arrange(match(criteria, c("overall", "claims", "methods", "adv_knowledge",
+                            "logic_comms", "open_sci", "gp_relevance")))
+
+kable(williams_ratings, digits = 1, align = c("l", "r", "r", "r")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  row_spec(which(williams_ratings$Difference > 10), background = "#ffe5cc") %>%
+  row_spec(which(williams_ratings$Difference < -10), background = "#e5f5e0")
+
+```
+
+**LLM rationale for Methods rating:**
+
+```{r}
+#| label: williams-methods-rationale
+#| results: asis
+
+williams_methods_rat <- all_ratings %>%
+  filter(grepl("Williams", label_paper, ignore.case = TRUE),
+         evaluator == currentmodel,
+         criteria == "methods") %>%
+  pull(rationale) %>%
+  first()
+
+if (length(williams_methods_rat) > 0 && !is.na(williams_methods_rat)) {
+  cat("> ", williams_methods_rat, "\n\n")
+} else {
+  cat("> (No rationale available)\n\n")
+}
+
+```
+
+In contrast, human evaluators for methods gave lower ratings (around 20-30th percentile) with concerns about data leakage, variables potentially incorporating post-2000 outcome data, and underestimation of uncertainty. This illustrates how the LLM may weigh certain methodological concerns differently than domain expert human evaluators.
+
+
+### Model comparison: GPT-5 vs GPT-5 Pro
+
+Since we evaluated papers using both GPT-5 and GPT-5 Pro (the current model), we can compare how these two versions of the frontier model differ in their ratings. @fig-gpt5-comparison shows this comparison.
+
+```{r}
+#| label: load-both-llms
+#| include: false
+
+# Load GPT-5 Pro metrics (already loaded as metrics)
+metrics_llm_pro <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE) %>%
+  clean_names() %>%
+  mutate(
+    label_paper = str_replace(paper, "et al ", "et al. "),
+    criteria = canon_metric(metric),
+    version = "GPT-5 Pro"
+  )
+
+# Load GPT-5 metrics
+metrics_llm_5 <- read_csv(here("data", "metrics_long_gpt-5.csv"), show_col_types = FALSE) %>%
+  clean_names() %>%
+  mutate(
+    label_paper = str_replace(paper, "et al ", "et al. "),
+    criteria = canon_metric(metric),
+    version = "GPT-5"
+  )
+
+# Combine both
+metrics_both_llms <- bind_rows(
+  metrics_llm_pro %>% transmute(label_paper, criteria, version, mid = as.numeric(midpoint)),
+  metrics_llm_5 %>% transmute(label_paper, criteria, version, mid = as.numeric(midpoint))
+)
+
+```
+
+```{r}
+#| label: fig-gpt5-comparison
+#| fig-cap: "GPT-5 vs GPT-5 Pro: Overall ratings compared to human ratings"
+#| fig-height: 8
+#| fig-width: 10
+
+# Get human means
+H_sc <- human_use %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(Human = mean(midpoint_human, na.rm = TRUE), .groups = "drop")
+
+# Get LLM means for each version
+L_sc <- metrics_both_llms %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper, version) %>%
+  summarise(LLM = mean(mid, na.rm = TRUE), .groups = "drop")
+
+D_sc <- inner_join(H_sc, L_sc, by = "label_paper") %>%
+  filter(is.finite(Human), is.finite(LLM))
+
+# Calculate stats for each version
+stats_by_version <- D_sc %>%
+  group_by(version) %>%
+  summarise(
+    r = cor(Human, LLM, method = "pearson"),
+    rho = cor(Human, LLM, method = "spearman"),
+    MAE = mean(abs(LLM - Human)),
+    .groups = "drop"
+  )
+
+ggplot(D_sc, aes(x = Human, y = LLM, color = version, shape = version)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.8, color = "grey60") +
+  geom_point(size = 4, alpha = 0.8) +
+  stat_smooth(method = "lm", se = FALSE, linewidth = 1.5) +
+  coord_equal(xlim = c(25, 100), ylim = c(25, 100), expand = FALSE) +
+  scale_color_manual(
+    values = c("GPT-5 Pro" = UJ_ORANGE, "GPT-5" = UJ_GREEN),
+    name = NULL
+  ) +
+  scale_shape_manual(values = c("GPT-5 Pro" = 18, "GPT-5" = 15), name = NULL) +
+  labs(
+    x = "Human overall (0–100)",
+    y = "LLM overall (0–100)",
+    title = "Model Comparison: GPT-5 vs GPT-5 Pro",
+    caption = sprintf(
+      "GPT-5: r=%.2f, ρ=%.2f, MAE=%.1f | GPT-5 Pro: r=%.2f, ρ=%.2f, MAE=%.1f",
+      stats_by_version$r[stats_by_version$version == "GPT-5"],
+      stats_by_version$rho[stats_by_version$version == "GPT-5"],
+      stats_by_version$MAE[stats_by_version$version == "GPT-5"],
+      stats_by_version$r[stats_by_version$version == "GPT-5 Pro"],
+      stats_by_version$rho[stats_by_version$version == "GPT-5 Pro"],
+      stats_by_version$MAE[stats_by_version$version == "GPT-5 Pro"]
+    )
+  ) +
+  theme_uj() +
+  theme(legend.position = "top",
+        plot.caption = element_text(hjust = 0.5, size = 10))
+
+```
+
+This comparison shows how newer model versions (GPT-5 Pro vs GPT-5) may produce different ratings. Both models show broadly similar patterns in how they relate to human ratings, but there are notable differences in specific papers and overall calibration.
 
 
 ## Statistical analyses of agreement (will move/integrate with Q&A)
