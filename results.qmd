@@ -1364,27 +1364,17 @@ truncate_title <- function(title, max_len = 70) {
 }
 
 # Compute mean "overall" ratings per paper and source
-H_overall <- merged %>%
+rating_diffs <- merged %>%
   filter(criteria == "overall") %>%
-  group_by(label_paper) %>%
-  summarise(human_rating = mean(midpoint_human, na.rm = TRUE), .groups = "drop")
-
-L_overall <- merged %>%
-  filter(criteria == "overall") %>%
-  group_by(label_paper) %>%
-  summarise(llm_rating = mean(midpoint_llm, na.rm = TRUE), .groups = "drop")
-
-# Merge, compute diffs, add titles
-paper_titles <- research %>%
-  distinct(label_paper, label_paper_title) %>%
-  filter(!is.na(label_paper_title))
-
-rating_diffs <- H_overall %>%
-  inner_join(L_overall, by = "label_paper") %>%
-  left_join(paper_titles, by = "label_paper") %>%
+  group_by(label_paper, label_paper_title) %>%
+  summarise(
+    human_rating = mean(midpoint_human, na.rm = TRUE),
+    llm_rating = mean(midpoint_llm, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
   mutate(
     diff = human_rating - llm_rating,
-    title_display = sapply(label_paper_title, truncate_title)
+    title_display = sapply(coalesce(label_paper_title, as.character(label_paper)), truncate_title)
   )
 
 # Filter to non-ties only
@@ -1549,16 +1539,28 @@ williams_ratings <- all_ratings %>%
   group_by(is_llm, criteria) %>%
   summarise(rating = mean(middle_rating, na.rm = TRUE), .groups = "drop") %>%
   mutate(who = ifelse(is_llm, "LLM", "Human")) %>%
-  select(-is_llm) %>%
-  pivot_wider(names_from = who, values_from = rating) %>%
-  mutate(Difference = LLM - Human) %>%
-  arrange(match(criteria, c("overall", "claims", "methods", "adv_knowledge",
-                            "logic_comms", "open_sci", "gp_relevance")))
+  select(criteria, who, rating) %>%
+  pivot_wider(names_from = who, values_from = rating)
 
-kable(williams_ratings, digits = 1, align = c("l", "r", "r", "r")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover")) %>%
-  row_spec(which(williams_ratings$Difference > 10), background = "#ffe5cc") %>%
-  row_spec(which(williams_ratings$Difference < -10), background = "#e5f5e0")
+# Only add Difference column if both LLM and Human columns exist
+if ("LLM" %in% names(williams_ratings) && "Human" %in% names(williams_ratings)) {
+  williams_ratings <- williams_ratings %>%
+    mutate(Difference = LLM - Human) %>%
+    arrange(match(criteria, c("overall", "claims", "methods", "adv_knowledge",
+                              "logic_comms", "open_sci", "gp_relevance")))
+
+  kable(williams_ratings, digits = 1, align = c("l", "r", "r", "r")) %>%
+    kable_styling(bootstrap_options = c("striped", "hover")) %>%
+    row_spec(which(williams_ratings$Difference > 10), background = "#ffe5cc") %>%
+    row_spec(which(williams_ratings$Difference < -10), background = "#e5f5e0")
+} else {
+  # Fallback if data structure is different
+  williams_ratings %>%
+    arrange(match(criteria, c("overall", "claims", "methods", "adv_knowledge",
+                              "logic_comms", "open_sci", "gp_relevance"))) %>%
+    kable(digits = 1) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+}
 
 ```
 
