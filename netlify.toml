@@ -2,20 +2,3 @@
 [build]
   command = "quarto render"
   publish = "_book"
-
-[build.environment]
-  QUARTO_PRINT_STACK = "true"
-  # Python code in .qmd files is set to eval: false
-  # Python modules are for external use only, not for rendering
-  QUARTO_PYTHON = ""
-
-# Ensure fresh builds without cache issues
-[build.processing]
-  skip_processing = false
-
-# Ignore Python files during build
-[[redirects]]
-  from = "*.py"
-  to = "/404.html"
-  status = 404
-  force = false

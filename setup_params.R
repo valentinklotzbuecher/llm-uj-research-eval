@@ -1,6 +1,6 @@
 # Global choices and parameters
 
-model_choice <- "gpt-5"
+model_choice <- "gpt-5-pro"
 data_path <- "data/"
 results_path <- "results/"
 papers_path <- "papers/"
