@@ -47,8 +47,18 @@ We evaluate each paper by passing the PDF directly to the model and requiring a 
 import os
 import pathlib
 from openai import OpenAI
-
+import pandas as pd
+import numpy as np
 from config import API_KEY_PATH, MODEL
+from typing import Any, Dict, Optional, Union
+
+from llm_utils import (
+    get_file_id,
+    call_with_retries,
+    _resp_as_dict,
+    _get_output_text,
+    _extract_json,
+)
 
 # Initialize OpenAI client
 if os.getenv("OPENAI_API_KEY") is None and API_KEY_PATH.exists():
@@ -70,11 +80,11 @@ client = OpenAI()
 
 
 
-We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each, as well as a short rationale for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
+We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
 
-We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence
+We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence.
 
-We request brief rationales to allow the LLM to clarify the evidence and the process that drove it's rating. This could help us understand it's prioritization and taste, and might help us spot if it misunderstood our instructions. However, we cannot be confident that it's response to this question accurate reveals the process or the reasoning steps behind the ratings. E.g., this might reflect an ex-post attempt to construct a concise and believable story, when in fact the process that may have been far more random, too complicated to discuss in words, or reflecting biases.  
+<!-- We request brief rationales to allow the LLM to clarify the evidence and the process that drove it's rating. This could help us understand it's prioritization and taste, and might help us spot if it misunderstood our instructions. However, we cannot be confident that it's response to this question accurate reveals the process or the reasoning steps behind the ratings. E.g., this might reflect an ex-post attempt to construct a concise and believable story, when in fact the process that may have been far more random, too complicated to discuss in words, or reflecting biases.   -->
 
 
 ```{python}
@@ -84,7 +94,6 @@ We request brief rationales to allow the LLM to clarify the evidence and the pro
 #| code-summary: "Schema, prompt, evaluator"
 
 
-from typing import Dict
 
 # --- Metrics and schema
 METRICS = [
@@ -100,48 +109,52 @@ METRICS = [
 metric_schema = {
     "type": "object",
     "properties": {
-        "midpoint": {"type": "number", "minimum": 0, "maximum": 100},
+        "midpoint":    {"type": "number", "minimum": 0, "maximum": 100},
         "lower_bound": {"type": "number", "minimum": 0, "maximum": 100},
         "upper_bound": {"type": "number", "minimum": 0, "maximum": 100},
-        "rationale": {"type": "string", "maxLength": 400},
     },
-    "required": ["midpoint", "lower_bound", "upper_bound", "rationale"],
+    "required": ["midpoint", "lower_bound", "upper_bound"],
     "additionalProperties": False,
 }
 
 TIER_METRIC_SCHEMA = {
     "type": "object",
-    "additionalProperties": False,
     "properties": {
-        "score": {"type": "number", "minimum": 0, "maximum": 5},
-        "ci_lower": {"type": "number", "minimum": 0, "maximum": 5},
-        "ci_upper": {"type": "number", "minimum": 0, "maximum": 5},
-        "rationale": {"type": "string", "maxLength": 400},
+        "score":   {"type": "number", "minimum": 0, "maximum": 5},
+        "ci_lower":{"type": "number", "minimum": 0, "maximum": 5},
+        "ci_upper":{"type": "number", "minimum": 0, "maximum": 5},
     },
-    "required": ["score", "ci_lower", "ci_upper", "rationale"],
+    "required": ["score", "ci_lower", "ci_upper"],
+    "additionalProperties": False,
 }
 
+# Add one required top-level text field for the diagnostic summary (≈200 words)
 COMBINED_SCHEMA = {
     "type": "object",
     "properties": {
+        "assessment_summary": {
+            "type": "string",
+            # 200 words ≈ 1200–1600 chars; enforce approximately via length
+            "maxLength": 1600
+        },
         "metrics": {
             "type": "object",
             "properties": {
                 **{m: metric_schema for m in METRICS},
                 "tier_should": TIER_METRIC_SCHEMA,
-                "tier_will": TIER_METRIC_SCHEMA,
+                "tier_will":   TIER_METRIC_SCHEMA,
             },
             "required": METRICS + ["tier_should", "tier_will"],
             "additionalProperties": False,
-        }
+        },
     },
-    "required": ["metrics"],
+    "required": ["assessment_summary", "metrics"],
     "additionalProperties": False,
 }
 
 TEXT_FORMAT_COMBINED = {
     "type": "json_schema",
-    "name": "paper_assessment_with_tiers_v1",
+    "name": "paper_assessment_with_tiers_v2",
     "strict": True,
     "schema": COMBINED_SCHEMA,
 }
@@ -151,9 +164,12 @@ _METRICS_TXT = "\n  " + "\n  ".join(METRICS) + "\n"
 
 SYSTEM_PROMPT_COMBINED = f"""
 Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer. 
-Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment -- give these ratings based on the *content* of the papers alone; do the assessment based on your knowledge and insights. 
+Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment -- give your assessment based on the *content* of the papers alone; do it based on your knowledge and insights. 
 
-We ask for a set of quantitative metrics. For each metric, we ask for a score, a 90% credible interval, and a short text describing the rationale behind your assessment. We describe these in detail below.
+Diagnostic summary (≤200 words, based only on the PDF):
+Provide a compact paragraph that identifies the most important issues you detect in the manuscript itself (e.g., identification threats, data limitations, misinterpretations, internal inconsistencies, missing robustness, replication barriers). Be specific, neutral, and concrete. This summary should precede any scoring and should guide your uncertainty. Output this text in the JSON field `assessment_summary`.
+
+We ask for a set of quantitative metrics, based on your insights. For each metric, we ask for a score and a 90% credible interval. We describe these in detail below.
 
 Percentile rankings relative to a reference group: For some questions, we ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on. Here the population of papers should be all serious research in the same area that you have encountered in the last three years.  *Unless this work is in our 'applied and policy stream', in which case the reference group should be "all applied and policy research you have read that is aiming at a similar audience, and that has similar goals".
 
@@ -241,20 +257,20 @@ To help universities and policymakers make sense of our evaluations, we want to 
 
 Return STRICT JSON matching the supplied schema. No preamble. No markdown. No extra text.
 
-Fill every key in the object `metrics`:
-
-"overall", "claims_evidence", "methods", "advancing_knowledge", "logic_communication", "open_science", "global_relevance",
-Plus `tier_should` and `tier_will`.
+Fill both top-level keys:
+- `assessment_summary`: one paragraph, ≤200 words.
+- `metrics`: object containing all required metrics.
 
 Field names
-- Percentile metrics → `midpoint`, `lower_bound`, `upper_bound`, `rationale` (≤400 chars).
-- Tier metrics → `score`, `ci_lower`, `ci_upper`, `rationale` (≤400 chars).
+- Percentile metrics → `midpoint`, `lower_bound`, `upper_bound`.
+- Tier metrics → `score`, `ci_lower`, `ci_upper`.
 
 Bounds
-- Percentiles in [0, 100].
-- Tiers in [0, 5].
+- Percentiles in [0, 100] with lower_bound ≤ midpoint ≤ upper_bound.
+- Tiers in [0, 5] with ci_lower ≤ score ≤ ci_upper.
 
-Be specific and terse in rationales. Do not include citations or external URLs. Do not refer to these instructions. Output the JSON object only.
+Do not include citations, URLs, author identity, or any external information.
+
 """.strip()
 
 
@@ -280,7 +296,7 @@ def _reasoning_meta(resp) -> Dict[str, Any]:
     }
 
 # 1) background poller
-def wait_for_background(client, response_id, timeout_s=7200,
+def wait_for_background(client, response_id, timeout_s=9600,
                         initial_delay=1.0, max_delay=8.0, backoff=1.5):
     start = time.time()
     delay = initial_delay
@@ -304,12 +320,12 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
                    use_reasoning: bool = True,
                    parse_retry: int = 1) -> Dict[str, Any]:
     model = model or MODEL
-    fid = _get_file_id(pdf_path)
+    fid = get_file_id(pdf_path, client)
 
     def _payload():
         p = dict(
             model=model,
-            text={"format": TEXT_FORMAT_COMBINED},  # keep if your model accepts it
+            text={"format": TEXT_FORMAT_COMBINED, "verbosity": "low"},   
             input=[
                 {"role": "system", "content": [
                     {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
@@ -319,9 +335,9 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
                     {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
                 ]},
             ],
-            max_output_tokens=3000,
+            max_output_tokens=2000,
             background=True,
-            store=False,
+            store=True,
         )
         if use_reasoning:
             p["reasoning"] = {"effort": "high", "summary": "auto"}
@@ -409,7 +425,6 @@ for rec in records:
                 "value":       vals.get("score"),
                 "lo":          vals.get("ci_lower"),
                 "hi":          vals.get("ci_upper"),
-                "rationale":   vals.get("rationale"),
                 "scale_min":   0,
                 "scale_max":   5,
             })
@@ -421,7 +436,6 @@ for rec in records:
                 "value":       vals.get("midpoint"),
                 "lo":          vals.get("lower_bound"),
                 "hi":          vals.get("upper_bound"),
-                "rationale":   vals.get("rationale"),
                 "scale_min":   0,
                 "scale_max":   100,
             })
@@ -449,6 +463,15 @@ else:
     overall   = combined[(combined["metric_type"]=="percentile") & (combined["metric"]=="overall")]
     mean_overall = overall["value"].mean() if not overall.empty else np.nan
     med_overall  = overall["value"].median() if not overall.empty else np.nan
+
+    # assessment summaries
+    summ_rows = [
+        {"paper": rec.get("paper"), "assessment_summary": rec.get("assessment_summary")}
+        for rec in records
+        if "assessment_summary" in rec
+    ]
+    if summ_rows:
+        pd.DataFrame(summ_rows).to_csv(OUT / "assessment_summaries.csv", index=False, encoding="utf-8")
 
     display(Markdown(
         f"**Batch size:** {n_papers} papers  \n"
