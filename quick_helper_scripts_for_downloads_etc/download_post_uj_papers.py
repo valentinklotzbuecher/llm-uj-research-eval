@@ -266,19 +266,11 @@ def main():
         log(f"First row columns: {list(rows[0].get('values', {}).keys())}")
 
     # NOTE: The "deposit date > unjournal pub date" column is not available via API
-    # from the public synced table. As a workaround, we'll filter for papers that have
-    # "Publication status public" indicating they were published in a journal.
-    # This is a proxy for "papers that were revised after Unjournal evaluation"
+    # from the public synced table (it's a formula column).
+    # For now, we'll download ALL papers from the research table.
 
-    filtered_rows = []
-    for row in rows:
-        pub_status = extract_row_value(row, "Publication status public") or ""
-        # Filter for papers published in journals (not working papers)
-        if pub_status and ("journal" in pub_status.lower() or "published" in pub_status.lower()):
-            if "working paper" not in pub_status.lower() and "not published" not in pub_status.lower():
-                filtered_rows.append(row)
-
-    log(f"Found {len(filtered_rows)} papers with journal publication status")
+    filtered_rows = rows
+    log(f"Processing all {len(filtered_rows)} papers from the research table")
 
     # Process each paper
     metadata_records = []
