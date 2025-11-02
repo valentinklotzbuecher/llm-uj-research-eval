@@ -134,6 +134,74 @@ def is_checkbox_checked(row: Dict, column_name: str) -> bool:
     return value.lower() == "true" if isinstance(value, str) else bool(value)
 
 
+def convert_to_direct_pdf_url(url: str) -> str:
+    """
+    Convert various research repository URLs to direct PDF download links.
+    """
+    if not url:
+        return url
+
+    url = url.strip()
+
+    # NBER working papers
+    if "nber.org/papers/" in url:
+        # Extract paper number from URLs like https://www.nber.org/papers/w32093
+        paper_num = url.split("/papers/")[1].strip("/")
+        return f"https://www.nber.org/system/files/working_papers/{paper_num}/{paper_num}.pdf"
+
+    # ArXiv preprints
+    if "arxiv.org/abs/" in url:
+        # Convert https://arxiv.org/abs/2104.09645v2 to https://arxiv.org/pdf/2104.09645v2.pdf
+        arxiv_id = url.split("/abs/")[1].strip("/")
+        return f"https://arxiv.org/pdf/{arxiv_id}.pdf"
+
+    # OSF preprints
+    if "osf.io/preprints/" in url:
+        # Convert https://osf.io/preprints/socarxiv/s6gwu/ to download URL
+        # Extract the preprint ID (last part of URL)
+        parts = url.rstrip("/").split("/")
+        preprint_id = parts[-1]
+        return f"https://osf.io/download/{preprint_id}/"
+
+    # Dropbox links - change dl=0 to dl=1 for direct download
+    if "dropbox.com" in url:
+        if "dl=0" in url:
+            url = url.replace("dl=0", "dl=1")
+        elif "dl=" not in url:
+            url += "&dl=1" if "?" in url else "?dl=1"
+        return url
+
+    # AEA (American Economic Association)
+    if "aeaweb.org/articles" in url and "id=" in url:
+        # Example: https://www.aeaweb.org/articles?id=10.1257/aeri.20210612
+        # becomes: https://pubs.aeaweb.org/doi/pdfplus/10.1257/aeri.20210612
+        doi = url.split("id=")[1].split("&")[0]
+        return f"https://pubs.aeaweb.org/doi/pdfplus/{doi}"
+
+    # SSRN papers
+    if "papers.ssrn.com/sol3/papers.cfm?" in url and "abstract_id=" in url:
+        # Example: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4614212
+        abstract_id = url.split("abstract_id=")[1].split("&")[0]
+        return f"https://papers.ssrn.com/sol3/Delivery.cfm?abstractid={abstract_id}"
+
+    # Dropbox folders - these won't work as-is
+    if "dropbox.com" in url and "/fo/" in url:
+        log("Warning: Dropbox folder link, not a direct file. Manual download needed.")
+        return url
+
+    # ResearchGate - typically blocks automated downloads
+    if "researchgate.net" in url:
+        log("Warning: ResearchGate links typically require manual download")
+        return url
+
+    # Nature articles - require subscription
+    if "nature.com/articles/" in url:
+        log("Warning: Nature articles typically require subscription access")
+        return url
+
+    return url
+
+
 def resolve_doi_to_pdf_url(doi: str) -> Optional[str]:
     """
     Attempt to resolve a DOI to a PDF download URL.
@@ -177,7 +245,7 @@ def resolve_doi_to_pdf_url(doi: str) -> Optional[str]:
 def download_pdf(url: str, output_path: Path, doi: str) -> bool:
     """
     Download a PDF from a URL.
-    Tries multiple strategies including content negotiation.
+    Validates that the downloaded content is actually a PDF.
     """
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -188,21 +256,20 @@ def download_pdf(url: str, output_path: Path, doi: str) -> bool:
         log(f"Attempting to download from: {url}")
         response = requests.get(url, headers=headers, timeout=30, allow_redirects=True)
 
-        # Check content type
-        content_type = response.headers.get("Content-Type", "")
-
         if response.status_code == 200:
-            # Save if it's a PDF
-            if "application/pdf" in content_type or output_path.suffix == ".pdf":
-                output_path.write_bytes(response.content)
-                file_size = len(response.content)
-                log(f"Downloaded PDF ({file_size} bytes) to {output_path.name}")
-                return True
-            else:
-                log(f"Content-Type is {content_type}, not a PDF. May need manual download.")
-                # Still save it in case it's misidentified
-                output_path.write_bytes(response.content)
-                return True
+            content = response.content
+
+            # Validate that this is actually a PDF (PDFs start with %PDF)
+            if content[:4] != b'%PDF':
+                log(f"Downloaded content is not a PDF (first 4 bytes: {content[:4]})")
+                log(f"Content-Type: {response.headers.get('Content-Type', 'unknown')}")
+                return False
+
+            # Save the PDF
+            output_path.write_bytes(content)
+            file_size = len(content)
+            log(f"Downloaded valid PDF ({file_size} bytes) to {output_path.name}")
+            return True
         else:
             log(f"Download failed with status {response.status_code}")
             return False
@@ -328,15 +395,31 @@ def main():
         filename = f"{base_filename}.pdf"
         output_path = OUTPUT_DIR / filename
 
-        # Check if already downloaded
+        # Check if already downloaded and is valid PDF
+        skip_download = False
         if output_path.exists():
-            log(f"File already exists: {filename}")
-        else:
+            # Check if existing file is a valid PDF
+            try:
+                with open(output_path, 'rb') as f:
+                    if f.read(4) == b'%PDF':
+                        log(f"Valid PDF already exists: {filename}")
+                        skip_download = True
+                    else:
+                        log(f"Existing file is not a valid PDF, will re-download")
+                        output_path.unlink()  # Delete corrupted file
+            except:
+                pass
+
+        if not skip_download:
             # Try to download from research_url
             if research_url:
-                success = download_pdf(research_url, output_path, research_url)
+                # Convert URL to direct PDF link
+                pdf_url = convert_to_direct_pdf_url(research_url)
+                log(f"Converted URL: {pdf_url}")
+
+                success = download_pdf(pdf_url, output_path, research_url)
                 if not success:
-                    log(f"Could not download PDF from: {research_url}")
+                    log(f"Could not download valid PDF from: {pdf_url}")
                     filename = f"FAILED_{filename}"
             else:
                 log(f"No URL available for download")
