@@ -1,0 +1,117 @@
+---
+title: "Did Authors Respond to Unjournal Evaluations?"
+author: "The Unjournal"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-summary: "Show code"
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Overview
+
+This chapter analyzes whether research papers were substantively revised in response to Unjournal evaluations.
+
+### Research Questions
+
+1. **Did authors update their papers** after receiving Unjournal evaluations?
+2. **What were the major changes** between the evaluated version and later versions?
+3. **Do the changes reflect evaluator suggestions?**
+
+### Methodology
+
+We use a multi-step approach:
+
+1. **Identify paper pairs**: Find papers that exist in both "before" (at time of evaluation) and "after" (latest version) states
+2. **Extract and compare**: Use PDF text extraction to identify changes
+3. **LLM analysis**: Use GPT-4 to:
+   - Identify major substantive changes
+   - Extract key suggestions from evaluations
+   - Assess whether changes align with evaluator feedback
+4. **Present evidence**: Show specific examples of likely evaluation-driven changes
+
+## Data Sources
+
+- **Before versions**: Papers in `papers/` and `more papers/` folders
+- **After versions**: Papers in `latest_papers_post_UJ/` folder
+- **Evaluations**: Markdown files in `unjournal_evaluations/`
+- **Metadata**: Coda table with publication dates and DOI deposit dates
+
+::: {.callout-note}
+## Limitation
+
+The Coda API doesn't expose DOI deposit dates from the public table. For this pilot analysis, we focus on papers we can confidently match between folders based on author names and titles.
+:::
+
+## Manual Paper Matching
+
+For this initial analysis, we'll focus on a few high-confidence matches:
+
+```{python}
+import pandas as pd
+from pathlib import Path
+
+# Manually curated matches based on author inspection
+paper_pairs = [
+    {
+        "paper_id": "Fangwa et al. 2023",
+        "before": "more papers/Fangwa et al. 2023.pdf",
+        "after": "latest_papers_post_UJ/Anicet FangwaCaroline FlammerMarieke HuysentruytBertrand Quelin_The Governance Of Non-Profits And Their Social Impact- Evidence From A Randomized Program In Healthc.pdf",
+        "evaluation_pattern": "*fangwa*"
+    },
+    {
+        "paper_id": "Banerjee et al. 2023 (Nudges)",
+        "before": "more papers/Banerjee et al. 2023.pdf",
+        "after": "latest_papers_post_UJ/Banerjee Abhijit Duflo EstherArun G ChandrasekharJohn FlorettaHarini KannanFrancine LozaAnirudh Sank_Selecting the Most Effective Nudge- Evidence from a Large-Scale Experiment on Immunization.pdf",
+        "evaluation_pattern": "*nudge*"
+    },
+    # Add more as we identify them
+]
+
+df_pairs = pd.DataFrame(paper_pairs)
+print(f"Found {len(df_pairs)} paper pairs for analysis")
+df_pairs
+```
+
+## Next Steps
+
+1. **Run automated matching**: Improve the fuzzy matching algorithm to find more pairs
+2. **Extract evaluation suggestions**: Parse evaluation markdown files for specific suggestions
+3. **LLM analysis**: Run GPT-4 analysis on each pair
+4. **Generate case studies**: Present detailed examples with evidence
+
+## Placeholder for Results
+
+Results from the LLM analysis will appear here once the analysis pipeline is complete.
+
+### Example Structure
+
+For each paper pair, we'll show:
+
+1. **Paper metadata** (authors, title, dates)
+2. **Major changes detected** (sections added/removed, methods changed, etc.)
+3. **Evaluator suggestions** (extracted from evaluation files)
+4. **Attribution assessment** (likely/unlikely influenced by evaluation)
+5. **Evidence and quotes** (specific textual evidence)
+
+## Running the Analysis
+
+To run the complete analysis pipeline:
+
+```bash
+# Phase 1: Identify paper pairs and extract text
+python analyze_paper_changes.py
+
+# Phase 2: LLM analysis of changes and attribution
+python llm_change_attribution.py
+
+# Phase 3: Render this document with results
+quarto render paper_response_analysis.qmd
+```
+
