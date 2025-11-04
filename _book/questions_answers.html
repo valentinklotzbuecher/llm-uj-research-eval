@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Comparing LLM and human reviews of social science research using data from Unjournal.org - 4  Discussion: Questions, metrics, tests</title>
+<title>Comparing LLM and human reviews of social science research using data from Unjournal.org - 4&nbsp; Discussion: Questions, metrics, tests</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -4016,7 +4016,7 @@ vertical-align: -.125em;
       </div>
       <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
-        <div id="quarto-search" class title="Search"></div>
+        <div id="quarto-search" class="" title="Search"></div>
         </div>
       </div>
     <div class="sidebar-menu-container"> 
@@ -4134,7 +4134,7 @@ vertical-align: -.125em;
 <div class="cell" data-hash="questions_answers_cache/html/setup call_6a5a91b7b6b94fbdc0e94ec833ce449f">
 <details>
 <summary>Include global setup and parameters</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;setup_params.R&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"setup_params.R"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>See <a href="https://coda.io/d/Comparing-LLM-Generated-Reviews-to-Human-Evaluations-in-Social-S_dSJIQH2CJD3/Questions-and-metrics_suHIfnI2#_lu2K-xEW">Coda here</a> for now (will integrate back into this Qmd once we have converged on reasonable measures and tests.)</p>
@@ -4160,10 +4160,10 @@ vertical-align: -.125em;
 <p>[GPT] measures absolute agreement across raters viewing the same targets; report CIs and the specific ICC form. Use Koo &amp; Li’s guideline to choose/report ICC form and interpret magnitudes. irr::icc(…).</p>
 </blockquote>
 <blockquote class="blockquote">
-<p><code>R: irr::icc()</code> (set <code>model=&quot;twoway&quot;, type=&quot;agreement&quot;, unit=&quot;single&quot;</code> for single‑rater agreement; average if you aggregate multiple LLM runs).</p>
+<p><code>R: irr::icc()</code> (set <code>model="twoway", type="agreement", unit="single"</code> for single‑rater agreement; average if you aggregate multiple LLM runs).</p>
 </blockquote>
 <p>Krippendorff’s <span class="math inline">\(\alpha\)</span>: “handles missingness, multiple raters, and different scale types (nominal vs ratio). <code>irr::kripp.alpha()</code>”</p>
-<p>We have missingness and multiple raters; and this also could allow us to combine across scale types (e.g. 0-100 and 0-5). But for ‘combinations’, should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?</p>
+<p>We have missingness and multiple raters; and this also could allow us to combine across scale types (e.g.&nbsp;0-100 and 0-5). But for ‘combinations’, should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?</p>
 <p><strong>Maybe also estimate</strong></p>
 <blockquote class="blockquote">
 <p>[GPT] Concordance of rank‑orders across papers: Spearman <span class="math inline">\(\rho\)</span> or Kendall <span class="math inline">\(\tau\)</span> if you also collect overall ‘rankings’ of paper quality. cor(…, method = “spearman”|“kendall”); DescTools::KendallW() for many raters.</p>
@@ -4185,7 +4185,7 @@ vertical-align: -.125em;
 <section id="desirable-hierarchical-models-for-identifying-systematic-patterns-with-caveats" class="level3">
 <h3 class="anchored" data-anchor-id="desirable-hierarchical-models-for-identifying-systematic-patterns-with-caveats">Desirable: Hierarchical models for identifying systematic patterns (with caveats)</h3>
 <blockquote class="blockquote">
-<p>[GPT] Use hierarchical ordinal models: <code>brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative(&quot;logit&quot;))</code> to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist).</p>
+<p>[GPT] Use hierarchical ordinal models: <code>brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative("logit"))</code> to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist).</p>
 </blockquote>
 <p>We could add parameters for paper characteristics, especially field/cause area, method, and source. However, these should not be treated as causal effects, as they may be confounded with paper quality and rater characteristics. Even the implied ‘interactions’ with ‘method’ (LLM vs human) may be confounded. But it seems descriptively useful and suggestive.</p>
 </section>
@@ -4244,7 +4244,7 @@ REVIEWER_MISTAKES: Making the fewest misstatements and false positives ‘errors
 <p>To be fleshed out in the sections above.</p>
 <p><a href="https://chatgpt.com/share/e/68e3d71d-b018-8011-8366-bc931b1c6a43">GPT-pro guidance, following my prompt</a>:</p>
 <blockquote class="blockquote">
-<p>Measurements that are useful, intuitive, valid (incl. information‑theoretic), with R recipes. <a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<p>Measurements that are useful, intuitive, valid (incl.&nbsp;information‑theoretic), with R recipes. <a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
 </blockquote>
 <blockquote class="blockquote">
 <p>Design backbone (applies throughout):</p>
@@ -4303,7 +4303,7 @@ REVIEWER_MISTAKES: Making the fewest misstatements and false positives ‘errors
 <ul>
 <li><p>Which of our rating categories or rating frameworks does its overall assessment tend to correlate with more? (E.g., credibility, innovation, comms)</p></li>
 <li><p>Specific opinions on methodological divides? That seems pretty unlikely to be inherent.</p></li>
-<li><p>Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs. incorrectly? (E.g., causal identification, statistical inference, experimental design…)</p></li>
+<li><p>Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs.&nbsp;incorrectly? (E.g., causal identification, statistical inference, experimental design…)</p></li>
 <li><p>Characterization of results — “importance hacking”</p></li>
 </ul>
 <p>How ‘malleable’ is it’s taste based on prompts?</p>
@@ -4363,7 +4363,7 @@ REVIEWER_MISTAKES: Making the fewest misstatements and false positives ‘errors
 <p>[Note: remember to use non-journal versions of PDFs where possible.]</p>
 <ul>
 <li><p>No de-identification, no debiasing instructions (+)</p></li>
-<li><p>No de-identification, strong de-biasing instructions (e.g. “ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.”) (+)</p></li>
+<li><p>No de-identification, strong de-biasing instructions (e.g.&nbsp;“ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.”) (+)</p></li>
 <li><p>Remove author names, institutions, acknowledgements, funding sources (needs to be done with text to pdf conversion first processing)</p></li>
 </ul>
 <!-- Steps -- can ask Gemini to id 'what should be removed, and then remove it ' -->
@@ -4569,16 +4569,16 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         <span class="nav-page-text"><span class="chapter-title">Discussion</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
-</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> &quot;Discussion: Questions, metrics, tests&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Discussion: Questions, metrics, tests"</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup call</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: &quot;Include global setup and parameters&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Include global setup and parameters"</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;setup_params.R&quot;</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"setup_params.R"</span>)</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>See <span class="co">[</span><span class="ot">Coda here</span><span class="co">](https://coda.io/d/Comparing-LLM-Generated-Reviews-to-Human-Evaluations-in-Social-S_dSJIQH2CJD3/Questions-and-metrics_suHIfnI2#_lu2K-xEW)</span> for now (will integrate back into this Qmd once we have converged on reasonable measures and tests.)</span>
@@ -4589,7 +4589,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu"># Comparing models: prompts and environment engineering for effective LLM evaluation</span></span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>**Which &#39;model&#39;, i.e., which prompts, parameters, model, and contexts do best for:**</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>**Which 'model', i.e., which prompts, parameters, model, and contexts do best for:**</span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">## Predicting human ratings (#PREDICT_HUMAN_RATINGS)</span></span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
@@ -4599,7 +4599,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="fu">### Simplest comparisons among models</span></span>
 <span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>\~GPT<span class="sc">\]</span> For face-value sanity checks, report and compare models &#39;predictions&#39; of human ratings by: Mean absolute error (MAE), Root mean squared error (RMSE), Correlation (Pearson and Spearman)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>\~GPT<span class="sc">\]</span> For face-value sanity checks, report and compare models 'predictions' of human ratings by: Mean absolute error (MAE), Root mean squared error (RMSE), Correlation (Pearson and Spearman)</span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>Possibly also: Landing within ±5 points, ±10 points, of each human rating (or +/- 1 tier for the 0.0-5.0 measure), (Pseudo)-calibration of LLM CIs: How often does the human point estimate fall within the LLM CI?</span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
@@ -4615,45 +4615,45 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="sc">\[</span><span class="at">GPT</span><span class="sc">\]</span><span class="at"> measures absolute agreement across raters viewing the same targets; report CIs and the specific ICC form. Use Koo &amp; Li’s guideline to choose/report ICC form and interpret magnitudes. irr::icc(...).</span></span>
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`R: irr::icc()`</span><span class="at"> (set </span><span class="in">`model=&quot;twoway&quot;, type=&quot;agreement&quot;, unit=&quot;single&quot;`</span><span class="at"> for single‑rater agreement; average if you aggregate multiple LLM runs).</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`R: irr::icc()`</span><span class="at"> (set </span><span class="in">`model="twoway", type="agreement", unit="single"`</span><span class="at"> for single‑rater agreement; average if you aggregate multiple LLM runs).</span></span>
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>Krippendorff’s $\alpha$: &quot;handles missingness, multiple raters, and different scale types (nominal vs ratio). <span class="in">`irr::kripp.alpha()`</span>&quot;</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>Krippendorff’s $\alpha$: "handles missingness, multiple raters, and different scale types (nominal vs ratio). <span class="in">`irr::kripp.alpha()`</span>"</span>
 <span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>We have missingness and multiple raters; and this also could allow us to combine across scale types (e.g. 0-100 and 0-5). But for &#39;combinations&#39;, should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>We have missingness and multiple raters; and this also could allow us to combine across scale types (e.g. 0-100 and 0-5). But for 'combinations', should we weigh all measures equally, or use an ad hoc weighting for how we see the importance of the measure?</span>
 <span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>**Maybe also estimate**</span>
 <span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="sc">\[</span><span class="at">GPT</span><span class="sc">\]</span><span class="at"> Concordance of rank‑orders across papers: Spearman $\rho$ or Kendall $\tau$ if you also collect overall &#39;rankings&#39; of paper quality. cor(..., method = &quot;spearman&quot;\|&quot;kendall&quot;); DescTools::KendallW() for many raters.</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="sc">\[</span><span class="at">GPT</span><span class="sc">\]</span><span class="at"> Concordance of rank‑orders across papers: Spearman $\rho$ or Kendall $\tau$ if you also collect overall 'rankings' of paper quality. cor(..., method = "spearman"\|"kendall"); DescTools::KendallW() for many raters.</span></span>
 <span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>We don&#39;t ask evaluators to do rankings, but we do make these comparisons, and we could see &#39;human evaluators&#39; as a class. And the rank-sensitivity seems compelling. But why choose Kendall vs Spearman?</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>We don't ask evaluators to do rankings, but we do make these comparisons, and we could see 'human evaluators' as a class. And the rank-sensitivity seems compelling. But why choose Kendall vs Spearman?</span>
 <span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>Probably skip:<span class="ot">[^questions_answers-3]</span></span>
 <span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="ot">[^questions_answers-3]: </span>Quadratic‑weighted $\kappa$ (Cohen’s weighted kappa) &quot;penalizes big disagreements more than small ones&quot; intuitive 0–1 scale. DR: I don&#39;t think we want to penalize big disagreements nonlinearly.</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="ot">[^questions_answers-3]: </span>Quadratic‑weighted $\kappa$ (Cohen’s weighted kappa) "penalizes big disagreements more than small ones" intuitive 0–1 scale. DR: I don't think we want to penalize big disagreements nonlinearly.</span>
 <span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="fu">### Desirable for comparing distributions (imputed from CIs)</span></span>
 <span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Distributional similarity / information theory</span></span>
 <span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Jensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive &quot;distance between distributions&quot;. </span><span class="in">`philentropy::JSD()`</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Jensen–Shannon divergence (JSD) — symmetric, bounded in bits; intuitive "distance between distributions". </span><span class="in">`philentropy::JSD()`</span></span>
 <span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>K-L divergence: Directional: focus on how well the LLM models predict the humans, i.e., how &#39;surprising&#39; the human distributions are to the LLMs.</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>K-L divergence: Directional: focus on how well the LLM models predict the humans, i.e., how 'surprising' the human distributions are to the LLMs.</span>
 <span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>Probably skip:<span class="ot">[^questions_answers-4]</span></span>
 <span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="ot">[^questions_answers-4]: </span>&quot;Mutual information between human and LLM ratings — &#39;how many nats/bits of information one gives about the other&#39;.&quot; -- I don&#39;t think our measures are reasonably expressed in bits?</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="ot">[^questions_answers-4]: </span>"Mutual information between human and LLM ratings — 'how many nats/bits of information one gives about the other'." -- I don't think our measures are reasonably expressed in bits?</span>
 <span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="fu">### Desirable: Hierarchical models for identifying systematic patterns (with caveats)</span></span>
 <span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="sc">\[</span><span class="at">GPT</span><span class="sc">\]</span><span class="at"> Use hierarchical ordinal models: </span><span class="in">`brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative(&quot;logit&quot;))`</span><span class="at"> to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist).</span></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="sc">\[</span><span class="at">GPT</span><span class="sc">\]</span><span class="at"> Use hierarchical ordinal models: </span><span class="in">`brms::brm(rating ~ method + (1|paper) + (1|rater), family = cumulative("logit"))`</span><span class="at"> to estimate the average method effect (LLM vs human) on latent rating and to quantify uncertainty; for frequentist, ordinal::clmm. Report posterior contrasts / CIs (Bayesian) or Wald/likelihood‑ratio tests (frequentist).</span></span>
 <span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>We could add parameters for paper characteristics, especially field/cause area, method, and source. However, these should not be treated as causal effects, as they may be confounded with paper quality and rater characteristics. Even the implied &#39;interactions&#39; with &#39;method&#39; (LLM vs human) may be confounded. But it seems descriptively useful and suggestive.</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>We could add parameters for paper characteristics, especially field/cause area, method, and source. However, these should not be treated as causal effects, as they may be confounded with paper quality and rater characteristics. Even the implied 'interactions' with 'method' (LLM vs human) may be confounded. But it seems descriptively useful and suggestive.</span>
 <span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a><span class="fu">## Predicting bibliometrics (\*) (#PREDICT_BIBLIOMETRICS)</span></span>
 <span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>Making the most accurate predictions for publication outcomes and bibliometrics (citation counts etc.)</span>
 <span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>*Contamination is a substantial concern here* (also for human ratings), so we&#39;d need to focus on papers currently in early stages.</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>*Contamination is a substantial concern here* (also for human ratings), so we'd need to focus on papers currently in early stages.</span>
 <span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>Possible outcomes: Top-tier journal (binary), journal REPEC-index, (weighted) citation counts 2y/5y, time to publication in tier above threshold.</span>
 <span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a></span>
@@ -4674,13 +4674,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a><span class="in">## Useful discussion (#DISCUSSION_USEFUL) (\*)</span></span>
 <span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a><span class="in">\[DISCUSSION_USEFUL\] Writing a discussion rated as most useful (1) by papers&#39; authors and (2) by readers?</span></span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a><span class="in">\[DISCUSSION_USEFUL\] Writing a discussion rated as most useful (1) by papers' authors and (2) by readers?</span></span>
 <span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a><span class="in">(Across categories)</span></span>
 <span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a><span class="in">## Claim identification (#CLAIM_ID_HUMANLIKE, #CLAIM_ID_USEFUL) (\*)</span></span>
 <span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a><span class="in">(Similar to the discussion ones for &#39;DISCUSSION_HUMANLIKE&#39;)</span></span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a><span class="in">(Similar to the discussion ones for 'DISCUSSION_HUMANLIKE')</span></span>
 <span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a><span class="in">Identifying the most important claims in a paper, most likely to be judged to be a human claim list by blinded human readers (\*)</span></span>
 <span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a></span>
@@ -4727,15 +4727,15 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Prefer proper scoring rules, agreement coefficients, and hierarchical (mixed) models with paper and rater random effects for inference and uncertainty.</span><span class="ot">[^questions_answers-8]</span></span>
 <span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a><span class="ot">[^questions_answers-8]: </span>DR: I was unsure about the &quot;proper scoring rules&quot; as I thought that was about incentives for human forecasters, but it applies here as well. These have good properties, including &quot;ensures that models are ranked by true predictive accuracy, not by quirks of scale, variance, or overconfidence.&quot;</span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a><span class="ot">[^questions_answers-8]: </span>DR: I was unsure about the "proper scoring rules" as I thought that was about incentives for human forecasters, but it applies here as well. These have good properties, including "ensures that models are ranked by true predictive accuracy, not by quirks of scale, variance, or overconfidence."</span>
 <span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>Adding some &#39;pro tips&#39; that seemed useful:</span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>Adding some 'pro tips' that seemed useful:</span>
 <span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Report both an agreement coefficient and a simple % agreement so readers can sanity-check chance-correction effects.</span></span>
 <span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Pair coefficients with hierarchical models for inference: e.g., an ordinal mixed model </span><span class="in">`rating ~ method + (1|paper) + (1|rater)`</span><span class="at"> to test if LLM differs from humans while the coefficient gives you the practical agreement level.</span></span>
 <span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a><span class="fu"># How do human and LLM evaluations compare? Which is &#39;better&#39;, and by how much...?</span></span>
+<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a><span class="fu"># How do human and LLM evaluations compare? Which is 'better', and by how much...?</span></span>
 <span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a><span class="fu">## Better review discussions (#BETTER_REVIEW_SUBJECTIVE, #BETTER_REVIEWS_LLM_JUDGES) (/\*)</span></span>
 <span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a></span>
@@ -4744,7 +4744,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>According to the subjective judgment of outside expert readers;</span>
 <span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>ideally blinded as to which is AI, but that’s a challenge to implement</span>
 <span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Divide this up by categories; readability, insight into econometrics, understanding of context, etc.</span>
-<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Metrics for &#39;how much&#39; could refer to a percentile distribution of human evaluators.</span>
+<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Metrics for 'how much' could refer to a percentile distribution of human evaluators.</span>
 <span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>BETTER_REVIEWS_LLM_JUDGES<span class="sc">\]</span> According to the judgment of other LLMs (perhaps those with system prompts that humans rate as useful and good at judging the strength of evaluations — overambitious? Consider — could judging the quality be easier than producing the review?)</span>
 <span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a></span>
@@ -4752,7 +4752,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>BETTER_RATINGS_SUBJECTIVE<span class="sc">\]</span> Which set of ratings is better (same considerations as for the review discussion)</span>
 <span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>FEEDBACK_TO_AUTHORS<span class="sc">\]</span> In terms of the authors&#39; ratings for useful feedback?</span>
+<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>FEEDBACK_TO_AUTHORS<span class="sc">\]</span> In terms of the authors' ratings for useful feedback?</span>
 <span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a><span class="sc">\[</span>PREDICT_BIBLIOMETRICS_COMPARISON<span class="sc">\]</span> At making predictions for journal, bibliometric, measurable impact, and replication outcomes?</span>
 <span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a></span>
@@ -4774,7 +4774,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-204"><a href="#cb2-204" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-205"><a href="#cb2-205" aria-hidden="true" tabindex="-1"></a><span class="fu"># Research taste, strengths and limitations</span></span>
 <span id="cb2-206"><a href="#cb2-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a>This might need to be qualitative/informal. I&#39;m not sure how to make it quantitative.</span>
+<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a>This might need to be qualitative/informal. I'm not sure how to make it quantitative.</span>
 <span id="cb2-208"><a href="#cb2-208" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-209"><a href="#cb2-209" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Which of our rating categories or rating frameworks does its overall assessment tend to correlate with more? (E.g., credibility, innovation, comms)</span>
 <span id="cb2-210"><a href="#cb2-210" aria-hidden="true" tabindex="-1"></a></span>
@@ -4782,7 +4782,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-212"><a href="#cb2-212" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-213"><a href="#cb2-213" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Which types of econometric issues and critiques does it tend to favor or diagnose correctly vs. incorrectly? (E.g., causal identification, statistical inference, experimental design...)</span>
 <span id="cb2-214"><a href="#cb2-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Characterization of results — &quot;importance hacking&quot;</span>
+<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Characterization of results — "importance hacking"</span>
 <span id="cb2-216"><a href="#cb2-216" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-217"><a href="#cb2-217" aria-hidden="true" tabindex="-1"></a>How ‘malleable’ is it’s taste based on prompts?</span>
 <span id="cb2-218"><a href="#cb2-218" aria-hidden="true" tabindex="-1"></a></span>
@@ -4792,29 +4792,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-222"><a href="#cb2-222" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-223"><a href="#cb2-223" aria-hidden="true" tabindex="-1"></a>*These could be assembled in a sheet or data frame.* There are probably too many variations here for a full factorial design, or for designs reporting and comparing all ratings across all designs (at least this seems overwhelming).</span>
 <span id="cb2-224"><a href="#cb2-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a>I suggest 1. Focus on 2-3 &#39;likely best setups&#39;, supported by previous work and intuition, for full comparisons 2. For 1-2 of these &#39;best setups&#39; varying other dimensions one at a time, comparing key ratings only.</span>
+<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a>I suggest 1. Focus on 2-3 'likely best setups', supported by previous work and intuition, for full comparisons 2. For 1-2 of these 'best setups' varying other dimensions one at a time, comparing key ratings only.</span>
 <span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a>&quot;(+)&quot; Indicates the most promising options to try first.</span>
+<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a>"(+)" Indicates the most promising options to try first.</span>
 <span id="cb2-228"><a href="#cb2-228" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a><span class="fu">## Dimensions of variation</span></span>
 <span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a><span class="fu">### Which baseline model</span></span>
 <span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>GPT5 pro (+) (or o3 until it&#39;s available)</span>
+<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>GPT5 pro (+) (or o3 until it's available)</span>
 <span id="cb2-234"><a href="#cb2-234" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Deep research (GPT5) -- (comes with web search natively?, may be compatible with supplementary materials)</span>
 <span id="cb2-235"><a href="#cb2-235" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Other providers (<span class="sc">\*</span>)</span>
 <span id="cb2-236"><a href="#cb2-236" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-237"><a href="#cb2-237" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prompt variations</span></span>
 <span id="cb2-238"><a href="#cb2-238" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>&quot;Evaluate as an economist&quot; (+)</span>
+<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>"Evaluate as an economist" (+)</span>
 <span id="cb2-240"><a href="#cb2-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-241"><a href="#cb2-241" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>vs &quot;predict what an Unjournal evaluator would say&quot;</span>
+<span id="cb2-241"><a href="#cb2-241" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>vs "predict what an Unjournal evaluator would say"</span>
 <span id="cb2-242"><a href="#cb2-242" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-243"><a href="#cb2-243" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Exact guidelines for evaluators (+)</span>
 <span id="cb2-244"><a href="#cb2-244" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-245"><a href="#cb2-245" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>LLM-specific tailoring</span>
 <span id="cb2-246"><a href="#cb2-246" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Don&#39;t mention The Unjournal (+)</span>
+<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Don't mention The Unjournal (+)</span>
 <span id="cb2-248"><a href="#cb2-248" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-249"><a href="#cb2-249" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Mention The Unjournal</span>
 <span id="cb2-250"><a href="#cb2-250" aria-hidden="true" tabindex="-1"></a></span>
@@ -4837,7 +4837,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Ratings only</span>
 <span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a>TMZ: This probably doesn&#39;t matter because it&#39;s a reasoning model</span>
+<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a>TMZ: This probably doesn't matter because it's a reasoning model</span>
 <span id="cb2-271"><a href="#cb2-271" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Split each rating and task into a separate prompt (<span class="sc">\*</span>)</span>
 <span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a></span>
@@ -4847,11 +4847,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb2-277"><a href="#cb2-277" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-278"><a href="#cb2-278" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>No de-identification, no debiasing instructions (+)</span>
 <span id="cb2-279"><a href="#cb2-279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>No de-identification, strong de-biasing instructions (e.g. &quot;ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.&quot;) (+)</span>
+<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>No de-identification, strong de-biasing instructions (e.g. "ignore author names, institutions, funding sources, and any other information that might bias your evaluation. Focus solely on the content and quality of the research itself.") (+)</span>
 <span id="cb2-281"><a href="#cb2-281" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-282"><a href="#cb2-282" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Remove author names, institutions, acknowledgements, funding sources (needs to be done with text to pdf conversion first processing)</span>
 <span id="cb2-283"><a href="#cb2-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Steps -- can ask Gemini to id &#39;what should be removed, and then remove it &#39; --&gt;</span></span>
+<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Steps -- can ask Gemini to id 'what should be removed, and then remove it ' --&gt;</span></span>
 <span id="cb2-285"><a href="#cb2-285" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-286"><a href="#cb2-286" aria-hidden="true" tabindex="-1"></a>*To do: Check if it still guesses the authors etc.*</span>
 <span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a></span>
