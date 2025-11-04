@@ -83,8 +83,11 @@ The Quarto book is organized into chapters:
 - **methods.qmd**: Data sources, LLM evaluation pipeline, system prompts, JSON schema
 - **results.qmd**: Analysis and visualizations comparing LLM vs human evaluations
 - **questions_answers.qmd**: Q&A section
-- **discussion.qmd**: Discussion and implications
+- **discussion.qmd**: Discussion and implications (focused on LLM evaluation project only)
 - **references.qmd**: Bibliography
+
+**Appendices:**
+- **paper_response_analysis.qmd**: Separate analysis tracking whether authors updated papers in response to Unjournal evaluations (not part of main LLM evaluation discussion)
 
 Configuration: `_quarto.yml`
 
@@ -138,15 +141,44 @@ n_papers <- length(list.files(papers_path, pattern = "\\.pdf$"))
 
 This file is sourced at the top of each `.qmd` document.
 
+### Paper Response Analysis Pipeline
+
+The `paper_change_analysis/` directory contains a separate analysis pipeline:
+
+**Purpose:** Track whether authors updated papers in response to Unjournal evaluations
+
+**Key scripts:**
+- `scripts/analyze_paper_changes.py`: Main pipeline that:
+  - Matches papers between "before" (evaluation-time) and "after" (latest) versions
+  - Extracts text from PDFs using pdfplumber
+  - Computes line-level diffs to identify changes
+  - Matches papers to evaluations using title extraction from markdown files
+- `scripts/generate_potential_matches.py`: Helper to create manual matching workflow
+- `scripts/llm_change_attribution.py`: (Optional) LLM analysis to assess if changes reflect evaluator feedback
+
+**Data inputs:**
+- `papers/` and `more papers/`: Before versions (at evaluation time)
+- `latest_papers_post_UJ/`: After versions (latest available)
+- `latest_papers_post_UJ/metadata.csv`: Paper titles and metadata
+- `unjournal_evaluations/*.md`: Evaluation files with paper titles
+
+**Data outputs:**
+- `change_analysis_results.json`: Full results with line counts, text changes, evaluation matches
+- `change_analysis_summary.csv`: Summary statistics
+- `extracted_texts/`: Cached PDF text extractions
+
+**Key technique:** Evaluation matching uses regex to extract paper titles from markdown files (e.g., `Evaluation 1 of "Paper Title"`) and fuzzy matches against metadata titles.
+
 ### Helper Scripts
 
-The `quick_helper_scripts_for_downloads_etc/` directory contains scripts for:
+The `quick_helper_scripts_for_downloads_etc/` directory contains one-off utility scripts for:
 
 - Downloading papers and metadata from various sources
 - Extracting Unjournal evaluation data from PubPub
 - Processing crossref API data
+- Scheduled paper downloads via cron
 
-These are one-off utility scripts, not part of the main pipeline.
+These are not part of the main evaluation or analysis pipelines.
 
 ## Common Development Tasks
 
@@ -184,6 +216,15 @@ Human ratings are pre-processed R data files in `data/`:
 
 These are loaded in R chunks and joined with LLM evaluation CSVs.
 
+### To run paper response analysis
+
+```bash
+conda activate qpy311_arm  # or qpy311
+python paper_change_analysis/scripts/analyze_paper_changes.py
+```
+
+This analyzes changes between paper versions and matches them to evaluations. Results are saved to `paper_change_analysis/change_analysis_results.json` and rendered in the appendix.
+
 ## Important Notes
 
 - **Caching**: Quarto uses aggressive caching (`freeze: auto` in `_quarto.yml`). Delete `_freeze/` if you need fresh execution.
@@ -191,6 +232,8 @@ These are loaded in R chunks and joined with LLM evaluation CSVs.
 - **PDF handling**: The pipeline sends PDFs directly to the API (native multimodal input), preserving figures and tables. No text extraction step.
 - **JSON parsing**: The code has fallback logic to extract JSON from markdown code fences if the model wraps output incorrectly.
 - **Reproducibility**: File IDs are cached by content hash. Re-running on the same PDF reuses the uploaded file.
+- **Python rendering environment**: The `paper_response_analysis.qmd` appendix requires jupyter/nbformat/ipykernel packages. These are in `environment.yml` but if rendering fails with "ModuleNotFoundError: No module named 'nbformat'", run `conda env update -n qpy311_arm -f environment.yml` (or your environment name). Set `QUARTO_PYTHON` to point to the correct environment's python before rendering.
+- **Content separation**: Keep discussion.qmd focused on the main LLM evaluation project only. Paper response analysis content belongs exclusively in the appendix (paper_response_analysis.qmd).
 
 ## Git Workflow
 
