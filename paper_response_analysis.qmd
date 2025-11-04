@@ -29,12 +29,13 @@ This chapter analyzes whether research papers were substantively revised in resp
 We use a multi-step approach:
 
 1. **Identify paper pairs**: Find papers that exist in both "before" (at time of evaluation) and "after" (latest version) states
-2. **Extract and compare**: Use PDF text extraction to identify changes
-3. **LLM analysis**: Use GPT-4 to:
+2. **Match evaluations**: Extract paper titles from evaluation markdown files and match against metadata to identify which papers received evaluations
+3. **Extract and compare**: Use PDF text extraction to identify line-level changes between versions
+4. **LLM analysis** (optional): Use GPT-4 to:
    - Identify major substantive changes
    - Extract key suggestions from evaluations
    - Assess whether changes align with evaluator feedback
-4. **Present evidence**: Show specific examples of likely evaluation-driven changes
+5. **Present evidence**: Show specific examples of likely evaluation-driven changes
 
 ## Data Sources
 
@@ -115,12 +116,21 @@ print(f"\nPapers with >200 line changes: {len(changed_display)}")
 changed_display
 ```
 
+## Summary
+
+From 34 confirmed paper pairs:
+
+- **20 papers** had matched Unjournal evaluations (using title-based matching from evaluation markdown files)
+- **6 papers** showed both evaluations AND substantial changes (>50 line changes)
+- **12 papers** showed substantial revisions overall (some with evaluations, some without)
+
+The six papers with both evaluations and substantial changes represent promising cases for further analysis to assess whether changes reflected evaluator feedback.
+
 ## Next Steps
 
-1. **Run automated matching**: Improve the fuzzy matching algorithm to find more pairs
-2. **Extract evaluation suggestions**: Parse evaluation markdown files for specific suggestions
-3. **LLM analysis**: Run GPT-4 analysis on each pair
-4. **Generate case studies**: Present detailed examples with evidence
+1. **Extract evaluation suggestions**: Parse evaluation markdown files for specific suggestions
+2. **LLM analysis**: Run GPT-4 analysis on the 6 candidate papers to assess attribution
+3. **Generate case studies**: Present detailed examples with evidence
 
 ## Placeholder for Results
 
@@ -138,7 +148,7 @@ For each paper pair, we'll show:
 
 ## Phase 2: LLM Analysis (To Be Run)
 
-The next step is to run GPT-4 analysis on the 3 papers with both evaluations and substantial changes. This will:
+The next step is to run GPT-4 analysis on the 6 papers with both evaluations and substantial changes. This will:
 
 1. Identify major substantive changes in each paper
 2. Extract specific suggestions from evaluations
