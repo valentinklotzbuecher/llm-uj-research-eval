@@ -49,34 +49,70 @@ We use a multi-step approach:
 The Coda API doesn't expose DOI deposit dates from the public table. For this pilot analysis, we focus on papers we can confidently match between folders based on author names and titles.
 :::
 
-## Manual Paper Matching
-
-For this initial analysis, we'll focus on a few high-confidence matches:
+## Phase 1 Results: Paper Matching and Change Detection
 
 ```{python}
 import pandas as pd
+import json
 from pathlib import Path
 
-# Manually curated matches based on author inspection
-paper_pairs = [
-    {
-        "paper_id": "Fangwa et al. 2023",
-        "before": "more papers/Fangwa et al. 2023.pdf",
-        "after": "latest_papers_post_UJ/Anicet FangwaCaroline FlammerMarieke HuysentruytBertrand Quelin_The Governance Of Non-Profits And Their Social Impact- Evidence From A Randomized Program In Healthc.pdf",
-        "evaluation_pattern": "*fangwa*"
-    },
-    {
-        "paper_id": "Banerjee et al. 2023 (Nudges)",
-        "before": "more papers/Banerjee et al. 2023.pdf",
-        "after": "latest_papers_post_UJ/Banerjee Abhijit Duflo EstherArun G ChandrasekharJohn FlorettaHarini KannanFrancine LozaAnirudh Sank_Selecting the Most Effective Nudge- Evidence from a Large-Scale Experiment on Immunization.pdf",
-        "evaluation_pattern": "*nudge*"
-    },
-    # Add more as we identify them
+# Load results from Phase 1 analysis
+with open('paper_change_analysis/change_analysis_results.json', 'r') as f:
+    results = json.load(f)
+
+df_all = pd.DataFrame(results)
+
+# Summary statistics
+print(f"Total paper pairs analyzed: {len(df_all)}")
+print(f"Papers with evaluations: {df_all['has_evaluation'].sum()}")
+print(f"Papers with changes (>50 lines): {(df_all['total_changes'] > 50).sum()}")
+print(f"Papers with BOTH evaluations AND changes: {((df_all['has_evaluation']) & (df_all['total_changes'] > 50)).sum()}")
+```
+
+### Papers with Evaluations and Substantial Changes
+
+These are the most interesting cases for LLM analysis:
+
+```{python}
+# Filter to papers with both evaluations and changes
+candidates = df_all[
+    (df_all['has_evaluation'] == True) &
+    (df_all['total_changes'] > 50)
+].copy()
+
+# Display key metrics
+candidates_display = candidates[[
+    'paper_id', 'total_changes', 'additions_count', 'deletions_count',
+    'text_length_change_pct', 'evaluation_files'
+]].copy()
+
+candidates_display['evaluation_count'] = candidates_display['evaluation_files'].apply(len)
+candidates_display = candidates_display.drop('evaluation_files', axis=1)
+
+candidates_display.columns = [
+    'Paper', 'Total Line Changes', 'Lines Added', 'Lines Deleted',
+    'Text Change %', 'Evaluation Count'
 ]
 
-df_pairs = pd.DataFrame(paper_pairs)
-print(f"Found {len(df_pairs)} paper pairs for analysis")
-df_pairs
+candidates_display
+```
+
+### All Papers with Changes (No Evaluation Required)
+
+Some papers show substantial changes even without matched evaluations:
+
+```{python}
+# Papers with significant changes
+changed_papers = df_all[df_all['total_changes'] > 200].copy()
+
+changed_display = changed_papers[[
+    'paper_id', 'total_changes', 'text_length_change_pct', 'has_evaluation'
+]].sort_values('total_changes', ascending=False).copy()
+
+changed_display.columns = ['Paper', 'Total Line Changes', 'Text Change %', 'Has Evaluation']
+
+print(f"\nPapers with >200 line changes: {len(changed_display)}")
+changed_display
 ```
 
 ## Next Steps
@@ -100,16 +136,38 @@ For each paper pair, we'll show:
 4. **Attribution assessment** (likely/unlikely influenced by evaluation)
 5. **Evidence and quotes** (specific textual evidence)
 
-## Running the Analysis
+## Phase 2: LLM Analysis (To Be Run)
 
-To run the complete analysis pipeline:
+The next step is to run GPT-4 analysis on the 3 papers with both evaluations and substantial changes. This will:
+
+1. Identify major substantive changes in each paper
+2. Extract specific suggestions from evaluations
+3. Assess whether changes likely reflect evaluator feedback
+4. Provide evidence and quotes supporting the assessment
+
+**Estimated cost**: $1.50-6.00 (depending on paper/evaluation length)
+**Estimated time**: 10-30 minutes
+
+To run the LLM analysis:
 
 ```bash
-# Phase 1: Identify paper pairs and extract text
-python analyze_paper_changes.py
+conda activate qpy311_arm
+python paper_change_analysis/scripts/llm_change_attribution.py
+```
 
-# Phase 2: LLM analysis of changes and attribution
-python llm_change_attribution.py
+Results will be saved to `paper_change_analysis/llm_analysis/` and can be incorporated into this document.
+
+## Running the Full Pipeline
+
+To reproduce this analysis:
+
+```bash
+# Phase 1: Identify paper pairs and extract text (completed)
+conda activate qpy311_arm
+python paper_change_analysis/scripts/analyze_paper_changes.py
+
+# Phase 2: LLM analysis of changes and attribution (optional, requires OpenAI API key)
+python paper_change_analysis/scripts/llm_change_attribution.py
 
 # Phase 3: Render this document with results
 quarto render paper_response_analysis.qmd

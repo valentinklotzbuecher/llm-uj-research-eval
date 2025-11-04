@@ -7,6 +7,8 @@ title: "Data and methods -- LLM-based evaluation"
 #| code-summary: "Include global setup and parameters"
 
 source("setup_params.R")
+#get the choices printed
+
 
 ```
 
@@ -282,7 +284,7 @@ TIER_METRIC_SCHEMA = {
 COMBINED_SCHEMA = {
     "type": "object",
     "properties": {
-        "assessment_summary": {"type": "string","maxLength": 1600},
+        "assessment_summary": {"type": "string","maxLength": 5000},
         "metrics": {
             "type": "object",
             "properties": {
@@ -305,12 +307,14 @@ TEXT_FORMAT_COMBINED = {
     "schema": COMBINED_SCHEMA,
 }
 
+#Todo -- adjust the 'diagnostic summary' below to take into account more aspects of our criteria
+
 SYSTEM_PROMPT_COMBINED = f"""
 
 Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer. 
 Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment -- give your assessment based on the *content* of the papers alone; do it based on your knowledge and insights. 
 
-Diagnostic summary (≤200 words, based only on the PDF):
+Diagnostic summary (≤1000 words, based only on the PDF):
 Provide a compact paragraph that identifies the most important issues you detect in the manuscript itself (e.g., identification threats, data limitations, misinterpretations, internal inconsistencies, missing robustness, replication barriers). Be specific, neutral, and concrete. This summary should precede any scoring and should guide your uncertainty. Output this text in the JSON field `assessment_summary`.
 
 We ask for a set of quantitative metrics, based on your insights. For each metric, we ask for a score and a 90% credible interval. We describe these in detail below.
@@ -413,7 +417,7 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
     def _payload():
         p = dict(
             model=model,
-            text={"format": TEXT_FORMAT_COMBINED, "verbosity": "low"},
+            text={"format": TEXT_FORMAT_COMBINED, "verbosity": "medium"},
             input=[
                 {"role": "system", "content": [
                     {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
@@ -441,7 +445,6 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
         "created_at": kd.get("created_at"),
     }
 ```
-
 
 
 Relying on GPT-5 Pro, we use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate "ingestion" stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.

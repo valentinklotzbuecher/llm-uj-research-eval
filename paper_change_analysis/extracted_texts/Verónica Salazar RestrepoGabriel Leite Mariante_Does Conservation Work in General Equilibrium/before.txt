@@ -1,0 +1,2132 @@
+∗
+Does Conservation Work in General Equilibrium?
+† ‡
+Ver´onica Salazar Restrepo and Gabriel Leite Mariante
+January 11, 2024
+PRELIMINARY VERSION: This draft is edited frequently. See latest version HERE.
+Abstract
+Deforestation and the subsequent use of deforested land for agricultural activi-
+ties account for roughly 20% of the global CO2-equivalent emissions in the past two
+decades. Despite the global scope of the consequences of deforestation, public policies
+and private initiatives to reduce deforestation are often spatially targeted: they inten-
+sify environmental protection in specific ecosystems, making agricultural land scarcer.
+While potentially effective at a local level, their global effectiveness may be attenuated
+in general equilibrium, due to resulting increases in the demand for agricultural land
+in non-targeted areas, i.e. deforestation leakage. To quantify leakage, we build a quan-
+titative spatial equilibrium model of the Brazilian economy where agricultural land is
+the output of a costly process of deforestation, firms produce goods that are differen-
+tially land-demanding, and there is costly trade and migration. Our main findings are
+that (i) targeting the regions with highest deforestation levels can be an effective tool
+to curb aggregate deforestation in Brazil, and (ii) leakage increases significantly when
+considering a longer time-horizon. After one year, 2-3% of the deforestation reductions
+are outdone by leakage. Simulating the model forward for 10 years, this number goes
+up to 10%. The relatively small leakage is driven by agricultural intensification, in-
+cluding more crop farming, increased worker and cattle density per pasture, and shifts
+of production towards more productive regions.
+∗
+For their generous mentorship, we thank Oriana Bandiera, Gharad Bryan, Robin Burgess, and Daniel Sturm. For all
+theircommentsandquestions,wethankseminaraudiencesatLSE’sDevelopmentEconomicsWorkinProgress,LSE’sEnergy
+& Environmental Economics seminar, LSE’s International Trade Workshop, and conference audiences at STEG-CEPR 2023,
+LSE’sEnvironmentWeek2023,Bocconi(EMUEA2023),Cyprus(EAERE2023),andOxford(OxDev2023). Fortheirtimeand
+insightfuldiscussions,wethankClareBalboni,TimDoberman,MatthiasDoepke,JamesFenske,DouglasGollin,AllanHsiao,
+JulianaJaramilloEcheverri,XavierJaravel,PerKrusell,IsabellaManelici,PolSimpson,XavierTierney,JulienWolfersberger.
+†
+DepartmentofEconomics,LondonSchoolofEconomics. E-mail: v.salazar-restrepo@lse.ac.uk.
+‡
+DepartmentofEconomics,LondonSchoolofEconomics. E-mail: g.leite-mariante@lse.ac.uk.
+1
+
+1 Introduction
+Tropical deforestation is among the human activities with the highest environmental impact.
+Forest clearing and the subsequent land use for agricultural activity is responsible for about
+one-fifth of global CO2-equivalent emissions of the past two decades. In addition to direct in-
+stantaneous carbon emissions, deforestation permanently destroys carbon sinks, extinguishes
+wildlife, degrades native soil, alters weather patterns, and negatively impacts the livelihoods
+of millions of humans who live in communities that depend on forest dwelling.
+Given its enormous environmental damage, combating deforestation is a key component
+of emission reduction pathways in the global fight to mitigate the effects of climate change,
+as established by the Intergovernmental Panel on Climate Change (IPCC) (IPCC, 2019)1.
+Nevertheless, strategies to mitigate deforestation are excluded from major green finance
+mechanisms, such as the United Nations Clean Development Mechanism (CDM), due to
+concerns about leakage of locally targeted policies into untargeted areas - i.e. the reduction
+of deforestation in a specific area might be outdone by increases in deforestation elsewhere,
+undermining the global effects of local policies2.
+Since approximately three-quarters of global deforestation is driven by agriculture, quan-
+tifying general equilibrium effects of anti-deforestation policies requires a model of how agri-
+culture is redistributed across space in response to local policies. To that end, we build a
+quantitative model that explicitly embeds deforestation as an economic sector that supplies
+land as a factor of production for agriculture. Beyond the direct policy relevance of assess-
+ing the global efficiency of localised policies, our framework can guide the understanding
+of broader trade-offs in environmental policy (promoting conservation vs curtailing agricul-
+tural production), and the value of mitigating global externalities of localised forest-cutting
+actions3.
+Deforestation in Brazil
+With over 5 million km2 of rainforest area (MapBiomas Collection 6.0), Brazil accounts for
+about one third of all remaining rainforests and 13% of all forests in the planet, far more
+1In its 2019 Special Report on Climate Change and Land, the IPCC mentions the word “deforestation”
+a total of 493 times, and states that “Reducing deforestation and forest degradation lowers GHG emissions,
+with an estimated technical mitigation potential of 0.4–5.8 GtCO2/yr”
+2The UN defines deforestation leakage as “The unexpected loss of anticipated carbon benefits due to the
+displacement of activities in the project area to areas outside the project, resulting in carbon emissions.”.
+In other words, locally targeted policies might not decrease overall deforestation, but rather displace it to
+untargeted areas.
+3This framework could be used, for example, to implement a compensation policy for specific regions or
+for the country as a whole, a policy that has been suggested by a number of researchers and politicians as
+the only viable way to sustainably avoid deforestation (Brner and Wunder, 2008).
+2
+
+Figure 1: Average yearly forest loss by municipality
+Note: This figure shows average forest loss in square kilometers across all 5,568 Brazilian municipalities
+over three 10-year periods: 1990-2000, 2000-2010, 2010-2020. Municipalities are coloured according to total
+forest loss over each time period, with darker colours indicating higher forest loss.
+than any other country. It also accounts for a third of yearly tropical deforestation, with
+an average net yearly forest loss of about 20,000 km2 between 1985 and 20204 (roughly
+equivalent to the size of Wales, or the American state of Connecticut). As such, outcomes of
+policies aiming at reducing deforestation in Brazil will have significant impact in the global
+forest coverage and, consequently, carbon emissions.
+Deforestation has played a central role in the Brazilian economy over the past 35 years
+as an input for the country’s agricultural sector, currently responsible for approximately
+one-quarter of the Brazilian GDP (CNA and CEPEA, 2023). Since 1985, the first year for
+which reliable high resolution satellite data on land use is available, total agricultural area
+has increased by more than 45%, or 840,000 km2 (MapBiomas Collection 6.0), of which 92%
+were previously forests and 8% were previously tropical savannas. As illustrated in Figure 1,
+this activity is highly spatially concentrated along the so-called “arc of deforestation”, in the
+fringe the Amazonian region, especially in the states of Par´a, Mato Grosso and Rondoˆnia.
+The large municipality of S˜ao F´elix do Xingu, in the state of Par´a, with a total area of
+around 84,000 km2 (roughly the size of Austria), is an excellent illustrative example. In
+1985, it had a forest cover of over 80,000 km2, equivalent to more than 95% of its total
+area, and agricultural activity occupied only 410 km2 (0.5%). In 2021, it had just under
+63,000 km2 (under 75% of its area) of forest cover, and over 19,000 km2 (well over 20%) of
+agricultural land, most of which pastures.
+Over the past three decades, the Brazilian government has enacted a wide array of poli-
+cies aiming at tackling deforestation. These policies include country-level actions, such as
+changes in the national legislation (e.g. Forest Code) or the use of satellite monitoring
+4The gross loss of primary forest has been higher, over 25,000 km2 per year, but there is considerable
+amount of forest regrowth.
+3
+
+(SIVAM - from the 90s), but also localised policies aiming at protecting specific areas of
+the Brazilian territory. The latter group, which is the focus of our study, has typically been
+implemented either as increased enforcement in areas with particularly high deforestation,
+or as the designation of specific areas in the territory as conservation units or protected
+indigenous land. Such localised policies have been the subject of past evaluation which has
+generally found them to be successful in the targeted areas (Assun¸ca˜o and Rocha, 2019).
+Typically, studies evaluating such policies use an event-study approach to measure their
+effectiveness in the targeted regions vis-a`-vis comparable non-targeted regions (Assunc¸˜ao
+and Rocha, 2019). However, this approach does not account for potential relocation of
+deforestation activities into non-targeted areas, which can significantly attenuate the effect
+of such policies on overall country-wide deforestation. To illustrate this idea, suppose that
+regions targeted by a certain policy see a decrease of 5,000 km2 in their annual deforestation,
+whereascomparablenon-targetedregionsseeanincreaseof5,000km2 inannualdeforestation
+rates – i.e. there is perfect relocation. A simple difference-in-differences analysis would
+suggest that the policy decreased deforestation by 10,000 km2 when in fact it only changed
+where it occurred, and the global effect is zero. This issue, referred to in the climate policy
+literature as leakage, is often discussed (Pfaff and Robalino, 2017) but rarely measured when
+evaluating specific anti-deforestation policies5.
+The Model
+Our model considers a multi-region economy with two main sectors: agriculture and non-
+agriculture. The agricultural sector is further split into different types of crops and pastures
+that demand different amounts of land and labour as factors of production, whereas the
+non-agricultural sector has only labour as input. Crucially, we model deforestation as an in-
+termediate sector which endogenously supplies land as a factor of production for agriculture.
+Each location differs in their sectoral productivity (agricultural, non-agricultural and defor-
+estation), amenities and trade links. We allow workers to migrate between regions subject
+to frictions, and goods to be traded across regions subject to iceberg costs.
+In the model, a local anti-deforestation policy is modelled as an exogenous negative shock
+tolandsupplyinatargetedregion. Leakagehappensduetorelocationofagriculturalactivity
+via the markets for goods and labour. In the goods market, a local decrease in supply of
+land will decrease the local supply of agricultural goods. Consumers then substitute these
+5It has become increasingly common to measure spillovers by looking at the changes in land use in the
+vicinity of protected areas, for example. While a valuable empirical exercise, it might not appropriately
+account for global spillovers, as the most suitable substitute for the land being protected may be in an
+entirely different part of the country - in this approach, the choice of which areas can be the subject of
+spillovers needs to be made ex-ante and is arbitrary.
+4
+
+goods withnon-agricultural goods, or with agriculturalgoodsproduced elsewhere, increasing
+demand for land in other regions, which creates leakage. Analogously, in the labour market,
+a decrease in supply of land will decrease the local demand for agricultural labour – workers
+will then partly change sectors, and partly migrate increasing the supply of agricultural
+labour elsewhere, which also creates leakage. The extent to which reductions in forest loss
+areoutdoneby leakageultimately dependsonthe elasticity ofdemandforagricultural goods,
+and on the substitutability of agricultural land across space.
+Literature
+Our paper contributes to the growing literature on the evaluation of anti-deforestation poli-
+cies (Burgess et al., 2012; Jayachandran et al., 2017; Szerman et al., 2022). Existing evidence
+suggests that command-and-control policy instruments have played a crucial role in the slow-
+down of deforestation in Brazil, lowering it by as much 56% from what if would have been in
+the absence of policies that started to be implemented around 2004 (Assun¸ca˜o et al., 2015;
+Burgess et al., 2019).
+We contribute to this strand of the literature by: (i) disentangling the many driving
+forces of deforestation (regional comparative advantage in agricultural activities, market
+access, residential amenities, and deforestation productivity), and (ii) quantifying general-
+equilibrium spillovers, whereby the reduction of deforestation in one area is accompanied by
+its increase elsewhere. Pfaff and Robalino (2017) summarise the theory and evidence on the
+spillovers of conservation programs which, at the time, lacked any structural quantitative
+analysis of spillovers due to general equilibrium effects. Instead, it looked at spillovers to
+neighbouring areas outside conservation zones.
+A more recent strand of the trade and IO literature looks at deforestation in general
+equilibrium (Souza-Rodrigues, 2018; Hsiao, 2021; Domiguez-Iino, 2021) by drawing on foun-
+dational insights from theoretical models of trade and environmental conservation (Copeland
+and Taylor, 2004). A related literature analyses how comparative advantage in agricultural
+activities shapes the spatial distribution of different land uses, generally without considering
+deforestation explicitly (Cui, 2020; Pellegrina and Sotelo, 2021).
+We contribute to this literature by adding labor and migration to general equilibrium
+models of land use change, and by explicitly linking land use changes with patterns of
+economic growth and structural change in space (Eckert and Peters, 2022; Farrokhi and
+Pellegrina, 2020; Bustos et al., 2016; Herrendorf et al., 2014; Boppart, 2014) .
+Methodologically, our model expands on the spatial equilibrium model proposed by Eck-
+ert and Peters (2022). We build on their framework by (i) adding a deforestation sector
+that endogenously produces new agricultural land, and (ii) considering different agricultural
+5
+
+sectors that can have heterogeneous shares of land and labour.
+The rest of this paper is structured as follows. Section 2 describes the institutional
+context and estimates the local effects of existing targeted conservation strategies with a
+reduced form approach as motivating evidence. Section 3 describes the model along with
+theestimationandcalibrationofthevariousmodelparameters. Section4presentstheresults
+of the counterfactual analysis. Section 5 concludes.
+2 Local Effects of Targeted Conservation
+Existing research suggests that Brazil’s approach to tackling deforestation over the first
+two decades of the 21st century has been successful in reducing country level deforestation,
+(Burgess et al., 2019; Assun¸ca˜o et al., 2015) . During this period, a vast array of policies
+were implemented by the federal government. Some of these are “blanket-level” policies
+affecting the entire Brazilian territory, such as changes in laws increasing legal limits for
+deforestation in private land (DOU, 2012) and the adoption of a unified Action Plan for the
+Prevention and Control of Deforestation in the Legal Amazon (PPCDAm). Others, however,
+were locally targeted policies, which raises the concerns of possible leakage: has the forest
+loss avoided in these areas simply moved somewhere else?
+Among the local anti-deforestation policies enacted by the Brazilian government, two
+have been especially prominent. The first is the establishment of “Priority Municipalities”
+policy, enacted by the Brazilian government in 2007 (DOU, 2007). A set of municipalities
+in the Amazon region where deforestation rates were among the highest in the country were
+selected to be subject to extra enforcement actions. In a first round, 36 municipalities ac-
+countingforaround45%ofthepreviousyear’sdeforestationwereincludedintheprioritylist,
+which has been updated on a yearly basis ever since. Selected municipalities were subject
+to increased law enforcement activities such as fines, embargoes on private farms, political
+agreements with local leaders, and credit incentives from the federal government. After the
+start of the policy, yearly deforestation in targeted areas significantly decreased (Assun¸ca˜o
+and Rocha, 2019). The second prominent example of local conservation policies is the con-
+tinuous establishment by the Brazilian Government of specific areas where deforestation is
+completely banned. Such areas are established either for wildlife and biodiversity conserva-
+tion – the so called Unidades de Conserva¸c˜ao (Conservation Units), or for preservation of
+land that has been traditionally inhabited by native indigenous people – the so called Ter-
+rito´rios Ind´ıgenas (Indigenous Territories). These policies began with the country’s return
+to democracy in 1985 and, as of 2022, a total area of approximately 3,500 km2 has been
+granted one of these two status. Due to their practical similarities, both types of policies
+6
+
+will henceforth be referred to as Protected Areas. Unlike the Priority Municipalities policy,
+Protected Areas typically have high forest coverage and little deforestation, and the goal is
+to conserve the natural biome rather than to crack down on existing degradation.
+Before turning to a quantitative analysis of leakage in place-based policies, it is important
+to discuss the reasons why, given the local effectiveness of targeted policies, one does not
+simply extend these policies to cover the entire country which would, by construction, end
+deforestation (and, trivially, leakage) altogether. Firstly, the enforcement of conservation
+policies is costly for public funds – research estimates that, in order to place 80% of the
+BrazilianAmazonundersomeformofcurrentlyexistingpolicy, thefederalgovernmentwould
+need to spend at least 1.7 Billion USD per year (da Silva et al., 2022). Secondly, from a social
+welfare perspective, the conversion of forested land into agriculture generates private profits,
+which could result in a non-zero optimal level of deforestation from the perspective of Brazil.
+Thirdly, and related to the private optimal argument, there is a political cost of restricting
+deforestation activities, since the proceeds of those are often captured by local political
+elites. Fourthly, from a public revenues perspective, modern agriculture that results from
+forest removal is more easily measured and, consequently, taxed, than alternative sustainable
+economic activities
+Reduced-form evidence from studies evaluating the effects of place-based conservation
+policies in Brazil suggest that they have been effective in decreasing deforestation in targeted
+areas. However,inordertocapturethetrueeffectofalocalpolicyrelativetoacounterfactual
+in which this policy was never implemented, reduced-form methods rely heavily on the stable
+unit treatment value assumption (SUTVA) - i.e. absent treatment, non-treated areas would
+have behaved exactly as they did in the presence of treatment elsewhere. In the case of a
+conservation policy that can be subject to leakage, this assumption might not hold, as shown
+next.
+2.1 Descriptives
+Figures 2 and 3 illustrate the evolution of place-based anti-deforestation policies in Brazil
+between 1985 and 2020. From Figure 2, we can see that both policies are largely focussed
+on areas in Amazonian region. The Priority List (in green) targets exclusively municipalities
+within the Brazilian Legal Amazon, most of which located in the so called “deforestation
+arc” covering the south of the states of Amazonas and Para´ and the north of the state of
+Mato Grosso. Although the Protected Areas are somewhat more spread across the country6,
+they are still spatially concentrated in the Amazon biome, north of the municipalities in
+6Mainly due to territories historically occupied by indigenous peoples in the Northeast and Southeast
+regions
+7
+
+Figure 2: Spatial distribution of Priority List municipalities (green), Conservation Units
+(orange), and Indigenous Territories (yellow) as of 2021.
+Note: Thisfigureillustratesthespatialtargetingofthethreerelevanttypesofprotectedareasimplemented
+by the Brazilian government over the past decades. The left panel shows, in green, the municipalities that
+have been added to the Priority List since its start in 2008. The right panel shows the location of protected
+areas (which do not necessarily coincide with municipal borders) according to its type: orange areas are
+Conservation Units, yellow areas are demarcated Indigenous Territories
+the Priority List, in areas with more untouched forest cover. In Figure 3, we can see the
+temporal evolution of these policies. Protected areas have been gradually established since
+the country’s redemocratisation in 1985, whereas the Priority List policy was created in
+2007, with most municipalities being added to the list in that same year.
+Figure 4 below illustrates trends in forest change in Brazil according to their status as
+protected areas in 2020: indigenous territories, conservation units, and the rest of country.
+It is clear that, between 1985 and 2020, the bulk of forest loss happened outside protected
+areas. Throughout the period, forest cover in indigenous territories and protected areas have
+remained above 90% and 80% respectively, compared to those outside of them, which have
+gone from above 60% to under 50%.
+However, this fact alone is not convincing evidence that they have worked as an effective
+halt on deforestation. The first concern with this simple comparison is the endogeneity of
+their placement - this is often referred to in policy circles as the question of “additionality”.
+The second concern when evaluating the effectiveness of any local conservation policy is the
+possible presence of spillover effects - in particular the question of “leakage”.
+Regarding endogeneity, the bias could be positive or negative. These territories may have
+been established in places without good soils for agriculture, far from roads and markets,
+8
+
+Figure 3: Evolution of spatially targeted conservation policies
+)mk
+qs
+0001(
+aerA
+latoT
+0051
+0001
+005
+0
+1985 1990 1995 2000 2005 2010 2015 2020
+year
+Indigenous Territories Conservation Units
+Priority List Municipalities
+Note: Thisfigureillustratestheevolutionovertimeofthetotalareaunderdifferenttypesoflocallytargeted
+policies by the Brazilian government. The yellow line represents the total area of demarcated Indigenous
+Territories, the orange line represents the total area under Conservation Units, and the green line represents
+the total area of all municipalities included in the Priority List policy.
+Figure 4: Area covered in natural vegetation under different conservation policies
+noitategev
+larutan
+yb
+derevoc
+egatnecreP
+001
+59
+09
+58
+08
+1985 1990 1995 2000 2005 2010 2015 2020
+year
+Indigenous Territories Conservation Units
+Priority List
+Note: This figure illustrates the evolution over time of the territorial coverage in natural vegetation, as a
+shareoftotalarea,forregionsunderthedifferenttypesoflocallytargetedpoliciesimplementedtheBrazilian
+government. TheyellowlinerepresentstheevolutionofnaturalvegetationcoverageinIndigenousTerritories,
+theorangelinerepresentsrepresentstheevolutionofnaturalvegetationcoverageinConservationUnits,and
+the green line represents the eevolution of natural vegetation cover in municipalities from the Priority List.
+or with geographic conditions that make them harder to deforest. But it could also go the
+opposite way, if environmental agencies respond to environmental threats by establishing
+protected areas and indigenous peoples decide to formalise protection as a reaction to set-
+tlers arriving and cutting down the forests in their land. It could go one way in places where
+9
+
+the local politicians and bureaucrats are more aligned with the interests of agricultural busi-
+nesses, and the other way where they are operating with the goal of stopping deforestation.
+In order to evaluate the effectiveness of the establishment of protected areas and indige-
+nous territories in halting deforestation, we exploit their staggered establishment and look
+at places near their borders with a regression discontinuity design.
+Most of the area under indigenous territories and protected areas has been assigned after
+1985, which is when our land use data, taken begins. The graph below shows how the area
+under each of those property right regimes has changed over time.
+The blacklist started in 2008. It is a subset of municipalities in the Legal Amazon that
+were chosen for their strategic importance in halting deforestation. The total deforestation
+levels the five years before are good predictors of blacklist status, although they do not seem
+to exactly determine blacklisting. Figure 3 illustrates how the blacklist has changed over
+time. In2008, 36municipalitieswereaddedtothelist, coveringatotalareaofapproximately
+800,000 square kilometers. Since then, the total number of blacklisted municipalities has not
+changed vary much, remaining around 40. The total area has increased to around 1,000,000
+square kilometers. Some municipalities have entered and some have exited the blacklist.
+Upon exit, previously blacklisted municipalities acquire the status of “monitored”. Since
+2008, 20 municipalities have exited the blacklist and 3 of those have returned. There have
+been 2 periods of significant change in the blacklist. First, the period 2008-2012, with most
+of the action concentrated in 2008. Second, the period 2017-2020, with most of the action
+concentrated in 2017, when 9 municipalities covering over 200,000 square kilometers were
+added. The second period reflects a shift of deforestation further north, towards the Amazon
+river.
+2.2 Econometric specification
+2.2.1 Priority List
+To evaluate the effectiveness of placing municipalities in a Priority List, we follow (Assun¸ca˜o
+and Rocha, 2019) and conduct a standard two-way fixed effects event study around the
+year in which municipalities were added to the priority list. Our baseline specification is as
+follows:
+(cid:88)
+NF
+Defor = δ +γ + β Priority +(cid:15) (1)
+rt t r τ r,t−τ rt
+τ=−NL
+Where Defor is log-deforestation observed in municipality r at year t, δ are year
+rt t
+10
+
+fixed-effects, γ are municipality fixed effects, Priority is a dummy variable equal to
+r r,t−τ
+one if municipality r has been added to the priority list exactly τ years ago, and β are
+τ
+our coefficients of interest. We consider event-times between 7 years before (N ) and 10
+L
+years after (N ) policy implementation. In order to address potential issues caused by
+F
+staggered treatment adoption in two-way fixed effects event studies, we keep in our sample
+only municipalities that have either been added to the Priority List in 2008 or have never
+been added to the list, excluding municipalities added to the priority list after 2008.
+Validity – The validity of our event-study approach relies on the assumption of parallel
+trends, i.e., treated and untreated municipalities followed parallel trends in deforestation
+rates in the years leading up to 2008, which implies β = 0 ∀ τ ∈ [−N ,0). Given that
+τ L
+the Priority List policy was explicitly targeted at municipalities considered “deforestation
+hotspots”, it is plausible that treated municipalities followed different trends by design. In
+this case, the estimates resulting from a standard event-study approach may be downwards
+biased. To deal with this issue, we complement our analysis by estimating a difference-in-
+differences equation with synthetic controls, where each treated municipality is matched to
+a linear combination of untreated municipalities that results in equal pre-treatment trends,
+as per the equation below:
+Defor = δ +γ +β Priority +(cid:15) (2)
+rt t r τ rt rt
+2.2.2 Protected Areas
+UnlikethePriorityListpolicy, theestablishmentofprotectedareas(bothConservationUnits
+and Indigenous Territories) does not necessarily coincide with municipal borders. Hence, we
+split the Brazilian territory in 100, hexagons with 10km width, and classify each of them as
+being or not part of a protected area if at least 50% of it’s surface falls within the demarcated
+boundaries.
+We use the hexagon-level data to estimate a Regression Discontinuity Design around the
+border of the conservation unit. Our baseline specification is:
+ForestArea = δ +γ +f(Dist )+βD +(cid:15) (3)
+rt t m rt rt rt
+Where ForestArea is total forest area in logs observed in hexagon r at year t, δ are
+rt t
+year fixed-effects, γ are municipality fixed effects, f() is a continuous function, Dist t is the
+m r
+11
+
+running variable measuring the distance in km to the border of the nearest conservation unit
+where negative (positive) values mean that the hexagon falls inside (outside) the protected
+area, and D t is a dummy variable indicating whether hexagon r falls within a protected area
+r
+attimet. Thecoefficientofinterestinβ,identifyingtheeffectondeforestationofbeinginside
+the conservation area. We use forest area instead of deforestation as an outcome because
+protected areas are typically established in regions with very low levels of deforestation, so
+the numeric interpretation of the effect on forested area is clearer. We follow Calonico et al.
+(2014) and implement optimal bandwidth selection to choose the maximum distance to the
+demarcated conservation border to be considered.
+Validity – The validity of our RD design relies on the assumption of continuity of the
+outcome variable with respect to the running variable in the absence of treatment. In other
+words,intheabsenceoftheprotectedareas,deforestationdoesnotseeadiscontinuousspatial
+jump at D = 0. To test this assumption, we estimate the same Regression Discontinuity
+rt
+design considering only hexagons located in future protected areas, but before they were
+established.
+SUTVA violation
+As previously discussed, an assumption required for the validity of both reduced-form meth-
+ods discussed above is SUTVA. Consider the treatment D a binary variable equal to 1 if a
+i
+place is subject to a conservation policy, 0 otherwise. Assume that the potential outcome of
+i depends on two factors, its own conservation status, and the price of land, which depends
+(cid:126)
+on the conservation statuses in all regions Y (D ,P(D)). Even if treatment was as good as
+i i
+randomly assigned, but SUTVA did not hold, we would be estimating a combination of the
+desired treatment effect and leakage as show below
+β(cid:98)→E(cid:2)
+Y (1,P(D
+(cid:126)
+)−Y (0,P(D
+(cid:126)
+)
+(cid:3)
+i policy i policy
+=
+E(cid:2)
+Y (1,P(D
+(cid:126)
+)−Y (0,P(D
+(cid:126)
+)
+(cid:3)
+i nopolicy i nopolicy
+(cid:124) (cid:123)(cid:122) (cid:125)
+Pureeffectofpolicyontreated
++E(cid:2)
+Y (1,P(D
+(cid:126)
+)−Y (1,P(D
+(cid:126)
+)
+(cid:3)
+i policy i nopolicy
+(cid:124) (cid:123)(cid:122) (cid:125)
+Leakageontreated
+−E(cid:2)
+Y (0,P(D
+(cid:126)
+)−Y (0,P(D
+(cid:126)
+)
+(cid:3)
+.
+i policy i nopolicy
+(cid:124) (cid:123)(cid:122) (cid:125)
+Leakageonuntreated
+A reduced-form estimate, therefore, would include both the desired ATE on the Treated
+and potential leakage onto untreated areas. Therefore, it requires an assumption about
+12
+
+the nature of the second right-hand side term in the equation above. Typically, the im-
+plicit assumption is that there is no leakage, i.e. Y (d,P ) = Y (d,P ), which results in an
+i 1 i 2
+overestimation of the true treatment effect.
+Even if leakage is explicitly considered, a reduced-form estimate requires assuming some
+arbitraryex-ante structuredeterminingwhichregionsarepronetoleakage,andwhichregions
+can be considered a “pure control”. One common approach is to assume that neighbouring
+areas are prone to leakage, whereas places further away from treatment are not affected in
+any way. Whereas this might be plausible from a purely spatial perspective, it has two
+problems: (i) it still requires some arbitrary distance cut-off that separates areas that are
+susceptible to leakage from areas that are not, and (ii) it ignores other spillover mechanism,
+such as price changes, transportation connections and local amenities that might also be
+important determinants of the location of spillovers.
+2.3 Results
+2.3.1 Priority List
+Figure 5 below shows a visual representation of the event study estimates. Panels (a) and
+(b) show the effect on deforestation, panels (c) and (d) show the effect on decrease in total
+net forest area decrease (including naturally regrown forest), and panels (e) and (f) show
+the effect on total agricultural area. The left panels (a), (c) and (e) consider the entirety of
+Brazil, whereas the right panels (b), (d) and (f) consider only the Brazilian Legal Amazon.
+A few clear patterns emerge: firstly, the β coefficients for τ > 0 are negative and
+τ
+generally significant for deforestation and net forest area decrease, suggesting that the policy
+had an effect in reducing deforestation locally, in line with the findings from Assun¸ca˜o and
+Rocha (2019). Secondly, the β coefficients for τ < 0 are positive and generally significant
+τ
+for deforestation for deforestation and net forest area decrease, suggesting the existence of
+pre-trends: before being added to the priority list, targeted municipalities had a stronger
+evolution in deforestation than non-targeted. Thirdly, there is a very clear upwards trend
+in agricultural area before the implementation of the policy, suggesting that targeted areas
+are those which were increasingly converting forest area into agricultural land prior to being
+included in the priority list.
+The existence of pre-trends violates the validity assumption of the event-study design,
+which means that our estimates for the policy effect are likely biased. To deal with that,
+we conduct a synthetic differences-in-differences estimation. The results are qualitatively in
+line with a visual inspection of the event studies: the point estimates (standard errors) are
+1.09% (0.11) for the policy impact on annual deforestation and -0.11% (0.03) on agricultural
+13
+
+Figure 5: Event-study estimate of the impact of the Priority List policy on various outcomes
+.5
+0
+-.5
+-1
+noitatserofeD
+)goL(
+(Log) Deforestation
+.5
+0
+-.5
+-1
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+noitatserofeD
+)goL(
+(Log) Deforestation
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+1
+0
+-1
+-2
+-3
+esaerceD
+aerA
+tseroF
+)goL(
+(Log) Forest Area Decrease
+1
+0
+-1
+-2
+-7 Year relati0ve to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+esaerceD
+aerA
+tseroF
+)goL(
+(Log) Forest Area Decrease
+-7 Year relati0ve to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+.2
+0
+-.2
+-.4
+-.6
+aerA
+larutlucirgA
+)goL(
+(Log) Agricultural Area
+.1
+0
+-.1
+-.2
+-.3
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+aerA
+larutlucirgA
+)goL(
+(Log) Agricultural Area
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+Note: This figure shows the β estimates from the event-study specified in Equation 1 on three outcomes
+τ
+of interest: deforestation (top row), forest area decrease (middle row - defined as the difference between
+deforestation and forest regrowth), and total area in agriculture (bottom row). The three panels on the left
+considerall5,568munipalitiesinBrazil,whereasthethreepanelsontherightconsideronlythemunicipalities
+fromtheBrazilianLegalAmazon,definedbythegovernmentascomprisingallsevenstatesfromtheNorthern
+region of Brazil, plus the states of Maranhao and Mato Grosso.
+area in the ten years following the policy implementation.
+14
+
+Figure 6: Discontinuity in forested area around borders of protected areas.
+slaudiser
+tseroF
+ni aerA
+)gol(
+fo
+naeM
+3.4
+1.4
+9.3
+7.3
+5.3
+-50 0 50
+Distance to border of PA or IT (km) (<0, inside)
+(a) No controls
+slaudiser
+tseroF
+ni aerA
+)gol(
+fo
+naeM
+01.0
+60.0
+10.0
+40.0-
+80.0-
+-50 0 50
+Distance to border of PA or IT (km) (<0, inside)
+(b) Municipality and Year FE’s
+Note: This figure illustrates the discontinuity in forested area around the borders of protected areas. Each
+dotrepresentsthemeantotallog-forestedareawithinbinsof10kmaroundtheborderofallprotectedareas,
+from 50km inside of 50km outside. The x-axis shows distance to the border, with negative (positive) values
+indicating the area inside (outside) the protected area. The left-hand side panel illustrates the simple raw
+averages. The right-hand panel illustrates averages of the residuals of a regression of log-forested area on
+municipality and year fixed effects.
+2.3.2 Protected Areas
+Figure 6 illustrates our regression discontinuity approach by showing average forest area in
+bins of 10km around the border of a protected area. Panel (a) on the left shows the simple
+RD specification with a quadratic fit and no fixed-effects, whereas panel (b) on the right
+shows the residualised means on municipality and year fixed-effects. Both specification show
+a clear jump in forested area of around 0.2 log-points at the demarcated border, suggesting
+that the establishment of protected areas does succeed in locally protecting forest cover.
+Table 1 show the estimated β from Equation 3 when adding different sets of fixed-effects.
+The resulting estimates show an increase of between 0.14 and 0.24 log-points in the forest
+coverage at the border of a protected area, in line with Figure 6.
+In order to test the validity of our regression discontinuity design, we investigate the
+plausibility of the smoothness assumption by comparing what happens at the border a
+future protected area before it is established. Figure 7 illustrates this comparison. Panels
+(a) and (b) show, respectively, average forest cover around the border of a protected area
+before and after its implementation. Panels (c) and (d) show the exact same comparison, but
+now including year and municipality fixed-effects. Table 2 below shows the corresponding
+estimates for the RD parameter β.
+The raw comparison from Figure 7 panel (a), as well as estimates from Table 2 columns
+(1) and (2) shows that, before the implementation of a protected area, the area with for-
+est coverage evolved smoothly around the border of the future conservation area. When
+15
+
+(Outcome: log-forested area)
+(1) (2) (3)
+Estimated Gap (PA or IT) 0.1430∗∗∗ 0.2396∗∗∗ 0.2378∗∗∗
+[0.0425] [0.0343] [0.0356]
+Quad spline Yes Yes Yes
+Year FE Yes No Yes
+Mun FE No Yes Yes
+Year X mun. FE No No Yes
+R2 0.0691 0.6081 0.6259
+Observations 2.16e+06 2.16e+06 2.16e+06
+Note: *p<0.1, **p<0.05, *** p<0.01.
+Table 1: Regression discontinuity estimates for the effect of Protected Areas on forested area
+5+ years before 10+ years before
+(1) (2) (3) (4)
+Estimated Placebo Gap 0.0387 0.0678 0.2509∗∗∗ 0.0777∗∗
+[0.0620] [0.0450] [0.0583] [0.0336]
+Quad. spline Quad. spline Quad. spline Quad. spline Quad. spline
+Year FE Yes Yes Yes Yes
+Year X mun. FE No Yes No Yes
+Years before 10+ 10+ 5+ 5+
+R2 0.0801 0.6756 0.0513 0.6742
+Observations 3.22e+05 3.22e+05 2.82e+05 2.82e+05
+Note: *p<0.1, **p<0.05, *** p<0.01.
+Table 2: Placebo Regression Discontinuity estimates around the border of Protected Areas
+before their establishment
+16
+
+Figure 7: Discontinuities in forested area around borders of Protected Areas, before and
+after the introduction of the policy
+slaudiser
+tserof_aera_nl
+fo naeM
+4.4
+1.4
+9.3
+6.3
+3.3
+-50 0 50
+Distance to border of PA or IT (km) (<0, inside)
+mindist_terr_dummy=0
+slaudiser
+tserof_aera_nl
+fo naeM
+4.4
+1.4
+9.3
+6.3
+3.3
+-50 0 50
+Distance to border of PA or IT (km) (<0, inside)
+mindist_terr_dummy=1
+(a) No controls
+slaudiser
+tserof_aera_nl
+fo naeM
+01.0
+50.0
+10.0
+40.0-
+90.0-
+-50 0 50
+Distance to border of PA or IT (km) (<0, inside)
+mindist_terr_dummy=0
+slaudiser
+tserof_aera_nl
+fo naeM
+01.0
+50.0
+10.0
+40.0-
+90.0-
+-50 0 50
+Distance to border of PA or IT (km) (<0, inside)
+mindist_terr_dummy=1
+(b) Municipality and Year FE’s
+Note: This figure compares the discontinuity in forested area around the borders of protected areas, before
+and after the implementation of the policy. Each dot represents the mean total log-forested area within
+bins of 10km around the border of all protected areas, from 50km inside of 50km outside. The x-axis shows
+distancetotheborder,withnegative(positive)valuesindicatingtheareainside(outside)theprotectedarea.
+Thetwoleft-handsidepanelsillustratesthesimplerawaverages,pre-andpost-policy. Theright-handpanel
+illustratesaveragesoftheresidualsofaregressionoflog-forestedareaonmunicipalityandyearfixedeffects,
+pre- and post-policy.
+controlling for year and municipality fixed effects, we see evidence of some prior disconti-
+nuity (Figure 7 panel (c)), but significantly smaller than the discontinuity after the policy
+implementation.
+A discontinuity around the border of a future protected area before its implementation
+can be due to a number of factors, for example: (i) lengthy legal disputes over the demarca-
+tion of new protected areas, during which deforestation decreased before the final settlement
+and establishment 7 or (ii) historical occupation of the area by indigenous people whose
+livelihood depend on the preservation of the forest before legal demarcation of the protected
+territory.
+Effects on other outcomes Surprisingly, municipalities that get added to the priority
+list see an increase in their agricultural value added as measured in (cite dataset of Contas
+Regionais). This seems to be primarily due to three phenomena: (1) A shift away from
+pasture towards crops (especially soy and maize, and (2) an increase in the number of cattle
+heads per area in pasture.
+7This is particularly likely in the case of Indigenous Territories. Their establishment follows a judicial
+processthatincludesseveralstages: study, delimitation, declaration, homologation, andregularization, that
+can take decades
+17
+
+Figure 8: Effects on agricultural profits and crops vs. pasture land use
+1
+.5
+0
+-.5
+erutlucirgA
+ni
+deddA
+eulaV
+)goL(
+(Log) Value Added in Agriculture
+.6
+.4
+.2
+0
+-.2
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+erutlucirgA
+ni
+deddA
+eulaV
+)goL(
+(Log) Value Added in Agriculture
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+.05
+0
+-.05
+-.1
+-.15
+aerA
+larutlucirgA/erutsaP
+erahS
+)goL(
+(Log) Share Pasture/Agricultural Area
+.05
+0
+-.05
+-.1
+-.15
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+aerA
+larutlucirgA/erutsaP
+erahS
+)goL(
+(Log) Share Pasture/Agricultural Area
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+.4
+.2
+0
+-.2
+-.4
+ah
+rep
+sdaeh
+elttaC
+)goL(
+(Log) Cattle heads per ha
+.4
+.2
+0
+-.2
+-.4
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+ah
+rep
+sdaeh
+elttaC
+)goL(
+(Log) Cattle heads per ha
+-7 Year relativ0e to Blacklist entry year 10
+(<0 Leads, >0 Lags)
+Note: Thisfigureshowstheβ estimatesfromtheevent-studyspecifiedinEquation1onthreeoutcomesof
+τ
+interest: log-total value added in agriculture (top row), log of the share of total agricultural area dedicated
+to pasture (middle row), and log of total cattle heads per hectare (bottom row). The three panels on
+the left consider all 5,568 munipalities in Brazil, whereas the three panels on the right consider only the
+municipalities from the Brazilian Legal Amazon, defined by the government as comprising all seven states
+from the Northern region of Brazil, plus the states of Maranhao and Mato Grosso.
+18
+
+3 Deforestation in Spatial Equilibrium
+We build a spatial multi-sector general equilibrium model that explicitly captures the key
+features of the spatial distribution of agriculture, the economic forces at play in the market
+for land, and frictions to movement of goods and labour via internal trade and migration.
+Stylised facts Our theoretical framework is motivated by observed spatial patterns in
+deforestation and agriculture across Brazil, as illustrated by Figures 9 and 10. From Figure
+9, we can see that areas with more deforestation have lower GDP per capita8, and lower
+market access9. From Figure 10, we can see that areas with higher deforestation have lower
+agriculture productivity10 and higher share of agricultural area dedicated to pasture, which
+is typically much more land intensive than crop growing.
+Overall, deforestation seems to happen in poorer and more remote areas, where land is
+dedicatedtoactivitiesthataremoreland-intensiveandlessproductive. Therearedifferences
+in how costly it is to deforest land, as well as stark differences in agricultural productivities11.
+Given the large difference in local economic development, Brazil’s continental dimensions
+and large heterogeneities in transportation infra-structure, goods and workers face non-
+negligiblemobilitycosts. Moreover, thedemandforagriculturallandisnotperfectlyinelastic
+as farmers can adjust land intensity and consumers can choose between different goods
+depending on their relative prices.
+Mechanisms for leakage In our framework, a local anti-deforestation policy is inter-
+preted as an exogenous shock to the local supply of agicultural land. To quantify spatial
+leakage, we consider two key mechanism through which a negative supply shock generates
+increased deforestation elsewhere. The first mechanism operates through the market for
+agricultural goods. A negative shock to the local supply of agricultural land decreases the
+supply of agricultural goods. The extent to which this avoided deforestation leaks elsewhere
+depends on the extent to which goods are substitutable across space and can be produced
+by clearing forest elsewhere. The second mechanism operates through the market for labour.
+A local reduction in deforestation coming from a shock decreases the demand for agricul-
+8Deforestation in Brazil is strikingly concentrated in space, as illustrated in Figure 1. Out of the 558
+micro-regions that make up Brazil, the top 20 account for almost 40% of the total yearly deforestation.
+Regions with high levels of deforestation are very different ecologically and economically to the rest of
+Brazil.
+9Defined by the first order approximation in (Donaldson and Hornbeck, 2016) MA = (cid:80) (τo)σ−1L
+d o d o
+where τo is the ice-berg trade cost between o and d as estimated in section 6.5
+d
+10Defined as agriculture revenue per hectare
+11Thisistruefortheagriculturalsectorasawhole,aswellasforspatialdifferencesincultivationofspecific
+crops. It is also true both when measuring productivity as revenue per hectare and revenue per worker.
+19
+
+Figure 9: Correlates of average yearly deforestation rate
+atipac
+rep
+PDG
+)gol(
+8.2
+6.2
+4.2
+2.2
+2
+GDP per capita
+-2 0 2 4 6 8
+(log) Yearly deforestation (sq km)
+(a) log GDP per capita
+sseccA
+tekraM
+)gol(
+5.31
+31
+5.21
+21
+5.11
+Market Access
+-2 0 2 4 6 8
+(log) Yearly deforestation (sq km)
+(b) Market access
+Note: This figure illustrates the correlation between average yearly deforestation rate and economic char-
+acteristics: log-GDP per capita (left panel) and market access (rigth panel - defined as). The dots represent
+the mean of the y-axis variable for 50 bins of log-yearly deforestation.
+Figure 10: Correlates of average yearly deforestation rate
+aerA
+larutlucirgA/euneveR
+irgA
+)gol(
+4
+5.3
+3
+5.2
+2
+5.1
+Revenue/Area
+-2 0 2 4 6 8
+(log) Yearly deforestation (sq km)
+(a) Agricultural productivity
+erutsap
+ni aera
+.ga
+fo
+erahS
+59.
+9.
+58.
+8.
+57.
+7.
+Share in pasture
+-2 0 2 4 6 8
+(log) Yearly deforestation (sq km)
+(b) Land intensity
+Note: This figure illustrates the correlation between average yearly deforestation rate and economic char-
+acteristics: agricultural productivity (left panel - defined as the ration between agricultural revenue and
+agricultural area), and share of agricultural land dedicated to pasture (rigth panel). The dots represent the
+mean of the y-axis variable for 50 bins of log-yearly deforestation.
+tural labour, changing workers’ migration incentives. Inflows of workers to regions without
+anti-deforestation policies will increase the demand for agricultural land, raising incentives
+to deforest12.
+Tocapturethesechannels, ourmodelconsidersdeforestationasanintermediateeconomic
+12A useful benchmark is a flat economy where all land is made equal, workers and goods can move freely,
+and demand for agricultural land is perfectly inelastic. In this case, leakage would be 100%: banning
+deforestation entirely in one region would have no global effect, as it would be perfectly leakeg to other
+regions - the demand for agricultural goods would be the sole determinant of the amount of agricultural
+land, and hence of the level of deforestation. Our model departs from all of those assumptions in ways that
+are consistent with the data.
+20
+
+sector that supplies land as a factor of production for agriculture. Regions differ in the
+sectoral productivities for agricultural and non-agricultural production, as well as in their
+productivity in producing land via deforestation13.
+Model features We conceptualise deforestation as an investment in agricultural land that
+accumulates over time. Brazil is modelled as a closed economy with domestic trade and mi-
+gration14. The model considers Brazil’s 558 microrregions15 indexed by r, which differ on
+their sectoral productivities, land endowments, and amenities. The economy is composed
+of K+1 sectors: K agricultural commodities that use land and labour as inputs and have
+different labour shares, and one non-agricultural sector that uses only labour. Addition-
+ally, we consider deforestation as a sector that uses a composite investment good in order
+to produce agricultural land for the K agricultural sectors. There is trade between mu-
+nicipalities subject to iceberg costs. Consumer preferences are non-homothetic, represented
+by the Price-Independent Generalized Linear preference formulation (Boppart, 2014). Final
+goods in each sector are a composite of regional varieties aggregated with constant elasticity
+of substitution σ and a final agricultural good is a composite of the various agricultural
+commodities aggregated with constant elasticity of substitution θ.
+The model features a sequence of static spatial equilibria linked by the laws of motion of
+land and labour. The law of motion of land is determined by deforestation and the law of
+motion of labour is determined by migration and population growth.
+Table 3 summarises the estimation of the various structural parameters, described in
+detail next.
+3.1 Deforestation and the accumulation of agricultural land
+Initially, each region r is endowed with L workers, TA units of agricultural land area, and
+r0 r0
+TN units of terrestrial natural ecosystems which can be converted into agricultural land.
+r0
+For most of this section, we omit the time subscript and treat the equilibrium as static.
+However, since agricultural land accumulates, it is a time-varying quantity. Assuming a fixed
+forest regrowth rate ρ, at letting TD be the level of deforestation, agricultural land evolves
+rt
+13Deforestation productivity can be thought of as region-specific factors that govern how suitable a par-
+ticular region is for forest cutting. It can include natural factors (forest density, type of vegetation, altitute,
+weather patterns, geographical features), infra-structure and accessibility, the political environment and the
+level of enforcement of anti-deforestation laws.)
+14See the appendix for a discussion of how international trade might change our results
+15This is typically considered the aggregation level that is most closely associated with a local market, see
+for example Dix-Carneiro and Kovak (2017)
+21
+
+Parameter Value Source/Method
+Preference Parameters
+β Discount rate 0.9
+φ Ag. share in price index 0.1 Eckert and Peters (2022)
+ν PIGL Preference parameter 0.5 Eckert and Peters (2022)
+η Non-homotheticity 0.506 Expenditure Survey Data
+(2017/18)
+Elasticities of substitution
+σ Between origins 9 Eckert and Peters (2022)
+θ Between ag. goods 2 Costinot et al. (2016),
+Dominguez-Iino (2023)
+Production Function
+{α } Land share in ag. activities (0.36;0.54;0.71) From 2006 ag. census
+k k
+χ ,χ ,ι Individual sectoral produc- (2;1.6;12.8) Alvarez (2020)
+A NA
+tivity shocks distribution
+δ Deforestationreturnstoscale 0.5 Two-wayfixedeffectofdefor-
+estation on land prices
+ψ Elasticity of deforestation 0.32 Regression derived from
+TFP to natural area left steady-state deforestation
+ρ Forest regrowth rate 0.003 Observed reforestation rates
+Trade and Migration parameters
+{µo} Bilateral migration utilities residuals Migration flows 2005-2010
+d o,d
+(cid:15) Dispersion of idiosyncratic 0.633 Migration flows and incomes
+tastes from 2010 census
+κ Trade costs distance elastic- 0.11 State trade flows in 1999 and
+ity 2017
+Table 3: Summary of estimation of model parameters
+according to
+TA = TA(1−ρ)+TD.
+rt+1 rt rt
+The following simple agricultural land market graph helps visualise how land evolves over
+time. In this simple graph land demand is fixed, there is only one region, and the is no forest
+regrowth16.
+The market for deforestation. Deforestation is modelled as a costly investment in the
+production of agricultural land, which is a factor of production for the agricultural sector.
+16Figure 16 in the appendix illustrate the case in with there is forest regrowth and the short-run and
+long-run land market equilibrium with a forest regrowth ρ and the transition dynamics.
+22
+
+Figure 11: The market for agricultural land over time
+Note: This graph illustrates supply and demand curves for agricultural land. The blue curve represents a
+demand curve coming from the agricultural sector. The red curves represent the supply coming from the
+deforestation sector in consecutive time periods. Under the assumption of no regeneration, the equilibrium
+quantitiy of one period is the horizontla intercept of the supply curve in the next period.
+We can think of deforesters as atomistic agents operating in a perfectly competitive market
+where they access forested land, pay the fixed cost of clearing it, and sell it at the price
+of agricultural land. We model the aggregate deforestation production function so that it
+has decreasing returns to scale. This motivated by the fact that, within each time period,
+the forest that is closer to the edge is cheaper to access and clear. This means that each
+additionaldollarspentdeforestingislessproductive. Theaggregatedeforestationproduction
+function is such that if an amount ID of the final good, bought at price p , is invested in
+r r
+deforestation, it delivers TD units of agricultural land according to
+r
+TD = ZD(ID)δ, (4)
+r r r
+where ZD is the region-specific “deforestation productivity”, and δ ∈ (0,1) governs the
+r
+returnstoscaleoftheproductionfunction. Thereturnsofeachsquarekilometreofdeforested
+land equal the value of agricultural land in a given region, q . We can interpret ZD and δ
+r r
+as the productivity parameters that dictate the aggregate (convex) costs of deforesting,
+CD(TD,p ;ZD,δ) = p (ZD)−1(TD)1.
+r r r r r r δ r δ
+Our model of the market for deforestation has two defining features. First, land in
+23
+
+natural ecosystems is open access, which means that the future value of the forest is fully
+discounted17. Second, thereisfreeentryofdeforesters. Accordingly, theyenterthedeforesta-
+tion market as long as there are non-negative marginal profits, so that the equilibrium level
+of deforestation is when marginal costs, MCD = ∂CD(TD,p ;ZD,δ)/∂TD, equal marginal
+r r r r r r
+revenues, MRD = q ,
+r r
+(cid:16)δq (cid:17) δ
+TD∗ = (ZD)1− 1 δ r 1−δ . (5)
+r r p
+(cid:124) (cid:123)(cid:122) (cid:125) r
+LocalFactors (cid:124) (cid:123)(cid:122) (cid:125)
+EquilibriumEffects
+(cid:0) (cid:1)
+Supply side of deforestation. The curve TD∗ q /p is the region-specific deforestation
+r r r
+supply curve: how deforestation responds to the local relative price of land. It depends on
+two parameters δ, the returns to scale of deforestation in one year, and ZD, the location-
+r
+specific deforestation productivity.
+The returns to scale of deforestation δ is taken to be the same for all of Brazil, and it
+governs the supply elasticity of deforestation to real land prices, which equals δ . That
+1−δ
+is, for a 1% increase in the value of agricultural land relative to that region’s price index,
+deforestation goes up by δ %. See section 6.2 in the appendix for the estimation of δ.
+1−δ
+ZD is the source of regional heterogeneity in deforestation costs. It reflects differences in
+r
+characteristics such as, (i) local environmental conditions that influence how difficult it is to
+deforest, such as rainfall and temperature, (ii) the level of enforcement of anti-deforestation
+policies, (iii) revenues obtained from the act of deforestation itself, for example through the
+sale of wood, and (iv) the option value of keeping land as forest. While most of these things
+are difficult to observe and quantify, we correlate them to the calibrated ZD’s and find that
+r
+the current area of unprotected forest in a region, TF is a strong predictor of ZD. A log-log
+r r
+modeldoesaremarkablygoodjobatdescribingtheirempiricalrelationshipincross-sectional
+data. Therefore, we let
+ZD = ZD(TF)ψ.
+r r r
+It is calibrated so that it perfectly explains observed differences in levels of deforesta-
+tion in regions that cannot be explained by agricultural rents and market access, which are
+reflected by q and p respectively. In turn, prices are calibrated by inverting a spatial equi-
+r r
+librium model in each time period, as described in 3.6. Intuitively, we estimate the demand
+for agricultural land from farmers, which in turn depends on the demand for agricultural
+17Around 50% of deforestation in the Amazon over the past few years has happened in untitled public
+lands. From the remaining 50%, about half has happened in rural settlements where land was and half in
+private properties. Although the amount of deforestation in private properties is not negligible, about 25%
+of the total, rights over forested land are insecure even within private property. This is due to it historically
+being often regarded as “unproductive” and thus subject to the ownership claims of squatters. See (Alston
+et al., 1999) for an in depth description of property rights in the Brazilian Amazon frontier.
+24
+
+products from consumers, and then, using the observed data on deforestation, we calculate
+the productivity of deforestation as a residual that rationalises their spatial distribution. To
+be more concrete, for a given level of observed deforestation, a region with lower market
+access and lower agricultural productivity will have a higher calibrated ZD.
+r
+3.2 Technology: local demand for workers and land
+In order to estimate the demand for land in each region, we first need to impose some struc-
+ture on the firms operating in each region. This will determine how they demand different
+factors of production, land and workers, given productivities and prices. Productivities will
+be treated as exogenous fundamentals to be backed out from the model and prices will
+depend on the full (static) equilibrium which takes into account consumer preferences and
+trade costs.
+There are four broad sectors: three agricultural sectors with varying land intensities,
+and non-agriculture which uses no land for production. Regions produce a differentiated
+variety of each of these four goods as in Armington (1969) that consumers combine with
+Constant Elasticity of Substitution as in Anderson (1979). The market in each of the four
+sectors is composed of perfectly competitive firms with constant returns to scale. The local
+non-agricultural goods are a product of only labour with regional productivity ZNA, so that
+r
+YNA = ZNALNA. The agricultural goods, indexed by k, are a Cobb-Douglas function of land
+r r r
+and labour with constant returns to scale and regional productivities ZAk, and a share of
+r
+land equal to α , so that
+k
+YAk = ZAk(LAk)1−α k(TAk)α k.
+r r r r
+Goods of sector s are produced to be sold at origin prices pso.
+In a competitive equilibrium, the rental rate of agricultural land v equals the marginal
+r
+product of agricultural land and the wages in each sector equal the marginal product of
+labour in each sector. Assuming simple adaptive expectations (i.e. agents assume the future
+rental rate of land equals today’s) and a discount rate of β, land should be priced at its
+expected present value,
+1
+q = v .
+r r
+1−β(1−ρ)
+Our data allows us to get agricultural revenues (see section 3.6) and use them to get v as
+r
+(cid:88) pAkrYAk
+v = α r .
+r k TAk
+k r
+25
+
+Wage gaps and occupational choice. In order to allow for a gap between agricultural
+and non-agricultural wages, as we consistently find in the data, we rely on a model like the
+one introduced by Lagakos and Waugh (2013) and applied to the context of Brazil in Alvarez
+(2020). In this model, individuals draw idiosyncratic productivities for agriculture and non
+agriculture from a joint distribution F(zA,zNA) and given their observed productivities for
+i i
+each sector18. Workers choose sector in order to maximise their wage income, so that they
+work in non-agriculture if and only if zNAwNA ≥ zAwA. Firms set wages per efficiency unit
+ri r ir r
+(wA, wNA) that equal the marginal product of a worker with unit productivity in that sector.
+r r
+By Ls we refer to the total labour efficiency units in sector s ∈ {A,NA} in region r, which is
+r
+equal to the number of workers multiplied by the expected productivity of those who choose
+to work in sector s. Since the idiosyncratic productivities in each sector are not independent
+draws, there will be income gaps, the average wage income (yLA,yLNA) will not be equalised
+r r
+across sectors.
+Estimating α . To estimate α for each agricultural commodity k, we use data from the
+k k
+2006 agricultural census on area planted in each type of agriucltural activity TAk, workers
+r
+in type of agricultural activity NAk, labour incomes per capita in agriculture yLA, and land
+r r
+value q .
+r
+The Cobb-Douglas functional form of the agricultural production function and the zero-
+profit condition together imply that
+α (cid:80)R v TAk
+k = r=1 r r .
+1−α (cid:80)R yLANAk
+k r=1 r r
+Doing this we find that the land share for pastures, temporary crops, and perennials vary
+significantly and they are, respectively: 0.71, 0.54, and 0.36. These differences make it so
+that there is greater substitutability between land and labour in agricultural production as
+a whole. This has important implications for leakage. Consider a region where the supply
+of agricultural workers increases. This could be due to more migration from regions where
+conservation policies have been enacted. Higher supply of agricultural workers increases the
+demand for agricultural land. In a model with multiple agricultural sectors, however, it
+might also shift land use away from very land intensive activities, for example cattle ranch-
+ing, towards more labour intensive ones, such as perennial crops. The extent to which this
+happens in equilibrium would depend mainly on consumers willingness to substitute con-
+sumption between goods and on the slope of the supply of deforestation. If deforestation
+18The joint distribution is taken to be, as in Alvarez (2020), a Frank copula or two Frechet distributions
+with shape parameter χA and χNA and correlation ι
+26
+
+is very cheap and consumers very reluctant to substitute towards less land-intensive goods,
+cattle-ranching will remain preferable and the inflow of workers will lead to much defor-
+estation. By contrast, in a region where deforestation is very costly and consumers readily
+substitute beef with soy, the increased supply of labour will mean farmers may opt to convert
+pastures to soy fields and demand very little deforestation.
+3.3 Preferences: demand for goods
+Having characterised the factors that determine the demand for agricultural land given the
+prices of agricultural goods, we now turn our attention to the preferences that governs the
+demand side of agricultural goods markets.
+Non-homothetic preferences between agricultural and non-agricultural goods.
+ConsumershavePIGLpreferencesasinBoppart(2014)overagriculturalandnonagricultural
+goods such that the expenditure share in agricultural goods of a consumer with expenditure
+e equals
+(cid:32) (cid:33) (cid:32) (cid:33)−η
+pA e
+ϑA(e,p(cid:126)) = φ+ν .
+pNA p
+(cid:124) (cid:123)(cid:122) (cid:125) (cid:124) (cid:123)(cid:122) (cid:125)
+relativepriceeffectIncomeeffect
+Where pA and pNA are prices of agricultural and non-agricultural sector, p is the price of the
+composite consumption good p ≡ (pA)φ(pNA)1−φ, e is total expenditure, and η, γ, and ν are
+exogenous parameters.
+CES aggregation between goods. The agricultural good is, in turn, a CES aggregate
+of agricultural goods k ∈ {beef, temporary crops, permanent crops} with elasticity of sub-
+(cid:16) (cid:17) 1
+stitution θ, so that the agricultural price index pA is equal to pA ≡ (cid:80)K (pAk)1−θ 1−θ and
+k=1
+(cid:16) (cid:17)1−θ
+the share of agricultural good k in the overall agricultural expenditure is given by
+pAk
+.
+pA
+CES aggregation between origins. Each of the 3+1 final goods (the three agricultural
+goods and the non-agricultural good) is, in turn, a CES composite of differentiated regional
+varieties produced in region r, with a constant elasticity of substitution σ. Trade is taken
+to have symmetric iceberg trade costs τo ≥ 1 that do not vary by good so that a consumer
+d
+from region d pays the origin price of a good from region o scaled by the bilateral iceberg
+trade cost. Thus, the share of goods g (which can be beef, temporary crops, perennials, or
+27
+
+non-agricultural goods) consumed in region d, that is produced in region o, is given by19
+(τo)1−σ(pgr)1−σ
+πgo = d . (6)
+d (cid:80)R (τr)1−σ(pgr)1−σ
+r=1 d
+We take σ from Eckert and Peters (2022) to be 9.20 Having a value for σ, we use inter-
+state trade flow data from 1999 and 2017 to estimate a gravity equation derived from 6
+along with the assumption that the iceberg trade costs depend on distance according to
+τo = (distance+1)κ. See section 6.5 in the appendix to see this estimation.
+d
+3.4 Market clearing: closing the model
+In order to close the model, we equalise the revenues from producers of good g from origin o
+to the sum of the expenditures of consumers in that good from across all regions d of Brazil.
+These expenditures equal the trade share of d to o times the total consumption of region d
+in good g,
+R
+(cid:88)
+pgoYg = πgoXg. (7)
+o d d
+d=1
+Aggregate consumption in a region. The overall expenditure of a region in each good
+can be calculated in three steps. First, we estimate the aggregate share of consumer expen-
+diture in agriculture ϑA, which will depend on the PIGL preference parameters, the relative
+r
+priceofagriculturalgoods, theaggregateexpenditure, andthedistributionofincomesasdic-
+tated by wages and the joint distribution of productivity shocks21. Then, given the fact that
+the investment good is a Cobb-Douglas aggregate of the agricultural and non-agricultural
+goods with share φ, the total agricultural and non-agricultural expenditures equal
+XA = ϑAE +φp ID, XNA = (1−ϑA)E +(1−φ)p ID (8)
+r r r r r r r r r r
+19To differentiate between origin and destination prices we shall indicate the region of origin with a
+superscript and the region of destination with a subscript. Then the farm-gate price of temporary crops
+fromoispA,temp,o,thepriceoftemporarycropsfromofacedbyconsumersindispA,temp,o =pA,temp,oτo,and
+d d
+the consumer price index of temporary crops in destination d equals pA,temp = (cid:80)R (τo)1−σ(pA,temp,o)1−σ.
+d o=1 d
+20Given that our context is closer to Domiguez-Iino (2021), we will also calibrate the model and simulate
+counterfactuals with values up to σ = 15, given his estimated elasticity of substitution between “counties”
+in Brazil and Argentina of around 13.
+21Given the non-homothetic nature of preferences for agricultural goods and the fact that there is within-
+region inequality due to the productivity shocks introduced to generate a wage gap, the formula for the
+region-wideagriculturalshareisnotveryconciseandcanbefoundintheappendixinsection6.1. Intuitively,
+in the face of higher inequality, the share of expenditure in agriculture will be lower because a higher share
+of earnings will accrue to those who spend proportionally less in agriculture.
+28
+
+where E is the total consumer expenditure in a region and ID the total investment in
+r r
+deforestation. Because of the CES preferences between agricultural goods, the expenditure
+(cid:16) (cid:17)1−θ
+in agricultural good k equals XAk = XA pA r k . Finally, the total consumer expenditure
+r r pA
+r
+equals the total income, labour income plus land rental rate payments, net of deforestation
+investments,
+E = yLL +v TA −p ID.
+r r r r r r r
+where yL is the average wage income in region r across all worker, equal to sAyLA + (1 −
+r r r
+sA)yLNA.
+r r
+Equilibrium definition. Consider the economy described above. Let the initial agri-
+cultural land area in each region {TA} , the initial level of area under terrestrial natural
+r0 r
+ecosystems {TN} , and the distribution of workers across space {N } be given as exoge-
+r0 r r r
+nous. A competitive equilibrium is a set of prices {ps} , wages {ws} , land rental rates
+r r,s r r
+{v } , occupational choices {Ns} , regional deforestation levels {TD} , and regional expen-
+r r r r,s r r
+diture shares {ϑA} such that:
+r r
+1. consumers’ choices maximize utility (equation (12));
+2. the demand for regional varieties follows equations (6);
+3. firms’ factor demands maximize firms’ profits;
+4. marginal product of labour is equalised across sectors
+5. local markets clear and there is trade balance (7).
+3.5 Migration
+As in Eckert and Peters (2022), individuals born in a location of origin o can choose to live
+in destination d according to the migration costs µ , the utility at the destination V(e ,p ),
+od d d
+the famenities at destination d, B , and an idiosyncratic shock ν (i), drawn from a Frechet
+d d
+distribution with parameter (cid:15). The origin-destination specific migration utility U is given
+od
+by:
+U (i) = V(e ,p )B µ ν (i).
+od d d d od d
+29
+
+Therefore, from the Frechet nature of the shock, the share of people who move from o to d
+is given by the following expression22
+(V(e ,p )µ B )(cid:15)
+d d od d
+ρ = .
+od
+R
+(cid:88)
+(V(e ,p )µ B )(cid:15)
+r r or r
+r=1
+Hence the law of motion of population will be given by the following equations
+R
+(cid:88)
+N = ρ N , N = gN N
+dt rd ot ot ot−1 ot−1
+o=1
+where gN is the growth rate of population in origin region o at time t.
+ot−1
+3.6 Data and model inversion
+Data for the empirical analysis of our study comes from a variety of publicly available
+sources for Brazil, comprising information on land use, agricultural activity, local economies,
+internal trade, migration, and household expenditure. All the sources listed here are publicly
+available.
+Model inversion. Inordertoinvertthemodelandbackoutthetotalfactorproductivities
+of each sector and the deforestation productivity (ZAk, ZNA, ZD) we assume that each year
+rt rt rt
+in the period 2003-2019 the economy is in equilibrium as described above and we use data on
+some observed features. First, we use data on the endowments that are treated as exogenous
+within each equilibrium. Namely, population, already agricultural land, and land in natural
+ecosystems. Second, we use data on the following equilibrium quantities in each region for
+that year: (i) the total amount of deforestation, TD, (ii) the agricultural labour share (sA),
+rt rt
+(iii) the share of agricultural land in each land use (TAk), and (iv) agricultural revenues
+rt
+(pAkrYAk).
+t rt
+Land use. Data on land use comes from the MapBiomas project, a multi-institution col-
+laborative initiative that processes satellite images into publicly available datasets on land
+use for the Brazilian territory. The dataset we use contains pixel-level (30m resolution) of
+land use from Brazil between 1985 and 2020, which we aggregate to the micro-region level
+for the model calibration. It contains many land use categories which we aggregate into 5
+22Note that this includes ρ , i.e. the share of people from region o who choose to stay in region o.
+oo
+Typically, this will be a larger share than ρ for o(cid:54)=d
+od
+30
+
+categories: natural ecosystems (comprised mostly of forests and to a lesser extent natural
+savannahs), pastures, temporary crops, perennials, and other (mostly urban, mining, water
+bodies, ice, and missing data).
+Agricultural data. We need agricultural data for two main purposes. First, the estima-
+tion of some parameters of the model. Specifically α and δ. Second, for the construction of
+k
+the micro-region level agricultural revenue data that is used to invert the model.
+In the estimation of α , we rely on the 2006 Agricultural Census, a census of the universe
+k
+of farming establishments. Using data on land prices, land in each agricultural activity,
+labour in each agricultural activity, and agricultural wages, we estimate how the ration of
+land income over rental income varies between pastures for cattle grazing, temporary crops,
+and perennials. For the estimation of δ, we rely on a fixed-effects log-log regression of
+deforestation rates on yearly municipality-level estimates of the land rental rates. Given the
+absence of panel on agricultural rental rates, we construct them in a way that is consistent
+with our model from our yearly estimates of agricultural revenues.
+The estimation of the yearly agricultural revenues is done in two different ways. The Mu-
+nicipal Survey on Agricultural Production (PAM), provides yearly estimates of the revenues
+of 71 different crops, which we aggregate into two categories: temporary and perennial, in
+a way that is consistent with their classification in the agricultural census. These estimates
+yield very similar values to those in the agricultural census in 2006. Instead of relying on
+the PAM alone, we construct an region-level index of the PAM revenues that equals one in
+2006 and multiply them by the 2006 Agricultural Census data.23
+NodataonyearlyrevenuesfromcattleranchingatthemunicipalitylevelexistsforBrazil,
+so we leverage data on other sources that cover the dimensions governing yearly revenue
+changes: the number of cows, the weight of each cow, and the price of beef. We obtain
+yearly estimates of the number of cows in each municipality from the Municipal Survey on
+Livestock Production (PPM). We obtain data on yearly national variation in the price of
+beef in each year from a daily time series curated by the School of Agricultural Studies
+of the University of Sa˜o Paulo24. We obtain yearly state-level data on the average weight
+of slaughtered cows from the national statistical office’s Quarerly Survey of Salughtered
+Animals. Given the average age of a cow at the time of slaughter is 3 years, we estimate
+yearly cattle revenues by multiplying the 3-year lagged change in weight, number of cows
+and price of beef by the 2006 revenue data from the Agricultural Census25.
+23R (cid:92) eveue AK =RevenueAK,AgCensus×
+RevenueA
+rt
+K,PAM
+rt r2006 RevenueAK,PAM
+r2006
+24Available for public consultation at: https://www.cepea.esalq.usp.br/br/indicador/boi-gordo.aspx
+25This extrapolation over time requires the assumption that the yearly changes in the price of beef can be
+31
+
+Labour and Migration. Data on micro-region level labour markets comes from 10%
+samples of the 2000 and 2010 National Census, which is representative at the municipal level
+(smaller than the micro-region), made publicly available by IBGE. For each municipality,
+we compute the share of individuals who report working in the agricultural sector, as well
+as the average municipal earnings for agricultural and non-agricultural activities. We get
+the number of workers in agricultural and non agriculture for both of these years and then,
+for each micro-region, we linearly interpolate and extrapolate these values to approximate
+their time series from 2003 to 2019. Given the static nature of the equilibrium concept, it
+is not too important to accurately measure relative yearly changes in population and labour
+shares, but to get the levels right. Therefore, we think that the errors introduced by this
+approximation are unlikely to change our main results. We also use the 2010 census to
+obtain information on internal migration, as respondents are also asked to report in which
+municipality they lived 5 years prior to data collection.
+Trade. Data on interstate trade flows comes from (de Vasconcelos, 2001), as cited by
+Morten and Oliveira (2018). We use trade flows in 1999 and 2017 and get similar estimates
+for the distance elasticity of trade flows, which is what we use to calculate iceberg costs.
+Preferences. Finally, we use the 2017-2018 Household Expenditure Survey (POF) to es-
+timate the preference parameter that governs the non-homotheticity in individual utility.
+We construct household expenditure shares on food and non-food items, as a proxy for
+consumption of agricultural goods.
+3.7 Calibrated productivities
+In this theoretical framework, a high level of deforestation is rationalised by either the
+demand for agricultural land or the supply of deforestation. The supply-side regional fun-
+damental governing deforestation is ZD. The demand for agricultural land is given, in turn,
+r
+by the equilibrium in the market for agricultural goods. From the agricultural goods supply
+side, we expect to see more deforestation in regions which have higher agricultural TFPs,
+especially for the land-intensive agricultural activities (i.e. cattle grazing). From the de-
+mand side, the regions that have higher market access should experience greater demand for
+agricultural goods, and hence for agricultural land, as discussed in Donaldson and Hornbeck
+(2016). In summary, there are three sets regional fundamentals driving the spatial allocation
+of deforestation, each of which have different implications for the level of leakage: (1) the
+considered as constant across all municipalities, and that yearly changes on average slaughtered weight can
+be considered constant across all municipalities within a given state.
+32
+
+deforestation TFP, (2) the TFP of agricultural activities, especially the most land-intensive
+ones, and (3) market access. Table 4 presentes the estimated coefficients of a simple re-
+gression of the baseline levels of (log) deforestation on the (log) productivities of various
+sectors and the log of a measure of market access approximated by MA ≈ (cid:80) (τr)σ−1L
+r d d d
+as in Donaldson and Hornbeck (2016). Column 1 shows that deforestation is well explained
+(R2 = 0.923) by the combination of those factors but that the largest share of the explana-
+tory power comes from the TFP of deforestation, the immobile factor that we are shocking
+through the counterfactual policy simulation.
+Outcome: log-observed annual deforestation
+(1) (2) (3) (4)
+(log) temp. crops TFP -0.54∗∗∗ -0.21∗∗∗ 0.10∗∗∗
+[0.04] [0.03] [0.00]
+(log) perm. crops TFP -0.39∗∗∗ 0.03 -0.00
+[0.03] [0.03] [0.00]
+(log) pasture TFP -0.16∗∗∗ -0.61∗∗∗ 1.14∗∗∗
+[0.05] [0.04] [0.01]
+(log) non-ag TFP 1.08∗∗∗ 0.67∗∗∗ -0.38∗∗∗
+[0.03] [0.03] [0.00]
+(log) Market acces -1.19∗∗∗ 0.26∗∗∗
+[0.02] [0.00]
+(log) Deforestation TFP 1.39∗∗∗ 1.90∗∗∗
+[0.01] [0.00]
+R2 0.122 0.306 0.811 0.987
+Dep. Var. Mean 2.69 2.69 2.69 2.69
+Dep. Var. SD 1.95 1.95 1.95 1.95
+Observations 8587 8587 8587 8587
+Table 4: Correlates of observed deforestation
+33
+
+4 Counterfactual Analysis
+The theoretical framework developed in the previous section allows us to simulate counter-
+factual scenarios of local deforestation policy, and understand how deforestation would have
+evolved in general equilibrium in these alternative scenarios. In particular, we can apply
+our model to analyse the national impact of the two types of local anti-deforestation policies
+implemented by the Brazilian government over the past decades (Prority List and Protected
+Areas), taking into account general equilibrium effects driven by leakage.
+For each of the two policies, we simulate two counterfactual scenarios for the evolution
+of nation-wide deforestation between the years 2003 and 2018.
+Counterfactual A: No policy – a scenario in which, between 2003 and 2018, the
+policy was never enacted.
+Counterfactual B: Policy, no leakage – a scenario in which, between 2003 and
+2018, the policy was implemented, but leakage to other areas is not possible
+ThedifferencebetweencounterfactualAandtheobservedevolutionofdeforestationmea-
+sures the overall effect of the policy, including both the direct effect via banned deforestation
+in targeted areas, and the indirect effect via potential leakage to non-targeted areas. The
+differencebetweentheobservedevolutionofdeforestationandcounterfactualBmeasuresthe
+amount of leakage caused by the localised policies. The difference between counterfactuals
+A and B measures the total effect of the localised policies under no deforestation leakage,
+i.e. only considering the direct effect via banned deforestation in targeted areas.
+For each of the two policies, we construct the counterfactuals as follows: First, we cali-
+brate the baseline regional fundamentals {Zs, B } to fit the observed deforestation between
+rt rt
+the years of 2003 and 2018. We construct (ZD)nopolicy, the deforestation productivity of each
+rt
+region in a counterfactual scenario wihtout the policy was not implemented as:
+(ZD)nopolicy = Z D (TF +TPT )ψ (9)
+rt rt rt r,t
+Where TF is the remaining observed area of unprotected forest in region r at time t and
+rt
+TPT is the area belonging to region r that is observed to be under a local conservation
+r,t
+policy at time t. In a counterfactual with no policy, this area is considered to be unprotected
+forest.
+For counterfactual A, we simulate total land cleared for agriculture in each year between
+2003 and 2018, solving for the optimal deforestation level (TD)nopolicy according to Equation
+rt
+34
+
+5 using the calculated regional deforestation productivity (ZD)nopolicy. Total agricultural
+rt
+land at each period is then given by equation 10.
+(TA)nopolicy = (1−ρ)(TA )nopolicy +(TD)nopolicy (10)
+rt rt−1 rt
+For counterfactual B, we calculate a “no leakage” scenario that has the implied prices
+coming from counterfactual A (i.e. no-policy prices), and baseline region deforestation pro-
+ductivitiescalibratedfromthemodelZD (withpolicy). Fixingthepricesundertheno-policy
+r
+scenario effectively shuts down the channel through which deforestation could leak to other
+areas, as both labors market and goods market relocation mechanisms operate through price
+channel.
+(cid:16) (q )nopolicy(cid:17) δ
+(TD)noleakage = δ r 1−δ(ZD)1− 1 δ (11)
+r (p )nopolicy r
+r
+Figure 12: Counterfactual deforestation: Priority List policy
+)mk
+qs
+0001(
+noitatserofeD
+evitalumuC
+008
+006
+004
+002
+0
+Cumulative Deforestation
+2003 2007 2011 2015 2019
+year
+Priority List Policy No Priority List
+Priority List Policy, no leakage
+Note: This figure illustrates the evolution of total cumulative deforestation across the entire country in
+thousands of squared kilometers between the years of 2003 and 2019 under counterfactual simulations based
+on the Priority List policy. The blue curve represents observed deforestation, the red curve represents
+a counterfactual scenario in which the policy was never implemented, and the green curve represents a
+counterfactual in which the policy was implemented and spatial leakage is shut down by considering the
+prices under the no-policy scenario.
+35
+
+Figure 13: Cumulative leakage from Priority List policy
+stniop
+egatnecreP
+01
+8
+6
+4
+2
+Percentage (Cumulative) Leakage
+Area Deforested
+2007 2011 2015 2019
+year
+Note: This figure illustrates the evolution of total estimated deforestation leakage under the Priority List
+policy between the years of 2007 and 2019. Leakage as calculated as the ratio between: total increase in
+deforestationinnon-targetedareas(differecebetweenobserveddeforestationandthesimulateddeforestation
+in a counterfactual where prices do not adjust to policy), and total avoided deforestation in targeted areas
+(differencebetweensimulateddeforestationinacounterfactualwherethepolicywasneverimplementedand
+the simulated deforestation in a counterfactual where the leakage channel is shut down). A leakage of 100%
+would mean that the entire deforestation reduction caused by the localised policies is outdone by increases
+in deforestation in other regions.
+Figure 12 shows the evolution in total observed deforestation across Brazil, as well as the
+results from simulating counterfactuals A and B for the Priority List Policy. We can see that,
+in a counterfactual where the priority list polciy is never implemented, total deforestation
+between 2003 and 2009 would rise from around 450 thousand km2 to around 700 thousand
+km2. Figure 13 illustrates the evolution of the cumulative leakage to non-treated areas
+expressed as a share of the avoided deforestation. Leakage at the start of the considered
+period is low, below 3%, but increases gradually over time. By 2019, approximately 10%
+of the deforestation avoided by the policy in the targeted areas is outdone by spillovers
+elsewhere.
+Figures 14 and 15 illustrate the same results for the Protected Areas policy. From Figure
+14, we can see that, in counterfactual scenario without the Protected Areas, deforestation
+increases by much less than in counterfactual without the Priority List policy; from around
+450 thousand km2 to around 500 thousand km2 between 2003 and 2019. From Figure 15, we
+can see that leakage in the Protected Areas policy follows a similar pattern to leakage under
+the Priority Lists policy: it starts at a low value of about 5%, and increases gradually over
+time to just over 15% at the end of our considered period.
+36
+
+Figure 14: Counterfactual deforestation: Protected Areas policy
+)mk
+qs
+0001(
+noitatserofeD
+evitalumuC
+006
+004
+002
+0
+Cumulative Deforestation
+2003 2007 2011 2015 2019
+year
+PA (data) No PA (simul.)
+PA, no leakage (simul.)
+Note: This figure illustrates the evolution of total cumulative deforestation across the entire country in
+thousands of squared kilometers between the years of 2003 and 2019 under counterfactual simulations based
+on the Protected Areas policy. The blue curve represents observed deforestation, the red curve represents
+a counterfactual scenario in which the policy was never implemented, and the green curve represents a
+counterfactual in which the policy was implemented and spatial leakage is shut down by considering the
+prices under the no-policy scenario.
+Overall, the conclusion from our simulation exercise is that, even though there is a
+detectable amount of leakage to non-targeted areas in localised anti-deforestation policies,
+it does not mean that such policies are ineffective in reducing global deforestation. Both
+localized policies implemented by the Brazilian government over the past decades were not
+only effective in reducing deforestation locally, but were able to retain more than 80% of this
+effect when considering national deforestation levels. This finding suggests that concerns
+about leakage outdoing the majority of gains in localised anti-deforestation policies might
+be unwarranted, and that these policies may be effective in reducing global forest loss.
+5 Conclusion
+To what extent do spatially targeted policies are globally effective when considering the
+possible geographical displacement of environmental damage as a response to the policy?
+The answer to this question has deep implications for policy design, given the global public
+good nature of ecosystem conservation. We address this issue in the context of tropical
+deforestation - an activity that has been responsible for one-fifth of global CO2 emissions in
+37
+
+Figure 15: Cumulative leakage from the Protected Areas policy
+stniop
+egatnecreP
+81
+61
+41
+21
+01
+Percentage (Cumulative) Leakage
+2007 2011 2015 2019
+year
+Note: ThisfigureillustratestheevolutionoftotalestimateddeforestationleakageundertheProtectedAreas
+policy between the years of 2007 and 2019. Leakage as calculated as the ratio between: total increase in
+deforestationinnon-targetedareas(differecebetweenobserveddeforestationandthesimulateddeforestation
+in a counterfactual where prices do not adjust to policy), and total avoided deforestation in targeted areas
+(differencebetweensimulateddeforestationinacounterfactualwherethepolicywasneverimplementedand
+the simulated deforestation in a counterfactual where the leakage channel is shut down). A leakage of 100%
+would mean that the entire deforestation reduction caused by the localised policies is outdone by increases
+in deforestation in other regions.
+the past two decades - in Brazil - home to a third of the world’s remaining rainforests.
+The issue of conservation leakage is intrinsically a general equilibrium problem in space:
+a policy crackdown on deforestation in a spatially delimited region changes economic incen-
+tives through a shock to the price of deforested land, generating both sectoral and spatial
+reallocation. This reallocation depends on the costs of deforestation, the productivity of
+industries with varying land-intensity, consumers’ substitution elasticities between goods
+and between origins, trade costs, regional amenities and migration frictions. Consequently,
+reduced-form evaluations conflate deforestation reduction in targeted areas with leakage to
+non-targeted ones. To separate these two effects, we develop a multi-sector spatial economic
+model of the Brazilian economy. Given the tight link between deforestation and agriculture,
+we model agricultural land as the endogenous output of a deforestation sector intermediate
+to the production of agricultural goods.
+We apply our framework to quantify the global effects on national deforestation of two
+spatially targeted policies implemented by the Brazilian government over the past decades:
+the establishment of priority regions with high levels of illegal deforestation that receive
+extra resources for command and control, and the delimitation of protected areas with high
+38
+
+forest coverage where deforestation is entirely banned. We find that both policies are highly
+effective in reducing global deforestation. Over a period of 12 years, leakage outside of
+targeted areas undoes between 10% and 15% of the policy impact in targeted areas.
+Overall, we show that localised policies can be effective in reducing overall deforestation.
+Our theoretical framework provides a useful starting point to answer other questions of inter-
+est that require a spatial general equilibrium model of the relationship between deforestation
+and agricultural goods. Future research can build on our framework to study, for example,
+other indirect consequences of deforestation such as its impact on rainfall in nearby areas
+(Leite-Filho et al., 2021), or the role of technological change in agriculture on environmental
+conservation.
+39
+
+References
+L. J. Alston, G. D. Libecap, and B. Mueller. Titles, Conflict, and Land Use: The Develop-
+ment of Property Rights and Land Reform on the Brazilian Amazon Frontier. University
+of Michigan Press, 1999. ISBN 9780472110063. URL http://www.jstor.org/stable/
+10.3998/mpub.16208.
+J. A. Alvarez. The agricultural wage gap: Evidence from brazilian micro-data. Ameri-
+can Economic Journal: Macroeconomics, 12(1):153–73, January 2020. doi: 10.1257/mac.
+20170436. URL https://www.aeaweb.org/articles?id=10.1257/mac.20170436.
+J. E. Anderson. A theoretical foundation for the gravity equation. The American Economic
+Review, 69(1):106–116, 1979. ISSN 00028282. URL http://www.jstor.org/stable/
+1802501.
+P. S. Armington. A theory of demand for products distinguished by place of production
+(une th´eorie de la demande de produits diff´erenci´es d’apr`es leur origine) (una teor´ıa de
+la demanda de productos distingui´endolos segu´n el lugar de produccio´n). Staff Papers
+(International Monetary Fund), 16(1):159–178, 1969. ISSN 00208027. URL http://www.
+jstor.org/stable/3866403.
+J. Assun¸c˜ao and R. Rocha. Getting greener by going black: the effect of blacklisting mu-
+nicipalities on amazon deforestation. Environment and Development Economics, 24(2):
+115–137, 2019. doi: 10.1017/S1355770X18000499.
+J. Assunc¸˜ao, C. Gandour, and R. Rocha. Deforestation slowdown in the brazilian amazon:
+prices or policies? Environment and Development Economics, 20(6):697–722, 2015. doi:
+10.1017/S1355770X15000078.
+T. Boppart. Structural change and the kaldor facts in a growth model with relative price
+effects and non-gorman preferences. Econometrica, 82(6):2167–2196, 2014. doi: https://
+doi.org/10.3982/ECTA11354. URL https://onlinelibrary.wiley.com/doi/abs/10.
+3982/ECTA11354.
+J. Brner and S. Wunder. Paying for avoided deforestation in the brazilian amazon: from
+cost assessment to scheme design. International Forestry Review, 10(3):496–511, 2008.
+R. Burgess, M. Hansen, B. A. Olken, P. Potapov, and S. Sieber. The political economy
+of deforestation in the tropics. The Quarterly Journal of Economics, 127(4):1707–1754,
+2012. ISSN 00335533, 15314650. URL http://www.jstor.org/stable/41812147.
+40
+
+R. Burgess, F. Costa, and B. A. Olken. The brazilian amazon’s double reversal of fortune.
+2019.
+P. Bustos, B. Caprettini, and J. Ponticelli. Agricultural productivity and structural trans-
+formation: Evidence from brazil. American Economic Review, 106(6):1320–65, June 2016.
+doi: 10.1257/aer.20131061. URLhttps://www.aeaweb.org/articles?id=10.1257/aer.
+20131061.
+S. Calonico, M. D. Cattaneo, and R. Titiunik. Robust nonparametric confidence intervals
+for regression-discontinuity designs. Econometrica, 82(6):2295–2326, 2014.
+CNA and CEPEA. Pib do agroneg´ocio. 2023.
+B. R. Copeland and M. S. Taylor. Trade, growth, and the environment. Journal of Economic
+Literature, 42(1):7–71, March 2004. doi: 10.1257/002205104773558047. URL https:
+//www.aeaweb.org/articles?id=10.1257/002205104773558047.
+X. Cui. Climate change and adaptation in agriculture: Evidence from us cropping
+patterns. Journal of Environmental Economics and Management, 101:102306, 2020.
+ISSN 0095-0696. doi: https://doi.org/10.1016/j.jeem.2020.102306. URL https://www.
+sciencedirect.com/science/article/pii/S0095069620300292.
+J. M. C. da Silva, L. C. F. Barbosa, J. Topf, I. C. G. Vieira, and F. R. Scarano. Minimum
+costs to conserve 80% of the brazilian amazon. Perspectives in Ecology and Conservation,
+20(3):216–222, 2022.
+J. R. de Vasconcelos. Matriz do fluxo de com´ercio interestadual de bens e servi¸cos no brasil
+– 1999. Job market paper, August 2001.
+R. Dix-Carneiro and B. K. Kovak. Trade liberalization and regional dynamics. American
+Economic Review, 107(10):2908–2946, 2017.
+T. Domiguez-Iino. Efficiency and redistribution in environmental policy: An equilibrium
+analysis of agricultural supply chains. 2021.
+D. Donaldson and R. Hornbeck. Railroads and american economic growth: A “market
+access” approach. The Quarterly Journal of Economics, 131(2):799–858, 02 2016. ISSN
+0033-5533. doi: 10.1093/qje/qjw002. URL https://doi.org/10.1093/qje/qjw002.
+DOU. Lei nº 6.321, de 21 de dezembro de 2007. Di´ario Oficial [da] Repu´blica Federativa do
+Brasil, 2007.
+41
+
+DOU. Lei nº 12.651, de 25 de maio de 2012. Di´ario Oficial [da] Repu´blica Federativa do
+Brasil, 2012.
+F. Eckert and M. Peters. Spatial structural change. Working Paper 30489, National Bureau
+of Economic Research, September 2022. URL http://www.nber.org/papers/w30489.
+F. Farrokhi and H. S. Pellegrina. Global trade and margins of productivity in agriculture.
+Working Paper 27350, National Bureau of Economic Research, June 2020. URL http:
+//www.nber.org/papers/w27350.
+´
+B. Herrendorf, R. Rogerson, and Akos Valentinyi. Chapter 6 - growth and structural trans-
+formation. In P. Aghion and S. N. Durlauf, editors, Handbook of Economic Growth,
+volume 2 of Handbook of Economic Growth, pages 855–941. Elsevier, 2014. doi: https://
+doi.org/10.1016/B978-0-444-53540-5.00006-9. URL https://www.sciencedirect.com/
+science/article/pii/B9780444535405000069.
+A. Hsiao. Coordination and commitment in international climate action: Evidence from
+palm oil. 2021.
+IPCC. Ipcc, 2019: Climate change and land: an ipcc special report on climate change, deser-
+tification, land degradation, sustainable land management, food security, and greenhouse
+gas fluxes in terrestrial ecosystems. 2019.
+S.Jayachandran, J.deLaat, E.F.Lambin, C.Y.Stanton, R.Audy, andN.E.Thomas. Cash
+for carbon: A randomized trial of payments for ecosystem services to reduce deforestation.
+Science, 357(6348):267–273, 2017. doi: 10.1126/science.aan0568. URL https://www.
+science.org/doi/abs/10.1126/science.aan0568.
+D. Lagakos and M. E. Waugh. Selection, agriculture, and cross-country productivity differ-
+ences. American Economic Review, 103(2):948–80, April 2013. doi: 10.1257/aer.103.2.948.
+URL https://www.aeaweb.org/articles?id=10.1257/aer.103.2.948.
+A. T. Leite-Filho, B. S. Soares-Filho, J. L. Davis, G. M. Abrah˜ao, and J. B¨orner. De-
+forestation reduces rainfall and agricultural revenues in the brazilian amazon. Nature
+Communications, 12(1):2591, 2021. doi: 10.1038/s41467-021-22840-7. URL https:
+//doi.org/10.1038/s41467-021-22840-7.
+M. Morten and J. Oliveira. The effects of roads on trade and migration: Evidence from a
+planned capital city. 2018.
+42
+
+H. S. Pellegrina and S. Sotelo. Migration, specialization, and trade: Evidence from brazil’s
+marchtothewest. WorkingPaper28421, NationalBureauofEconomicResearch, January
+2021. URL http://www.nber.org/papers/w28421.
+A. Pfaff and J. Robalino. Spillovers from conservation programs. Annual Review of Re-
+source Economics, 9(1):299–315, 2017. doi: 10.1146/annurev-resource-100516-053543.
+URL https://doi.org/10.1146/annurev-resource-100516-053543.
+E. Souza-Rodrigues. Deforestation in the Amazon: A Unified Framework for Estimation and
+Policy Analysis. The Review of Economic Studies, 86(6):2713–2744, 12 2018. ISSN 0034-
+6527. doi: 10.1093/restud/rdy070. URL https://doi.org/10.1093/restud/rdy070.
+D. Szerman, J. Assun¸ca˜o, M. Lipscomb, and A. M. Mobarak. Agricultural produc-
+tivity and deforestation: Evidence from brazil. Working Paper 1091, Yale Eco-
+nomic Growth Center, January 2022. URL https://elischolar.library.yale.edu/
+egcenter-discussion-paper-series/1091.
+6 Appendix
+6.1 Deriving local expenditure by sector
+Wages in equilibrium assuming Frechet Frank-copula. Let the joint distribution
+of pairs of individual productivities (zA,zNA) is given by the Frank copula as in LW with
+ir ir
+parameters (χA,χNA,ρ). Then there are no simple closed-form expressions for the share of
+employment in agriculture and the labour income in each sector. Instead,
+(cid:90) ∞(cid:90) zAwA/wNA
+(cid:2) (cid:3) r r
+sA = Pr zNA/zA ≤ wA/wNAr = f(zA,zNA)dzNAdzA
+r ir ir r r
+0 0
+yLA =
+wAE(cid:2)
+zA
+(cid:12)
+(cid:12)zNA/zA ≤ wA/wNAr
+(cid:3)
+= wA
+1
+(cid:90) ∞(cid:90) zAw
+r
+A/w
+r
+NA
+zAf(zA,zNA)dzNAdzA
+r r ir ir ir r r r sA
+r 0 0
+yLNA =
+wNAE(cid:2)
+zNA
+(cid:12)
+(cid:12)zNA/zA > wA/wNAr
+(cid:3)
+= wNA
+1 (cid:90) ∞(cid:90) ∞
+zNAf(zNA,zNA)dzNAdzA
+r r ir ir ir r r r sNA
+r 0 zAwA/wNA
+r r
+Aggregate agricultural expenditure share in each region The share of consumer
+expenditure in agriculture of a household with expenditure e equals
+i
+(cid:16) pA (cid:17)(cid:16) (cid:17)−η
+ϑA = φ+ν r e pη. (12)
+ir pNA ir r
+r
+43
+
+Figure 16: Agricultural Land Accumulation with Forest Regrowth
+Note: This figure illustrates the transition dynamics in the market for agricultural land under a constant
+forest regrowth rate. The graph on the left shows supply and demand curves for land, and the equation
+for the equilibrium in the market for the equilibrium quantity. The graph on the right shows the transition
+curve for agricultural land: with forest regrowth, deforestation reaches a steady state, where the blue curve
+intercepts the 45-degree line.
+”
+Thus, the total agricultural expenditure in region r equals
+(cid:90) (cid:16) pA (cid:17) (cid:90)
+XA = φp ID + ϑAe dG(i) = φ(E +p ID)+ν r pη (cid:0) e (cid:1)1−η dG(i),
+r r r ir ir r r r pNA r ir
+r
+Assumethatpeoplewithhigherlabourincomesgetproportionatelyhigherlandrentsandalso
+spend proportionately more on deforestation. Define the ratio between land rents and labour
+income from the aggregates, a , and the ratio of the total income spent on deforestation
+r
+investments, b .
+r
+v TA p ID
+a ≡ r r , b ≡ r r .
+r (cid:82) yLdG(i) r (cid:82) yLdG(i)+v TA
+i ir i ir r r
+Then the assumption of proportional land rents and deforestation expenditures can be ex-
+pressed formally as:
+e
+(1)yT = a yL, (2)xd = b y =⇒ (3) ir = (1+a )(1−b ) ≡ m
+ir r ir ir r ir yL r r r
+ir
+e = max{wNAzNA,wAzA}m ,
+ir r ir r ir r
+(cid:124) (cid:123)(cid:122) (cid:125)
+yL
+ir
+44
+
+where
+E
+m = r , yL = sAyLA +sNAyLNA = E(yL)
+r L yL r r r r r ir
+r r
+For the second term of the total agricultural expenditure equation, we compute the following
+integral
+(cid:90)
+(e )1−ηdG(i) =(m )1−ηL
+E(cid:0)
+(yL)1−η
+(cid:1)
+ir r r ir
+(cid:32)
+(cid:90) ∞(cid:90) zAwA/wNA
+E(cid:0)
+(yL)1−η
+(cid:1)
+=
+r r
+(wAzA)1−ηf(zA,zNA)dzNAdzA
+ir r
+0 0
+(cid:33)
+(cid:90) ∞(cid:90) ∞
++ (wNAzNA)1−ηf(zA,zNA)dzNAdzA
+r
+0 zAwA/wNA
+r r
+Thus, the aggregate local share of consumer expenditure in agriculture equals
+(cid:16) pA (cid:17)(cid:16) E (cid:17)−η
+E(cid:0)
+(y )1−η
+(cid:1)
+ϑA = φ+ν r r ir . (13)
+r pN r A p r L r (cid:0)E(y ir ) (cid:1)1−η
+6.2 Deforestation parameters estimation
+• Recall optimal deforestation level condition
+(cid:16)δq (cid:17) δ
+TD = (TF)1− ψ δ(Z D )1− 1 δ rt 1−δ
+rt rt rt p
+rt
+• Take logs
+1 ψ
+log(TD) = log(Z D δδ)+ log(TF)
+rt 1−δ rt 1−δ rt
+δ δ
++ logq − logp
+rt rt
+1−δ 1−δ
+• Regression specification
+δ
+log(TD) = α1 +α2 + logv +(cid:15)
+rt r t 1−δ rt rt
+• Instrument for logv with logv and logv (Anderson-Hsiao)
+rt rt−1 rt−2
+• Implied δ: 0.28-0.52
+45
+
+Table 5: Estimating δ
+Outcome: log(Deforestation)
+(1) (2) (3) (4)
+OLS OLS IV IV
+IHS(v ) 0.391∗∗∗ 0.253∗∗∗ 0.817∗∗∗ 1.065∗∗∗
+r
+[0.025] [0.038] [0.165] [0.283]
+Mun. FE Yes Yes Yes Yes
+Year FE Yes Yes Yes Yes
+Instrument - - First Difference First Difference
+Weight None Agri. Area None Agri. Area
+R2 0.240 0.346 0.002 -0.001
+Observations 89072 89072 77938 77938
+Table 6: Estimation of deforestation elasticity
+Now let us derive the equation that we use to estimate ψ.
+• Steady state condition
+TD = ρTA
+r,ss r,ss
+TF (cid:16)q (cid:17) δ
+⇐⇒ r,ss = ρ(Z D )δ− 1 1δδ− δ 1 r,ss δ−1(TF)1− 1− ψ δ
+TA r,ss p r
+r,ss r,ss
+• Take logs
+(cid:16)TF (cid:17)
+r,ss (cid:0) D 1 δ (cid:1)
+log =log ρ(Z )δ−1δδ−1
+TA r,ss
+r,ss
+δ (cid:16)q (cid:17)
+r,ss
+− log
+1−δ p
+r,ss
+(cid:16) ψ (cid:17)
++ 1− log(TF )
+1−δ r,ss
+• Regression specification
+(cid:16)TF(cid:17) δ (cid:16) ψ (cid:17)
+log rt = α − log(v )+ 1− log(TF)+(cid:15)
+TA s(r)t 1−δ rt 1−δ rt rt
+rt
+• Implied δ: 0.26-0.29
+• Implied ψ: 0.30-0.32
+46
+
+Table 7: Estimating ψ
+Outcome: log((Forest Area)/(Agri. Area))
+(1) (2) (3)
+log(Unprotected Forest Area) 0.668∗∗∗ 0.589∗∗∗ 0.571∗∗∗
+[0.004] [0.004] [0.004]
+log(v ) -0.419∗∗∗ -0.357∗∗∗
+r
+[0.005] [0.007]
+State X Year FE Yes Yes Yes
+Weight Agri. Area Agri. Area Agri. Area
+Sample Low deforest.
+R2 0.735 0.793 0.805
+Observations 28244.000 27875.000 16899.000
+6.3 Preference parameters estimation
+The parameter governing the non-homotheticity of preferences, η, captures the rate at which
+higher-income consumers shift their budget shares away from agricultural goods (i.e. food
+items). We estimated by regressing the logarithm of the share of expenditure in food on the
+logarithm of total expenditure using the household-level data from the 2017/2018 consumer
+expenditure survey (POF). The table below shows the coefficients from that regression. For
+robustness, we consider both food expenditure as a share of total non-durables expenditure
+(column 1 - our preferred specification) and as a share of total household income (column
+2).
+Outcome: log-budget share on food items
+(1) (2)
+Log(Non-durable Expenditure) -0.506∗∗∗
+[0.005]
+Log(Income) -0.575∗∗∗
+[0.008]
+Constant 0.914∗∗∗ 0.632∗∗∗
+[0.025] [0.056]
+R2 0.309 0.195
+Dep. Var. Mean -1.730 -3.229
+Observations 45322 45322
+Note: *p<0.1, **p<0.05, *** p<0.01.
+Table 8: Estimates of Engel curves for food consumption
+47
+
+Figure 17: Engel curve for food consumption
+Slope = -0.506 (0.005)
+)gol(
+doof
+fo
+erahs
+tegduB
+0
+1-
+2-
+3-
+Engel curve for food - POF 2017/18
+2 4 6 8
+Total Household Expenditure (log)
+Note: ThisfiguredisplaystheestimatedEngelcurveforfood: therelationshipbetweenincomeandbudghet
+shareof food, which illustratesthe non-homotheticityin consumerpreferences. Thedots representthe aver-
+age share of total household expenditure dedicated to food items for 20 bins of total househodl expenditure.
+6.4 Migration parameters
+• Assume the utility of migrant i moving from o to d depends on:
+– consumption utiliy V
+d
+– residential amenities B
+d
+– an origin-destination migration cost µ
+od
+– an idiosyncratic preference shock with Frechet distribution and shape parameter
+(cid:15)
+(cid:0)
+V B µo
+(cid:1)(cid:15)
+Share of Migrantso = d d d
+d (cid:80) (cid:0) V B µo (cid:1)(cid:15)
+j j j j
+• Taking logs it becomes the following equarion with origin and destination fixed effects
+log(Share of Migrantso) = δ +δ +(cid:15)log (cid:0) µo (cid:1)
+d o d d
+• The destination fixed effect, in turn, depends on income at destination and amenities
+δ = (cid:15)log(V )+(cid:15)log(B )+u
+d d d d
+• Next: decompose V into different things so that it depends on income
+d
+• Column (2) below show results of PPML regression
+48
+
+⇒ (cid:15) ≈ 0.633
+• Main concern: endogeneity of income. In particular the potential correlation of income
+and amenities
+• Potential solutions: instruments for income
+(1) (2)
+Share of Migrants Destination F.E.
+log(Distance+1) -1.550∗∗∗
+[0.002]
+log(Income) 0.633∗∗∗
+[0.044]
+Origin FE Yes No
+Dest. FE Yes No
+Pseudo R2 0.805
+Observations 3.11e+05 558
+Table 9: Estimation of migration parameters
+6.5 Trade parameters estimation
+Iceberg trade costs are calibrated to fit trade costs in 1999 and 2017 from the residuals in
+the regression equation of (log) trade flows with origin and destination fixed effects. Taking
+logarithms from equation 6, and sending the volume of expenditure of consumers in region d
+to the right hand side so that the data on trade flow rather than shares can be used, yields
+logXo = logpo −logp X +(1−σ)log(τo)
+d d d d
+Notice that this data does not include the observations for which the origin and the des-
+tination are the same, as it is data from inter-state customs. Thus, if we assume that
+τo = (dist + 1)κ, then the coefficient of the log-log regression of trade flows on distance
+d od
+(+1) with origin and destination fixed effects equals κ(1 − σ). Given the results from the
+regressions reported in the table below, κ ≈ −0.9 ≈ 0.11.
+1−9
+6.6 Model fit
+49
+
+Outcome: log-trade flows
+(1) (2)
+log(Distance+1) -0.871∗∗∗ -0.916∗∗∗
+[0.053] [0.036]
+Year 1999 2017
+Origin FE Yes Yes
+Dest. FE Yes Yes
+Pseudo R2 0.966 0.957
+Observations 702 702
+Note: *p<0.1, **p<0.05, *** p<0.01.
+Table 10: Estimation of trade parameters
+Figure 18: Model fit: land prices
+ledoM
+8
+6
+4
+2
+0
+(log) Average land price
+0 2 4 6 8
+Data
+Figure 19: Model fit: comparing predicted and observed land prices
+Note: This compares the predicted land prices from model calibration q with observed land value. Each
+r
+circle is a micro-region, and the size of the circle corresponds to the total agricultural area
+50

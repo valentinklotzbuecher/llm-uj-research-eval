@@ -1,0 +1,2183 @@
+NBER WORKING PAPER SERIES
+A WELFARE ANALYSIS OF POLICIES IMPACTING CLIMATE CHANGE
+Robert W. Hahn
+Nathaniel Hendren
+Robert D. Metcalfe
+Ben Sprung-Keyser
+Working Paper 32728
+http://www.nber.org/papers/w32728
+NATIONAL BUREAU OF ECONOMIC RESEARCH
+1050 Massachusetts Avenue
+Cambridge, MA 02138
+July 2024, Revised February 2025
+We thank Sarah Aaronson, Mira Chaskes, Aidan Creeron, Jamie Emery, Charlie Hutchinson, Jack
+Kelly, Navya Kumar, Isaac Maruyama, Victor Mylonas, Sethu Odayappan, and Lukas Puschnig for
+excellent research assistance. We thank Joseph Aldy, Lucie Gadenne, Ken Gillingham, Michael
+Greenstone, Christopher Knittel, Mark Jacobsen, Al McGartland, Nick Muller, Ishan Nath,
+Jacquelyn Pless, Brian Prest, Imran Rasul, Joe Shapiro, Alex Teytelboym, Rick van der Ploeg, and
+Catherine Wolfram for their excellent comments and thank Jim Stock and Juan Carlos Suárez
+Serrato for both their excellent discussions and additional comments. We also thank seminar
+participants at the NBER Summer Institute Environmental & Energy 2024, Bank of England,
+Carnegie Mellon, European Commission, HEC Lausanne, Harvard University, Institute for Fiscal
+Studies, IMF and the World Bank, London School of Economics, Queen Mary, Paris School of
+Economics, Toulouse School of Economics, Tulane University, University College London,
+University of California San Diego, University of Chicago, and University of Oxford. We thank
+Doyne Farmer and Rupert Way for helpful comments and for sharing their data. This research was
+supported by Policy Impacts, which receives support from the Spiegel Family Fund. The views
+expressed herein are those of the authors and do not necessarily reflect the views of the National
+Bureau of Economic Research.
+NBER working papers are circulated for discussion and comment purposes. They have not been
+peer-reviewed or been subject to the review by the NBER Board of Directors that accompanies
+official NBER publications.
+© 2024 by Robert W. Hahn, Nathaniel Hendren, Robert D. Metcalfe, and Ben Sprung-Keyser. All
+rights reserved. Short sections of text, not to exceed two paragraphs, may be quoted without explicit
+permission provided that full credit, including © notice, is given to the source.
+
+A Welfare Analysis of Policies Impacting Climate Change
+Robert W. Hahn, Nathaniel Hendren, Robert D. Metcalfe, and Ben Sprung-Keyser
+NBER Working Paper No. 32728
+July 2024, Revised February 2025
+JEL No. H0, Q5
+ABSTRACT
+What are the most effective ways to address climate change? This paper extends and applies the
+marginal value of public funds (MVPF) framework to help answer this question. We examine 96
+US climate-related policy changes studied over the past 25 years. These policies span subsidies
+(wind, residential solar, electric and hybrid vehicles, vehicle retirement, appliance rebates,
+weatherization), nudges (marketing, energy conservation), and revenue raisers (fuel taxes, cap and
+trade). For each policy, we draw upon quasi-experimental or experimental evaluations of its causal
+effects and translate those estimates into an MVPF. We apply a consistent translation of these
+behavioral responses into measures of their associated externalities and valuations of those
+externalities. We also provide a new method for incorporating learning-by-doing spillovers. The
+analysis yields three main results: First, subsidies for investments that directly displace the dirty
+production of electricity, such as production tax credits for wind power and subsidies for residential
+solar panels, have higher MVPFs (generally exceeding 2) than all other subsidies in our sample
+(with MVPFs generally around 1). Second, nudges to reduce energy consumption have large
+MVPFs, with values above 5, when targeted to regions of the US with a dirty electric grid. By
+contrast, policies targeting areas with cleaner grids, such as California and the Northeast, have
+substantially smaller MVPFs (often below 1). Third, fuel taxes and cap-and-trade policies are
+highly efficient means of raising revenue (with MVPFs below 0.7). We contrast these conclusions
+with those derived from more traditional cost-per-ton metrics used in previous literature.
+Robert W. Hahn Robert D. Metcalfe
+University of Oxford Columbia University
+and Carnegie-Mellon University and NBER
+robert.hahn@smithschool.ox.ac.uk rdm2176@columbia.edu
+Nathaniel Hendren Ben Sprung-Keyser
+Massachusetts Institute of Technology The Wharton School
+and NBER University of Pennsylvania
+nhendren@mit.edu Philadelphia, PA 19104
+bsprungk@wharton.upenn.edu
+
+1 Introduction
+What are the most e↵ective ways to address climate change? There is a robust and growing
+literature examining the causal e↵ects of climate-related policy changes. These papers often
+assess the e↵ectiveness of policies by measuring the cost per ton of carbon dioxide (CO )
+2
+abated. Yet, comparisons of these costs per ton across studies face several challenges. First,
+the input assumptions in these calculations vary across papers. Second, there are at least three
+distinct (and often conflated) definitions of the cost per ton of CO found in the literature:
+2
+(1) resource costs expended per ton of CO abated (Grubb et al. 1993, Enkvist et al. 2007,
+2
+Mullainathan & Allcott 2010, Greenstone et al. 2022), (2) government expenditures per ton of
+CO abated (Gillingham & Tsvetanov 2019, Knittel 2009), and (3) social costs per ton of CO
+2 2
+abated (Hughes & Podolefsky 2015, Fournel 2024). Third, even if researchers were to align on
+a single approach to measuring cost per ton, each of these metrics have inherent limitations
+when assessing the welfare e↵ects of spending and revenue-raising policies. Resource cost per
+ton of CO abstracts from the causal e↵ects of policy changes, ignoring the cost and benefits
+2
+of transfers to inframarginal individuals who do not change their behavior in response to those
+policy changes. Government expenditures per ton of CO accounts for the cost of transfers to
+2
+inframarginal individuals but ignores the benefit of those transfers to their recipients. Social
+cost per ton seeks to capture a comprehensive set of non-resource benefits but ignores the
+opportunity cost of transfers to inframarginal individuals.
+Itiswiththeseconcernsinmindthatweextendandapplythemarginalvalueofpublicfunds
+(MVPF) framework to examine the welfare consequences of historical US spending and revenue
+raising policies addressing climate change. The MVPF approach quantifies the net benefits to
+individuals in society relative to the policy’s net government cost. These benefits and costs
+incorporate behavioral responses to the policy and include inframarginal transfers, overcoming
+theprimarylimitationsofthecostpertonapproach.1 Asanaddedbenefit,theMVPFfacilitates
+policy comparisons both within and across policy categories, such as comparing climate policies
+to public investments in education or healthcare.
+WeapplyourMVPF-basedframeworktoacomprehensivesetofclimatepolicyinterventions
+in the U.S. that a↵ect greenhouse gas emissions and have been rigorously evaluated in the past
+25 years using experimental or quasi-experimental methods. This yields a sample of 96 policy
+changes in three primary categories – subsidies, nudges and marketing, and revenue raisers.
+Within the category of subsidies, we examine policies targeting wind production, residential
+solar, electric and hybrid vehicle purchases, vehicle retirement, appliance rebates, and home
+weatherization. Within the category of nudges and marketing, we examine energy conservation
+policies such as home energy reports as well as marketing policies designed to encourage the
+1To the best of our knowledge, Berkouwer & Dean (2019) and Christensen, Francisco & Myers (2023) were
+the first to apply the MVPF framework in a climate setting. See also more recent work on peak energy usage
+incentives and water audits (Jacob et al. 2023, Akesson et al. 2023), and the work of Kotchen (2022) and Prest
+& Stock (2023) in using the MVPF framework as a lens to understand optimal environmental policy.
+1
+
+take-upofcleantechnologies. Withinthecategoryofrevenueraisers, weexaminegasolinetaxes,
+taxes on other fuels such as jet fuel and diesel, and cap-and-trade policies. Lastly, we consider
+an illustrative set of international policies, including subsidies for energy-e cient cookstoves
+and deforestation-focused payments for ecosystem services.
+Across all policies, we use a consistent method to translate a policy’s causal e↵ect on be-
+havior into a valuation of that change in behavior. We proceed in two steps. First, we use a
+harmonized method to translate changes in behavior (e.g., changes in car purchases or electric-
+ity usage) into changes in emissions and other damaging outcomes (e.g., car accidents). For
+example, in the case of changes in electricity production or electricity usage, we use estimates
+from the EPA’s AVERT model to measure associated changes in emissions resulting from com-
+positional changes in the grid (EPA 2024b). In the case of changes to vehicle purchases (e.g.,
+EVs versus internal combustion), we estimate the change in gallons of gasoline used relative to
+a counterfactual vehicle. We measure the total CO emissions associated with the upstream
+2
+production of gasoline and its combustion. We combine that with measures of local pollutants
+released such as particulate matter. Second, we apply a consistent dollar value for each exter-
+nality measured. For the social cost of carbon (SCC), we draw from recent work by the US
+Environmental Protection Agency (EPA) (EPA 2023c) that places the social cost of carbon at
+$193 in 2020 (and rising in the years to follow). We also explore the robustness of our results
+to alternate measures of the social cost of carbon, ranging from $76 to $337 in 2020. For local
+pollutants, we use estimates of the social cost of NH , HC, NO , PM and SO from the
+3 X 2.5 2
+AP3 integrated assessment model, which monetizes health impacts from air pollution exposure
+using estimates on mortality and an associated value of a statistical life (VSL).
+Our primary methodological contribution is the introduction of a new su cient statistics
+approach to quantify the benefits of “learning-by-doing” e↵ects, which can then be directly
+incorporated into the MVPF framework. There is a large literature that shows the prices of
+new technologies such as solar cells, wind turbines, and batteries have declined with cumulative
+global production (Way et al. 2022). These patterns often serve as a proposed justification for
+subsidizing particular low-carbon technologies: subsidizing specific technologies with relatively
+high abatement costs today may generate learning-by-doing spillovers that lower the future cost
+of these technologies and generate future environmental benefits (Romer 1986, van Benthem
+et al. 2008).
+We show how these learning-by-doing e↵ects can be incorporated directly into the MVPF
+framework. In particular, we show that when the marginal cost of production is an isoelastic
+function of cumulative production and when demand is an isoelastic function of price, the time
+path of production follows a second-order ordinary di↵erential equation that can be solved to
+estimate the willingness-to-pay for the resulting learning-by-doing e↵ects.
+Learning by doing generates two types of benefits: first, reductions in the future cost of
+low-carbon technologies increase consumer welfare due to lower future prices, and second, these
+2
+
+price reductions serve to increase future take-up and, consequently, reduce future emissions.2
+We apply our framework to study the potential implications of learning by doing for policies
+that increase the current production of solar cells, wind turbines, and batteries. While we focus
+here on learning-by-doing in the context of climate change, our framework can be used in other
+industrial policy settings where there may be learning-by-doing externalities.
+1.1 Findings
+We have three main findings. First, we find that subsidies for investments that directly dis-
+place the dirty production of electricity have higher MVPFs than all other subsidies in our
+sample. Policies providing production tax credits for wind power and subsidies for residential
+solar have MVPFs that generally exceed 2. In contrast, subsidies providing appliance rebates,
+home weatherization, vehicle retirement, or subsidies for hybrid vehicle purchases have MVPFs
+around 1. Electric vehicle subsidies have MVPFs around 1.5. The high MVPF values for wind
+production tax credits and residential solar subsidies are robust to a wide range of values of the
+social cost of carbon (e.g., $76 or $337). These conclusions are also robust to a wide range of
+additional assumptions regarding the construction of the MVPF. This includes the valuation of
+firm profits, the treatment of private energy savings, and the evaluation of non-marginal policy
+changes. The inclusion of learning-by-doing e↵ects amplifies the MVPFs of these subsidies. In
+the case of wind, the MVPF rises from 3.85 to 5.87 with learning by doing. In the case of
+residential solar, the MVPF rises from a relatively low value of 1.45 to 3.86.3
+Second, we find that behavioral nudges designed to reduce energy consumption can produce
+largewelfaregainswhenadministeredinregionswithrelativelydirtyelectricgrids(withMVPFs
+exceeding 5) but have lower MVPFs (below 1) in regions with cleaner grids.4 This finding also
+suggests that the e↵ectiveness of these nudges will decrease over time as more electricity comes
+from low- or zero-carbon sources.
+Third, we find that implementing taxes on polluting goods can serve as an e cient means
+of raising revenue. In the context of revenue raisers, the MVPF measures the welfare burden
+imposed on individuals per dollar of revenue raised. This means that, all else equal, better
+revenue raisers have lower MVPFs. We analyze taxes on gasoline, diesel, and jet fuel, along
+with changes to the number of auctioned permits in cap-and-trade systems. We find that nearly
+all of these revenue-raising policies have MVPFs below 1, with most having MVPFs below 0.7.
+2Comparative statics of the model in Appendix B show that learning-by-doing externalities are generally
+decreasing over time, providing a theoretical rationale for subsidizing early adoption.
+3While the MVPFs of subsidies for new technologies are higher than other climate-focused subsidies, they
+arenotnecessarilylargerthannon-environmentalspendingpolicies. Forexample, inpreviouswork, Hendren&
+Sprung-Keyser (2020) found that policies providing direct investment in health and education for low-income
+children had MVPFs often in excess of 5.
+4This echoes the conclusions in Borenstein & Bushnell (2022), who suggest the returns to reducing energy
+consumption are lowest in areas with clean grids. We find support for this conclusion in the context of energy
+conservation nudges, despite the fact that previous work has found treatment e↵ects of nudges are larger in
+more environmentalist areas (Allcott 2015).
+3
+
+This means that taxes on polluting goods impose a welfare cost of only $0.70 on society for
+every $1 of revenue raised. This finding reflects the logic of Pigouvian taxation, quantifying
+the e ciency of raising rates when current tax rates fall below the associated environmental
+externalities.
+While our primary focus is on US environmental policy, we also consider the welfare conse-
+quences of US spending abroad on policies that address climate change. We find such subsidies
+have the potential to produce high MVPFs, even when only considering the impact on US
+beneficiaries and US taxpayers. For example, we consider the case of subsidies for the take-up
+of e cient charcoal cookstoves in Kenya (Berkouwer & Dean 2022). Ignoring any benefits of
+these stoves to local residents and ignoring any non-US benefits of CO reductions, the US-
+2
+specific gains from reduced CO emissions are 37 times larger than the net cost of the subsidy,
+2
+generating a higher MVPF than any domestic subsidy in our sample. (When considering the
+full set of global benefits, the MVPF rises from 37 to 323). That said, there is substantial un-
+certainty associated with these international subsidy estimates. The estimated impacts of these
+policies often vary quite extensively, even within policy categories. As we discuss in Section 7,
+the magnitude of the US-specific MVPF depends heavily on the incidence of the social cost of
+carbon. In particular, it depends on the extent to which CO damages have incidence on US
+2
+residents and US government tax revenue.5
+1.2 Relationship to Existing Literature
+Our paper relates to an extensive literature in climate and environmental economics. It draws
+upon a large body of estimates examining the causal e↵ects of individual policy changes and
+builds upon a body of work conducting comparative analyses of climate policies.
+This kind of comparative analysis was popularized in work by McKinsey & Company
+(Enkvist et al. 2007), who calculated the resource cost per ton of CO abated for a wide
+2
+range of technologies. In recent years, alternative versions of this analysis have been performed
+by groups such as the International Energy Agency (IEA 2020) and the Environmental Defense
+Fund (Environmental Defense Fund 2021).
+This line of work has been subject to criticism, both for the use of engineering estimates
+relied upon to construct these measures of resource costs per ton (Fowlie et al. 2018, Brandon
+et al. 2022) and for the focus on abatement cost of products rather than the abatement cost of
+policies (e.g., a solar panel rather than a subsidy for a solar panel) (Kesicki & Ekins 2012). In
+response, recent work has focused on the e↵ects of specific policy changes when constructing
+estimates of cost per ton (see Gillingham & Stock (2018) for a broad compilation of such
+estimates).
+5Many models that agree on the level of the social cost of carbon still di↵er in the geographic incidence
+of those damages and the split between market and non-market damages (e.g., productivity declines versus
+mortality impacts.) The impact on US tax revenue is determined by the fraction of damages that reflects
+US-specific productivity changes, as the US Treasury has an equity stake in those changes.
+4
+
+While the recent focus on policies rather than products speaks to an important criticism
+of early abatement cost estimates, the definition of “cost per ton of CO ” still varies within
+2
+and across papers.6 In order to compare across cost-per-ton definitions and assess the relative
+merits of the MVPF versus cost-per-ton metrics, we construct all three measures of cost per
+ton for each of the 96 policies in our sample. Our analysis in Section 8 reveals substantial
+variation in the cost per ton of each policy depending on the definition employed. For example,
+the cost per ton of appliance subsidies ranges from -$2 to $474 across the three measures. The
+resource cost per ton is -$2 because the long-run energy savings are estimated to o↵set the
+higher upfront cost of the energy e cient appliance. By contrast, the government cost per ton
+is $474 because subsidies lead to a large number of inframarginal transfers – money provided
+to individuals who would have purchased the energy-e cient appliances anyway.
+Even if one were to consistently apply a single definition of cost per ton when comparing
+policies, the conclusions reached when using these metrics are not generally consistent with the
+primary findings from our MVPF analysis. We can see this when examining each definition
+of cost per ton in turn. From a resource cost perspective, appliance rebates have negative
+costs, -$2, indicating they are far more cost-e↵ective than vehicle retirement or hybrid vehicle
+subsidies, which have very high resource costs per ton at $1,007 and $577 respectively. When
+comparing their MVPFs, however, their values are essentially indistinguishable: 1.16 versus
+1.05 and 1.01.7 From a government cost perspective, the relative ordering of policies is broadly
+consistent with the ordering generated by the MVPF. However, we find high MVPFs even when
+the government cost per ton exceeds the SCC. In the case of electric vehicle (EV) subsidies, for
+example, at an SCC of $193 per ton, we find an MVPF of 1.45 but a government cost per ton
+of $1,356. This is driven by the omission of substantial benefits in the government cost-per-ton
+calculation, including inframarginal transfer benefits and consumer surplus from learning by
+doing. From a social cost perspective, we again find divergences from the MVPF ordering of
+policies. For example, a core finding of our work is that the MVPF of wind subsidies and
+residential solar subsidies exceed that of EV subsidies (5.87 and 3.86 versus 1.45). This is the
+exact opposite of the ordering we find when using the social cost per ton. EVs have the lowest
+social cost per ton (-$415) followed by residential solar (-$67) and wind PTCs (-$32).
+In short, each of the various cost-per-ton metrics do not easily capture the insights of the
+MVPF approach. In Section 8, we show that this is primarily because of their treatment
+(or omission) of key factors such as inframarginal benefits, inframarginal costs, and non-CO
+2
+6Forexample,Table2ofGillingham&Stock(2018)compilesasetofcost-per-tonestimatesfromtheexisting
+literature. The best policy listed is a behavioral nudge for reducing energy where the net resource cost of the
+policy is reported. By contrast, residential solar panels appear to be one of the highest cost policies in their
+sample, but the reported cost per ton measures the government cost of the policy.
+7Patterns of this sort emerge repeatedly when comparing individual policies. For example, we construct a
+resourcecostpertonforenergy-e cientrefrigeratorsstudiedinDatta&Gulati(2014)andfindavalueof-$512.
+We do the same for wind PTCs in Hitaj (2013) and find a resource cost per ton of -$96. This relative ordering
+is consistent with previous estimates from McKinsey & Company (Enkvist et al. 2007). Despite this, we find
+the wind PTC has an MVPF that is much higher (4.63 versus 1.01).
+5
+
+benefits.8
+Our approach also relates to a large literature on benefit cost analysis and its applications.
+A traditional approach would compare the benefits of a spending policy to the distortionary
+cost of raising revenue through a change in a linear income tax rate (Stiglitz & Dasgupta 1971,
+Atkinson & Stern 1974). The MVPF approach extends this approach by allowing researchers
+to choose from a menu of policies to close the budget constraint.9 For example, if one treats
+individuals paying the gas tax and wind PTC beneficiaries as having similar social welfare
+weights, the comparison of an MVPF of 5.87 for wind PTCs to an MVPF of 0.67 for gas
+taxes suggests every $1 of government revenue raised from a gas tax and spent on wind PTCs
+generates $5.20 (=5.87-0.67) in net benefits to individuals in society.10,11
+Finally, our paper also builds on a literature discussing the role of policy in areas where
+learning by doing is present (Bollinger & Gillingham 2019, Way et al. 2022, Bistline et al.
+2023). Our approach relates most closely to work by van Benthem et al. (2008), who develop
+a dynamic model of learning by doing and use it to simulate the desirability of solar subsidies
+in California. Section 2.3 below shares many of the same features as their model. Our primary
+methodological contribution is to provide a su cient statistics quantification of these learning-
+by-doing e↵ects that can be directly incorporated into the MVPF framework. Moreover, we
+provide conditions under which one can obtain a closed-form solution to the model, providing
+a clear picture of how the results are determined by demand elasticities and the elasticity of
+marginal costs with respect to cumulative production.
+1.3 Roadmap
+The rest of this paper proceeds as follows. Section 2 discusses the MVPF framework and
+outlines how it can be used to examine the welfare e↵ects of policies impacting climate change.
+Section 3 discusses our sample of policies and methods for harmonizing the measurement of
+externalities and the valuation of those externalities. Sections 4, 5, and 6 discuss our results
+8AmodifiedversionofthesocialcostpertonimplementedbyFournel(2024)adjustsfortheopportunitycost
+of inframarginal transfers using a “marginal cost of public funds” adjustment. This approach, however, yields
+measures that vary significantly even within the set of common assumptions about the e ciency of income tax
+policy. For example, we find a social cost per ton for EVs of -$259 when using a 10% adjustment and a positive
+$260 when using a 50% adjustment. In contrast, the MVPF does not require researchers analyzing particular
+environmental policies to take a stand on the e ciency of the income tax system.
+9The MVPF is a form of benefit-cost ratio in which all benefits to individuals are incorporated in the
+numerator of the MVPF while all government costs are incorporated in the denominator. As shown in Section
+2, the MVPF measures an implicit Lagrange multiplier on a government budget constraint when choosing
+policies to maximize social welfare.
+10When policies a↵ect di↵erent groups of beneficiaries, one can use the MVPF framework to transparently
+expressconcernsoverequity. Giventwopolicies,policy1andpolicy2,adecision-makerprefersabudgetneutral
+policy that spends more on policy 1 financed by raising revenue from policy 2 if and only if that decision-maker
+prefers giving $MVPF to policy 1 beneficiaries rather than $MVPF to policy 2 beneficiaries.
+1 2
+11In this literature, papers also measure welfare e↵ects by constructing total surplus or net benefits. The
+MVPF approach is closely connected, but by measuring the per-dollar e↵ect of spending, it facilitates compar-
+isons across policies when the scale of such policies di↵er.
+6
+
+for subsidy policies, nudge and marketing policies, and revenue-raising policies, respectively.12
+Section 7 discusses our findings for a limited set of international subsidies. Section 8 contrasts
+the MVPF with cost per ton measures, explaining how our main conclusions would di↵er had
+we used those alternative welfare measures. Section 9 concludes.
+2 Using the MVPF Approach for Policies A↵ecting Cli-
+mate Change
+We use the Marginal Value of Public Funds (MVPF) framework to examine the welfare impact
+of a range of policies a↵ecting climate change. This section presents a formal modeling of
+the MVPF framework, tailored to the context of environmental policy. We begin by using the
+theorytoillustratehowmeasuresofwillingness-to-payandnetcosttothegovernmentofpolicies
+feed into normative statements about the desirability of policy changes. After presenting the
+framework, we then consider an illustrative policy of a subsidy for a good that has a positive
+environmental externality. We show how we measure the willingness-to-pay and net cost.
+Relative to existing literature, the key methodological contribution of this section is the
+derivation of a new su cient statistics approach to incorporate learning-by-doing e↵ects when
+examining the welfare consequences of subsidies. Section 2.3 below provides an overview of our
+approach, and Appendix A provides proofs within a generalized model that is rich enough to
+nest all of our policy applications.
+2.1 Normative Framework
+We consider a set of individuals indexed by i. This population contains all individuals globally,
+including both current and future generations. We consider a decision-maker for a particular
+country, whichwerefertoasthe“government”, thatseekstomaximizeasocialwelfarefunction,
+W = u , (1)
+i i
+i
+X
+which is a weighted sum of individual utilities with Pareto weights . Increasing individual i’s
+i
+utility by 1 “util” leads to a increase in social welfare, W. We allow (but do not require) the
+i
+government to place positive weight on individuals outside its jurisdiction. We do not specify
+particular weights in our analysis, but rather, we construct statistics that help a decision-maker
+apply their own weights when deciding whether to make a given policy change.
+We wish to measure the welfare gain (or loss) from modifications to government policy using
+the causal e↵ect of policy changes that have been rigorously evaluated using quasi-experimental
+12The Online Appendix provides a detailed description of the MVPF construction for each policy in our
+sample.
+7
+
+orexperimentalmethods. Thesemethodsmeasurethecausale↵ectsofpolicychangesbyclearly
+articulatingan‘orthogonality’conditionthatisolatesthecausale↵ectofapolicychangeholding
+all else equal (e.g., the e↵ect of a tax or subsidy on behavior). To capture this, let p R index
+2
+a policy change where p = 0 corresponds to the status quo world. For example, ⌧ (p) = ⌧ +p
+gas 0
+could correspond to a change in the tax rate on gasoline relative to the status quo, ⌧ .
+0
+dui
+To first order, individual i is willing to pay WTP = dp for the policy change, where   is
+i  i i
+the Lagrange multiplier on their budget constraint.13 The total e↵ect of the policy change on
+social welfare, W, can be expressed as ⌘ WTP where ⌘ =   is the social marginal utility
+i i i i i i
+of income of individual i (providing individual i with $1 at time t = 0 leads to an ⌘ increase
+P i
+in W).
+Next we consider the impact of the policy on the government’s budget. We can then write
+the welfare impact per dollar spent on the policy in a manner that separates the normative
+and positive aspects of the decision. Every dollar of net spending on the policy increases social
+welfare by
+dW
+dp
+= ⌘¯MVPF, (2)
+dB
+dp
+where
+WTP
+MVPF = i i (3)
+dB/dp
+P
+is the marginal value of public funds of the policy, which is the ratio of the sum of each
+individual’s willingness-to-pay relative to the net cost to the government, and
+WTP ⌘
+⌘¯= i i i (4)
+WTP
+P i i
+P
+is the incidence-weighted average social marginal utility of income of the policy beneficiaries,
+which depends on one’s social preferences and the incidence of the policy.14
+One of the key advantages of the MVPF is that constructing an MVPF does not require
+assumptions about how the budget constraint is closed for any given policy.15 Instead, the
+MVPF framework can be used to construct budget-neutral policy experiments for the decision-
+maker by comparing any two MVPFs. Let us consider, for example, two policies, 1 and 2. The
+13Note that this measure represents the net benefits to individual i (i.e., monetized benefits minus the cost
+of the policy to them). We discount the WTP for each person back to the time of policy implementation.
+14To see this, note that
+dW
+⌘ WTP ⌘ WTP WTP
+dp = i i i = i i i i i
+dB | p=0 dB WTP dB
+dp P dp P i i P dp
+P
+which equals ⌘¯MVPF.
+15In contrast, the marginal excess burden (MEB) approach closes the budget constraint through individual-
+specific lump-sum transfers, thus requiring researchers to measure compensated as opposed to causal e↵ects of
+a policy. The marginal cost of public funds (MCPF) approach envisions closing the budget constraint through
+changes in the linear income tax and incorporating the resulting deadweight loss from this tax change (e.g.,
+Stiglitz & Dasgupta (1971), Atkinson & Stern (1974), Feldstein (1999)).
+8
+
+MVPF framework tells us that increased spending on policy 1 financed by raising revenue from
+2 increases social welfare if and only if
+⌘¯1MVPF1 > ⌘¯2MVPF2 (5)
+where MVPF1 = i WTP i 1 is the marginal value of public funds of policy 1 (and similarly for
+dB/dp1
+P
+2). For example, if policy 1 has an MVPF of 1 and policy 2 has an MVPF of 2, then raising
+revenue from reductions in spending on policy 1 to finance increased spending on policy 2 will
+increase social welfare if and only if the government prefers $2 going to policy 1 beneficiaries
+to $1 going to policy 2 beneficiaries. While reasonable people may disagree about the relative
+value of giving benefits to policy 1 versus policy 2 beneficiaries, such disagreements do not lead
+to di↵erences in the value of the MVPFs. Instead, the MVPF simply serves to characterize the
+trade-o↵s induced across policies. In cases when welfare weights are the same for policy 1 and
+policy 2 beneficiaries, the di↵erence between MVPF1 and MVPF2 reveals the welfare gain to
+individuals in the economy per dollar spent on policy 1 using net revenue raised from policy 2.
+While there is value in reporting a single MVPF estimate, it is important to note that
+policies may have multiple groups of distinct beneficiaries. Measuring the incidence of the
+policy on di↵erent groups helps to capture distributional concerns that may be of importance.
+In these cases, it can be helpful to decompose the MVPF and report the WTP as a sum across
+sub-groups with their own WTP and social welfare weights. We can write:
+WTP
+g
+⌘¯MVPF = ⌘¯ (6)
+g
+dB/dp
+g
+X
+where ⌘ = i g
+WTPi⌘i
+is the incidence-weighted average welfare weight of those in group g
+g
+P
+2
+i g
+WTPi
+and WTP = 2 WTP is the willingness-to-pay for the policy by those in group g. Here,
+g P i g i
+MVPF = g
+WTP2
+g. The task of the researcher is to estimate the WTP for these groups along
+dB P /dp g
+P
+with the net cost to the government, dB/dp. The policy maker must choose the weights they
+place on di↵erent members of society, ⌘ .
+g
+In the context of our analysis, we focus our e↵orts on a comprehensive and accurate char-
+acterization of the net cost to the government of the policy, dG, and the willingness-to-pay for
+dp
+the various sub-groups impacted by each policy in our sample. In our empirical analysis below,
+we often discuss the orderings of policies using their aggregate MVPF, but we emphasize that
+di↵erent policies may have di↵erent distributional incidences that should be incorporated into
+an ultimate decision (i.e., decision-makers should apply their desired weights). The aim of our
+analysis is to provide as detailed a breakdown as possible to facilitate these decisions.
+9
+
+2.2 Measuring WTP and Net Cost
+Given a policy change that has been evaluated using experimental or quasi-experimental meth-
+ods, how do we measure the net cost to the government and the willingness-to-pay for each
+group of beneficiaries? We illustrate our approach with a simple example. Consider some good
+x with an environmental externality. For example, x may be an electric vehicle or a gallon of
+gasoline. Let V denote the monetized value of the environmental externality (or any external-
+ity) resulting from additional consumption of x. Let p denote the price of x paid by consumers
+and let ⌧ denote the current subsidy (or tax) on good x such that producers receive q = p+⌧.
+Now, consider a policy change that alters the tax or subsidy on good x. For some infinitesimal
+increase in the subsidy d⌧, the willingness-to-pay for the policy change is given by
+WTP = xd⌧ +Vdx (7)
+Here, the first term is the monetary value of the subsidy (holding behavior fixed due to the
+envelope theorem), and the second term is the WTP from the change in the environmental
+externality.
+Implicit in equation (7) are assumptions of perfect competition and full pass-through. We
+relax both of these assumptions in our implementation. In the presence of market power, the
+change in ⌧ may not equal the change in price experienced by the consumer. Some of the price
+increase might be borne by the producer. Moreover, the change in consumption generated by
+the policy, dx, can generate a first-order benefit to firms. If consumers switch between goods
+with di↵erent levels of mark-ups, firms may have a willingness-to-pay for the consumption
+change due the di↵erential mark-up they receive. We incorporate these e↵ects in our empirical
+analysis but omit them from the notation here for simplicity.
+The dx in equation (7) is the causal e↵ect of the policy change. Upon first inspection, it
+mightappearasthoughthevalueofdxcanbecalculateddirectlyusing“reducedform”evidence
+on the e↵ect of the policy. A proper measure of dx, however, includes any “rebound” or broader
+general equilibrium e↵ects that arise from the policy. These are not generally captured by most
+reduced-form empirical designs and can increase or decrease the welfare impact of the policy.
+For example, an EV subsidy may increase electricity demand. This can lead to slightly higher
+energy prices and, thus, lower energy consumption even by those not receiving the subsidy.
+This rebound e↵ect on energy demand needs to be included in order to accurately measure the
+e↵ect of the policy. In Appendix D, we show how we are able to incorporate these rebound
+e↵ects using estimates of the market supply and demand curves and discuss how we apply this
+to account for the rebound created by upward-sloping local supply curves in the US electricity
+markets.
+Turning next to the cost to the government, the cost of the subsidy has two terms:
+Cost = xd⌧ +⌧dx (8)
+10
+
+where the first term is the cost to the government of the subsidy change holding behavior, and
+consequently x, fixed. The second term is the fiscal impact of the behavioral response to the
+policy, ⌧dx. This is paid by the government but not valued by individuals due to the envelope
+theorem.
+The ratio of WTP to government costs yields the MVPF for a change in ⌧:
+xd⌧ +Vdx
+MVPF = (9)
+xd⌧ +⌧dx
+1+ V ( ✏)
+= p   (10)
+1+ ⌧( ✏)
+p  
+where ✏ = dx p = dxp is the percentage change in consumption of x in response to a 1%
+  d⌧ x dpx
+ 
+increase in consumer price (i.e., ✏ is the price elasticity of demand). Here, the environmental
+impact of the policy change is given by the elasticity, ✏, times the environmental externality of
+the good relative to the price of the good, V . The fiscal externality is given by the elasticity, ✏,
+p
+times the tax rate relative to the price of the good ⌧.16 A natural benchmark is the case where
+p
+⌧ = V. In this case, the government fully internalizes the externality with a Pigouvian tax or
+subsidy, generating an MVPF of 1. When, as we often observe, the tax or subsidy diverges from
+its Pigouvian level, that moves the MVPF away from 1. For example, the MVPF on a subsidy
+can be very high if the per-dollar subsidy is well below the per-dollar externality benefit of the
+good. In this sense, the MVPF measures the extent to which status quo policy deviates from
+the optimal policy and quantifies the welfare gains of moving toward that optimum.
+2.3 Learning by Doing
+A common rationale for clean energy subsidies is that society can lower the future marginal cost
+of new technologies by subsidizing their demand today (Acemoglu et al. 2012, Bistline et al.
+2023). Industries, particularly those characterized by rapidly changing technologies, may learn
+as the result of experience with production. These learning-by-doing gains mean that the cost
+of production falls with the total production of a good. Subsidies that encourage production
+today serve to bring down future costs by increasing total production. If the firms developing
+these new technologies do not internalize these future benefits, then subsidies can be welfare
+enhancing.
+Existing evidence suggests that learning-by-doing e↵ects may be present in the production
+of solar cells, wind turbines, and batteries. Appendix Figure 1 reproduces evidence from Way
+et al. (2022) showing the relationship between the marginal cost per kW for wind and solar (and
+per kWh of battery storage) plotted against cumulative production. Their analysis shows that
+16In the presence of firm markups (e.g., due to market power), there are additional terms in this expression.
+In the numerator, dx is multiplied by the firm markup net of taxes, and, in the denominator, dx is multiplied
+by the corporate tax revenue from firm profits.
+11
+
+a 1% increase in cumulative solar production is associated with a 0.319% reduction in price. For
+wind and EV batteries, the associated price reductions are 0.194% and 0.421%, respectively.
+If one believes that these patterns reflect causal learning-by-doing spillovers,17 to what extent
+should that change their views about the welfare e↵ects of subsidies for those goods?
+The contribution of this section is to provide a new su cient statistics result that incorpo-
+rates learning-by-doing e↵ects into the MVPF framework. Our approach relates to work by van
+Benthem et al. (2008), who develop a dynamic model of learning by doing, and Bistline et al.
+(2023), whoincorporatelearningbydoingintotheirassessmentoftaxesandsubsidies. Weshow
+thatwhenthemarginalcostofproductionisanisoelasticfunctionofcumulativeproductionand
+when demand is an isoelastic function of price, this leads to a second-order ordinary di↵erential
+equation that can be solved to estimate society’s willingness-to-pay for the learning-by-doing
+e↵ects. Theorem 1 derives a closed-form expression for this willingness-to-pay. It includes both
+the benefits society gets from lower prices paid by consumers and the benefits society gets from
+reducing future emissions due to earlier future purchases of the good. Appendix B provides a
+formal derivation of these results along with a generalization to include imperfect competition
+and firm markups, time-varying externalities, and cases where the learning curve only applies
+to a subset of a product (e.g., batteries in EVs). Here, we present a simplified analysis that
+highlights the core insights of the framework.
+We return to our example of a subsidy for a good, x. In order to think about learning by
+doing, we now bring the model into a continuous time environment, where time is indexed by
+t 0. We imagine the subsidy of interest is a short-term subsidy enacted at time t . We wish to
+⇤
+ 
+incorporate the welfare benefits accruing in future periods, t > t . Let x(t) denote consumption
+⇤
+t
+of x at each time t and let X(t) = x(s)ds+X(0) denote cumulative production through time
+0
+t. Motivated by the historical evidence in Appendix Figure 1, suppose that the marginal cost
+R
+of production at each point in time is an isoelastic function of cumulative demand,
+c(X(t)) = X(t)✓ (11)
+where ✓< 0 is the elasticity of marginal cost with respect to cumulative production. Suppose
+also that the choice of x(t) at each point in time depends on the price with a constant price
+elasticity of demand, ✏< 018
+x(t) = ap(t)✏ (12)
+17The extent to which the curve represents learning spillovers has been debated (Nemet 2006, Nordhaus
+2014b, Rubin et al. 2015). See Lafond et al. (2022) for an estimate of the causal impact of learning by doing
+on military production. In the context of this paper, we take these learning-by-doing e↵ects as given and then
+showtherobustnessofourresultstotheomissionoflearning-by-doinge↵ects. Thereisquasi-experimentalwork
+that has found evidence of potential spillovers in solar production (Banares-Sanchez et al. 2023) and in wind
+installationsinCalifornia(Gillingham&Stock2018). WesupplementthisinAppendixTable1withadditional
+descriptive evidence on this point. We show that the learning curves continue to hold even after controlling
+for potentially confounding variables such as linear time trends and current production. This helps to rule out
+contemporaneous supply shocks or historical trends unrelated to learning.
+18In practice, our value of ✏ will come from our existing estimates on the causal e↵ect of a subsidy for x.
+12
+
+Finally, we assume that there is perfect static competition at all points in time and no future
+subsidies so that prices are set equal to marginal cost, p(t) = c(X(t)).
+Learning by doing generates two types of externalities: a price externality and an environ-
+mental externality. The price externality arises because an increase in production of x(t) today
+(e.g., at time t = t ) will generate consumer surplus via a reduction in prices faced by future
+⇤
+customers (at time t > t ). Let dp(t) denote this impact on prices at each time t. The envelope
+⇤
+theorem implies that the WTP for the price decline at each time t is given by dp(t)x(t), where
+ 
+x(t) is the planned consumption at time t. In other words, the welfare gain is given by the
+price reduction times the counterfactual path of consumption in the absence of the subsidy.19
+The environmental externality arises because the price reduction caused by the subsidy will
+increase future consumption of the good, dx(t), and, consequently, generate a positive environ-
+mental externality. This externality is given by V dx(t), where we now introduce a t subscript
+t
+to allow the environmental externality to vary over time. For example, this allows the SCC to
+increase or the cleanliness of the electrical grid to improve over time. The key to measuring
+our two externality terms is that we need to know how much prices decline, dp(t), and how
+much consumption increases, dx(t), in response to an increase in consumption of x today (e.g.,
+at time t ). With those terms in hand, we can then integrate over all the future price benefits,
+⇤
+dp(t)x(t), and environmental benefits, V dx(t), over time t > t .
+t ⇤
+ 
+How can we use this setup to measure the future price and quantity impacts of a policy
+that increases demand today? Our analysis relies on two key insights. First, we know that the
+impact of a subsidy x(t) at some time, t , will a↵ect future prices proportional to the amount
+⇤
+that it increases cumulative production. While this e↵ect can be mathematically complicated,
+the use of an autonomous supply and demand system allows us to re-frame the problem: we
+can think of the subsidy as moving us forward in time by some amount, dt. That shift in time
+is proportional to the size of the subsidy and the magnitude of the demand response when the
+subsidy is operating at time t .
+⇤
+Moving forward in time lowers marginal costs at each point in time (and thus prices) by
+19Weassumelearningbydoingprovidesknowledgeexternalitiestotheentiremarket. Itcouldbethatlearning
+by doing occurs within firms and is fully internalized. In that latter case, a subsidy might have no learning-
+by-doing price benefits for consumers. Moreover, learning-by-doing externalities are di↵erent from economies
+of scale, which are about reducing the fixed costs of production. As Borenstein (2012) notes, this di↵erence
+might have important implications for public policy. In our modeling, we provide an optimistic interpretation
+of current subsidies lowering future costs through learning-by-doing externalities. In particular, we assume no
+internal capture of learning-by-doing benefits and no economies of scale, although this assumption has been
+questioned in the solar and wind industries (Nemet 2006, S¨oderholm & Sundqvist 2007). Such concerns would
+dampenthemagnitudeofthetruelearning-by-doingbenefitsweestimateusingourapproach,butaswediscuss
+below, this would not a↵ect our core empirical lessons.
+13
+
+dp(t), given by
+dp(t) = c(X(t))X (t)dt (13)
+0 0
+= c(X(t))x(t)dt (14)
+0
+= ✓X(t)✓ 1x(t)dt (15)
+ 
+Also, moving forward in time leads to a change in consumption of the good given by dx(t) =
+X (t)dt.
+0
+Our second insight is that our demand and cost equations imply that the future time path
+of x(t) is the solution to a second-order autonomous ordinary d↵eirential equation. To see
+this, note that log(x(t)) = log(a) + ✏log(p(t)) and log(c(t)) = log() + ✓log(X(t)). Totally
+di↵erentiating yields
+dlog(x(t)) = ✏dlog(p(t)) (16)
+= ✏dlog(c(t)) (17)
+= ✏✓dlog(X(t)) (18)
+(19)
+Noting that X (t) = x(t) and the formula for the derivative of logs yields
+0
+X (t) X (t)
+00 0
+= ✏✓ (20)
+X (t) X(t)
+0
+which is a second order autonomous ODE that we show has a closed-form solution. Combining
+these two insights leads to the core result in Theorem 1.
+Theorem 1. (Learning by Doing). Let the marginal cost be given by equation 11 and
+demand be given by equation 12. Suppose prices are set at marginal cost in all periods. Then,
+the MVPF of a subsidy at time t is given by
+⇤
+1+ V ( ✏)+DP +DE
+MVPF = p   (21)
+1+ ⌧( ✏)
+p  
+where the price externality, DP, is given by
+DP = ✓✏(t ⇤ )  ✓( 1 1   + ✏ ✏ ✓ ) 1 e   ⇢(t   t⇤)t   1+✓ 1 1   + ✏ ✏ ✓dt (22)
+Zt
+⇤
+where
+X
+init
+t = (23)
+⇤
+x (1 ✏✓)
+init
+ 
+is the normalized ratio of cumulative to flow production at the time the subsidy is enacted, and
+14
+
+the environmental externality is given by
+✏2✓
+DE =  (1 ✏✓)c(X(t )) t ⇤ 1   ✏✓ ✏✓ 1 e   ⇢(t   t⇤)t 2 1 ✏   ✓  ✏✓ 1 V t dt (24)
+  ⇤ Zt ⇤
+Proof: See Appendix B.
+This theorem provides an MVPF formula that allows for the explicit incorporation of
+learning-by-doing externalities.20 This di↵ers from our static expression for the MVPF via
+the inclusion of dynamic externalities (DE) and dynamic price e↵ects (DP). Calculating these
+dynamic terms requires four inputs: (1) the elasticity of demand with respect to price, ✏, (2) the
+elasticity of marginal cost with respect to cumulative production, ✓, (3) cumulative production
+at the time of the subsidy X(t ), and (4) product cost at the time the subsidy, c(X(t )). ✏ and
+⇤ ⇤
+c(X(t )) are generally necessary for the construction of the static MVPF, indicating that only
+⇤
+two new terms, ✓ and X(t ), are needed to construct these learning-by-doing welfare estimates.
+⇤
+We use estimates of historical sales numbers to construct X(t ) and use estimates from Way
+⇤
+et al. (2022) of the relationship between cumulative production and price to construct our cost
+curve parameter ✓. The price elasticities, ✏, come directly from each paper in our sample.
+In our analysis below, we incorporate these learning-by-doing e↵ects into our estimates for
+the MVPFs of subsidies for wind, solar, and electric and hybrid vehicles (and the indirect e↵ects
+of gasoline taxes on EVs).
+3 Data and Sample
+3.1 Sample
+We analyze the welfare impact of 96 US spending and revenue-raising policies that a↵ect
+greenhouse gas emissions and have been rigorously evaluated in the last 25 years using quasi-
+experimental or experimental methods. These policies span subsidies, revenue raisers, and
+nudges. We form our sample from the full set of articles in 18 major journals in economics
+from January 1999 through December 2023,21 and supplement that with a “snowball” sam-
+20Appendix B provides the suitable generalization of the learning-by-doing analysis to the case when firms
+have markups over marginal cost.
+21Oursampleofjournalsincludes(inalphabeticorder)theAmerican Economic Journals (Applied, Economic
+Policy, Micro, and Macro), the American Economic Review, the American Journal of Agricultural Economics,
+Econometrica, theEconomic Journal, theJournal of Agricultural Economics, theJournal of Association of En-
+vironmental andResource Economists, theJournal of Environmental Economics and Management, theJournal
+of European Economic Association, the Journal of Political Economy, the Journal of Public Economics, the
+Quarterly Journal of Economics, the Review of Economic Studies, the Review of Economic Statistics, and the
+Review of Environmental Economics and Policy. We also include any National Bureau of Economic Research
+Working Papers from the “Environment and Energy Economics” and “Public Economics” programs published
+since 2018.
+15
+
+ple of articles cited within these papers.22 Within the category of subsidies, we analyze seven
+sub-categories: wind production tax credits, rooftop solar subsidies, electric vehicle subsidies,
+hybrid vehicle subsidies, vehicle buyback rebates, energy e ciency subsidies, and weatheriza-
+tion subsidies. Within the category of revenue raisers, we analyze four sub-categories: gasoline
+taxes, other fuel taxes (such as jet fuel and diesel taxes), other revenue raisers (including the
+California Alternative Rates for Energy), and cap-and-trade policies. We also supplement this
+sample with a selected set of international policies that have been evaluated in the past ten
+years.23
+Table 1 presents a list of all of our policies. For each policy, we list the category, sub-
+category, year(s)ofimplementation, locationofimplementation, andthepaper(s)estimatingits
+causal e↵ects. In certain cases, we observe some, but not all, of the relevant inputs necessary to
+constructanMVPF.Inthoseinstances, weprovideanMVPFforthepolicy(underassumptions
+outlined in each policy’s appendix) but only include it in our “extended” sample (denoted by
+“*” in Table 1). Extended sample policies are excluded from any category averages reported in
+the paper.
+Publication Bias Whileweattemptedtoconstructacomprehensivesampleoftheliterature,
+we are subject to potential biases arising from the fact that statistically significant studies are
+more likely to be published. In Appendix F, we present evidence of modest publication bias
+in the environmental economics literature: We find that estimates are roughly two times more
+likely to be published if they cross a t-stat of around 2. In order to assess how this could impact
+our broad conclusions, we use the methods of Andrews & Kasy (2019) to correct for publication
+bias. We show this leaves our estimates largely unchanged and our conclusions una↵ected.
+In-Context versus Baseline MVPFs For each policy change in our sample, we form two
+conceptually distinct MVPF estimates. First, we construct a measure of the MVPF in the
+context (year and location) in which the policy change occurred. For example, if we have
+estimates from an EV subsidy program in California in 2014, we use measures of the CA electric
+grid in 2014 to quantify the externalities due to reductions in gasoline usage o↵set by increased
+electricity use. We use the CA gasoline tax rate in 2014 to quantify the lost state government
+revenue from reduced gas purchases. These “in-context” MVPFs measure the welfare impact
+of the policy as it was enacted.
+Second, we construct an MVPF for each policy assuming it was implemented nationally in
+the US in 2020. We do so by assuming the original elasticity estimated in each paper would also
+determine the behavioral response to the federal policy in 2020. We then use those estimated
+elasticities along with 2020 measures of the tax rates and values of externalities to measure
+22We also form an ”extended sample” of MVPF estimates for policies where we are unable to construct key
+components of the MVPF, and we exclude these policies from each category average measure discussed below.
+23Wealsoincludeseveralanalysesofregulatorypolicies(CAFEstandardsandrenewableportfoliostandards)
+and show how to nest these into our framework. See Appendix G.
+16
+
+the environmental and fiscal externalities from the policy. This approach harmonizes welfare
+comparisons across policies holding the contextual environment fixed. We refer to this as our
+“baseline” MVPF.
+In Section 4, we discuss how the harmonization of our estimates a↵ects our results. Our
+high-level findings do not vary between our baseline and in-context MVPFs. That said, there
+are some cases where the distinction matters. For example, vehicle emissions were higher in
+previous decades, increasing the in-context MVPF for vehicle retirement policies implemented
+in the earliest years in our sample.
+3.2 Valuing Environmental Externalities
+We seek to apply a consistent and comprehensive method for valuing the range of externali-
+ties generated from each policy. We discuss these valuations briefly here and refer readers to
+Appendix C for a detailed discussion of our approach.
+Greenhouse Gas Emissions CO is a key greenhouse gas contributing to climate change.
+2
+Our baseline estimates place a monetary cost on CO emissions following the Environmental
+2
+Protection Agency’s 2023 guidance regarding the social cost of carbon at a 2% discount rate
+(EPA 2023c).24 This model implies a social cost of carbon (SCC) of $193 per ton for emissions
+in 2020 and is increasing over time.25 We also show the robustness of our results to models
+with 2020 SCCs of $76 and $337.26
+We use the time path of the SCC to measure the environmental externality from each
+policy. For example, a subsidy that leads to the installation of a wind turbine in 2020 will
+reduce emissions from 2020 through 2045. We use the year-specific SCC to value the associated
+externalities. For consistency, we apply the 2% discount rate to translate costs and benefits
+into 2020 present-value dollars.
+In addition to CO , we also incorporate costs from other greenhouse gases where available,
+2
+including methane (CH ), nitrous oxide (N O), carbon monoxide (CO), and hydrocarbons
+4 2
+(HC). For the baseline scenario corresponding to the $193 SCC in 2020, the social costs of
+methane and nitrous oxide in 2020 are $1,648 and $54,139 in 2020, respectively (EPA 2023c).
+For carbon monoxide and hydrocarbons, we use global warming potential (GWP) factors from
+Masnadi et al. (2018) of 2.65 and 4.5 to convert these into CO equivalent units, CO e, and
+2 2
+then apply our baseline social cost of carbon.
+There are three key things to note about our approach to quantifying the value of reducing
+24This is the typical discount rate used by environmental economists (Nesje et al. 2023).
+25This SCC of $193 in 2020 aligns closely with several other estimates from integrated assessment models
+(IAMs), such as the GIVE model in Rennert et al. (2022).
+26The $76 (calculated with a 2.5% discount rate) SCC comes from Interagency Working Group (2021) and
+represents the largest SCC estimate for 2020 presented in earlier guidelines. The $337 (calculated with a 1.5%
+discount rate) represents the largest SCC for 2020 reported in the EPA’s most recent guidelines (EPA 2023c).
+17
+
+greenhouse gas emissions. First, we require the SCC to be the sum of individuals’ private
+willingnessestopayforreducedCO emissions. Thisisconsistentwithapproachtakenintypical
+2
+Integrated Assessment Models (IAMs). RICE and DICE focus on GDP or GDP-equivalent
+damages, which correspond to private measures of damages. Other IAMs, such as the GIVE
+model, infer an SCC from VSL estimates and use private VSLs that are not adjusted with
+welfare weights. Again, these models generate an SCC that corresponds to a private willingness
+to pay. By contrast, some have proposed equity-weighted social costs of carbon that adjust for
+welfare weights when forming the SCC (Prest et al. 2024). While the MVPF framework allows
+for equity weights, such weights are most appropriately excluded from the MVPF and instead
+applied ex-post when making policy comparisons, as in equation (5).
+Second, the SCC embeds within it a real discount rate (2% in our baseline case) that
+captures the real cost to society of moving resources across periods. The application of this
+discount rate normalizes the willingness to pay in units of 2020 dollars for all comparisons, even
+across future generations. This discount rate does not, however, make any claims about the
+decision-maker’s preferences across time. If a decision-maker places greater (or lower) weight
+on future generations, they will simply place a higher (lower) social welfare weight on those
+future beneficiaries. In the context of equation (5), this represents a modification of ⌘¯ to reflect
+weights on future generations.
+Third, our MVPF calculations rely on estimates of the incidence of the social cost of carbon.
+In particular, the MVPF approach separates the willingness to pay for a policy from its net cost
+to the government (the US government, in our case). Calculating these components, therefore,
+requires identifying the incidence of the SCC on the US government’s budget. To account for
+this in our baseline specification, we assume an incidence that follows the US share of GDP in
+the global economy of 15%, which corresponds to the assumption made in many models such
+as DICE (Nordhaus 1993).27 Within this 15%, we assume in our baseline specification that
+50% of this valuation is the result of changes in productivity that have direct e↵ects on tax
+revenue (e.g., due to changes in agricultural productivity).28 We assume a tax rate of 25.54%
+as this is the 2020 tax-to-GDP ratio for the US (OECD 2021), which captures both corporate
+and individual (labor income) taxes. These numbers imply that 13% of the incidence from
+changes in carbon emissions falls directly on US residents while just under 2% falls on the US
+government as changes in tax revenue. As it turns out, accounting for this fiscal externality
+has no bearing on any of our results for domestic subsidies, nudges, or revenue raisers.29 It
+27Other IAMs explicitly measure the distributional incidence of global damages. For example, Nordhaus
+(2014a, 2017) notes that the three models from the Interagency Working Group (Interagency Working Group
+2021) on the social cost of carbon report US incidences of 10% for RICE2010 (Nordhaus 2010), 17% for
+FUND2013 (Antho↵ & Tol 2010, 2013b,a), and 7% for PAGE2011 (Hope 2006, 2008).
+28We note that many models that agree on the level of the social cost of carbon arrive at their headline
+number with di↵erent underlying components in their calculations. They di↵er in their split between market
+and non-market damages (i.e., impacts on productivity as measured via change in GDP versus valuations of
+mortality using a VSL.)
+29TheshareoftheincidencefallingontheUSTreasuryissu cientlysmallthatmodificationsinourincidence
+assumptions do not impact our findings. Using alternate values for the geographic incidence of the SCC or the
+18
+
+does, however, significantly a↵ect some conclusions regarding international policies where the
+US-specific fiscal externality can get quite large. In that section, we analyze the robustness of
+our conclusions to those incidence assumptions.
+Local Pollutants While greenhouse gases yield global externalities, other pollutants primar-
+ily a↵ect individuals residing near the source of emissions. These local pollutants generally
+produce negative e↵ects via their impact on individual health. In order to value these exter-
+nalities, we use the AP3 integrated assessment model (Tschofen et al. 2019), which measures
+the marginal health impacts of additional emission of NH , HC, NO , PM , and SO in
+3 X 2.5 2
+each county in the US.30 We monetize those health impacts using a VSL of $9.5 million (EPA
+2010).31
+From Causal E↵ects to Externalities For each policy in our analysis, we translate its
+causal e↵ect (e.g., purchases of EVs in response to subsidies) into the externalities it generates
+(e.g., the various pollutants discussed above) using a consistent approach across all policies.
+For example, consider policies that alter electricity usage. Some of these policies, such as
+residential solar subsidies, might generate new sources of electricity. Other policies, such as
+rebates for energy-e cient appliances, might reduce existing electricity usage. In order to
+identify the change in emissions from changes in electricity generation, we use estimates from
+EPA’s Avoided Emissions and Generation Tool (AVERT) (EPA 2024b). This provides year-
+and location-specific estimates of marginal emissions rates per kWh of electricity generated.
+We also consider a class of policies that a↵ect vehicle usage and gasoline consumption. In those
+cases, we estimate the change in gallons of gasoline used relative to a counterfactual vehicle. We
+measure the total CO associated both with the upstream production of gasoline and with its
+2
+combustion. We draw upon estimates from National Emissions Inventory, the Inventory of U.S.
+Greenhouse Gas Emissions and Sinks, as well as the EIA’s reported CO emissions coe cients.
+2
+We describe these estimates in detail in Appendix C.
+Appendix Figure 2 presents the environmental damages from driving and using electricity
+over time. Panel A presents the dollar value of the local and global externalities generated
+per gallon of gasoline used by the average light-duty, gasoline-powered vehicle. It shows that
+average non-CO emissions have declined over the last several decades, and there has been a
+2
+shift in the share of total pollution externalities driven by CO emissions.32 Panel B reports
+2
+split between market and non-market damages does not impact any of our primary findings.
+30To measure the local pollution externality from increased electricity usage, we take county-level damages
+estimated in AP3 and weight by fuel consumed for electricity generation. To measure the local pollution
+externality from increased gasoline vehicle usage we weight by county-level total vehicle miles traveled.
+31Unlike our estimates for the damages of global pollutants, we do not vary these marginal damages over
+time. This is because the damage function associated with marginal carbon emissions is time-varying, but the
+health impacts of local pollutants do not follow a clear time path.
+32The graph also includes the impact of other vehicle externalities – congestion and accidents. For vehicle
+accidents,weuseresultsfromJacobsen2013b,whoestimatesthata1%reductioninvehiclemilestraveledleads
+to263fewerfatalitiesintheUS.WeagainapplyaVSLof$9.5milliontoyielda$0.08per-mileexternality. For
+19
+
+average emissions from the electric grid over time. It shows a gradual reduction in emissions
+as more clean energy (and lower-carbon energy) has come online. This is supplemented by
+evidence in Appendix Figure 3, which shows the geographic variation across the US in emission
+externalities, as measured in 2020. The Northeast and California have the cleanest grids (lowest
+environmentalexternalitypermWh)relativetotheMidwest,whichhasthedirtiestelectricgrid.
+We discuss below how this leads to heterogeneity in the welfare impacts of policies that are
+targeted to di↵erent regions of the US.
+4 Subsidies
+The next four sections of the paper present our results for the MVPFs of subsidies, marketing
+and nudges, revenue raisers, and international policies. We begin with subsidies and a detailed
+description of the way in which we construct MVPF estimates for EV subsidies. We choose this
+example because it utilizes nearly all of the machinery we develop to construct environmental
+MVPFs. We then provide shorter descriptions for each of the remaining subsidy policies across
+each of our sub-categories. (See the Online Appendix for a detailed construction of each MVPF
+in our sample.) Finally, we compare MVPFs across sub-categories, identifying the types of
+policies that produce the highest MVPFs.
+Subsidies for Electric Vehicles Over the past 15 years, many US states and the federal
+government have o↵ered a range of subsidies to encourage the purchase of electric vehicles. We
+draw upon three papers measuring the response of EV purchases to federal or state subsidies,
+beginning with an analysis of the California Enhanced Fleet Modernization Program (EFMP)
+studied by Muehlegger & Rapson (2022). The EFMP subsidized EV purchases, varying the
+availability and the size of the subsidy based on each household’s income and the zip code in
+which they resided. Muehlegger & Rapson (2022) use this variation to estimate that roughly
+85 percent of the subsidy was passed through to consumers while 15% was captured by dealers
+via higher prices. They also estimate that a one percent decrease in the price of EVs led to a
+2.1 percent increase in EV purchases.
+We use these estimates to construct baseline and in-context MVPFs for the subsidy. We
+focus our discussion here on the baseline MVPF, which takes the estimated elasticity of -2.1
+and considers the welfare e↵ect of a national subsidy change implemented in 2020.33
+Figure 1 presents the components of the WTP and net cost estimates used in the construc-
+tion of the MVPF. All components are normalized by the mechanical cost of the subsidy change
+(i.e., the cost if individuals did not change their behavior). By construction, individuals are
+willing to pay $1 per $1 in mechanical subsidy cost. The pass-through rate on the subsidy
+congestion due to light-duty vehicles, we take an average of externality measures from Parry & Small (2005),
+Parry et al. (2014), and Couture et al. (2018) to yield an externality of $0.03 per mile.
+33Appendix Table 2 presents the results for the in-context MVPF.
+20
+
+means $0.85 flows to those purchasing vehicles and $0.15 flows to the owners of CA dealerships
+that sell EVs.
+The next bars in Figure 1 report the environmental externalities associated with marginal
+EV purchases. We begin by estimating the change in externalities from reducing the usage of
+internal combustion engine (ICE) vehicles as individuals purchase EVs. We use estimates from
+Holland et al. (2016) to calculate the fuel economy of the counterfactual car that a marginal EV
+customer would have purchased. We find that EVs displace a cleaner-than-average new light-
+duty car.34 We then combine this counterfactual fuel economy (41.2 MPG) with an estimate
+of the per-gallon externalities associated with gasoline. This includes both the global damages
+from CO emitted as well as the local damages from NO , PM , HC, CO, SO , and NH .
+2 X 2.5 2 3
+We measure these damages over an average 17-year lifespan of the vehicle (Greene & Leard
+2023). We also use estimates from Zhao et al. (2023) to account for the fact that EV purchasers
+tendtodrivetheircarsfewermilesthantheaveragepurchaserofagaspoweredvehicle.35 Taken
+together, thelocalandglobalpiecesprovidethelifetimeenvironmentalbenefitsfromnot driving
+the counterfactual gas-powered vehicle. This calculation leads to a WTP of $0.17 from global
+pollutants and $0.02 from local pollutants, for a total benefit of $0.19 from the reduced gasoline
+consumption induced by the subsidy.
+While the decrease in gasoline consumption yields environmental benefits, these e↵ects are
+partially o↵set by the environmental damages from increased use of electricity. We incorporate
+the emissions from additional electricity usage over the lifespan of the EV using emissions
+estimates from the EPA’s Avoided Emissions and Generation Tool, AVERT (EPA 2024b).36
+Combining the change in emissions with our valuations of those externalities, we find that the
+$1 subsidy results in $0.10 in global damages stemming from electricity usage and $0.02 in
+local damages. This yields a total welfare cost of $0.12. When combined with the damages
+avoided from gas-powered cars, society is willing to pay $0.07 for the net global benefit and
+approximately $0 for the net local benefit.
+Some of the estimated increases in electricity usage from EVs could be o↵set through in-
+creases in the prices of electricity that drive down usage – i.e. a “rebound e↵ect”. To account
+for this, we use estimates of the demand and supply elasticity for electricity. Following the De-
+partment of Interior’s approach in their MarketSim model, we use a demand elasticity of -0.19
+and a supply elasticity of 0.78 (DOI 2021). Combining these estimates implies that roughly
+20% of the electricity demand is o↵set by reduced demand due to higher electricity prices.37
+34Holland et al. (2016) estimate the counterfactual ICE vehicle purchased by EV buyers in 2013–2015. We
+take the percentage increase in MPG relative to the MPG of new cars in 2014 and apply that to the new car
+MPG figure in 2020. Below, we explore the robustness of our results to this particular MPG assumption and
+show it does not meaningfully impact our results.
+35Zhao et al. (2023) show that the average EVs’ vehicle miles traveled is roughly 61% of the average gas-
+powered car. This estimate is very similar to those in Davis (2019) and Burlig et al. (2021).
+36We project future grid emissions using the mid-range 2023-2050 forecast from the Princeton REPEAT
+Project (Jenkins & Mayfield 2023) in combination with estimates from the AVERT model that translate com-
+bustion shares into externalities.
+37We do not incorporate a rebound e↵ect for gasoline because we assume that the gasoline price does not
+21
+
+This suggests that society is willing to pay an additional $0.02 for the global benefits (and less
+than $0.01 for the local benefits) created by the rebound e↵ect. Summing the environmental
+benefits yields a total of $0.09.38
+In addition to environmental externalities from charging the EV, we also account for the
+fact that the upstream production of EVs is more carbon-intensive than the production of ICE
+vehicles. This is due to the nature of the battery production process. We incorporate estimates
+from Winjobi et al. (2022) that suggest that battery production releases 0.06 tons of CO per
+2
+kWh. This suggests the average EV imposes a global externality from battery production of
+$838.34 per EV, leading to an externality of -$0.03 per dollar of EV subsidy. This rounds to a
+total environmental externality of $0.07 per dollar of EV subsidy.
+In the case of EVs, there could also be learning-by-doing externalities in battery production.
+Way et al. (2022) estimate that a 1% increase in battery production leads to a reduction
+in battery costs of 0.42% (✓ = 0.42). Following the approach outlined in Section 2.3, we
+ 
+incorporate the impact of learning by doing into the MVPF of EV subsidies. Using the demand
+elasticity of ✏ = 2.1 and discounting future benefits at a 2% discount rate, the increased
+ 
+future demand for EVs yields environmental benefits of $0.04 per dollar of the mechanical
+subsidy (DE in Theorem 1). In addition to the environmental benefits, the e↵ect of learning
+by doing on future prices creates a benefit of $0.31 to future purchasers (DP in Theorem 1).39
+Taken together, the learning-by-doing e↵ects increase the value of the subsidy by $0.35 per
+dollar of EV subsidy.
+It is worth noting that the inclusion of these $0.35 in learning-by-doing benefits relies on
+the assumptions that i) the relationship between cumulative production and price is causal
+and ii) that these benefits are not internalized by firms through the patent system or other
+means. If the price declines were not causal and/or the e↵ects are internalized by firms, the
+$0.35 should not be included in the MVPF. Throughout, we present results with and without
+learning-by-doing e↵ects so that readers can view the results for their preferred specification,
+based on their judgment of the learning by doing evidence.
+The last benefit we consider is the impact of the policy change on the profits of gasoline
+and electricity producers. Our estimates suggest a marginal EV purchase in 2020 would reduce
+gasoline consumption by 2,857 gallons over the lifetime of the vehicle. We account for producer
+profits using an average markup per gallon of gas of $0.61 per gallon, or 27% of the 2020 retail
+meaningfully change in response to the demand shock induced by EV purchases.
+38Due to the envelope theorem, the change in electricity consumption from the rebound e↵ect does not
+generate private welfare costs. Only the externalities that are not internalized matter for the total willingness
+topayintheeconomy. Inadditiontotheenvironmentalexternalities, themarkupintheelectricitymarketalso
+generates a small additional externality on firm profits, which is incorporated into the firm profit numbers that
+we report.
+39These learning by doing e↵ects only apply to battery production, rather than than the production of the
+entirevehicle. Batteriesmadeuponlyroughly25%ofthecostofEVsin2020,mutingthenetimpactoflearning
+by doing on future EV prices. Appendix B discusses how we account for this dynamic in learning by doing. We
+alsoshowthatwhenonlyafractionofthecostsaresubjecttolearningbydoing, thevalueoftheseexternalities
+falls more rapidly over time.
+22
+
+price. This lies above the economy-wide average markup of 8% (De Loecker et al. 2020), leading
+to a decline in overall producer profits as consumers shift away from gasoline consumption to
+other goods.40 Applying a 21% e↵ective corporate tax rate, we calculate post-tax lost producer
+profits are equal to $0.04 per dollar of the subsidy.41 By contrast, electricity suppliers benefit
+from increased electricity consumption. Electric utilities are a regulated industry with natural
+monopolies that sell electricity at a markup. We estimate this markup to be 12.9% in excess
+of the 8% economy-wide markup. While some of these profits flow directly to the government
+as 28% of utilities are publicly owned, private utilities also have a willingness to pay for their
+increase in after-tax profits. We estimate this WTP to be $0.01 per $1 of subsidy.
+The numerator of the MVPF is the sum of these components. Figure 1 shows these yield
+a total WTP of $1.38 in benefits per mechanical dollar of spending. The figure also illustrates
+the incidence of the subsidy: Roughly 95% of the benefits of EV subsidies flow to those buy-
+ing and selling EVs, while 5% flow to current and future generations through reductions in
+environmental externalities.
+Next, we calculate the denominator of the MVPF, which is net cost of the subsidy to the
+government. Each of these components is reported in Figure 1. We begin with the mechan-
+ical cost of the subsidy, which is $1 by construction. We then consider the fiscal externality
+induced by pre-existing subsidies. When the subsidy causes an EV purchase, this generates an
+additional government cost equal to the pre-existing subsidy level. In 2020, federal credits for
+EVs had expired for most companies, such as Tesla, and so the average federal subsidy was just
+$42.98. Meanwhile, the average state subsidy was $604.27. The existence of these pre-existing
+subsidies means that the increase in EV purchases cost state governments $0.02 and the federal
+government $0.001 per each dollar of mechanical subsidy. (We obtain these numbers using
+equation 9 and multiplying the change in EV demand by the size of the pre-existing subsidy as
+a fraction of the total price of the vehicle).
+In the next step, we consider the impact of the policy on tax revenue collected. The reduced
+gasoline consumption leads to a loss in gas tax revenue for the government of $0.04 for every $1
+in subsidy. It also causes a reduction in corporate tax revenue of $0.01 per dollar of subsidy.42
+Finally, we incorporate a positive impact on the US government’s budget due to reductions
+in climate damages. According to a wide class of IAMs, the SCC is driven by a combination
+of health and productivity e↵ects. These productivity e↵ects can have a direct e↵ect on US
+government revenue. In our baseline specification, we assume that half of the SCC is due to
+productivity e↵ects and that 15% falls on the US economy (proportional to its share of global
+40Appendix C.4.5 relates these gasoline producers’ markups to the producer profit rates reported in
+(De Loecker et al. 2020).
+41WeobtainthecorporatetaxratefromWatson(2022). Wealsousethatforegonetaxrateestimatetoadjust
+the net cost of the policy. This tax rate does not vary over time. In 2020, the pre-tax markup on gasoline was
+$0.27 per dollar spent on gas, or $0.21 per dollar spent on gas after adjusting for corporate taxes.
+42While the policy increases utility profits, it also generate losses for gasoline producers. The sum of these
+two is a net decrease in government revenue.
+23
+
+GDP). Applying a 25.5% tax rate to these productivity gains yields a fiscal externality equal
+to $0.003 for every $1 in subsidies. These “climate fiscal externality” e↵ects are quite small for
+all domestic policies in our sample, but we return to them in Section 7 when we analyze the
+MVPFs of international policies.
+Adding these costs together, we estimate a net cost of $1.07 for every $1 in mechanical
+subsidy costs. When we take the ratio of the willingness-to-pay and the net cost, we arrive at
+a baseline MVPF of 1.30. The MVPF of 1.30 means that a $1 increase in a 2020 subsidy for
+EVs would have led to $1.30 in benefits for members of society.
+This baseline MVPF considers the welfare impact of a marginal change in EV subsidies
+relative to their 2020 levels. We can also use the framework to assess larger (non-marginal)
+policy changes. In 2022, for example, federal credits were increased to $7,500 as part of the 2022
+Inflation Reduction Act. Appendix Figure 4 illustrates the MVPF of a non-marginal policy
+that increases the total subsidy level from $647 to $8,104 in 2020. The first dollar of the subsidy
+has an MVPF of 1.30. We can similarly construct the MVPF of each marginal dollar of subsidy
+expansion.43 As the subsidy increases, the MVPFs fall slightly. This is because the fiscal
+externalities are increasing in the size of the pre-existing subsidy. The MVPF on the 7500th
+dollar is 1.02.44 Integrating over all the marginal policy changes for subsidy levels between $647
+and $8,104 yields an average (non-marginal) MVPF of 1.15. The non-marginal value of 1.15
+looks relatively similar to our baseline first dollar MVPF estimate of 1.30, a pattern we see
+consistently in our evaluation of non-marginal subsidy changes.
+In estimating the welfare e↵ects of EV subsidies, we consider two other policy changes
+studied in the literature. Clinton & Steinberg (2019) study variation in subsidy generosity over
+states across time, finding an elasticity of demand with respect to price of -2.93. Li et al. (2017)
+use variation in the federal credit over time to measure EV demand, yielding a price elasticity
+of demand of -2.61. The estimated elasticities from these two papers lead to MVPFs of 1.56
+and 1.47 in our baseline specification (with the larger MVPF driven by the stronger elasticity).
+In order to draw lessons from these MVPF estimates, it is helpful to pool them together
+and form a category average. Following Hendren & Sprung-Keyser (2020), we imagine the
+government spends $1 in initial program costs, splitting the programmatic expenditures evenly
+across the three EV policies. We construct an average WTP and average net cost across these
+policies and take the ratio to form a category average MVPF. This leads to an estimated
+baseline MVPF of 1.45 for EV subsidies.
+TheMVPFisnotmuchabove1becausethecostofinframarginaltransfersislarge. Inducing
+anewEVpurchasecoststhegovernmentroughly$30,00045, muchlargerthantheenvironmental
+43In this calculation, we assume the price elasticity of demand remains constant as the subsidy increases. We
+find similar results under alternative assumptions such as a constant semi-elasticity of demand.
+44In principle, it is possible for the MVPF to increase with subsidy size. This occurs if V/p rises faster than
+the fiscal externality (e.g., ⌧/p). This is possible because p is inclusive of the subsidy.
+45EV prices in 2020 were approximately $54,000. The product of the price elasticity and pass-through rate
+fromMuehlegger&Rapson(2022)is-1.78,implyingapaymentofapproximately$30,000perinducedpurchase.
+24
+
+and learning-by-doing benefits of the subsidy.
+One of the key advantages of our harmonized approach to measuring MVPFs is that we can
+explore the e↵ect of varying input assumptions. For example, we can adjust our assumptions
+regarding the MPG of counterfactual ICE vehicles or the VMT of EVs. If we assume that EVs
+replace an average new car, rather than a more-e cient-than-average new car, the category
+average MVPF rises from 1.45 to 1.61. If we assume that the VMT of an EV is equal to that of
+an average car, rather than the lower VMT figures estimated in the literature, the MVPF rises
+from 1.49 to 1.62. The MVPF also rises from our baseline 1.45 to 1.53 if one assumes the EVs
+are charged using a grid as clean as California’s. Switching to an SCC of $76 and associated
+discount rate of 2.5% yields a baseline MVPF of 1.33. Increasing the SCC to $337 with a
+discount rate of 1.5% yields a baseline MVPF of 1.57. As noted above, the learning-by-doing
+benefits play a key role in driving the MVPF estimates above 1. The MVPF falls to 0.96 if
+learning-by-doing e↵ects are excluded. Ultimately, across our various alternative specifications,
+the MVPFs of EV subsidies fall in a range between 1 and 1.7.
+Wind Subsidies Wenextexaminethewelfareconsequencesofproductiontaxcredits(PTCs)
+that encourage the production of wind energy. These subsidies pay producers a fixed payment
+per kilowatt hour of production of clean energy, typically for ten years after installation. We
+draw upon three papers estimating the elasticity of wind turbine investment with respect to
+these production tax credits in the US: Hitaj (2013), Metcalf (2010), and Shrimali et al. (2015).
+We also supplement these results with six elasticity estimates from papers studying the impact
+of variation in feed-in-tari↵ rates in Europe.46
+We begin by using the results in Hitaj (2013), which uses local variation in wind production
+incentives between 1998 and 2007 to estimate impacts on wind installation. The estimates
+indicate that a one percent decrease in the cost of wind electricity generation leads to a 1.13
+percent increase in wind turbine installations.
+Figure 2 Panel A presents the components of WTP and net government cost using the
+elasticity from Hitaj (2013). Producers are willing to pay $1 for a dollar’s worth of mechanical
+subsidy. Next, we measure the environmental benefits of the PTC. We measure the environ-
+mental benefits of wind turbine installations using the EPA’s AVERT model to measure the
+grid displacement from an additional unit of clean energy. We find that a $1 mechanical subsidy
+leads to a large reduction in both global and local environmental externalities, valued at $3.93
+and $0.52, respectively.47 These benefits are larger than the per-dollar benefits for EVs despite
+a smaller price elasticity (the elasticity is -1.13 as opposed to -2.1 for EFMP above). This is
+Allcott et al. (2024) examine the MVPF of recent EV subsidies and find a very similar figure.
+46We do not provide in-context estimates for non-US studies, but instead focus on the implications of their
+price elasticity estimates for the US 2020 MVPF of wind subsidies.
+47In translating the PTC into a change in wind turbine prices, we discount the flow of benefits using a firm-
+specificmeasureofthecostofcapital. Thisallowsustousefirm-specifictimepreferences,atopicofsubstantial
+importance in current debates over the ITC versus the PTC.
+25
+
+because $1 of induced spending on a wind turbine delivers significantly more than $3 of global
+environmental benefits while $1 of induced spending on an EV generates less than $0.04 in
+global environmental benefits.
+As with EVs, we incorporate potential rebound e↵ects in the electricity markets. In contrast
+to EVs, the rebound e↵ect leads to an increase in overall electricity use as opposed to a decline.
+Market supply and demand curves imply a 20% rebound e↵ect due to lower prices, which
+means that environmental benefits are $0.87 lower. We also account for life cycle greenhouse
+gas emissions (11 g of CO e per KWh) from activities such as turbine manufacturing and
+2
+construction, which decrease environmental benefits by $0.13 (Dolan & Heath 2012). Summing
+together, this implies a net initial environmental benefit of $3.45.48
+Next, we incorporate the potential benefits from learning-by-doing externalities. Way et al.
+(2022) estimate that a 1% increase in cumulative production leads to a reduction in wind
+turbine costs of 0.19% (✓ = 0.19). This leads to $1 in future environmental benefits and $0.46
+ 
+in benefits from lower future prices of wind turbines. Combining together all our willingness to
+pay components produces a net WTP of $5.90 per dollar of mechanical wind PTC.
+Inordertoestimatenetgovernmentcosts, webeginwiththe$1mechanicalcostofthepolicy
+and add the fiscal externality associated with the baseline PTC subsidy. In 2020 there was a
+PTC subsidy equal to 1.5 cents per kWh, which leads to a fiscal externality of $0.35 per dollar
+in mechanical subsidy. Long-run climate benefits also generate a negative fiscal externality of
+$0.08. Taken together we estimate a net cost of $1.28. Dividing the WTP of $5.90 by this net
+cost yields an MVPF of 4.63.
+Figure2PanelBplotstheMVPFestimatesforwindsubsidiesandshowshowtheyvarywith
+the magnitude of the price elasticity. The other two studies we consider have elasticities of -1.3
+(Metcalf 2010) and -1.75 (Shrimali et al. 2015), yielding MVPFs of 5.30 and 7.55, respectively.49
+We draw upon three quasi-experimental estimates of the impact of PTCs in the US. In
+order to ensure that our results are not being driven by the small sample of available quasi-
+experimental estimates, we compare our results to studies of wind subsidies outside the US. In
+particular, we consider six elasticities estimated in Europe. These estimates primarily focus on
+the e↵ects of “feed in tari↵” policies that guarantee producers elevated prices for their clean
+energy generation. Figure 2 Panel B places the US-based MVPF estimates alongside six MVPF
+estimates that use elasticity estimates derived from variation in “feed in tari↵s” in European
+contexts. These European subsidy elasticities range from -0.60 to -1.97 and yield MVPFs
+48We do not include any aesthetic costs associated with the installation of wind turbines. One could, in
+principle, estimate the associated individual WTP and incorporate that into the MVPF.
+49Wetranslatetheelasticitiestothe2020baselinesettingbyassumingtheelasticityofturbinesinstalledwith
+respect to price is constant over time. As turbine costs fall, a constant elasticity implies a rising semi-elasticity
+and larger environmental benefits per dollar of subsidy. If we adopt a more conservative assumption that the
+semi-elasticity is constant over time (despite prices falling more than half between the mid-2000s and 2020) we
+obtain a category average MVPF of 2.86. This continues to lie above all other subsidy categories in the sample
+except residential solar subsidies.
+26
+
+ranging from 1.50 to 9.15. The category average MVPF using only US policies is 5.87. If we
+were to include European subsidy estimates the value is very similar, rising slightly to 5.93.50
+These results using European elasticity estimates further reinforce the conclusion that subsidies
+for wind PTCs produce substantial returns per dollar of government expenditure.
+Residential Solar Subsidies The US federal government and many US states have enacted
+large subsidies to encourage residential solar installation. We analyze estimates from five sub-
+sidies for residential solar that are studied in four papers (Pless & van Benthem 2019, Hughes
+& Podolefsky 2015, Gillingham & Tsvetanov 2019, Crago & Chernyakhovskiy 2017). We begin
+with Pless & van Benthem (2019) who use geographic variation in the California Solar Initia-
+tive to estimate the e↵ect of the program. They find that a one percent reduction in the price
+of solar installations leads to a 1.14% increase in installations among residential homeowners.
+This elasticity of -1.14 is roughly at the mean of the solar elasticities in our sample.
+Figure 3 Panel A presents the components of the WTP and net cost of the MVPF. Pless
+& van Benthem (2019) find that the subsidy has roughly 81% pass through, so that a $1
+mechanical subsidy leads to an $0.81 benefit to consumers and a $0.19 benefit to installers.
+Forenvironmentalbenefits, the$1mechanicalsubsidyleadsto$0.73inglobalenvironmental
+benefits through the displacement of other sources of electricity production. This is the sum of
+$1.03 in benefits via direct displacement of energy production minus $0.20 from the rebound
+e↵ect and $0.10 from life cycle greenhouse gas emissions in the production of the solar panels.
+We also find $0.11 in local environmental benefits, which is the sum of the direct ($0.14) and
+rebound e↵ects (-$0.03). These environmental benefits are larger than the benefits from EVs,
+buttheyaresmallerthanthebenefitsforwindPTCs. Thelowerenvironmentalbenefitsrelative
+to wind PTCs is not primarily due to di↵erences in the price elasticities but rather the fact that
+$1 of private spending on residential solar panels delivers fewer environmental benefits than $1
+spent on utility-scale wind production. As we discuss below, this is driven by the di↵erence
+between residential and utility scale, as opposed to wind versus solar.
+While the initial environmental benefits from residential solar subsidies are smaller than
+those associated with the wind PTCs, the learning-by-doing benefits are larger. We find the
+solar subsidies induce $1.08 in environmental benefits and $0.86 in price benefits. These higher
+learning-by-doing e↵ects are driven by the fact that: (i) the historical learning rate for solar,
+50Therehasbeenrecentattentiononregulatorycostsforrenewableenergiessuchaswindpower(Jarvis2021,
+Davisetal.2023,Huang&Kahn2024). Itisimportanttonotethattheexistingcausalestimatesshouldalready
+embedwithinthemtheregulatorycostsinplaceatthetimeofestimation. Wearenotawareofanycausalwork
+intheUSthatquantifiestheextenttowhichchangingregulatorycostsa↵ecttheLCOEofwindproduction. As
+noted above, however, if we assume that that the cost of wind generation is actually 50% higher than reported
+estimates, we find that our category average MVPF in the U.S. is still 4.51. Along similar lines, we can assume
+that increased permitting costs o↵set all the observed cost decline of wind turbines between 2014 and 2020. In
+that case, we would still get MVPF estimates for wind near 5. In fact, the superiority of wind subsidies relative
+to EVs and other energy e ciency subsidies continues to hold even if the LCOE were to double relative to
+current measures.
+27
+
+✓ = 0.32, is well above the historical learning rate for wind; and (ii) the demand elasticity for
+ 
+residential solar is higher in absolute value than for wind.
+Lastly, we consider the impact of reductions in purchase of electricity on the profits of the
+utility companies. Subtracting this value, $0.12, from the other components of willingness to
+pay, we arrive at a total value of $3.67 per dollar of mechanical subsidy.
+To estimate net government costs, we begin with the $1 mechanical cost of the policy.
+Existing subsidies for solar were 26% in 2020. Multiplying the increase in solar purchases by
+this subsidy yields a fiscal externality of $0.32 for every $1 of mechanical subsidy.51 We also
+estimate a reduction in tax revenue of $0.06 from falling utility company profits and a climate
+fiscal externality of -$0.03 from increased future tax revenue due to reduced climate change
+damages. Taken together, this means that $1 of mechanical subsidy costs the government
+$1.35. Comparing this value to the willingness to pay yields an MVPF of 2.71.
+Figure 3 Panel B compares across our solar estimates and presents the MVPFs as a function
+of the price elasticity in each study. We present two curves to illustrate the MVPF with and
+without including the learning-by-doing e↵ects. The MVPFs are quite large when learning-by-
+doing e↵ects are present. We find MVPFs ranging from 1.63 to 5.06 for the elasticities in our
+main sample, with a category average of 3.86. By contrast, when learning-by-doing e↵ects are
+excluded the MVPFs fall substantially, with MVPFs ranging from 1.17 to 1.69 and a category
+average of 1.45.
+Even with learning by doing e↵ects, residential solar subsidy MVPF estimates are sub-
+stantially lower than our estimates for wind PTCs (3.86 versus 5.87). This di↵erence may be
+driven by the distinction between utility-scale and residential energy production, rather than
+the distinction between wind and solar. With falling solar prices, the 2020 (levelized) cost of
+energy via utility-scale solar was roughly on par with the costs of utility-scale onshore wind.
+By contrast, the costs of residential solar remained more than two times higher than utility
+scale solar. While there are no quasi-experimental estimates of the impact of utility-scale solar,
+we can return to our wind PTC setting and imagine a similar subsidy for solar installations.
+Assuming the elasticity of solar installations is similar to historical wind PTC elasticities (-1.3),
+we can use the utility-scale solar costs per kWh to estimate an MVPF. Here, one motivation
+for assuming the -1.3 elasticity is similar for utility-scale wind and solar is that it captures a
+structural user cost elasticity that is plausibly constant across investment types. Under that
+assumptions, we find the MVPF of utility-scale solar subsidies would be 10.97, well above our
+estimates for the wind PTC. Given this, a natural conclusion from our analysis is that subsidies
+to utilities for either wind or solar have higher MVPFs than residential solar subsidies.
+Hybrid Electric Vehicles (HEVs) We next consider subsidies for hybrid electric vehicles
+(HEVs). We use three estimates from two papers that evaluate the response of HEV purchases
+51Ifthepreexistingsubsidywere0%,therewouldbenosuchfiscalexternality. Ifthepreexistingsubsidywere
+the 30% rate implemented in the IRA, the fiscal externality would be $0.40.
+28
+
+to state and federal HEV subsidies (Beresteanu & Li 2011, Gallagher & Muehlegger 2011).52
+We focus our discussion here on the Federal Income Tax Credit for Hybrid Vehicles evaluated
+in Beresteanu & Li (2011), whose findings imply a price elasticity of -1.98.
+As in the case of EV subsidies, we measure the environmental externalities from HEV
+purchases by comparing HEVs to the counterfactual vehicles that subsidy recipients would
+have purchased in the absence of the subsidy. We draw upon estimates from Muehlegger &
+Rapson (2023), who show that the MPG of counterfactual vehicles is very close to the MPG
+of HEVs: the implied fuel-economy gap was just 1.9 MPG in 2020. As a result, we estimate
+that environmental damage reduction is less than $0.01 per dollar of mechanical subsidy. The
+remaining components of the MVPF are also small, yielding an MVPF of 1.01. We find similar
+results across the other two HEV studies we analyze, leading to a category average MVPF of
+1.01.53 The small environmental benefits and MVPF values near 1 imply that HEV subsidies
+are primarily transfers to consumers already intending to purchase an HEV.
+Vehicle Retirement Next, we consider subsidies encouraging the retirement of old vehicles.
+So-called “cash for clunkers” policies provide subsidies to those retiring old cars conditional
+on purchasing new cars that satisfy certain standards (e.g., fuel economy requirements). We
+consider three evaluations of such policies (Li et al. 2013, Hoekstra et al. 2017, Sandler 2012).
+We focus here on Li et al. (2013), who evaluate the federal cash for clunkers program in 2009.
+They find that the subsidy caused individuals to accelerate their purchase by several months
+and switch to a slightly more fuel-e cient vehicle.
+By construction, a $1 larger subsidy generates $1 in benefits to those who were going
+to retire their vehicle anyway. We estimate that the re-timing of vehicle purchases and the
+increase in fuel e ciency of the new cars leads to a social willingness to pay of $0.27 for global
+environmental benefits and $0.02 for local environmental benefits. That calculation, however,
+holds driving behavior constant. So, next, we account for the fact that shifting to a more fuel
+e cient vehicle reduces the marginal cost of driving, potentially increasing total vehicle miles
+traveled. We use estimates from Small & Van Dender (2007) and show that this rebound e↵ect
+reduces the net environmental benefits by $0.02. On the cost side, the shift toward more fuel
+e cient vehicles generates a fiscal externality of $0.06 from lost gas tax revenue and corporate
+tax revenue from gasoline producers. Combining these results yields an MVPF of 1.04.
+52Wedrawtwoestimatesfrom(Gallagher&Muehlegger2011)becausetheydistinguishbetweenupfrontsales
+tax waivers and ex-post income tax credits.
+53Here, the small MPG di↵erence between the induced hybrid and the counterfactual vehicle means that the
+MVPF is not very responsive to changes in the elasticity. This is particularly relevant as our estimates from
+(Gallagher & Muehlegger 2011) have very large elasticities. They find an upfront subsidy has an elasticity of
+-6.92 and an ex-post tax credit has an elasticity of -0.43. These papers yield baseline MVPF estimates of 1.03
+and 1.00, respectively. If we deviate from the counterfactual estimates in the literature and assume that HEVs
+displace an average new car sold in 2020, the MVPF estimates for HEVs still fall in a relatively limited range.
+Our category average assuming hybrids replace an average new car is 1.20. An elasticity of -1.98 yields 1.12
+and our -6.92 elasticity from (Gallagher & Muehlegger 2011) still only yields an MVPF of 1.42.
+29
+
+The two other vehicle retirement policies in our sample have similar baseline MVPFs. We
+find MVPFs of 1.07 using the behavioral response to the 2009 cash for clunkers program esti-
+mated among consumers in Texas (Hoekstra et al. 2017) and 1.03 for the Bay Area Air Quality
+Management District’s (BAAQMD) Vehicle Buy Back Program (Sandler 2012). Consequently,
+the category average MVPF for vehicle retirement is 1.05, with individual policies ranging from
+1.03 to 1.07. The MVPF near 1 means that, like HEV subsidies, vehicle retirement subsidies
+are primarily transfers to people who would have retired their vehicle anyway.
+While most of our analysis focuses on harmonized 2020 MVPF estimates, vehicle retirement
+is a unique case where the distinction between in-context and 2020 estimates has a meaningful
+impact on the results. In particular, the BAAQMD Vehicle Buy Back Program implemented in
+1996wasdesignedtoencouragetheretirementofvehiclesthatwere26+yearsoldatthetime. A
+26-year-old vehicle in 1996 (one produced in 1970) produced far more emissions than a 26-year-
+old vehicle did in 2020. Using historical estimates of vehicle fleet emissions, we estimate that
+each $1 in subsidy spending in 1996 produced $2.85 in local environmental benefits and $0.91
+in global environmental benefits, leading to an in-context MVPF for BAAQMD of 2.38. Put
+simply, paying people to retire their 1970 Chevy had much higher returns in 1996 than paying
+people to retire their 1994 Toyota in 2020. Aside from this interesting case, the in-context and
+2020 MVPF estimates are quite similar.
+Weatherization We next consider weatherization assistance subsidies to improve home en-
+ergy e ciency through better insulation, windows, lighting, and other energy-intensive aspects
+of the home. Our sample includes five di↵erent weatherization policies (Christensen, Francisco
+& Myers 2023, Fowlie et al. 2018, Hancevic & Sandoval 2022, Liang et al. 2018, Allcott &
+Greenstone 2024). We focus our discussion here on the Weatherization Assistance Program
+in Michigan studied by Fowlie et al. (2018). The program used an encouragement design to
+increase take-up of home weatherization and studied the impact of weatherization on home
+energy costs.
+Measuring WTP of weatherization is more di cult than for price subsidies because the pa-
+pers studying their e↵ects generally focus on measuring the energy use impacts of the subsidies
+without measuring the fraction of inframarginal beneficiaries – those who would have weather-
+ized anyway. Consequently, when constructing our measure of WTP, we explore the robustness
+of our estimates to variations in this fraction. By definition, this fraction must be between
+0 and 100%. We make a baseline assumption that 50% of those receiving the weatherization
+benefits are inframarginal.
+Those inframarginal individuals value the weatherization subsidy dollar-for-dollar while
+marginal individuals also have a valuation for the subsidy which must fall between 0 and
+$1. When examining a discrete bundle of weatherization services, we do not know whether it
+was the first or last dollar of the policy that induced their response. If it was the first dollar,
+then they would value roughly the entirety of the transfer at its cost. If it were the last dol-
+30
+
+lar, then they would have a near-zero valuation of the subsidy. Following the classic triangle
+approximation to measuring deadweight loss in Harberger (1964) (and the approach taken in
+Hendren & Sprung-Keyser (2020)), we assume that this latent value of the subsidy varies uni-
+formly in the population (i.e., a linear demand curve). This suggests these marginal individuals
+value the subsidy at 50% of its value.54 Putting together the valuations among marginal and
+non-marginal individuals, every $1 in initial spending on weatherization generates a benefit of
+$0.75 to those who take up the benefits.
+In addition to the transfer benefits of weatherization our WTP also includes environmental
+benefits to society. The estimates of reduced energy consumption in Fowlie et al. (2018) imply a
+local environmental benefit of $0.01 and a global environmental benefit of $0.30. The reduction
+in electricity demand caused by the program also induces a rebound e↵ect which we estimate
+to be -$0.05, so that the total environmental benefit is $0.27. Overall, our analysis suggests an
+MVPF of 0.92.
+As noted above, this MVPF calculation requires taking stances on the fraction of benefi-
+ciaries that are marginal and the valuation of benefits among those marginal individuals. An
+attractive alternative approach is taken by Allcott & Greenstone (2024), who study a weather-
+izationpolicyinWisconsin. Theycombineexperimentalandobservationalvariationtoestimate
+a demand model that yields valuations of the weatherization program that imply an in-context
+MVPF of 0.93. Using our damage models to harmonize with our other estimates replicates the
+0.93 in-context and produces an MVPF of 0.92 in the baseline 2020 specification.
+Taking an average across all of the weatherization policies, we obtain a category average
+MVPF of 0.98.55 These estimates assumes individuals are aware of the energy benefits of
+weatherization so they do not incorporate private energy savings as an additional benefit in
+the willingness to pay. The idea is that these individuals may value the energy savings, but
+the benefit of these savings are weighed against other considerations, such as the hassle cost of
+a construction project in their home. The logic of optimization tells us that the value of the
+policy to individuals is bounded by the size of the transfer, and it would be double counting
+to incorporate energy savings as a benefit on top of the transfer benefit of the program. It is,
+of course, possible that individuals were not aware of the cost savings they would receive from
+weatherization. If this were the case, then these benefits might reflect an “internality.”56 It
+would then be natural for the marginal individuals to value the energy savings as an additional
+benefit. Including the energy savings as an additional component of the benefits of the policy
+54We note that one could take alternative demand parameterizations to think about bounds on these magni-
+tudes, as in Kang & Vasserman (2022).
+55While most of these underlying estimates require assumptions about the fraction of recipients that are
+inframarginal, we find the estimate is robust to reasonable variations in this assumption. This is because the
+externality benefits are relatively similar to the transfer benefits of the policy. With an assumed marginal
+fraction of 0% the MVPF is 1 by construction and with an assumed marginal fraction of 100% the category
+average MVPF is 0.97.
+56We note that Allcott & Greenstone (2024) find that only 68% of the projected energy savings are actually
+realized. As they explain, this may lead individuals to experience a welfare loss if their expenditures yield
+lower-than-expected benefits.
+31
+
+yields a category average MVPF of 1.37. Regardless of whether individuals were aware of the
+energy savings provided by weatherization, these subsidies do not generate large environmental
+benefits. They are instead best thought of primarily as a transfer to those weatherizing their
+homes.
+ApplianceRebates Wenextconsidersubsidiesdesignedtoencouragethepurchaseofenergy-
+e cient appliances, such as dishwashers, refrigerators, and stoves. We discuss here estimates
+from Houde & Aldy (2017), which studies energy e ciency rebates for clothes washers, dish-
+washers, and refrigerators as implemented in 2009. For subsidies for clothes washers, they
+estimate that roughly 90.5% of those receiving the subsidy are inframarginal – they would have
+purchased the energy-e cient product in the absence of the subsidy. These individuals value
+their subsidy dollar for dollar. For the remaining 9.5%, we once again invoke the Harberger
+approximation, assuming a linear demand curve so that 50% of the transfer is valued. Summing
+across marginal and inframarginal beneficiaries yields a total of $0.95 in transfer benefits per
+dollar of subsidy. Turning to environmental benefits, the induced purchases of more e cient
+clothes washers generate a global environmental benefit of $0.55 and a local benefit of $0.08.
+This is partially o↵set by global and local rebound e↵ects of -$0.11 and -$0.02, respectively.
+The reduction in electricity usage also leads to lost profits for utility companies of $0.04 per
+dollar of subsidy. Combining these results leads to an MVPF of clothes washer subsidies of
+1.41.57 This MVPF is the highest of the three types of subsidies studied in Houde & Aldy
+(2017). We find MVPFs of 1.13 and 1.04 for dishwasher and refrigerator subsidies, respectively.
+When we combine these estimates with those of the five other appliance rebates estimates in
+our sample, we find a category average MVPF of 1.16. As is the case with many of the subsidies
+in our sample, the environmental benefits of appliance rebates are limited and these policies
+are primarily transfers to those who would have purchased these appliances anyway.
+Other Subsidies Finally, we consider two other subsidy policies that do not neatly fit into
+our categorization above. The first is the CA electricity rebate, which provided consumers with
+a 20% discount on their electricity bill if they reduced consumption by 20% relative to their
+energy consumption the previous summer. Ito (2015) finds that many consumers who received
+the transfer would have lowered their consumption anyway in the absence of the transfer. Using
+those estimates, we value the transfer at $0.88 per dollar of subsidy.58 That said, the policy
+does lead to a large energy reduction, resulting in global environmental benefits of $2.09 and
+local benefits of $0.30 when evaluated in our 2020 baseline context. These e↵ects are partially
+o↵set by global and local rebound e↵ects of $0.41 and $0.06. The reduction in electricity usage
+57If we were to assume that marginal individuals were not ex-ante aware of the energy savings benefits of the
+policy, wewouldwanttoaddthosebenefitsintothewillingnesstopay. ThatwouldincreasetheMVPFto1.97.
+58Thepaperdoesnotdirectlyreportthefractionofindividualsinthecontrolgroupwholoweredtheirenergy
+usage by 20%. It does, however, report that there was no meaningful reduction in energy usage in the coastal
+regionwhere88%ofthepaymentsweremade. TheMVPFestimatesreportedherearenotsensitivetovariation
+in this assumption because the paper reports the total energy reduction among all treated individuals.
+32
+
+leads to lost profits of $0.13, so that the net WTP is $2.67. Accounting for the program’s cost,
+administrative costs, and lost revenue from utilities ($0.07) leads to an MVPF of 2.57.59 While
+this MVPF is quite large as compared to the others in our sample, we caution that a policy like
+this one might not be easily implementable because it conditions future prices on past behavior.
+If consumers knew that future prices would be reduced if they consume more energy today, they
+might increase their energy consumption today in order to qualify for greater discounts in the
+future. That anticipatory response would reduce the policy’s e↵ectiveness.
+The second policy in this category is a US-based Payments for Ecosystem services policy
+studied by Aspelund & Russo (2024). The authors use a regression discontinuity design to
+estimate the e↵ect of the policy on land conservation. They find that 79% of land receiving
+conservation payments would have been conserved in the absence of the policy. That yields a
+transfer value of $0.89, when applying a Harberger approximation to the marginal recipients.
+FollowingtheauthorsandusingestimatesfromtheUSDAonthecarbonabatedbytheprogram,
+we estimate global environmental benefits of $0.92. The accompanying local benefits, including
+reduced nitrous oxide released from decreasing fertilizer use, are $0.55. This yields an MVPF
+of 2.41.
+Summary of MVPFs for Subsidies Figure 4 presents the baseline MVPF estimates for
+each of the subsidies in our sample. Following Hendren & Sprung-Keyser (2020), we also report
+“category average” MVPFs. These are constructed by considering $1 in initial program costs
+and splitting those costs evenly over all the policies in a category. This means the category
+average MVPF equals the ratio of the average WTP and the average net cost of each policy in
+the category. The shaded blue regions report 95% confidence intervals for the category average
+MVPF derived from a parametric bootstrap of the underlying causal estimates from each pol-
+icy.60 The main lesson from this analysis is that subsidies for investments that directly displace
+the dirty production of electricity—namely, wind PTCs and residential solar subsidies—have
+the highest MVPFs. In particular, production tax credits for firms that produce wind energy
+have the highest MVPFs, generally exceeding 5. Subsidies to individuals who install residential
+solar panels also have high MVPFs exceeding 3. By contrast, EV subsidies have MVPFs around
+1.45. All other subsidies tend to have smaller MVPFs, with values around 1 0.2.
+±
+These results suggests the potential for meaningful welfare gains if climate spending is
+focused on policies that displace the production of dirty electricity. For example, every dollar
+of expanded spending on wind PTCs (with MVPFs above 5) financed by less spending on EV
+59Interestingly,themagnitudeofthisMVPFisheavilydeterminedbythecontextinwhichitisanalyzed. We
+report this MVPF using the national grid from 2020. If we re-analyze the policy using California’s grid from
+2005, the MVPF falls to 1.00. This is because producers’ WTP rises in-context and because the CA grid in
+2005 was cleaner than the national grid today.
+60Appendix Table 3 provides measures of the confidence intervals for each policy in our sample. For a small
+number of policies, we are not able to obtain estimates of the underlying sampling uncertainty. We report the
+category average both for the full sample and the subset of policies for which we obtain sampling uncertainty
+estimates, and we broadly find similar results.
+33
+
+subsidies (with MVPFs around 1.5) would deliver $3.50 in net benefits to society. Applying
+equation (5), this reallocation of spending would increase social welfare as long as social welfare
+weights on the beneficiaries of the EV subsidy (mostly EV buyers themselves) is no more than
+three times larger (5/1.5) than the social welfare weight on wind PTC beneficiaries (e.g., utility
+companies and future environmental beneficiaries).
+This relative ordering of subsidies (i.e., the higher MVPFs for wind PTCs and residential
+solar) remains true under a wide range of specifications. For example, Figure 5 repeats our
+analysis from Figure 4 using a lower social cost of carbon of $76 (with a 2.5% discount rate)
+and higher social cost of carbon of $337 (with a 1.5% discount rate). The relative ordering of
+categories is similar, although a higher (lower) SCC accentuates (attenuates) the MVPF values
+for the policies that substantially reduce greenhouse gas emissions.61
+We also consider a number of other sensitivity tests to explore robustness of our main
+conclusions. Appendix Table 6 shows the results when omitting any e↵ects on firm profits.
+Appendix Table 7 shows the results when including measures of private energy savings in will-
+ingnesstopay. AppendixTable8showstheresultswithout learning-by-doinge↵ects. Ineach of
+these cases, the relative ordering of policies remains largely una↵ected. We note, however, that
+the MVPFs of EVs and residential solar are buoyed by learning-by-doing e↵ects.62 Without
+learning-by-doing, the values for EVs fall from 1.45 to 0.96, and the values for residential solar
+fall from 3.86 to 1.45. By contrast, even without learning by doing, subsidies for utility-scale
+wind produce relatively high MVPFs, with a category average of 3.85. Appendix Figure 5
+shows, in blue bars, how the MVPF changes when only considering benefits to US residents
+and ignoring the benefits to the rest of the world. While the relative ordering again remains un-
+changed, the MVPF values decrease substantially. The wind and solar categories have MVPFs
+of 1.89 and 1.18 while other categories are often below 1. This is because only 13.1% of the
+global externality benefits are estimated to flow to US citizens and so the numerator of the
+MVPF falls in cases where the are meaningful global environmental benefits.
+Our primary estimates report the MVPF for a marginal change in subsidies relative to 2020
+subsidy levels. We also explore the robustness of our results to non-marginal changes in subsidy
+levels. For example, in the case of residential solar subsidies, our baseline analysis examines a
+marginal change relative to 26% subsidy in place in 2020. We can consider instead the policy
+change equal in magnitude to the change induced by Inflation Reduction Act (IRA), which
+prevented the expiration of residential solar subsidies and set the subsidy rate to 30%. If we
+examine the MVPF of a subsidy increase from 0% to 30%, we get an MVPF of 4.43, relatively
+close but slightly above our marginal category average of 3.86. We can repeat the same exercise
+for the wind PTC, examining the e↵ect of increasing the PTC from 0 to 2.6 cents per kWh.
+That policy change results in an MVPF of 5.80 as compared to our baseline marginal MVPF
+estimate of 5.87. This once again contrasts with lower MVPFs for EV subsidies. A $7500
+61Appendix Tables 4 and 5 report the estimates for all individual policies for the SCC of $76 and $337.
+62Recall that it would be appropriate to omit these e↵ects if one does not believe the empirical observed
+relationship between prices and historical quantities does not reflect spillover externalities.
+34
+
+EV subsidy has an average MVPF of 1.23, slightly lower than the MVPF of 1.45 for a $1
+subsidy.63 This analysis of non-marginal policy changes once again reinforces our conclusion
+about climate subsidies: those that directly displace the dirty production of electricity have the
+highest MVPFs.
+5 Nudges and Marketing
+We next consider policies that employ nudges or marketing strategies to lower carbon emissions
+by reducing residential energy consumption. Unlike subsidies, which provide direct financial
+incentives, these policies disseminate information or change choice architecture to encourage
+individuals to change energy usage or product purchases.
+The Home Energy Report (HER) designed by Opower (now Oracle) is perhaps the most
+well-studied environmental nudge. The HER provides information on how to be more energy
+e cient in the home and often includes an element of social pressure (e.g., comparisons of a
+household’s energy use with 100 similar neighbors). There have been over 200 rigorous RCTs
+showing the causal impact of such nudges on energy demand in the United States and around
+the world (Allcott 2011). Here, we show how to translate these estimates into the MVPF of
+these nudges using estimates from Allcott (2011) of the national average treatment e↵ect of
+HERs aimed at reducing electricity use. We then consider the e↵ects of nudges in di↵erent
+regions using 166 treatment e↵ect estimates obtained from Opower.
+We begin with the WTP for the Opower nudge. In our baseline specification, we assume
+people were close to indi↵erent about their change in energy usage, which implies that the value
+of the nudge to individuals is roughly zero. In particular, they do not place any additional valu-
+ation on private energy savings. They also don’t have any value of shame or pride (independent
+on any change on demand) or value of information from the nudges. We acknowledge these
+sources of WTP may be important and so assess the robustness to including such estimates
+below (Allcott & Kessler 2019, Butera et al. 2022, List et al. 2023).64
+HERs targeting electricity usage cause a reduction in consumption, which has an impact on
+environmental damages and utility company profits. Combining these treatment e↵ects with
+the externality from electricity production in the US, we estimate that every $1 invested in
+these nudges leads to $3.87 in global environmental benefits and $0.44 in local environmental
+benefits. These benefits are partially o↵set by rebound e↵ects of $0.76 and $0.09 due to the
+increased energy prices that result from reduced demand. We also estimate that utility com-
+panies experience a decrease in profits of $0.24 for each $1 spent on the Home Energy Report
+63This category average non-marginal MVPF is slightly higher than the 1.15 we discuss above that uses
+estimates from Muehlegger & Rapson (2022).
+64For example, Allcott & Kessler (2019) suggest that individuals would be willing to pay on average about
+half (49%) of the energy savings that they experience from the nudge. As a conservative approach, Appendix
+Table 7 presents the results when we add in 100% of the energy savings, and shows that our conclusions remain
+broadly similar.
+35
+
+(HER) nudge.
+On the government cost side, we assume the government pays for the electricity HER and
+thus include those administrative and logistical costs as a government cost.65 Government
+revenue collected from utilities decreases by $0.13, but the long-run climate fiscal externality
+saves the government $0.06. Combining the willingness to pay and government costs, we obtain
+an MVPF of 3.01.
+While this 3.01 estimate corresponds to an average electricity HER, it is important to note
+that the MVPF varies considerably across regions of the US due to the di↵erences in the clean-
+liness of the electricity grid. Figure 6 illustrates the MVPF for HER nudges across five US
+regions where field experiments have been conducted and evaluated. The Mid-Atlantic, North-
+west, and Midwest have high MVPFs with average values of 5.68, 5.50, and 3.76, respectively.
+By contrast, in California and New England, the MVPFs are 0.52 and 0.24, respectively.66 In
+New England and California the grid is su ciently clean such that the environmental benefits
+are smaller and are roughly o↵set by the loss of profits to the utility companies.67,68 We also
+note the value of nudges depends heavily on the global externalities from the grid, but the
+regional patterns we observe are robust to those SCC variables. At an SCC of $76 rather than
+$193, the category average MVPF falls from 3.01 to 1.34. In that case, regions with dirty grids
+have MVPFs in the 1.92 to 2.76 range while regions cleaner grids have MVPFs near 0.
+While we find large MVPFs for nudges to reduce electricity consumption, we find much
+smaller MVPFs for nudges to reduce natural gas consumption. On average HERs targeted at
+natural gas usage have an MVPF of 0.45. This lower MVPF is partially driven by the fact
+that nudges to reduce natural gas consumption have smaller treatment e↵ects: the average
+natural gas nudge reduces consumption by 0.14% while the average electricity nudge reduces
+consumption by 0.26%. In addition, the environmental benefits are smaller than the associated
+benefits of reducing electricity consumption in areas with dirty grids.
+In addition to examining nudges aimed at reducing overall energy consumption, we also
+evaluate the MVPF of nudges targeting energy usage reduction during peak load times. As the
+65This appears to be a reasonable approximation of what happens in practice, but it is also true that energy
+companies pay for nudges. This means that we measure the MVPF of the nudge as if the government were to
+enact the policy or pay utilities to enact the policy.
+66It is possible that the e↵ects of the nudge persist beyond the measured time periods in these studies.
+However, the MVPFs for CA and New England remain at 0.72 and 0.36 even if we assume that half of the
+treatment e↵ects persist for two years after the nudge (Brandon et al. 2017, Allcott & Rogers 2014).
+67Excludingthelossinfirmprofits,theMVPFforCAandNewEnglandincreaseto2.02and0.96,respectively.
+They continue, however, to be substantially smaller than the MVPFs in the three regions with dirtier grids:
+5.81 (Mid-Atlantic), 5.50 (Northwest), 3.86 (Midwest). We note that this dependence of the welfare e↵ects on
+firm profits is similar to the argument in Buchanan (1969), who considers welfare with corrective taxes under
+competition and monopoly.
+68Here, the Northwest is categorized as a dirty electric grid despite the substantial levels of hydroelectric
+powerintheregion. Thisisduetoboth(i)thehighlevelofmarginalemissionsestimatedintheAVERTmodel
+(as distinct from average emissions) and (ii) the nature of the regional aggregation used in the AVERT model
+of marginal emissions. The northwest region includes states with very high levels of grid emissions, such as
+Utah. OmittingtheNorthwestfromouranalysisdoesnotchangethebroadtrajectoryofourfindingsregarding
+regional variation in nudge MVPFs.
+36
+
+grid increasingly relies on wind and solar power, reducing energy demand during periods when
+it is not sunny or windy becomes more valuable. The primary benefit of interventions focused
+on demand flexibility is not merely CO reduction, but the ability to avoid costly blackouts or
+2
+expensive marginal generation caused by the intermittency of renewable energy sources. An
+example of such nudges is the peak energy report, which informs consumers of their energy
+consumption during peak periods compared to their neighbors (Brandon et al. 2019). The
+field experiment showed the treatment led to a 4% reduction in energy use during peak hours.
+Constructing the MVPF requires placing a social value on this reduction in peak energy use.
+Here, we focus on the extent to which the marginal cost of peak production exceeds the price.
+We consider marginal costs ranging from ranging from 500/MWh to 1000/MWh and find
+associated MVPFs from 0.70 to 1.60.69 If the demand reduction also decreased the frequency
+and/or duration of blackouts, these MVPF estimates could rise as high as 5.30.70
+In addition to energy reports, we study marketing strategies and information treatments
+designed to encourage adoption of clean technologies and reduce electricity usage. For example,
+theSolarizeprogramsoughttoincreaseresidentialsolarinstallationsbyprovidingmunicipalities
+with a designated solar installer, group pricing, and an informational campaign led by volunteer
+ambassadors over the course of 20 weeks. Translating estimates of the impact of this program
+from Gillingham & Bollinger (2021), we estimate an MVPF of 1.81.71
+By contrast, we find lower MVPFs when considering producer side marketing policies fo-
+cused on weatherization. Christensen, Francisco & Myers 2023 study the provision of bonus
+incentives that provide payments to installers based on the energy savings that result from
+their installations. Encouraging installers to improve weatherization techniques modestly el-
+evates the MVPF of existing weatherization subsidies. The MVPF rises from 0.98 without a
+bonus to 1.06-1.07 with a bonus, depending on the magnitude of the incentive. This policy has
+a relatively low MVPF not because the bonuses are ine↵ective per se but rather because the
+baseline weatherization subsidy results in small energy reductions relative to its baseline cost.
+This helps to explain the divergence with the larger MVPF for the Solarize program discussed
+above. Both policies encouraged take-up, but, in the context of residential solar, the induced
+take-up generates meaningful environmental benefits per dollar of government costs.
+Summary of MVPFs for Nudges and Marketing We find that nudges to reduce elec-
+tricity consumption can yield high MVPFs — on average exceeding 1.5 in our 2020 baseline
+69These values are consistent with peak electricity production costs in (CAISO 2021).
+70Forthiscalculation,weassumethatthecausalreductioninenergyusefromthetreatmentwouldbeutilized
+byhouseholdsthatwouldotherwiseexperienceablackoutinthecounterfactualscenario. Inordertoestimatethe
+valueofavoidingablackout, weusethevalueoflostload(VOLL)of$4,300perMWh(Brown&Muehlenbachs
+2024). We recognize that the VOLL may vary across di↵erent populations, times, and locations (Borenstein
+et al. 2023).
+71Solarize uses a fairly unique peer marketing strategy in order to achieve its strong results. The general-
+izability of those findings depends heavily on the generalizability of the peer e↵ects observed in the Solarize
+context.
+37
+
+specification. Crucially, we find that these MVPFs vary significantly across regions of the US.
+Regions characterized by a less clean energy grid have higher MVPFs. By contrast, in regions
+with cleaner grids such as California and New England, the MVPF values of HER nudges are
+below 1. This highlights the importance of the environmental context in space and time when
+evaluating the welfare impact of a nudge. We also find that nudges aimed at reducing natural
+gas consumption have lower MVPFs than those targeting electricity consumption due to the
+smaller treatment e↵ects and lower environmental damages relative to electricity production.
+Finally, marketingstrategiescanalsoincreasetheMVPF,butonlywhentargetinginterventions
+that generate large environmental benefits.
+6 Revenue Raisers
+An alternative approach to address greenhouse gas (GHG) emissions is to tax the sources of
+thoseemissions. SuchpoliciescanreduceGHGemissionswhilealsoraisinggovernmentrevenue.
+Forrevenue-raisingpolicies, theMVPFmeasuresthewelfareburden imposed on individualsper
+dollar of government revenue raised. This means that, all else equal, lower MVPFs correspond
+to better methods of raising revenue. For a point of reference, lump-sum taxes have an MVPF
+of1becausetheyimpose$1inwelfarecostpereachdollarofrevenueraised. Theyareatransfer
+from individuals to the government. If a revenue-raising policy generates some form of societal
+benefit (e.g., from reducing CO ), these can o↵set some of the burden and generate an MVPF
+2
+below 1. In contrast, behavioral changes induced by taxes can lead to behavioral responses
+that reduce the revenue raised, which can increase the MVPF above 1. The key advantage of
+the MVPF framework is that we can use equation (5) to compare these taxes to other methods
+of raising revenue, such as reductions in spending on subsidies or increases in income taxes.
+Here, we estimate MVPFs for two types of revenue-raising policies: taxes and cap-and-trade
+policies. We also show how to place our MVPF estimates in the context of welfare estimates
+of regulation such as CAFE standards.
+6.1 Taxes
+A positive tax is just a negative subsidy. So, returning to equation 9 and replacing ⌧ with ⌧
+ 
+yields the MVPF for a change in a tax, ⌧ , under perfect competition:
+1 ✏V
+MVPF =   p (25)
+1+✏⌧
+p
+where ✏ is once again the price elasticity of demand and V is the externality per unit of the
+good consumed. Taxes are often applied to goods (e.g., gasoline) that yield environmental
+harms, V < 0. In the case of taxes on polluting goods, the numerator of the MVPF reflects two
+countervailing forces. On the one hand, each dollar of tax imposes a $1 of burden on the taxed
+38
+
+individuals. On the other hand, the behavioral response to the tax changes consumption of the
+taxed good, x, generating environmental gains that partially o↵set the burden of the tax, ✏V .
+p
+That change in consumption is also reflected in the denominator of the MVPF because changes
+in consumption impact tax revenue and diminish the net revenue raised from the tax, ✏⌧. In
+p
+the case of a Pigouvian tax, where ⌧ = V, the MVPF is 1. If the tax is below (above) the
+ 
+Pigouvian level, the MVPF of the tax will fall below (above) 1. While equation (25) provides
+a stylized example of the MVPF for a gasoline tax, we use an extended version below that
+includes externalities from imperfect competition and learning-by-doing e↵ects (e.g., gas taxes
+induce the adoption of EVs, generating learning-by-doing).
+We construct 12 MVPFs for gasoline taxes using estimates of the response of gasoline
+consumption to price and tax changes. These estimates imply price elasticities that range from
+-0.04 (Hughes et al. 2008) to -0.46 (Davis & Kilian 2011). We begin with an illustration of the
+construction of these MVPFs using the elasticity estimate from Small & Van Dender (2007)
+who find a price elasticity of -0.33. Figure 7 presents the components of WTP and net cost
+for this specification. We report these components for the gas tax using our baseline (2020)
+externalities and prices. Consistent with most existing literature, we assume that the gas tax is
+fully passed through to consumers. A $1 increase in the gas tax leads to a WTP of consumers
+of $1 to avoid the tax increase (Marion & Muehlegger 2011). We estimate that the reduced
+driving due to the tax leads to global benefits of $0.27, local pollution benefits of $0.03, and
+local benefits from reduced accidents and congestion of $0.21.
+Recent work suggests that gasoline prices can have a causal e↵ect on EV adoption (Bushnell
+et al. 2022). Motivated by this, we use Slutsky symmetry to assess the potential impact of this
+substitution on our MVPF estimates. We translate the own-price elasticity of EV purchases
+of -2.1 (Muehlegger & Rapson 2022) into a cross-price elasticity between the price of gasoline
+and EV demand of 0.22.72 These EV purchases generate $0.0008 in combined global and local
+damages from electricity generation. They also generate learning-by-doing benefits of $0.002
+from reduced future EV prices and $0.0002 from future environmental benefits.73
+Lastly, we incorporate the profit impacts from reduced gasoline demand. We estimate this
+leads to a $0.07 WTP by firms to avoid the tax. Gasoline producers have a positive WTP to
+avoid the tax, whereas utility companies benefit from the substitution toward EVs. On the
+cost side, the reduction in demand also leads to lost corporate and gas tax revenue of $0.09.74
+The US government also raises $0.01 in future revenue by abating greenhouse gases today.
+Combining our WTPs and cost implies an MVPF of 0.60. A dollar of government revenue
+72Under Slutksy symmetry, in combination with the assumption of no change in overall car demand (just
+shifting between EVs and ICE vehicles), the cross-price elasticity is given by the own-price elasticity multiplied
+by the ratio of the present discounted value of operating costs of a gasoline powered car relative to the price of
+an EV. See Appendix E.10 for our derivation.
+73We also account for utilities’ WTP for increased electricity usage by EVs as well as accompanying fiscal
+externalities associated with EV adoption. These e↵ects are negligible.
+74Consistent with the findings in West & Williams (2007) that gasoline is a relative complement to leisure
+rather than labor, we exclude any labor income related fiscal externality.
+39
+
+raised leads to a welfare cost of $0.60 on individuals.
+Figure 8 presents the MVPF estimates for the full set of gasoline studies in our main
+sample. We find MVPFs ranging from 0.44 to 0.95, with a category average of 0.67.75 We also
+construct MVPF estimates for taxes on diesel and jet fuel and find similarly low MVPFs with
+values around 0.8. A full description of those calculations can be found in Appendix E.11.76 In
+each of these cases, the MVPF falls below 1 because the externalities avoided (environmental,
+congestion, or accidents) are larger than the fiscal externality induced by the policy.
+On the whole, the results suggest fuel taxes raise revenue at a relatively low welfare cost.
+The MVPFs of these revenue raisers are well below the MVPF of changes to the income tax,
+which range from 1 to 2 depending on the income level of the taxed individuals (Hendren 2020,
+Hendren & Sprung-Keyser 2020). The MVPFs of fuel taxes are even below 1, the MVPF of a
+non-distortionary lump sum tax. Returning to equation (5), we can use the MVPFs to make
+statements about the welfare e↵ects of budget neutral policy experiments. For example, we can
+directly compare an MVPF of .6 for gasoline taxes with an MVPF of 1.1 for income taxes on
+low-income earners. If society places equal weight on the individuals impacted by each policy,
+then every dollar of revenue shifted from income taxes to gasoline taxes generates 50 cents in
+additional welfare.77 If, by contrast, a decision-maker would prefer the status quo, it implies
+they must place a higher welfare weight on drivers relative to an average low-income individual.
+While the analysis here has focused on the impact of tax instruments, it is important to
+acknowledge that governments may also use regulatory policy to achieve the same ends. For
+example, Corporate Average Fuel Economy (CAFE) standards require automakers to meet
+certain mile per gallon standards for the fleet of vehicles they sell in the US. The MVPF
+approachisdesignedtoexaminethewelfareconsequencesofgovernmentspendingortaxpolicies
+where the primary tradeo↵ is between the government budget and individuals in the economy.
+In contrast, for regulatory policies such CAFE the primary tradeo↵ is between di↵erent groups
+of individuals (e.g., consumers paying higher prices versus other individuals benefiting from
+a cleaner environment). The incidence of on the government budget is non-existent or small.
+Therefore, an in-depth exploration of regulatory policies is beyond the scope of our analysis.
+That said, Appendix G shows that one can use the MVPF framework to compare the welfare
+consequences of regulations to typical tax and spend instruments. In particular, we ask whether
+the welfare consequences of a regulation can be replicated using a combination of taxes and
+transfers. Appendix Figure 6, for example, seeks to replicate the benefits o↵ered by CAFE with
+a mix of gas taxes and income tax changes. We show that gasoline taxes combined with feasible
+75Even when omitting externality benefits that flow to residents outside the US, the MVPF still falls below
+1 with a category average of 0.89.
+76DieseltaxeshaveahigherMVPFthangastaxesbecausedieseldemandislesselasticthangasolinedemand.
+This increases the MVPF, despite the fact that diesel vehicles impose a larger per-gallon externality than gas-
+powered vehicles. The jet fuel tax has a higher MVPF than gas taxes due to fewer local externalities.
+77Even ignoring environmental benefits and focusing solely on accidents and congestion, gas taxes have an
+MVPF of 0.95, which continues to be lower than the MVPFs identified for tax changes at any point across the
+income distribution (Hendren 2020).
+40
+
+income tax modifications can replicate CAFE’s impact on the environment, producers, and
+consumers while also generating roughly $1 in additional government revenue.78 The key reason
+for the relative superiority of the tax instruments is that they generate reductions in driving,
+inducing additional benefits from reduced accidents and congestion. We conduct a similar
+exercise in Appendix G showing that wind subsidies combined with income tax modifications
+deliver welfare gains that are superior to Renewable Portfolio Standards (RPS) regulations.
+6.2 Cap and Trade
+Cap and trade systems are a common policy tool used to limit emissions. They impose quantity
+limitsonemissionsandletfirmstradetherightstosuchemissions. Weevaluatetwocaseswhere
+cap and trade has been used in the US: the Regional Greenhouse Gas Initiative (RGGI) in the
+Northeastandmid-Atlantic,andtheCaliforniaCap-and-TradeProgram. Wealsobrieflydiscuss
+the European Emissions Trading System (ETS) to provide an additional point of comparison.
+We can interpret changes in the number of permits in a cap and trade system in a manner
+similar to a change in the tax rate on polluting goods. The key distinction is that taxes change
+prices while cap and trade uses permits to directly change quantities. This means that there
+is a close analogy between the MVPF formula for changes in the number of permits in a cap
+and trade system and the MVPF formula for taxes on a polluting good, such as the gasoline
+tax outlined in equation (25).79
+Formally, we construct the MVPF of cap and trade by considering a change in the number
+of permits sold at auction. Let q denote the number of permits issued. Assume that one fewer
+permit leads to (1 L) reductions in emissions, where L is the “leakage” of emissions into areas
+ 
+not captured by the cap and trade program. Following equation (25), and multiplying through
+by qdp/dq, we can write the MVPF of changing the number of auctioned permits as
+qdp +V(1 L)
+MVPF =   dq   . (28)
+qdp p
+  dq  
+78Here, we focus on replicating the incidence across broad groups within society such as consumers or pro-
+ducers. We focus, for example, on o↵setting producer losses with high income tax cuts, acknowledging that the
+beneficiaries of those tax cuts may not be the same firms that bore the burden of lost profits due to the CAFE
+standards.
+79To see this, note that
+qdp +V(1 L)
+MVPF =   dq   (26)
+qdp +p
+  dq
+1 dqpV(1 L)
+=   dpq   (27)
+1 dqp
+  dpq
+which is equivalent to equation (25) noting that ✏=(dq/dp)(p/q) and that the “tax” on permits applied in the
+denominator is 100% since they are owned by the government.
+41
+
+The first term is the firms’ willingness to pay to avoid the increase in permit prices, which stem
+from the reduction in permit supply. This is o↵set by the environmental damages avoided,
+V(1 L), due to a one-unit change in the number of permits auctioned. On the cost side, the
+ 
+government receives the mechanical revenue from the higher prices, qdp/dq > 0, but also loses
+ 
+p in revenue from the forgone permit no longer auctioned.80
+We begin with the in-context estimates of the e↵ect of RGGI on greenhouse gas emissions
+using results from Chan & Morrow (2019). Between 2009 and 2016, there were 816.2 million
+permits auctioned (per short ton of CO ), at an average clearing price of $3.19 (in 2016 dollars).
+2
+The authors estimate that RGGI reduced 22 million short tons of CO during this period. This
+2
+implies that a one unit reduction in the quantity of permits sold led to a $1.45 10 7 dollar
+ 
+⇥
+increaseinthepermitprice, ordp/dq = 1.45 10 7. ThissuggeststhatifRGGIhadauctioned
+ 
+  ⇥
+one fewer permit between 2009 and 2016, it would have lost $3.19 from the price of the permit
+but gained approximately dp/dq q = 1.45 81.62 = $118.48 in additional revenue from higher
+  ⇤ ⇤
+permit prices.81
+Higher prices impose a cost on firms purchasing permits, which totals to $118.48. These
+higher prices will cause some firms to opt not to purchase permits and instead reduce their
+emissions. While the envelope theorem suggests these profit maximizing firms are indi↵erent
+between buying a permit and reducing emissions, the emissions reductions generate environ-
+mental externalities. The environmental benefit of releasing 1 L = 0.49 fewer short tons
+ 
+of CO in 2016 is $65.20. Adding the reduction in local pollutants SO and NO yields an
+2 2 X
+additional gain of $117.21.82 On net, these environmental benefits o↵set the cost to firms for a
+net positive willingness to pay of $63.93. Raising revenue via a reduction in auctioned permits
+as part of RGGI led to a net win for individuals and taxpayers.83
+While our in-context estimates suggest RGGI led to significant benefits to taxpayers and
+individuals in society, we caution that it is potentially di cult to extrapolate our in-context
+estimates to a 2020 policy reform. This is because one needs to know the marginal abatement
+cost curve in 2020 to understand how the number of permits would a↵ect its price. One
+potential assumption is that it is stable over time – i.e., a 1 unit reduction in permits has the
+same marginal impact on price as it did in the sample context over which it was estimated in
+2009-2016. This is arguably a more aggressive assumption than the constant price elasticity
+assumptions used in other MVPF calculations. That said, if we make such an assumption
+80p does not enter the numerator because we assume we assume that firms are optimizing: the marginal firm
+holding a permit has a marginal abatement cost equal to the permit price.
+81We estimate a fiscal externality on the government budget to be $1.27, which suggests a net government
+revenueof$116.56fromissuingonefewerpermit. MotivatedbytheevidenceinColmeretal.(2024)andMetcalf
+& Stock (2023), we assume that cap and trade induces no reduction in the productive capacity of firms, and so
+there is no additional corporate tax fiscal externality.
+82Excludinglocaldamages,society’sWTPforpollutionreductionsisonly$65.20,implyinganMVPFof0.46.
+83The positive net willingness to pay among individuals is the di↵erence between the environmental benefits
+and the permit costs to firms. This corresponds to an increase in social welfare as long as one prefers $1.54
+flowing to the beneficiaries of an improved environment over $1 in the hands of the firms paying the additional
+permit costs.
+42
+
+regarding the marginal abatement curve, we can analyze the policy in 2020 and find that
+reductions in cap and trade permits under RGGI produce net welfare gains for individuals
+alongside an increase in government revenue. Greater restrictions in auctioned permits would
+continuetoincreasegovernmentrevenue($123.01)whilealsodeliveringanetgaintoindividuals
+in society, as the WTP for environmental damages ($210.33) outweighs each dollar firms pay
+in permits ($127.78). It is, of course, not certain whether the marginal abatement cost curve
+has been constant over time. The primary channel through which RGGI a↵ected emissions
+was by inducing a switch from coal to natural gas. It is less clear whether the same set of
+low cost substitution options continue to exist today after many coal plants have been retired.
+Consequently, it may be that dp/dq is larger in 2020 than in the early 2010’s, leading to fewer
+environmental benefits per dollar of cost imposed on those buying permits.
+In addition to our analysis of RGGI, we also consider the MVPF of permits in the Cali-
+fornia Cap-and-Trade Program using estimates from Hernandez-Cortes & Meng (2023). They
+estimate the impact of the introduction of the cap and trade system on small and medium sized
+manufacturing firms. A key challenge for our analysis is that existing data only track outcomes
+for a sub-sample of firms subject to the cap and trade system. These firms make up just 5% of
+GHG emissions subject to that system. As a conservative approach, we conduct our analysis
+assuming the other 95% of the market does not generate any reductions in emissions. In this
+case, it is straightforward to show that the MVPF would be around 0.95. In other words, a
+decrease in auctioned permits would raise $1 in revenue at a welfare cost of $0.95 on society. If
+we instead assumed that the other 95% of the regulated market had a similar response to the
+observed 5%, this generates a much larger environmental benefit. The associated benefits are
+su cient to o↵set the costs imposed on firms paying higher permit costs. This would suggest
+that, like RGGI, the California Cap and Trade auctions raise revenue while also generating net
+welfare gains to society.
+While our primary focus here is on US climate policy, we also consider the largest cap and
+trade system for CO in the world – the European Union’s Emissions Trading System (ETS).
+2
+Colmer et al. (2024) find that the introduction of ETS led to permit prices that stabilized
+around $20 between 2005 and 2012 and ultimately generated a 15% reduction in emissions.
+(They find no evidence of leakage.) Assuming a linear response to prices, the price of $19.90
+generating a 15% reduction in emissions suggests firms are willing to pay $131.32 (q dp/dq) to
+⇤
+avoid a one ton reduction in the number of allocated permits. Comparing this to a historical
+average SCC of $134.79 in this period, it suggests a net welfare gain of $3.47 ($134.79-$131.32).
+On the cost side, we find that selling one fewer permit leads to a net revenue gain of $114.06.
+Selling one fewer permit generates $114.06 in revenue and delivers $3.47 in net benefits to
+individuals.84 This means that the evidence from ETS is consistent with the US evidence on
+cap and trade: Reductions in permits have the potential to raise revenue while also providing
+84We find a qualitatively similar conclusion when examining estimates on the impact of the ETS from Bayer
+& Aklin (2020). Fewer ETS permits lead to $134.68 in net benefits to society while also generating $14.41 in
+government revenue.
+43
+
+positive benefits to society.
+Summary of Revenue-Raiser MVPFs The key lesson of this section is that taxes and
+other restrictions on pollution-emitting activities o↵er paths to raising revenues at low welfare
+costs. The MVPFs of these policies fall consistently below 1, suggesting they impose less than
+$1 in burden for each dollar of revenue raised. This lies in contrast with other traditional
+revenue raisers, such as increases in income tax rates, which consistently have MVPFs above 1.
+Returning to equation (5), the results suggest a decision-maker setting tax policy would need to
+have high implicit social welfare weights on individuals engaged in pollution-emitting activities
+in order to justify status quo policies as optimal.85 For cap and trade, the results show that
+there appear to be large quantities of emissions that can be reduced at relatively low cost - at
+least in settings where these markets have been established. The presence of this low hanging
+fruit means that small prices on carbon can lead to large reductions in emissions, generating a
+win for taxpayers and a net win for individuals a↵ected by the policy. More broadly, our results
+suggest that the presence of these large environmental externalities creates opportunities for
+raising revenue at a low welfare cost relative to typical methods of raising revenue.
+7 International Policies
+Climate policies have international spillovers. The impacts of greenhouse gas emissions are felt
+worldwide, regardless of the source of the emissions. This means that many of the beneficiaries
+of US policies addressing climate change reside outside of the US, and that US residents are
+the beneficiaries of climate policies enacted in other countries.
+In this section, we draw upon an illustrative set of climate-focused policies implemented
+in developing countries, largely by NGOs. We consider: to what extent is it beneficial to US
+residents to pay for policies implemented in other countries? For each policy, we imagine that
+the US government enacts the policy as a form of international aid. We consider 14 policies
+spanning five categories: cookstoves, deforestation payments for ecosystem services, payments
+to prevent rice field burning, wind subsidy o↵sets, and appliance and weatherization rebates.
+We begin with subsidies for improved cookstoves in Kenya. Berkouwer & Dean (2022) find
+that small subsidies for these cookstoves help to overcome individual credit constraints and
+encourage the purchase of these appliances. When o↵ered a $30.37 subsidy (in 2020 dollars),
+54.5% of individuals take up the cookstove. Nearly all of those beneficiaries are marginal, as
+only 0.6% would have taken up the cookstove in the absence of the policy. The paper also
+85Even ignoring environmental benefits and focusing solely on accidents and congestion, gas taxes have an
+MVPF of 0.95, which is 14 percent lower than the MVPF around 1.1 typically observed for income tax changes
+on low income individuals (Hendren 2020). This suggests an implicit welfare weight on drivers must be higher
+than the weight on the earnings of a typical low-income individual in order to rationalize current tax rates as
+optimal.
+44
+
+finds that each new cookstove reduces CO e by about 7 tons.86 This translates into $43.16
+2
+in global environmental benefits for each mechanical dollar of the subsidy. We combine those
+global externality benefits with the transfer benefits of the subsidy and the value of private
+energy savings. This yields a total willingness to pay of $50.82 for each mechanical dollar of
+the subsidy.
+Next, we consider the net cost of the policy. In our previous MVPF estimates, we considered
+the impact of climate damages on the US government’s budget and noted such e↵ects were
+minimal. Here, the impact of the policy on carbon emissions is su ciently large such that the
+climate fiscal externality is quantitatively important. The precise value of that fiscal externality
+depends on the model underlying the social cost of carbon. In our baseline specification, we
+assume the US experiences 15% of the benefits of carbon abatement in proportion to its share of
+global GDP. Across SCC models these benefits are typically a mix of mortality reductions and
+productivity increases. We therefore assume 50% of the benefits are changes in productivity
+and therefore taxed by the US government at a rate of 25.5% (the US tax to GDP ratio in
+2020). Taking these estimates as given, implies that the the US government recoups $3.70 per
+ton of CO and so for each mechanical dollar of subsidy, the net cost to the US government
+2
+would be just $0.157. When combined with the WTP for the policy, this yields an MVPF of 37
+when only considering benefits to US residents and an MVPF of 323 when considering benefits
+to individuals globally.
+A key factor in this calculation is the extent to which reductions in global warming have
+a positive impact on future US tax revenue (e.g., due. to higher future productivity). Models
+that report the same social cost of carbon can generate di↵erent MVPFs because they di↵er in
+the incidence on the US federal budget. For example, we could have assumed that the entirety
+of the SCC was driven by changes in market productivity. This approach is motivated by a
+literature estimating damages functions that relate carbon to GDP (Nath et al. 2024).87 In
+this case, we find that the subsidy pays for itself. The net cost of policy is -$11.31 for each
+dollar of mechanical subsidy (and the US-only MVPF is infinite). By contrast, other models
+suggest that the incidence of emissions damages on the US taxpayer could be quite small. For
+example, estimates from PAGE (Nordhaus 2017) suggest the US-incidence of carbon damages is
+just 7%. Similarly, estimates from the GIVE model (Rennert et al. 2022) suggest that changes
+in productivity are concentrated outside the US. If we drop the US-specific fiscal externality
+to zero, the US-only MVPF falls to 4.91 and the MVPF including global benefits falls to
+49.97. This highlights the importance of articulating incidence when constructing measures of
+the social cost of carbon. While total damages estimates can be reported in GDP-equivalent
+terms, the distinction between the sources of damages can meaningfully impact the welfare
+86We note that these calculations assume that charcoal is derived entirely from non-renewable biomass. If
+we were to use a fraction non-rewewable biomass of 45% estimated by the United Nations (2023), the carbon
+reduction would be 1.67 tons.
+87Some recent work has argued that carbon-driven GDP e↵ects imply a SCC in excess of $1,000 (Bilal &
+K¨anzig 2024), but this fiscal externality is still important for far more modest estimates of the SCC when
+greenhouse gas reductions are large.
+45
+
+consequences of a policy.
+Figure 9 presents the MVPFs for the other international policies in our baseline sample.88
+MVPFs using only US benefits are shown in blue and those including global benefits is shown
+in orange. These estimates show the substantial variation in MVPF estimates both within
+and across program categories. For example, the evidence from Berkouwer & Dean (2022)
+di↵ers from the findings in prior work on cookstove subsidies. Hanna et al. (2016) found that
+recipients simply did not use the cookstoves, which translates to an MVPF near zero. Similarly,
+we find large variation in the returns to policies designed to prevent deforestation. We find that
+payments to farmers in Sierra Leone toprevent deforestation yields an MVPFof 15.9 even when
+only considering benefits to US residents. This is one of the largest MVPFs in our sample. For
+deforestation prevention payments evaluated in Uganda, we find global MVPFs of 5.44 and
+a US-only MVPF of around 0.66. That said, not all deforestation programs appear to be as
+e↵ective. We find a smaller MVPF for a program in Mexico evaluated in Izquierdo-Tort et al.
+(2024), with a global MVPF of 1.71 and a US-only MVPF of 0.1.
+We also find large MVPFs for policies that use unique incentive contracts to discourage
+rice field burning. We find MVPFs between 10-15 when including global benefits and in the
+1.3-1.8 range when only including US benefits. Additionally, we find potentially high returns to
+policies encouraging the adoption of wind turbines in India, with a global MVPF of 7.64 and a
+US-only MVPF of 0.9.89 As is the case with our primary estimates, we find the lowest MVPFs
+for other policies that use rebates to encourage the purchase of other e cient appliances.
+In sum, we find potentially high returns - even from a US-only perspective - from policies
+that invest in reducing greenhouse gas emissions in developing countries. Indeed, subsidies for
+cookstoves and deforestation subsidies in Sierra Leone have higher MVPFs than any domestic
+subsidy in our sample, even when only considering the benefits accruing to US residents. That
+said, we reiterate three notes of caution. First, our exact MVPF estimates depend on the
+incidence of the social costs of carbon and, in particular, whether the benefits accrue in the
+form of increased US productivity. Such productivity benefits have US tax revenue implications
+that meaningfully impact the net cost of the subsidies to the US government. Second, we find
+high variance in our international MVPFs estimates, even within policy categories. Even when
+spending within a promising category, high returns are certainly not guaranteed. Finally, our
+analysisassumestheUSgovernmentcouldimplementthesepolicieswiththesamecoststructure
+as the NGO conducting the evaluation. The US government may face di↵erent administrative
+88Table 2 discusses results for additional policies in our extended sample, which includes some policies which
+are not a natural fit when considering hypothetical US-based funding. This includes, for example, nudges for
+energy reduction in foreign countries.
+89We draw upon estimates from Calel et al. (Forthcoming) examining the impact of a wind subsidy in India
+on greenhouse gas emissions. The authors argue that at least 52% of installations are inframarginal, suggesting
+that the carbon o↵sets are not fully o↵setting carbon emissions. We take that implied inframarginal fraction as
+given, rather than a bound, and show that it results in an implied elasticity of -2.2 and an implied MVPF of
+7.64. We note that the 52% inframarginal share is a lower bound so the ultimate MVPF could be lower if the
+leakage is higher.
+46
+
+costs when scaling these programs, meaningfully changing that MVPF. All of that said, the
+key lesson from our analysis mirrors the conclusions of Glennerster & Jayachandran (2023):
+International aid policies can be a valuable part of the toolkit for addressing climate change.
+8 MVPF Versus Cost per Ton
+The preceding analysis applies the MVPF framework to analyze the welfare consequences of
+US climate change policies. This represents a departure from the typical approach in the
+environmental economics literature, which constructs a measure of the cost per ton of CO
+2
+abated (“cost per ton”). And while existing work tends to refer to “cost per ton” as a singular
+object of interest, there are multiple conceptually distinct (and often conflated) definitions
+used in the literature. We that find three broad definitions serve to capture the conceptual
+distinctions in prior work. We refer to these measures as the (A) resource cost per ton of CO
+2
+abated, (B) government cost per ton of CO abated, and (C) net social cost per ton of CO
+2 2
+abated.
+In this section, we compare the MVPF with these cost per ton measures. We begin by
+discussing the conceptual di↵erences between cost per ton measures and the MVPF. We then
+construct an estimate of each cost per ton measure for each of the policies in our sample. We
+highlight the ways in which these cost per ton measures fail to fully capture the lessons of the
+MVPF approach, often leading to di↵erent rankings across policies.
+8.1 Definitions of Cost per Ton
+Here, we outline the three common measures of the cost per ton of CO abated and discuss
+2
+their conceptual drawbacks relative to the MVPF.
+Resource Cost per Ton The “resource cost per ton” approach has a long history in envi-
+ronmental economics (Grubb et al. 1993). It was popularized in influential work by McKinsey
+& Company (Enkvist et al. 2007), which ordered a wide range of abatement technologies using
+this measure.90 The resource cost per ton evaluates the desirability of a product (or activity)
+by measuring the dollar value of the resources entailed in the production and use of the prod-
+uct, divided by the tons of carbon abated. For example, the resource cost of an EV is the
+di↵erence in production cost for an EV versus a similar internal combustion engine (ICE) car
+minus the lifetime di↵erence in gasoline costs versus electricity costs associated with operating
+the car. Similarly, the resource cost of an energy e cient appliance is the di↵erence in cost
+of the appliance relative to its less e cient alternative minus the net energy savings from the
+more e cient appliance.
+90See also the discussion in Gillingham & Stock (2018).
+47
+
+There are two conceptual concerns associated with this measure. First, it focuses on a
+product or activity (e.g., the purchase of an EV) rather than a policy (e.g., a subsidy for an EV
+purchase). In practice, subsidies generate meaningful transfers to inframarginal beneficiaries
+– people who would obtain the subsidy without changing their behavior. With its focus on
+products rather than policies, the resource cost per ton approach ignores both the benefits and
+the costs of those inframarginal transfers. We suggest below that accounting for these transfers
+can substantially a↵ect our welfare assessments. Policies with large quantities of inframarginal
+transfers may appear to be e↵ective using a resource cost approach, but may be far less e↵ective
+using other measures.
+Second, when constructing the resource cost of an expenditure, this approach generally
+ignores any non-resource costs or benefits. For example, an individual’s valuation of an EV
+may be influenced by the disutility from having to find charging stations or the utility from
+being able to go 0 to 60 in less than 3 seconds. These considerations are generally excluded
+when calculating the resource cost of an expenditure. This omission of non-CO benefits is
+2
+seen most starkly when considering revenue-raising policies. Applying the resource cost per ton
+approach to gasoline taxes suggests negative costs per ton. Society saves the resource costs of
+producing gasoline while also reducing emissions. The trouble here is that individuals derive
+utility from their resource expenditures and such benefits are generally ignored by the resource
+cost per ton.91
+Government Cost per Ton The “government cost per ton” of carbon abated measures the
+reduction in tons of CO emitted per dollar of net government outlay (Knittel 2009, Gillingham
+2
+& Tsvetanov 2019).92 Relative to the MVPF approach, this definition uses the denominator of
+the MVPF in its numerator (the net government cost of the policy), and compares this to the
+tons of carbon abated from the policy. The government cost per ton approach addresses one
+of the key criticisms of the resource cost per ton method, accounting for the cost of transfers
+to inframarginal beneficiaries. It does not, however, consider the benefits to those individuals.
+In other words, inframarginal transfers are treated as a cost but not a benefit. This omission
+can create concerns when comparing the government cost per ton to values of the social cost
+of carbon.93 A comparison to the SCC often serves as a threshold by which to judge whether
+a policy is welfare enhancing. The omissions of inframarginal benefits, however, means that
+policies can have costs per ton that exceed the SCC while still delivering large welfare gains.94
+91Putanotherway,simplycountingresourcecostsignorescrucialinformationrevealedbyindividualpurchase
+decisions.
+92This measure is also sometimes referred to as the “program cost per ton” (Gillingham & Tsvetanov 2019,
+Davis et al. 2014).
+93ThegovernmentcostpertonofCO alsogenerallyomitsothernon-resourcebenefitssuchaslocalpollutants
+2
+avoided or congestion externalities.
+94This particular criticism has been expressed in previous literature. For example, Davis (2023) provides a
+discussion of the cost e↵ectiveness of heat pumps and notes “[i]t is tempting to compare the [cost per ton of
+CO2 estimates] to estimates in the literature for the social cost of carbon. For example, the U.S. government
+currently uses a social cost of carbon of $51 per ton (U.S. Interagency Working Group, 2021) and one recent
+48

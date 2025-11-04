@@ -1,0 +1,1914 @@
+Towards best practices in AGI safety
+and governance: A survey of expert opinion
+JonasSchuett∗ NoemiDreksler MarkusAnderljung DavidMcCaffary
+LennartHeim EmmaBluemke BenGarfinkel
+CentrefortheGovernanceofAI
+Abstract
+AnumberofleadingAIcompanies,includingOpenAI,GoogleDeepMind,and
+Anthropic,havethestatedgoalofbuildingartificialgeneralintelligence(AGI)—AI
+systemsthatachieveorexceedhumanperformanceacrossawiderangeofcognitive
+tasks. Inpursuingthisgoal,theymaydevelopanddeployAIsystemsthatpose
+particularlysignificantrisks. Whiletheyhavealreadytakensomemeasurestomiti-
+gatetheserisks,bestpracticeshavenotyetemerged. Tosupporttheidentification
+ofbestpractices,wesentasurveyto92leadingexpertsfromAGIlabs,academia,
+andcivilsocietyandreceived51responses. Participantswereaskedhowmuch
+theyagreedwith50statementsaboutwhatAGIlabsshoulddo. Ourmainfinding
+isthatparticipants,onaverage,agreedwithallofthem. Manystatementsreceived
+extremelyhighlevelsofagreement. Forexample,98%ofrespondentssomewhat
+orstronglyagreedthatAGIlabsshouldconductpre-deploymentriskassessments,
+dangerouscapabilitiesevaluations,third-partymodelaudits,safetyrestrictionson
+modelusage,andredteaming. Ultimately,ourlistofstatementsmayserveasa
+helpfulfoundationforeffortstodevelopbestpractices,standards,andregulations
+forAGIlabs.
+∗Contact:jonas.schuett@governance.ai
+3202
+yaM
+11
+]YC.sc[
+1v35170.5032:viXra
+
+Keyfindings
+• TherewasabroadconsensusthatAGIlabsshouldimplementmostofthe
+safety and governance practices in a 50-point list. For every practice but
+one,themajorityofrespondentssomewhatorstronglyagreedthatitshould
+be implemented. Furthermore, for the average practice on our list, 85.2%
+somewhatorstronglyagreeditshouldbeimplemented.
+• Respondents agreed especially strongly that AGI labs should conduct pre-
+deploymentriskassessments,dangerouscapabilitiesevaluations,third-party
+model audits, safety restrictions on model usage, and red teaming. 98%
+ofrespondentssomewhatorstronglyagreedthatthesepracticesshouldbe
+implemented. On a numerical scale, ranging from -2 to 2, each of these
+practicesalsoreceivedameanagreementscoreofatleast1.76.
+• ExpertsfromAGIlabshadhigheraverageagreementwithstatementsthan
+respondentsfromacademiaorcivilsociety.However,nosignificantitem-level
+differenceswerefound.
+Policyimplications
+• AGIlabscanuseourfindingstoconductaninternalgapanalysistoidentify
+potential best practices that they have not yet implemented. For example,
+ourfindingscanbeseenasanencouragementtomakeorfollowthroughon
+commitmentstocommissionthird-partymodelaudits,evaluatemodelsfor
+dangerouscapabilities,andimprovetheirriskmanagementpractices.
+• IntheUS,wheretheWhiteHousehasrecentlyexpressedconcernsaboutthe
+dangers of AI, regulators and legislators can use our findings to prioritize
+differentpolicyinterventions. IntheEU,ourfindingscaninformthedebate
+ontowhatextenttheproposedAIActshouldaccountforgeneral-purposeAI
+systems. IntheUK,ourfindingscanbeusedtodraftupcomingAIregulations
+asannouncedintherecentWhitePaper“Apro-innovationapproachtoAI
+regulation”.
+• Our findings can inform an ongoing initiative of the Partnership on AI to
+developsharedprotocolsforthesafetyoflarge-scaleAImodels. Theycan
+alsosupporteffortstoadapttheNISTAIRiskManagementFrameworkand
+ISO/IEC23894todevelopersofgeneral-purposeAIsystems. Finally,they
+caninformtheworkofCEN-CENELECtodevelopharmonizedstandardsfor
+theproposedEUAIAct,especiallyonriskmanagement.
+• SincemostpracticesarenotinherentlyaboutAGIlabs,ourfindingsmight
+alsoberelevantforotherorganizationsthatdevelopanddeployincreasingly
+general-purpose AI systems, even if they do not have the goal of building
+AGI.
+2
+
+1 Introduction
+Background. Overthepastfewmonths,anumberofpowerfulartificialintelligence(AI)systems
+werereleased[56,64,81]andintegratedintoproductsthatarenowbeingusedbymillionsofpeople
+aroundtheworld[46,78,87]. Atthesametime,someleadingAIcompanieshavebecomemore
+explicit that their ultimate goal is to build artificial general intelligence (AGI)—AI systems that
+achieveorexceedhumanperformanceacrossawiderangeofcognitivetasks[3,39,63].Theprospect
+ofAGIusedtobeafringearea[26,25,15],butthedebatehasnowenteredthepublicdiscourse
+[89,33,37,47]andthepoliticalstage[85,82,13,77].1 Therearenowincreasingeffortstodevelop
+standardsandregulationsthatwouldapplytoorganizationsthattrytobuildAGI.However,thereare
+stillanumberofopenquestionsaboutthesubstanceofsuchstandardsandregulations.
+Purpose. ThispaperisintendedtocontributetothecreationofbestpracticesinAGIsafetyand
+governance. Wewanttomakesurethattheviewsofrelevantexpertsaretakenintoaccount. More
+specifically,wewanttofindoutwhichpracticesalreadyhavebroadsupportandwheremorework
+isneeded. Tothisend,wesurveyed51leadingexpertsfromAGIlabs,academia,andcivilsociety.
+Ourfindingscanbeusedasevidenceindiscussionsaboutthecreationofbestpractices. Wehope
+that AGI labs will follow emerging best practices on a voluntary basis. But best practices could
+also inform standard-setting processes (e.g. by ISO and NIST) and regulatory efforts. Consider
+the following simple model of how governance mechanisms get codified into law: (1) different
+companiesexperimentwithdifferentgovernancemechanisms;(2)bestpracticesemerge;(3)best
+practicesinformstandard-settingprocesses;(4)standardsgetcodifiedintolaw. Themainpurposeof
+thispaperistosupportstep(2). However,inpractice,thesestepsareoftenperformedinparallel,not
+inasequentialway. Thepapercouldthereforealsoinformsteps(3)and(4).
+Relatedwork. AGIlabssharesomeinformationabouttheirgovernancepractices[19,23,36,56]
+andoccasionallyevenproposebestpractices[20]. Theredonotseemtobeanyindependentefforts
+to create best practices for the governance of organizations that try to build “AGI”. However,
+thereareeffortsthattargetdevelopersof“general-purposeAIsystems”,“foundationmodels”,or
+“large-scale AI models”, which alsoincludes AGI labs. Most notably, thePartnershipon AI has
+initiated a multistakeholder dialogue to develop shared protocols for the safety of large-scale AI
+models[61],whileTheFutureSocietyseekstocreateanindustrycodeofconductfordevelopers
+ofgeneral-purposeAIsystemsandfoundationmodels[80]. TherearealsoeffortstoadaptAIrisk
+managementstandardsliketheNISTAIRiskManagementFramework[53]orISO/IEC23894[35]
+to the needs of developers of general-purpose AI systems [11]. The Alignment Research Center
+(ARC)isalsodevelopinganewstandardondangerouscapabilitiesevaluationsthatistargetedat
+“leadingAIcompanies”[6]. Finally,theproposedEUAIActwilllikelycontainrulesfordevelopers
+ofgeneral-purposeAIsystemsandfoundationmodels[12],thoughtheissueremainsdisputed[1].
+Terminology. By“AGI”,wemeanAIsystemsthatreachorexceedhumanperformanceacrossa
+widerangeofcognitivetasks.2 (Notethatwedonotmakeanyclaimsaboutwhen,ifatall,AGIwill
+bebuilt.)3 By“AGIlabs”,wemeanorganizationsthathavethestatedgoalofbuildingAGI.This
+includesOpenAI,GoogleDeepMind,andAnthropic. SinceotherAIcompanieslikeMicrosoftand
+Metaconductsimilarresearch(e.g. trainingverylargemodels),wealsorefertothemas“AGIlabs”
+inthispaper. By“AGIsafetyandgovernancepractices”,wemeaninternalpolicies,processes,and
+organizationalstructuresatAGIlabsintendedtoreducerisk.
+1Insomecases,policymakersusetheterm“AGI”explicitly[32,82].Inothercases,theytalkaboutdevelopers
+of“general-purposeAIsystems”and“foundationmodels”[13,12]or“generativeAIsystems”[85,77],which
+alsoincludesorganizationsthattrytobuildAGI.
+2Thereisnogenerallyaccepteddefinitionoftheterm“AGI”.AccordingtoGoertzel[24],thetermwasfirst
+usedbyGubrud[30]inthearticle“Nanotechnologyandinternationalsecurity”. Itwaspopularizedthrough
+thebook“Artificialgeneralintelligence”editedbyGoertzelandPennachin[26]. Weacknowledgethatour
+definitionisvague.Formoreinformationonhowtomakethisdefinitionmoreconcrete,werefertotherelevant
+literature[25,52,9].Differentdefinitionsemphasizedifferentelements.Forexample,intheircharter,OpenAI
+usesadefinitionthatfocusesoneconomicvalue: “highlyautonomoussystemsthatoutperformhumansat
+mosteconomicallyvaluablework”[54]. Butnotethattheyhaverecentlyusedasimplifieddefinition: “AI
+systemsthataregenerallysmarterthanhumans”[3].Theterm“AGI”isrelatedtotheterms“strongAI”[71],
+“superintelligence”[14,15],and“transformativeAI”[29].
+3ForanoverviewofdifferentmethodstoforecastAIprogress,see[88].
+3
+
+Overview. Thepaperproceedsasfollows. Section2containsinformationaboutthesample,the
+survey,andouranalysis. Section3reportsourresults,namelytowhatextentrespondentsagreed
+withdifferentstatementsaboutwhatAGIlabsshoulddo,whethertherewerenoticeabledifferences
+betweensectorsandgenders,andwhichadditionalpracticesrespondentssuggested. Figure2shows
+thepercentagesofresponsesforallstatementslistedinthesurvey. Section4discussesourkeyresults,
+theirpolicyimplications,andthemainlimitationsofourstudy. Italsosuggestsdirectionsforfuture
+work. Section5concludes. AppendixAcontainsalistofallparticipantswhogaveuspermissionto
+mentiontheirnamesandaffiliations. AppendixBcontainsalistofallstatementsusedinthesurvey.
+AppendicesD, E,and Fcontainadditionalfigures,tables,andanalyses.
+2 Methods
+2.1 Sample
+Samplesize. Weinvited92expertstotakethesurveyandreceived51responses. Theresponserate
+was55.4%,whichishighcomparedtopreviousexpertsurveysofAIresearchers[28,90,79].
+Sampleselection. Participantswereselectedinafour-stepapproach. Inthefirststep,weselected
+relevantsectors:AGIlabs,academia,civilsociety(includingnonprofitorganizationsandthinktanks),
+andother(includinggovernment,consultingfirms,andothertechcompanies). Inthesecondstep,
+weselectedspecificorganizationswithineachsector. Inthethirdstep,weselectedexpertswithin
+eachorganization. Inthefourthstep,weaddedindividualexpertswhowerenotaffiliatedwithany
+oftheorganizationsidentifiedinthesecondstep. Thefinalsamplerepresentedalloftheselected
+sectorsidentifiedinthefirststep. Figure1showsthedivisionofrespondentsbysectorandgender.
+33respondents(64.7%)gaveuspermissiontolistthempubliclyasrespondentstothesurvey. The
+fulllistcanbefoundinAppendixA.
+Sample type. Our sample could best be described as a purposive sample [59]. We selected
+individualexpertsbasedontheirknowledgeandexperienceinareasrelevantforAGIsafetyand
+governance,butwealsoconsideredtheiravailabilityandwillingnesstoparticipate.Weusedanumber
+ofproxiesforexpertise,suchasthenumber,quality,andrelevanceoftheirpublicationsaswellas
+theirroleatrelevantorganizations.
+Overall,webelievetheselectionreflectsanauthoritativesampleofcurrentAGIsafetyandgovernance-
+specificexpertise. Foradiscussionoflimitationsrelatedtooursample,seeSection4.4.
+Figure1: Samplebysectorandgender|Thefigureshowsthesectorofworkandgenderofthe
+respondents. Respondentscouldchoosemorethanonesectorinwhichtheywork.
+4
+
+Strongly agree Somewhat agree Neither agree nor disagree Somewhat disagree Strongly disagree I don't know
+Pre-deployment risk assessment 92% 6% 2% n = 51
+Dangerous capabilities evaluations 86% 12% 2% n = 51
+Third-party model audits 84% 14% 2% n = 51
+Red teaming 82% 16% 2% n = 51
+Safety restrictions 82% 16% 2% n = 51
+Alignment techniques 82% 14% 2%2% n = 51
+Security incident response plan 79% 18% 3% n = 39
+Pre-training risk assessment 78% 16% 4% 2% n = 51
+Monitor systems and their uses 78% 20% 2% n = 51
+Post-deployment evaluations 78% 19% 3% n = 37
+Report safety incidents 76% 20% 2%2% n = 51
+Internal review before publication 75% 24% 2% n = 51
+Pausing training of dangerous models 75% 18% 4% 2%2% n = 51
+Safety vs. capabilities 73% 24% 4% n = 51
+Protection against espionage 71% 26% 3% n = 38
+Emergency response plan 71% 25% 2%2% n = 51
+Increasing levels of external scrutiny 63% 31% 2%2%2% n = 51
+Security standards 61% 18% 2% 6% 14% n = 51
+Military-grade information security 59% 29% 4% 2% 4% 2% n = 51
+No unsafe open-sourcing 57% 27% 2% 12% 2% n = 51
+Statement about governance structure 55% 32% 5% 3%3%3% n = 38
+Bug bounty programs 55% 39% 2%2%2% n = 51
+Publish internal risk assessment results 54% 32% 5% 3% 5% n = 37
+Board risk committee 54% 27% 3% 5% 11% n = 37
+Model containment 53% 27% 8% 4% 2% 6% n = 51
+Industry sharing of security information 53% 39% 5% 3% n = 38
+Dual control 53% 32% 5% 3% 8% n = 38
+Internal audit 51% 35% 8% 4% 2% n = 51
+Background checks 50% 32% 8% 5% 5% n = 38
+Publish results of external scrutiny 50% 39% 3%3% 5% n = 38
+Chief risk officer 50% 29% 8% 3% 11% n = 38
+Publish views about AGI risk 49% 37% 8% 2% 4% n = 51
+Staged deployment 49% 43% 4% 4% n = 51
+Publish alignment strategy 49% 41% 3% 8% n = 39
+Tracking model weights 46% 31% 13% 3% 8% n = 39
+Third-party governance audits 46% 41% 5% 3% 5% n = 37
+Treat updates similarly to new models 45% 35% 4% 14% 2% n = 51
+API access to powerful models 45% 31% 8% 4% 4% 8% n = 51
+KYC screening 45% 42% 11% 3% n = 38
+Researcher model access 41% 43% 6% 4% 2% 4% n = 51
+Gradual scaling 39% 41% 12% 4% 4% n = 51
+Pre-registration of large training runs 37% 41% 8% 6% 4% 4% n = 51
+Avoiding hype 33% 53% 12% 2% n = 51
+Internal deployments = external deployments 28% 50% 11% 6% 3% 3% n = 36
+Enterprise risk management 27% 29% 12% 2% 4% 25% n = 51
+Notify a state actor before deployment 25% 47% 12% 6% 4% 6% n = 51
+Notify affected parties 22% 33% 17% 3% 3% 22% n = 36
+Avoid capabilities jumps 22% 35% 16% 11% 5% 11% n = 37
+Inter-lab scrutiny 18% 41% 8% 13% 3% 18% n = 39
+Notify other labs 11% 32% 29% 11% 3% 16% n = 38
+0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Percentage of respondents
+Figure2: Percentagesofresponsesforallstatements|Thefigureshowsthepercentageofrespon-
+dents choosing each answer option. At the end of each bar we show the number of people who
+answeredeachitem. Theitemsareorderedbythetotalnumberofrespondentsthat“strongly”agreed.
+ThefullstatementscanbefoundinAppendixB.
+5
+
+Mean agreement for AGI safety and governance practices
+1.9 Pre-deployment risk assessment
+1.9 Dangerous capabilities evaluations
+1.8 Third-party model audits
+1.8 Safety restrictions
+1.8 Red teaming
+1.7 Monitor systems and their uses
+1.7 Alignment techniques
+1.7 Security incident response plan
+1.7 Post-deployment evaluations
+1.7 Report safety incidents
+1.7 Safety vs. capabilities
+1.7 Internal review before publication
+1.6 Pre-training risk assessment
+1.6 Emergency response plan
+1.6 Protection against espionage
+1.6 Pausing training of dangerous models
+1.6 Increasing levels of external scrutiny
+1.5 Publish alignment strategy
+1.5 Bug bounty programs
+1.5 Industry sharing of security information
+1.5 Security standards
+1.4 Publish internal risk assessment results
+1.4 Dual control
+1.4 Publish results of external scrutiny
+1.4 Military-grade information security
+1.4 Board risk committee
+1.4 Chief risk officer
+1.4 Statement about governance structure
+1.4 Publish views about AGI risk
+1.4 KYC screening
+1.3 Third-party governance audits
+1.3 Background checks
+1.3 Model containment
+1.3 Staged deployment
+1.3 Tracking model weights
+1.3 Internal audit
+1.3 No unsafe open-sourcing
+1.2 Researcher model access
+1.2 API access to powerful models
+1.2 Avoiding hype
+1.2 Gradual scaling
+1.1 Treat updates similarly to new models
+1.1 Pre-registration of large training runs
+1.0 Enterprise risk management
+1.0 Internal deployments = external deployments
+0.9 Notify a state actor before deployment
+0.9 Notify affected parties
+0.7 Inter-lab scrutiny
+0.6 Avoid capabilities jumps
+0.4 Notify other labs
+Strongly Somewhat Neither agree Somewhat Strongly
+disagree disagree nor disagree agree agree
+(-2) (-1) (0) (1) (2)
+Figure3: Meanagreementforallstatements|Thefigureshowsthemeanand95%confidence
+intervalforeachofthe50statements. “Idon’tknowresponses”wereexcludedfromtheanalysis.
+6
+
+2.2 Survey
+Surveydesign. Informedconsenthadtobegivenbeforeproceedingtothemainsurvey. Thesurvey
+beganbydefiningtheterms“AGI”,“AGIlabs”,and“AGIsafetyandgovernancepractices”asnoted
+above. Respondentswerethenaskedtowhatextenttheyagreeordisagreewithstatementsabout
+whatAGIlabsshoulddo. Weaskedrespondentsfortheirgenderandwheretheyworked. Finally,
+respondents were able to list important AGI safety and governance practices they thought were
+missingfromthesurvey. Respondentstookamedianof11minutestocompletethesurvey.
+StatementsaboutAGIsafetyandgovernancepractices. Thestatementscoveredmanydiffer-
+ent areas, including development, deployment, monitoring, risk management, external scrutiny,
+informationsecurity,communication,andculture. Theywereextractedfrom(1)currentpractices
+atindividualAGIlabs(e.g. pre-deploymentriskassessments[19,36]anddangerouscapabilities
+evaluations [56]), (2) planned practices at individual labs (e.g. third-party model audits [3]), (3)
+proposalsintheliterature(e.g. third-partygovernanceaudits[51]andincidentreporting[45]),and
+(4)discussionwithexpertsandcolleagues. Intotal,thesurveycontained50statements,30ofwhich
+respondentswererequiredtorespondtoand20whereanswerswereoptional. AppendixBcontainsa
+fulllistofallstatements.
+Responsescale. Respondentswereaskedtoindicatetheirlevelofagreementbasedona5-point
+Likertscale: “stronglydisagree”(-2),“somewhatdisagree”(-1),“neitheragreenordisagree”(0),
+“somewhatagree”(1),“stronglyagree”(2). Theyalsohadtheoptiontosay“Idon’tknow”.
+Demographicquestions. Respondentswereaskedwhattheirgenderwas(“man”,“woman”,“an-
+othergender”,“prefernottosay”)andwhatsectortheyworkedin(“AGIlab[e.g. OpenAI,Google
+DeepMind,Anthropic,Microsoft,andMeta]”,“othertechcompany”,“consultingfirm”,“thinktank”,
+“nonprofitorganization”,“government”,“academia”,“other”,“prefernottosay”). Forthesector
+question,respondentswereabletochoosemorethanoneoption.
+Surveydistribution. Thesurveytookplacebetween26Apriland8May2023. Respondentswere
+sentaninitialemailinvitationandareminderemailusingQualtrics. Aonehourvirtualworkshop
+washeldwhichinvitedthesameindividualsasthesamplingframe. Theworkshopexploredquestions
+onhowAGIsafetyandgovernancepracticescouldbecreatedandimplemented. 21peopleattended
+theworkshopalongwiththesevenauthorsofthispaperwhotooknotesandmoderatedthediscussion.
+Duringtheworkshop,attendeeswereremindedtoparticipateinthesurvey. Additionalfollow-up
+emailsweresenttorespondentsinthefinalthreedaysofthesurveyinordertoensurethesamplewas
+morerepresentativeofthesamplingframeandthatemailshadnotgoneunseenduetoemailfilters
+thatmayhaveflaggedtheQualtricssurveyinvitationsandreminderemailsasspam.
+Anonymity. Responsestothesurveywereanonymous. Thepartofthesurveythataskedrespon-
+dentsfortheirviewswasaseparateQualtricssurveytoboththeinformedconsentsurveyandwhere
+respondentsnotedtheirnameandaffiliation. Wewillnotmakeanyofthedemographicdataortext
+responsespublictofurtherensurethatresponsescannotbereverse-identified. Respondentswere
+informedofthesemeasuresintheinformedconsentsection.
+2.3 Analysis
+Demographic groups. We categorized sector responses as follows: AGI lab, academia, civil
+society (“think tank”, “nonprofit organization”), other (“other tech company”, “consulting firm”,
+“government”,“other”).
+Groupdifferences. Totestfordifferencesintheoverallpopulationofresponsesacrossallitems,we
+usedtheMann-WhitneyUtest. Totestfordifferencesbetweengroupsinresponsesforeachpractice,
+weusedChi-squaredtests. Certainsubgroupshadtoberemovedfromthegender(“anothergender”,
+“prefernottosay”)andsector(“other”, “prefernottosay”)analyzesduetosamplesizesfalling
+below5[44]. Whereapplicablethroughout,theHolm-Bonferronicorrectionwasusedtocorrect
+formultiplecomparisons: theoriginalalpha-value(0.05)isdividedbythenumberofremaining
+tests,countingdownfromthehighesttothelowestp-value. Thep-valueswerethencomparedtothe
+Holm-Bonferroni-adjustedsignificancelevelstodeterminethesignificanceofeachtest.
+7
+
+Openscience. Thesurveydraft,pre-registration,pre-analysisplan,code,anddatacanbefound
+onOSF(https://osf.io/s7vhr). Toprotecttheidentityofrespondents,wewillnotmakeany
+demographicdataortextresponsespublic. Welargelyfollowedthepre-analysisplan. Anydeviations
+fromthepre-registeredanalysescanbefoundinAppendixF,alongwiththepre-registeredcluster
+analysis.
+3 Results
+Inthissection, wereportthemainresultsofthesurvey, namelyrespondents’levelofagreement
+(Section3.1),differencesbetweensectorsandgenders(Section3.2),andadditionalpracticesthat
+weresuggestedbyrespondents(Section3.3). Additionalfigures,tables,andanalysescanbefoundin
+AppendicesD, E,and F.
+3.1 Levelofagreement
+Overallagreement. TherewasabroadconsensusthatAGIlabsshouldimplementmostofthe
+safetyandgovernancepracticesina50-pointlist. For98%ofthepractices,amajority(morethan
+50%)ofrespondentsstronglyorsomewhatagreed. For56%ofthepractices,amajority(morethan
+50%)ofrespondentsstronglyagreed. Themeanagreementacrossall50itemswas1.39onascale
+from-2(stronglydisagree)to2(stronglyagree)—roughlyhalfwaybetweensomewhatagreeand
+stronglyagree. Onaverage,acrossall50items,85.2%ofrespondentseithersomewhatorstrongly
+agreedthatAGIlabsshouldfolloweachofthepractices. Onaverage,only4.6%eithersomewhator
+stronglydisagreedthatAGIlabsshouldfolloweachofthepractices. Thebroadlevelofagreement
+canbeseeninFigure2,whichshowsthepercentageofrespondentsthatanswered“stronglyagree”,
+“somewhatagree”,“neitheragreenordisagree”,“somewhatdisagree”,“stronglydisagree”,and“I
+don’tknow”foreachofthepotentialAGIbestpractices. Fornoneofthepractices,amajority(more
+than50%)ofrespondentssomewhatorstronglydisagreed. Indeed,thehighesttotaldisagreementon
+anyitemwas16.2%fortheitem“avoidcapabilitiesjumps”. Acrossall2,285ratingsrespondents
+made,only4.5%weredisagreementratings.
+Highest agreement. The items with the highest total agreement proportions all had agreement
+ratingsfrom98%ofrespondentswere: dangerouscapabilitiesevaluations,internalreviewbefore
+Highest mean agreement Lowest mean agreement
+Pre ri - s d k e a p s lo se y m ss e m n e t D n a t c n a g e p e v a r a b o l i u u li a t s i t e io s ns Th m ird o - d p e a l r t a y udits Safety restrictio R ns ed tea ming No b ti e fy fo s r t e a t d e e a p c lo to y N r m o p e t a i n fy r t t i a e f s fected Inter-lab scrutin A y v j o u i m d p c s apabilitie N s otify other labs
+Str a o g n r g e l e y 1.9 1.9 1.8 1.8 1.8
+(2)
+0.9 0.9
+Somewhat 0.7
+agree 0.6
+(1) 0.4
+Neither agree
+nor disagree
+(0)
+Somewhat
+disagree
+(-1)
+Strongly
+disagree
+(-2)
+Figure 4: Statements with highest and lowest mean agreement | The figure shows the mean
+agreementand95%confidenceintervalforthefivehighestandlowestmeanagreementitems.
+8
+
+publication,monitorsystemsandtheiruses,pre-deploymentriskassessment,redteaming,safety
+restrictions,andthird-partymodelaudits. Sevenitemshadnodisagreementratingsatall: dangerous
+capabilitiesevaluations,industrysharingofsecurityinformation,KYCscreening,pre-deployment
+riskassessment,publishalignmentstrategy,safetyrestrictions,andsafetyvs. capabilities. Figure
+4showsthestatementswiththehighestandlowestmeanagreement. Themeanagreementforall
+statements can be seen in Figure 3. The statements with the highest mean agreement were: pre-
+deploymentriskassessment(M =1.9),dangerouscapabilitiesassessments(M =1.9),third-party
+modelaudits(M=1.8),safetyrestrictions(M=1.8),andredteaming(M=1.8).
+Lowestagreement. Thefiveitemswiththehighesttotaldisagreementproportionsamongrespon-
+dentswere: avoidcapabilitiesjumps(16.2%),inter-labscrutiny,(15.4%),nounsafeopen-sourcing,
+(13.7%),treatupdatessimilarlytonewmodels,(13.7%),andnotifyotherlabs,(13.2%). Thefive
+statementswiththelowestmeanagreementwere: notifyotherlabs(M =0.4), avoidcapabilities
+jumps(M =0.6),inter-labscrutiny(M =0.7),notifyaffectedparties(M =0.9),andnotifyastate
+actorbeforedeployment(M=0.9). Notethatallpractices,eventhosewithlowestmeanagreement,
+showapositivemeanagreement,thatisabovethemidpointof“neitheragreenordisagree”andinthe
+overallagreementpartofthescale.
+“Idon’tknow”and“neitheragreenordisagree”. Thefivepracticeswiththehighestproportion
+of“Idon’tknow”and“neitheragreenordisagree”responsescanbeseeninFigure5. Enterprise
+riskmanagement(25.5%),notifyaffectedparties(22.2%),inter-labscrutiny(17.9%),notifyother
+labs(15.8%),andsecuritystandards(13.7%)showthehighest“Idon’tknow”responses. Thefour
+practiceswiththehighest“neitheragreenordisagree”responseswere: notifyotherlabs(28.9%),
+notify affected parties (16.7%), avoid capabilities jumps (16.2%), and tracking model weights
+(12.8%). Avoidinghype,enterpriseriskmanagement,gradualscaling,andnotifyastateactorbefore
+deploymentarealltiedforfifthhighest“neitheragreenordisagree”responses(11.8%).
+3.2 Differencesbetweensectorsandgenders
+Statisticaltests. Weusedtwostatisticalteststotestfordifferencesbetweensectorsandgenders.
+Firstly,weconductedMann-WhitneyUteststotestfordifferencesintheoverallmeanagreement
+across all items. This is a test of whether two independent samples are drawn from the same
+underlyingdistribution,anddoesnotassumethatthisunderlyingdistributionisnormal,makingit
+anappropriateteststatisticforourdata. Secondly,weconductedChi-squaredtestsofindependence
+En m te a rp na ri g se e m ris e k nt No p t a ify rt i a e f s fected Int s e c r r - u la t b iny No la ti b fy s other Se s c t u a r n it d y ards
+40%
+35%
+30%
+25%
+20%
+15%
+10%
+5%
+0%
+stnednopser
+fo
+egatnecreP
+Highest proportion of
+"I don't know" responses
+No la ti b fy s othe N r o p t a ify rt i a e f s fec A te v j d o u i m d p c s apa T b r i a l w it c i e e k i i s g n h g t s m G od ra e d l ual sca A l v in o g iding hy E p n m e te a rp na ri g se e m r N is e o k b n ti e t fy fo s r t e a t d e e a p c lo to y r ment
+35%
+30%
+25%
+25%
+22% 20%
+18%
+16% 15%
+14%
+10%
+5%
+0%
+stnednopser
+fo
+egatnecreP
+Highest proportion of
+"Neither agree nor disagree" responses
+29%
+17% 16%
+13% 12% 12% 12% 12%
+Figure 5: Statements with the highest proportion of “I don’t know” and “neither agree nor
+disagree”responses
+9
+
+totestforsignificantdifferencesinthedistributionofagreementanddisagreementresponsesfor
+eachitembygenderandsector. Thistestcomparestheobservedfrequenciesacrossthecategories
+ofinterestwith thefrequencieswhichwouldbeexpected iftherewasno differencebetweenthe
+responsesineachcategory.
+Differencesbetweensectors. Wefoundasignificantdifferenceinoverallmeanagreementacross
+itemsbetweenrespondentsfromAGIlabsandacademia(U=325295.0,p<0.001,α=0.017),as
+wellasbetweenrespondentsfromAGIlabsandcivilsociety(U=1106715.0,p<0.001,α=0.017).
+RespondentsfromAGIlabs(M=1.54)showedsignificantlyhighermeanagreementthanrespondents
+fromacademia(M=1.16)andcivilsociety(M=1.36). Therewasnosignificantdifferenceinoverall
+meanagreementbetweenacademiaandcivilsociety. Whencomparingsectorgroupsattheitemlevel
+wefoundnosignificantdifferencesbetweensectorgroupsforanyoftheitems. Themeanagreement
+bysectorcanbeseeninFigures6and7inAppendixD.
+Differencesbetweengenders. Wefoundnosignificantdifferencesbetweenresponsesfrommen
+andwomen—neitherinoverallmeanagreement,norattheitemlevel.Themeanagreementbygender
+canbeseeninFigure8inAppendixD.
+3.3 Suggestedpractices
+Whileourselectionof50practicescoversalotofground,thelistisclearlynotcomprehensive. We
+thereforeaskedrespondentswhichAGIsafetyandgovernancepracticesweremissing. Respondents
+suggestedanadditional50uniquepractices. Twopracticeswerementionedbytworespondents,
+namelythatAGIlabsshouldhaveamerge-and-assist-clauseaswellassomekindofinternalreview
+board. Anotherthemethatwasmentionedbyseveralrespondentswastheneedtoadequatelybalance
+profitsandsocietalbenefits. Besidesthat,allpracticeswereonlymentionedbyonerespondent. Some
+ofthesuggestionswereslightvariationsorelaborationsofourstatements. Thefulllistofpractices
+notedasmissingfromthesurveycanbefoundinAppendixC.
+4 Discussion
+In this section, we give an overview of our results (Section 4.1), discuss some of the specific
+results(Section4.2),theirpolicyimplications(Section4.3),andthemainlimitationsofourstudy
+(Section4.4). Wealsosuggestdirectionsforfuturework(Section4.5).
+4.1 Overviewofresults
+Levelofagreement. Overall,thestudyfoundaremarkablyhighlevelofagreementamongleading
+AGIsafetyandgovernanceexpertsforthepracticespresented(Section3.1,seeAppendixBforall
+practices). Forallbutonestatement,amajorityofrespondentseithersomewhatorstronglyagreed
+withthepractice. Wesuspectthattheabstractframingoftheitemswasacontributingfactortothis
+high level of agreement. This likely resulted in higher agreement than if the items had specified
+exactlyhowtoinstantiateeachofthepractices. However,weseethishighlevelofagreementas“a
+feature,notabug”. Ourfindingscanbeusedasafoundationforeffortstodevelopbestpractices,
+standards,andregulationsforAGIlabs. Practiceswithbroadsupportcanthenbemadeconcrete,
+developed,andenshrined(Section4.3). Doingthisworkisbeyondthescopeofasinglesurveyand
+willrequiremorein-depthdiscussion(Section4.5).
+Despitethebroadoverallagreement,oursurveyalsorevealedrelativedifferencesbetweenpractices.
+Manyitemsshowedextremelyhighagreementalongwithminimal(e.g. third-partymodelaudits,red
+teaming)ornodisagreement(pre-deploymentriskassessment,dangerouscapabilitiesevaluations,
+publishalignmentstrategy,KYCscreening,safetyrestrictions). Otheritemselicitedhigherpropor-
+tionsofdisagreement(e.g. avoidcapabilitiesjumps,inter-labscrutiny),butallitemshadpositive
+meanagreement. Someitemsrevealedareasofuncertainty(e.g. enterpriseriskmanagement,notify
+otherlabs,notifyaffectedparties),withhigher“Idon’tknow”and“neitheragreenordisagree”re-
+sponses. Thesepracticesmaybenefitfromparticularattentionfromfutureresearchtodeterminewhat
+thecausesoftheseuncertaintiesare. Forexample,uncertaintiesmayhavebeencausedbyspecific
+formulationsorbymorefundamentalquestionsaboutwhetherthepracticeshouldbeimplemented.
+10
+
+Differencesbetweensectorsandgenders. Interestingly,respondentsfromAGIlabshadsignif-
+icantly higher overall mean agreement ratings than respondents from academia or civil society
+(Section 3.2). This suggests that, on average, individuals closer to the technology developed by
+AGIlabsendorsethepracticestoahigherdegree. Thisdifferencewasnotfoundattheitem-level,
+wherewefoundnosignificantdifferencesbetweensectors. Nosignificantoverallmeanagreementor
+item-leveldifferencesbetweenmenandwomenwerefound. Itisimportanttonotethecomparably
+smallsamplesizesusedinthetestingofgroupdifferences(N =25forAGIlab,N =13foracademia,
+andN =13forcivilsociety),andthereforeanystatisticalsignificanceintheresultsshouldbeinter-
+pretedaccordingly. Inaddition,itshouldbenotedthatitmaybethecasethatthelackofsignificant
+differencesattheitem-levelareatleastinpartdrivenbythesmallernumberofrespondentsperitem.
+Generally,atsuchasmallsamplesize,significantdifferencetestscanbecapriciousandmaylack
+sensitivity.
+Suggestedpractices. Finally,participantssuggested50additionaluniquegovernancepracticesfor
+AGIlabs(Section3.3,AppendixC).Thisindicatesthatthe50practicesusedinthesurveyarenot
+sufficientfor“good”governanceofAGIlabs. Moreresearchisneededtopaintamorecomplete
+pictureofan“ideal”governanceregime. Ingeneral,weseethelistofadditionalstatementsandthe
+highlevelofagreementacrossour50itemsasapowerfulindicatoroftheopportunitythatexiststo
+improvethesafetyandgovernancepracticesatAGIlabs. Tomitigatetherisksfromincreasingly
+capable AI systems, AGI labs need a portfolio of governance mechanisms. We will discuss the
+specificresultsforitemswithinthecontextofthecurrentAGIsafetyandgovernancelandscapein
+thenextsection.
+4.2 Discussionofspecificresults
+Below,wediscussresponsestospecificstatements. Wecategorizestatementsintoeightareas: (1)
+development,(2)deployment,(3)post-deployment,(4)riskmanagement,(5)externalscrutiny,(6)
+informationsecurity,(7)communication,and(8)other. Thesecategoriesareintendedtoimprove
+readability. Wedidnotusetheminthesurvey. Valuesinbracketsrefertothemeanagreement(M)on
+ascalefrom-2(“stronglydisagree”)to2(“stronglyagree”).
+Development. Theneedtoconductevaluationsfordangerouscapabilitieswasamongthehighest
+rated items (M = 1.9). OpenAI, Google DeepMind, and Anthropic are already working on such
+evaluations [56, 38, 6].4 For example, before releasing GPT-4, OpenAI commissioned ARC to
+evaluate risky emergent behaviors, such as situational awareness, persuasion, and long-horizon
+planning[56]. Arelatedstatementaboutpausingthedevelopmentprocessifdangerouscapabilities
+aredetectedalsoreceivedbroadsupport(M =1.6). Itisworthnotingthat,whilenotstatistically
+significant,respondentsfromAGIlabs(M =1.4)weremoreskepticalthanotherrespondents(M
+=1.9). Despitethebroadsupport,manyquestionsaboutdangerouscapabilitiesevaluationsremain
+open (e.g. what exactly labs should do if they detect certain dangerous capabilities and whether
+coordinatedpausingisfeasible). Westronglyencouragemoreworkonthis. Perhapsunsurprisingly,
+thestatementthatAGIlabsshouldimplementstate-of-the-artsafetyandalignmenttechniques(M
+= 1.7) and that a significant fraction of employees should work on enhancing model safety and
+alignment ratherthan capabilities (M = 1.7)also receivedbroad support, while statements about
+tracking model weights (M = 1.3), model containment (M = 1.3), and gradual scaling (M = 1.2)
+receivedlesssupport. Thestatementwiththeleastsupportofalldevelopment-relatedstatements
+wasabouttheneedtopre-registerlargetrainingrunswithanappropriatestateactor(M=1.1),just
+above“somewhatagree”. Wewouldspeculatethatrespondentswereuncertainaboutwhichstate
+actorwouldbeappropriate,whichweleftintentionallyopen.
+Deployment. Whileparticipants,onaverage,stronglyagreedwiththestatementthatlabsshould
+putinplacecertainsafetyrestrictions(M=1.8),theyonlysomewhatagreedwithstatementsabout
+specificdeploymentstrategies, suchasstageddeployment(M =1.3), APIaccess(M =1.2), and
+nounsafeopen-sourcing(1.3). Wesuspectthatthemainreasonforthisslightlyreducedsupportis
+thatthestatementsweretoogeneral. The“right”deploymentstrategymightdependonanumber
+of contextual factors [75]. It is also worth noting that the statement on API access used a softer
+4Notethat[38]onlyrepresentstheviewsofthealignmentteam. ItisnotofficiallyendorsedbyGoogle
+DeepMind.
+11
+
+formulation than all other statements (“AGI labs should consider doing X” instead of “AGI labs
+shoulddoX”). Otherwise,thelevelofagreementmighthavebeenevenlower. Formoreinformation
+aboutdifferentdeploymentstrategies,werefertotherelevantliterature[76,20,72,75]. Theneed
+toconductknow-your-customer(KYC)screeningswasmoderatelysupported(M=1.4). OpenAI
+alreadyliststhisasoneoftheirsafetybestpractices[58]. ThestatementsthatAGIlabsshouldtreat
+modelupdatessimilarlytonewmodels(M =1.1)andinternaldeploymentssimilarlytoexternal
+deployments(M =1.0)alsoreceivedmoderatesupport,whilethestatementthatAGIlabsshould
+avoid capabilities jumps (M = 0.6), not deploying models that are much more capable than any
+existingmodels,wasamongtheleastsupporteditems. RespondentsfromAGIlabs(M=0.9)were
+slightlymoresupportiveofthatstatementthanotherparticipants(M=0.4),butthisdifferencewas
+notstatisticallysignificant.
+Post-deployment. TherewasbroadsupportfortheclaimthatAGIlabsshouldcloselymonitor
+deployedsystemsandtheiruses(M=1.7). OpenAI[19,20]andGoogleDeepMind[36]arealready
+doing this, and although we could not find any public statements about this from Anthropic, we
+stronglysuspectthattheyaredoingthesame. Participantsalsostronglyagreedwiththestatement
+thatAGIlabsshouldcontinuallyevaluatemodelsfordangerouscapabilitiesafterdeployment(M=
+1.7)andreportsafetyincidents(e.g. viatheAIIncidentDatabase[45])(M=1.7). Wecouldnotfind
+anypublicstatementsabouttheextenttowhichdifferentAGIlabsarealreadydoingthis. Participants
+alsothoughtthatAGIlabsshouldhaveanemergencyresponseplan(e.g. whentorestrictaccessor
+switchoffsystems)(M=1.6). Again,wecouldnotfindanypublicinformationonthis.
+Risk management. Participants strongly agreed with statements about pre-deployment (M =
+1.9)andpre-trainingriskassessments(M =1.6). WhileAGIlabsalreadyconductextensivepre-
+deploymentriskassessments[36,19,56],wecouldnotfindanypublicinformationaboutpre-training
+risk assessments. Participants somewhat agreed with various statements about risk governance
+[84,43],namelythatAGIlabsshouldhaveaboardriskcommittee(M=1.4),achiefriskofficer(M
+=1.4),andaninternalauditteam(M=1.3). Basedonpublicinformation,AGIlabsdonotseemto
+haveanyofthesestructures. Thisisanoticeablegapthatwarrantsfurtherdiscussion[68,70]. The
+statementaboutenterpriseriskmanagementreceivedevenlesssupport(M =1.0). Itwasalsothe
+itemwiththehighest“Idon’tknow”rate(25.5%),whichindicatesthatmanyrespondentssimply
+didnotknowwhatenterpriseriskmanagementisandhowitworks. Wementionedtwoexamplesof
+enterpriseriskmanagementframeworks—theNISTAIRiskManagementFramework[53]andISO
+31000[34]—butwesuspectthatmanyrespondentsdidnotknowtheseframeworkseither. Weshould
+havedescribedtheconceptinamoreaccessibleway.
+Externalscrutiny. Therewasbroadsupportforthird-partymodelaudits(M=1.8),redteaming
+(M = 1.8), and bug bounty programs (M = 1.5). There is extensive academic discussion about
+third-partymodelaudits[65,18,50,22,66,51]andOpenAIhasalreadyannouncedthattheyplanto
+commissionthird-partymodelauditsinthefuture[3]. Wecouldnotfindsimilarstatementsfrom
+GoogleDeepMindandAnthropic. OpenAIhasalsorecentlyannouncedabugbountyprogram[55].
+Again, GoogleDeepMindandAnthropicdonotseemtohavesimilarprograms. Incontrast, red
+teamingisalreadyacommonpracticeatOpenAI[48,56],GoogleDeepMind[62],andAnthropic
+[23]. ParticipantsalsostronglyagreedwiththestatementthatAGIlabsshouldincreasethelevel
+of external scrutiny in proportion to the capabilities of their models (M = 1.6). Yet, it is unclear
+what exactly that entails (e.g. larger red teams, combining different methods, or more time for
+investigations). Third-party governance audits were slightly less supported (M = 1.3), perhaps
+becausethemechanismislesswell-known,eventhoughthereissomeliteratureonthetopic[49,51].
+Oneofthelowestrateditemswasinter-labscrutiny(M =0.7). Itisworthnotingthat, whilenot
+statisticallysignificant,wesawhighersupportforthisstatementfromrespondentsfromAGIlabs(M
+=1.2)incomparisontorespondentsfromacademia(M=0.3)andcivilsociety(M=0.2). Thiswas
+alsothecaseforthestatementthatAGIlabsshouldgrantindependentresearchersaccesstodeployed
+models(M=1.2). Whilenotstatisticallysignificanteither,thisstatementwasalsosupportedmoreby
+respondentsfromAGIlabs(M=1.4)thanbyrespondentsfromacademia(M=1.0)andcivilsociety
+(M=0.8).
+Informationsecurity. Practicesrelatedtoinformationsecuritygenerallyreceivedbroadsupport,
+especiallystatementsaboutsecurityincidentresponseplans(M=1.7),protectionagainstespionage
+12
+
+(M=1.6),implementingsecuritystandards(M=1.5),industrysharingofsecurityinformation(M=
+1.5),dualcontrol(M=1.4),andmilitary-gradeinformationsecurity(M=1.4),wherebyinformation
+securityofAGIlabsshouldbeproportionaltothecapabilitiesoftheirmodels,eventuallymatchingor
+exceedingthatofintelligenceagencies. Itisworthnotingthatthestatementaboutsecuritystandards
+wasmuchhigherratedthanthestatementaboutenterpriseriskmanagementframeworksdiscussed
+above(M=1.0),althoughtheywerephrasedsimilarly.
+Communication. Participantsstronglyagreedwiththestatementthat,beforepublishingresearch,
+AGIlabsshouldconductaninternalreviewtoassesspotentialharmsfromthatresearch(M=1.7).
+Thestatementshouldbereadinthecontextofthebroaderdebatearoundpublicationnorms[21,60,8].
+Thecoreconsiderationinthedebatearoundpublicationnormsisthattherearerisksthatstemfrom
+thepublicationoftheresearchitself—notjustbythedevelopmentanddeploymentofindividual
+models—sincesomeresearchfindingscanbemisused[83,17,27,4,7,73,16]. Forexample,this
+couldincluderesearchaboutthedevelopmentofmodelsforthediscoveryofnewdrugswhichcould
+bemisusedforthedesignofbiochemicalweapons[83].
+ParticipantsalsothoughtthatAGIlabsshouldpublishstatementsabouttheiralignmentstrategy(M=
+1.5),theirviewsaboutAGIrisk(M=1.4),andtheirgovernancestructure(M=1.4).Overthepastfew
+months,AGIlabshavebecomemoretransparentabouttheiralignmentstrategy[41,40,57,5,38]
+andtheirviewsabouttherisksfromAGI[3,5], thoughsomeofthesestatementshavealsobeen
+criticized[2,74]. AGIlabsarelesstransparentabouttheirgovernancestructures. Existingstatements
+onlydescribehowspecificdecisionsweremade[36]ordescribestructuresthatdealwithrisksof
+specificmodeltypes[19]. Perhapssurprisingly,participantsonlymoderatelyagreedwiththeclaim
+thatAGIlabsshouldavoidhypewhenreleasingnewmodels(M=1.2).
+WeaskedparticipantswhetherAGIlabsshouldnotifydifferentactorsbeforedeployingpowerfulAI
+systems. Thesestatementswereamongtheleastsupporteditems. Respondentssomewhatagreed
+withthestatementthatAGIlabsshouldnotifyaffectedparties(M=0.9),butrespondentsfromcivil
+society(M=1.3)agreedmorethanindividualsfromacademia(M=0.8)andAGIlabs(M=0.8),
+thoughthisdifferencewasnotstatisticallysignificant. Respondentsalsosomewhatagreedwiththe
+statementthatAGIlabsshouldnotifyappropriatestateactors(M=0.9),butinthiscase,respondents
+fromAGIlabs(M=0.5)weremoreskepticalthanrespondentsfromacademia(M=1.5)andcivil
+society(M =1.0),butagain,thisdifferencewasnotsignificant. Finally,respondentsshowedthe
+lowest agreement of any item for AGI labs notifying other AGI labs before deploying powerful
+models(M =0.4),butrespondentsfromcivilsociety(M =0.0)hadloweragreementratingsthan
+respondentsfromacademia(M=0.8)andAGIlabs(M=0.7),butnotsignificantlyso. Whileitis
+possiblethatrespondentshadsubstantivereasonswhytheythoughtthiswouldbelessdesirable,itis
+alsopossiblethattheythoughtthismightnotbefeasible. Inthelattercase,ourfindingssuggestthat
+itmightbemorefeasiblethanonemightexpect. ThereisalreadysomeevidencethatAGIlabsnotify
+eachotherbeforereleasingpowerfulmodels. Forexample,OpenAI’sGPT-4andAnthropic’sClaude
+werereleasedonthesameday. Itseemsunlikelythatthiswasacoincidence,thoughofcourseitmay
+verywellbe.
+Other. Finally, participants somewhat agreed with the statement that AGI labs should perform
+rigorous background checks before hiring/appointing members of the board of directors, senior
+executives,andkeyemployees.Participantssomewhatagreedwiththatstatement(M=1.3).Although
+notstatisticallysignificant,respondentsfromAGIlabs(M=1.6)weremoresupportivethanother
+participants(M=1.2).
+4.3 Policyimplications
+ThefindingsofoursurveyhaveimplicationsforAGIlabs,regulators,andstandard-settingbodies.
+SincemostpracticesarenotinherentlyaboutAGIlabs,ourfindingsmightalsoberelevantforother
+AIcompanies.
+Implications for AGI labs. It is not always clear to what extent individual labs already follow
+thestatedpractices,butitseemsunlikelythattheyfolloweachofthemtoasufficientdegree. We
+therefore encourage AGI labs to use our findings to conduct an internal gap analysis and to take
+action if they discover major blind spots. Three areas seem particularly noteworthy. First, some
+AGIlabshaveannouncedplanstocommissionthird-partymodelauditsinthefuture(Altman,2023).
+13
+
+Ourfindingscanbeseenasanencouragementtofollowthrough. Second,therearealreadysome
+effortstoevaluatewhetheramodelhascertaindangerouscapabilities[56,6,38]. Theresultsofour
+studystronglysupportsuchefforts. Ourfindingsalsoimplythatthereneedstobemoreworkon
+whatAGIlabsshoulddoiftheydetectcertaindangerouscapabilities(e.g. coordinateatemporary
+pauseonlargetrainingruns). Third,ourfindingssuggestthatAGIlabsneedtoimprovetheirrisk
+management practices. In particular, there seems to be room for improvement when it comes to
+theirriskgovernance. AGIlabsshouldseriouslyconsidersettingupaninternalauditfunction[70],
+appointingachiefriskofficer,establishingaboardriskcommittee,andimplementingacustomized
+enterpriseriskmanagementframework.
+Implications for regulators. The White House recently invited the chief executive officers of
+severalAGIlabsto“shareconcernsabouttherisksassociatedwithAI”[86]andannouncednew
+actionsto“promoteresponsibleAIinnovation”[85]. Thefindingsofourstudycaninformefforts
+toregulateAGIlabs, mostofwhicharebasedintheUS.IntheEU,ourfindingscaninformthe
+debateonhowtheproposedAIActshouldaccountforgeneral-purposeAIsystems[13,12,1]. In
+theUK,ourfindingscanbeusedtodraftupcomingAIregulationsasannouncedintheNationalAI
+Strategy[32]andtherecentWhitePaper[82]. TheUKgovernmenthasexplicitlysaidthatit“takes
+thelongtermriskofnon-alignedArtificialGeneralIntelligence,andtheunforeseeablechangesthat
+itwouldmeanfortheUKandtheworld,seriously”[32]. Itthereforeseemsplausiblethatupcoming
+regulationswillcontainprovisionsthatwouldapplytoAGIlabs. ThiswouldmainlyincludeGoogle
+DeepMind,whichisbasedintheUK,thoughtheimplicationsoftherecentmergerwithGoogleBrain
+areunclear[31]. Relevantactorswhoareresponsiblefordraftingregulationscoulduseourfindings
+todecidewhatspecificprovisionstoinclude(e.g. requirementstoauditpowerfulsystemsbefore
+deployment,toevaluatemodelsfordangerouscapabilities,andtoestablishaproperriskmanagement
+system).
+Implicationsforstandard-settingbodies. Theredonotseemtobeany(public)effortstocreate
+standards specifically for AGI labs. But our findings can inform the above-mentioned initiatives
+todevelopsharedprotocolsforthesafetyoflarge-scaleAImodels(PartnershiponAI,2023)and
+anindustrycodeofconductfordevelopersofgeneral-purposeAIsystemsandfoundationmodels
+[80]. Moreover,ourfindingscaninformeffortstoapplyexistingstandardstoanAGIlabcontext.
+For example, Barrett et al. [10] have suggested ways in which the NIST AI Risk Management
+Framework[53]canaccountforcatastrophicrisks. Theywillsoonpublishafollow-upworkthat
+adaptstheframeworktotheneedsofdevelopersofgeneral-purposeAIsystems[11]. IntheEU,CEN-
+CENELEC—acooperationbetweentwoofthethreeEuropeanStandardisationOrganisations—is
+currently working on harmonized standards that specify the risk management provision in the
+proposedAIAct[69]. Ourfindingssuggestthattheriskmanagementsystemshouldalsoinclude
+pre-trainingriskassessments. Theyalsohighlighttheneedfordangerouscapabilitiesevaluationsas
+partofriskassessmentandtheneedforpausingifsufficientlydangerouscapabilitiesaredetected.
+Finally, our findings stress the importance of various risk governance practices, such as setting
+upaninternalauditfunction, appointingachiefriskofficer, establishingaboardriskcommittee,
+andimplementingacustomizedenterpriseriskmanagementframework,whicharenotmentioned
+explicitlyinArticle9oftheproposedAIAct.
+4.4 Limitations
+Sample limitations. While we had a strong response rate of 55.4%, our present sample has at
+leastthreelimitations. First,overall,thesamplesize(N =51)iscomparablysmall. Thisislimiting
+with regards to testing for statistically significant differences between groups. In terms of the
+representativenessofthesamplewithinthecontextofAGIsafetyandgovernanceexperts,thissmall
+samplesizeislessworryingbecausethe92expertsofoursamplingframerepresentalargenumber
+oftheleadingexpertsinthisrelativelysmallfield. Second,welikelymissedleadingexpertsinour
+samplingframethatshouldhavebeensurveyed. Thesamplingframerequiredsubjectivedecisions
+onwhat constitutedaleading expertin thefieldand waslikely biasedtowardsexperts thatwere
+knowntotheauthorteam. Inturn,theremighthavebeenaself-selectioneffectthatoccursinterms
+ofwhodecidestocompletethesurveywhichmayhavemadetheresultslessrepresentativeofthe
+totalsamplingframe. Third,thesamplingframeleanedstronglytowardstheselectionofleading
+expertswhospecificallyhavetrackrecordsinareasrelevantforAGIsafetyandgovernance. While
+we see this as offering certain strengths and benefits for the purpose of our study, future expert
+14
+
+elicitationsmaybenefitfromamorecomprehensivesamplingframethatalsoincludesscholarsand
+practitionersfromfieldssuchassafetyengineering,scienceandtechnologystudies,organization
+studies,human-computerinteraction,andexpertsfromothersafety-criticalindustries(e.g. aviation
+ornuclear). Itmightalsomakesensetoincludeindividualswhoaremorejunior,lesswell-known,
+andrelativelyearlyintheircareers.
+Responselimitations. Sincerespondentswereonlyabletorespondtoeachitemonascalefrom
+“stronglyagree”to“stronglydisagree”,wedonotknowthereasonfortheirresponses. Inparticular,
+we did not ask respondents why they agreed or disagreed with individual practices or expressed
+uncertainty about them. Future research that explores the reasoning and contributing factors to
+theendorsementofpracticeswillbeneededtomakefurtherheadwayontheestablishmentofbest
+practices.
+Statementlimitations. Finally,thereareatleastthreelimitationsregardingthestatementslistedin
+AppendixB.First,wewereconstrainedbythelengthofthesurveyintermsofthenumberofpractices
+wecouldaskabout. Assuch,thelistofstatementswasbynomeanscomprehensive. Thiscanbeseen
+bythemanyadditionalsuggestionsforpracticesfromtherespondents(Section3.3). Second,wetried
+tocapturethegeneralthrustofpotentialAGIsafetyandgovernancepracticesthathavebeensuggested
+intheliteratureandcommunityconciselyandclearly. Inevitably,thiscondensingofcomplexideas
+hasledtodiminishedconcretenessandspecificity. Althoughthisabstractframingwasintentional,
+itispossiblethatparticipantswouldhaverespondeddifferentlyifwehadspecifiedmoreprecise
+mechanismsforhowtoinstantiateeachpracticeorprovidedfurtherdetails. Forexample,wedidnot
+specifywhenAGIlabsshoulddoeachofthestatedpractices. Itispossiblethatsomerespondents
+interpretedthisas“now”or“inthenext1-2years”,whileothersmighthaveinterpretedthisas“inthe
+next3-5years”or“asweapproachAGI”. Third,intwoinstances,thestatementsincludedexamples
+thatmighthavebeentoospecific(enterpriseriskmanagementandsecuritystandards),leadingto
+comparablyhigh“Idon’tknow”responsesfortheseitems(Figure5). Inatleastoneinstance,we
+shouldhavemadethelanguageclearer:onestatementusedtheformulation“AGIlabsshouldstrongly
+consideronlydeployingpowerfulmodelsviaanAPI”insteadofsimplysayingtheyshoulddothis.
+Overallthough,thestatementsshouldbereadastherespondents’viewsontheoverallideaofeach
+AGIsafetyandgovernancepractice,withtheparticularsofthe“why”,“how”,and“when”stillvery
+muchupfordebate.
+4.5 Futuredirections
+Oursurveyshowsthatthereisaconsensusamongleadingexpertsinfavorofanentireportfolioof
+AGIsafetyandgovernancemechanisms. Webelievethereisawealthoffutureworkthatremains
+tobedoneinthisspace. Inordertofacilitatethefoundationforsubsequentresearch, weinvited
+participantsofthesurveytoavirtualworkshopon5May2023. Theaimwastodiscusstherequired
+intellectualworkthatsupportsthecreationofbestpracticesinAGIsafetyandgovernance. Atotal
+of21peopleattendedtheworkshop,whichwasheldundertheChathamHouseRule,alongwith
+thesevenauthorswhomoderatedthediscussionandtooknotes. Below,wereportsomeofthekey
+suggestionsfromthediscussion.
+Mainblockers. First,weaskedparticipantswhat,intheirview,theprimaryblockersforthecreation
+ofbestpracticesinAGIsafetyandgovernanceare. Oneparticipantsuggestedadistinctionbetween
+twotypesofblockers: blockersfordeterminingbestpracticesandblockersfortheirdissemination.
+Examplesofthefirsttypeofblockersinclude: (1)lackofappropriateevaluationcriteria(e.g. for
+modelauditsordangerouscapabilitiesevaluations),(2)lackofofagreedupondefinitions(e.g. ofthe
+terms“AGI”and“general-purposeAI”),(3)thefieldevolvesrapidly,(4)iteratingonbestpractices
+takestime, (5)differentviewsonAGItimelines, (6)manyexistinginitiativesdonotaddressthe
+specificchallengesforAGIlabs,and(7)variousuncertainties(e.g. abouttheimpactofAIonthe
+economyandnationalsecurity). Forthesecondcategory,suggestedblockersincluded: (1)collective
+actionproblems(e.g. AGIlabsmightonlytradeincreasedsafetyforreducedprofitsifotherAGIlabs
+alsodoit),(2)incentivestorace(e.g. “ifwedonotgettherefirst,alessresponsibleactorwill”),(3)
+antitrustconcerns(e.g. forpracticesthatinvolvecooperationbetweenAGIlabs),and(4)liability
+concerns(e.g. informationaboutidentifiedanddisclosedriskscouldbeusedasevidenceinlawsuits
+againstAGIlabs).
+15
+
+Openquestions. Next,weaskedparticipantswhatintellectualworkneedstohappentoovercome
+theseblockers. Participantssuggestedthefollowingconcrete(research)questions: (1)Howcanwe
+adaptexistingeffortstoanAGIcontext(e.g. theNISTAIRiskManagementFramework,[53])?
+(2)HowcanwetestinafalsifiablewaywhetheranAIsystemisaligned? (3)Howshouldrelevant
+thresholdsbedefinedandadjustedovertime(e.g. amountofcomputeusedforlargetrainingruns)?
+(4)Howcanweallowexternalscrutinyofmodelswithoutrevealingsensitiveinformation? (5)How
+canwemonitorhowsystemsareusedwhilerespectinguserprivacy? (6)Whatconstitutesarobust
+auditingecosystemandwhatcanwelearnfromotherindustriesinthisrespect?
+How to answer these questions. Finally, we asked participants what, in their view, the most
+promising ways to make progress on these questions are. (1) A central theme was the necessity
+ofappropriateenforcementmechanisms. Participantssuggestedanauditingsystemwhereathird
+party could ensure labs’ adherence to the established best practices. This third party could also
+expressconcernsmorefreely,therebyaddingalayeroftransparencytotheprocess. (2)Participants
+alsoemphasizedtheimportanceofcreatinganecosystemthatrecognizesandintegratestheunique
+perspectivesofdifferentstakeholders. (3)Otherparticipantshighlightedtheneedtoputexternal
+pressureonAGIlabstoimprovetheirpractices. Bindingregulationsareonewaytodothat. Another
+waymightbetoraisepublicawareness. (4)Participantsalsosuggestedconductingadetailedanalysis
+of existing practices at AGI labs. This would enable gap analyses and evaluations of different
+organizations. (5)Lastly,participantssuggestedresearchintoanidealizedversionofasystemcard.
+Inadditiontothesesuggestions,wewishtohighlightthreefurtherdirections. First,futuresurveys
+and expert elicitation work will be needed to address the acknowledged limitations of this study
+(Section4.4). Thisincludessurveyingalargerandmorecomprehensivesamplethatisputtogether
+moresystematically. Suchstudiescouldalsoincludetheadditionalpracticesthatparticipantsofour
+surveyhavesuggested(Section3.3,AppendixC).Inaddition,itwouldbeusefultoconductstudies
+thatexploretherationalebehindexperts’stanceoneachpracticeandwhattheythinkarethekey
+considerationsandconcernstowardsimplementation. Second,webelievethatcreatingbestpractices
+inAGIsafetyandgovernanceshouldbeaninclusiveprocess. Itwillbeimportanttoconductsurveys
+ofthepublicandincludemanydifferentstakeholdersviaparticipatorymethods. Third, wehope
+to see future research on each of the proposals. In light of the broad agreement on the practices
+presented,futureworkneedstofigureoutthedetailsofthesepractices. Thereisampleworktobe
+doneindeterminingthepracticalexecutionofthesepracticesandhowtomakethemareality. This
+willrequireacollaborativeeffortfrombothtechnicalandgovernanceexperts.
+5 Conclusion
+Our study has elicited current expert opinions on safety and governance practices at AGI labs,
+providingabetterunderstandingofwhatAGIlabsshoulddotoreducerisk,accordingtoleading
+expertsfromAGIlabs,academia,andcivilsociety. Wehaveshownthatthereisbroadconsensus
+thatAGIlabsshouldimplementmostofthe50safetyandgovernancepracticesweaskedaboutin
+thesurvey. Forexample, 98%ofrespondentssomewhatorstronglyagreedthatAGIlabsshould
+conductpre-deploymentriskassessments,evaluatemodelsfordangerouscapabilities,commission
+third-partymodelaudits,establishsafetyrestrictionsonmodelusage,andcommissionexternalred
+teams. Ultimately,ourlistofpracticesmayserveasahelpfulfoundationforeffortstodevelopbest
+practices,standards,andregulationsforAGIlabs.
+Thedaybeforeourworkshop,USVicePresidentKamalaHarrisinvitedthechiefexecutiveofficers
+ofOpenAI,GoogleDeepMind,Anthropic,andotherleadingAIcompaniestotheWhiteHouse“to
+shareconcernsabouttherisksassociatedwithAI”[86]. Webelievethatnowisapivotaltimefor
+AGIsafetyandgovernance. Expertsfrommanydifferentdomainsandintellectualcommunitiesmust
+cometogethertodiscusswhatresponsibleAGIlabsshoulddo.
+Acknowledgements
+Wewouldliketothankallparticipantswhofilledoutthesurveyandattendedtheworkshop. Weare
+gratefulfortheresearchassistanceandin-depthfeedbackprovidedbyLeonieKoesslerandvaluable
+suggestionsfromAkashWasil,JeffreyLaddish,JoshuaClymer,AryanBhatt,MichaelAird,Guive
+Assadi,GeorgArndt,ShaunEe,andPatrickLevermore. Allremainingerrorsareourown.
+16
+
+Appendix
+A Listofparticipants
+Thefollowingparticipantsgaveuspermissiontomentiontheirnamesandaffiliations,asspecifiedby
+them(inalphabeticalorder). 18respondents,notlistedhere,didnotprovidetheirpermission. Note
+thatrespondentsdonotrepresentanyorganizationstheyareaffiliatedwith. Theychosetoaddtheir
+nameaftercompletingthesurveyandwerenotsentthemanuscriptbeforepublication. Theviews
+expressedinthispaperareourown.
+1. AllanDafoe,GoogleDeepMind
+2. AndrewTrask,UniversityofOxford,OpenMined
+3. AnthonyM.Barrett
+4. BrianChristian,AuthorandResearcheratUCBerkeleyandUniversityofOxford
+5. CarlShulman
+6. ChrisMeserole,BrookingsInstitution
+7. GillianHadfield,UniversityofToronto,SchwartzReismanInstituteforTechnologyand
+Society
+8. HannahRoseKirk,UniversityofOxford
+9. HoldenKarnofsky,OpenPhilanthropy
+10. IasonGabriel,GoogleDeepMind
+11. IreneSolaiman,HuggingFace
+12. JamesBradbury,GoogleDeepMind
+13. JamesGinns,CentreforLong-TermResilience
+14. JasonClinton,Anthropic
+15. JasonMatheny,RAND
+16. JessWhittlestone,CentreforLong-TermResilience
+17. JessicaNewman,UCBerkeleyAISecurityInitiative
+18. JoslynBarnhart,GoogleDeepMind
+19. LewisHo,GoogleDeepMind
+20. LukeMuehlhauser,OpenPhilanthropy
+21. MaryPhuong,GoogleDeepMind
+22. NoahFeldman,HarvardUniversity
+23. RobertTrager,CentrefortheGovernanceofAI
+24. RohinShah,GoogleDeepMind
+25. SeanOhEigeartaigh,CentrefortheFutureofIntelligence,UniversityofCambridge
+26. SebKrier,GoogleDeepMind
+27. ShaharAvin,CentrefortheStudyofExistentialRisk,UniversityofCambridge
+28. StuartRussell,UCBerkeley
+29. TantumCollins
+30. TobyOrd,UniversityofOxford
+31. TobyShevlane,GoogleDeepMind
+32. VictoriaKrakovna,GoogleDeepMind
+33. ZacharyKenton,GoogleDeepMind
+17
+
+B Listofallstatements
+Below,welistallstatementsweusedinthesurvey,sortedbyoverallmeanagreement(Section3.1).
+Optionalstatementsaremarkedwithanasterisk(*).
+1. Pre-deployment risk assessment. AGI labs should take extensive measures to identify,
+analyze,andevaluaterisksfrompowerfulmodelsbeforedeployingthem.
+2. Dangerouscapabilityevaluations. AGIlabsshouldrunevaluationstoassesstheirmodels’
+dangerous capabilities (e.g. misuse potential, ability to manipulate, and power-seeking
+behavior).
+3. Third-partymodelaudits. AGIlabsshouldcommissionthird-partymodelauditsbefore
+deployingpowerfulmodels.
+4. Safetyrestrictions. AGIlabsshouldestablishappropriatesafetyrestrictionsforpowerful
+modelsafterdeployment(e.g. restrictionsonwhocanusethemodel,howtheycanusethe
+model,andwhetherthemodelcanaccesstheinternet).
+5. Redteaming. AGIlabsshouldcommissionexternalredteamsbeforedeployingpowerful
+models.
+6. Monitor systems and their uses. AGI labs should closely monitor deployed systems,
+includinghowtheyareusedandwhatimpacttheyhaveonsociety.
+7. Alignmenttechniques. AGIlabsshouldimplementstate-of-the-artsafetyandalignment
+techniques.
+8. Securityincident responseplan. AGIlabs shouldhave aplan forhowtheyrespond to
+securityincidents(e.g. cyberattacks).*
+9. Post-deploymentevaluations. AGIlabsshouldcontinuallyevaluatemodelsfordangerous
+capabilities after deployment, taking into account new information about the model’s
+capabilitiesandhowitisbeingused.*
+10. Reportsafetyincidents. AGIlabsshouldreportaccidentsandnearmissestoappropriate
+stateactorsandotherAGIlabs(e.g. viaanAIincidentdatabase).
+11. Safetyvscapabilities. AsignificantfractionofemployeesofAGIlabsshouldworkon
+enhancingmodelsafetyandalignmentratherthancapabilities.
+12. Internalreviewbeforepublication. Beforepublishingresearch,AGIlabsshouldconduct
+aninternalreviewtoassesspotentialharms.
+13. Pre-trainingriskassessment. AGIlabsshouldconductariskassessmentbeforetraining
+powerfulmodels.
+14. Emergencyresponseplan. AGIlabsshouldhaveandpracticeimplementinganemergency
+response plan. This might include switching off systems, overriding their outputs, or
+restrictingaccess.
+15. Protectionagainstespionage. AGIlabsshouldtakeadequatemeasurestotackletherisk
+ofstate-sponsoredorindustrialespionage.*
+16. Pausingtrainingofdangerousmodels. AGIlabsshouldpausethedevelopmentprocess
+ifsufficientlydangerouscapabilitiesaredetected.
+17. Increasing level of external scrutiny. AGI labs should increase the level of external
+scrutinyinproportiontothecapabilitiesoftheirmodels.
+18. Publishalignmentstrategy. AGIlabsshouldpublishtheirstrategiesforensuringthattheir
+systemsaresafeandaligned.*
+19. Bugbountyprograms. AGIlabsshouldhavebugbountyprograms, i.e. recognizeand
+compensatepeopleforreportingunknownvulnerabilitiesanddangerouscapabilities.
+20. Industrysharingofsecurityinformation. AGIlabsshouldsharethreatintelligenceand
+informationaboutsecurityincidentswitheachother.*
+21. Security standards. AGI labs should comply with information security standards (e.g.
+ISO/IEC27001orNISTCybersecurityFramework). Thesestandardsneedtobetailoredto
+anAGIcontext.
+18
+
+22. Publishresultsofinternalriskassessments. AGIlabsshouldpublishtheresultsorsum-
+mariesofinternalriskassessments,unlessthiswouldundulyrevealproprietaryinformation
+oritselfproducesignificantrisk. Thisshouldincludeajustificationofwhythelabiswilling
+toacceptremainingrisks.*5
+23. Dualcontrol. Criticaldecisionsinmodeldevelopmentanddeploymentshouldbemade
+by at least two people (e.g. promotion to production, changes to training datasets, or
+modificationstoproduction).*
+24. Publishresultsofexternalscrutiny. AGIlabsshouldpublishtheresultsorsummariesof
+externalscrutinyefforts,unlessthiswouldundulyrevealproprietaryinformationoritself
+producesignificantrisk.*
+25. Military-grade information security. The information security of AGI labs should be
+proportionaltothecapabilitiesoftheirmodels,eventuallymatchingorexceedingthatof
+intelligenceagencies(e.g. sufficienttodefendagainstnationstates).
+26. Boardriskcommittee. AGIlabsshouldhaveaboardriskcommittee, i.e. apermanent
+committeewithintheboardofdirectorswhichoverseesthelab’sriskmanagementpractices.*
+27. Chiefriskofficer. AGIlabsshouldhaveachiefriskofficer(CRO),i.e. aseniorexecutive
+whoisresponsibleforriskmanagement.
+28. Statementaboutgovernancestructure. AGIlabsshouldmakepublicstatementsabout
+howtheymakehigh-stakesdecisionsregardingmodeldevelopmentanddeployment.*
+29. PublishviewsaboutAGIrisk. AGIlabsshouldmakepublicstatementsabouttheirviews
+ontherisksandbenefitsfromAGI,includingthelevelofrisktheyarewillingtotakeinits
+development.
+30. KYCscreening. AGIlabsshouldconductknow-your-customer(KYC)screeningsbefore
+givingpeopletheabilitytousepowerfulmodels.*
+31. Third-partygovernanceaudits. AGIlabsshouldcommissionthird-partyauditsoftheir
+governancestructures.*
+32. Background checks. AGI labs should perform rigorous background checks before hir-
+ing/appointingmembersoftheboardofdirectors,seniorexecutives,andkeyemployees.*
+33. Modelcontainment. AGIlabsshouldcontainmodelswithsufficientlydangerouscapabili-
+ties(e.g. viaboxingorair-gapping).
+34. Stageddeployment. AGIlabsshoulddeploypowerfulmodelsinstages. Theyshouldstart
+withasmallnumberofapplicationsandfewerusers,graduallyscalingupasconfidencein
+themodel’ssafetyincreases.
+35. Trackingmodelweights. AGIlabsshouldhaveasystemthatisintendedtotrackallcopies
+oftheweightsofpowerfulmodels.*
+36. Internalaudit. AGIlabsshouldhaveaninternalauditteam,i.e. ateamwhichassessesthe
+effectivenessofthelab’sriskmanagementpractices. Thisteammustbeorganizationally
+independentfromseniormanagementandreportdirectlytotheboardofdirectors.
+37. No open-sourcing. AGI labs should not open-source powerful models, unless they can
+demonstratethatitissufficientlysafetodoso.6
+38. Researchermodelaccess. AGIlabsshouldgiveindependentresearchersAPIaccessto
+deployedmodels.
+39. APIaccesstopowerfulmodels. AGIlabsshouldstronglyconsideronlydeployingpower-
+fulmodelsviaanapplicationprogramminginterface(API).
+40. Avoidinghype. AGIlabsshouldavoidreleasingpowerfulmodelsinawaythatislikelyto
+createhypearoundAGI(e.g.byoverstatingresultsorannouncingtheminattention-grabbing
+ways).
+41. Gradualscaling. AGIlabsshouldonlygraduallyincreasetheamountofcomputeusedfor
+theirlargesttrainingruns.
+5Labeledas“Publishinternalriskassessmentresults”insomefiguresduetospaceconstraints.
+6Throughoutthepaper,wechangedthetitleofthisitemto“nounsafeopen-sourcing”toavoidmisconcep-
+tions.
+19
+
+42. Treat updates similarly to new models. AGI labs should treat significant updates to
+a deployed model (e.g. additional fine-tuning) similarly to its initial development and
+deployment. Inparticular,theyshouldrepeatthepre-deploymentriskassessment.
+43. Pre-registrationoflargetrainingruns. AGIlabsshouldregisterupcomingtrainingruns
+aboveacertainsizewithanappropriatestateactor.
+44. Enterpriseriskmanagement. AGIlabsshouldimplementanenterpriseriskmanagement
+(ERM)framework(e.g. theNISTAIRiskManagementFrameworkorISO31000). This
+frameworkshouldbetailoredtoanAGIcontextandprimarilyfocusonthelab’simpacton
+society.
+45. Treat internal deployments similarly to external deployments. AGI labs should treat
+internaldeployments(e.g. usingmodelsforwritingcode)similarlytoexternaldeployments.
+Inparticular,theyshouldperformapre-deploymentriskassessment.*7
+46. Notifyastateactorbeforedeployment. AGIlabsshouldnotifyappropriatestateactors
+beforedeployingpowerfulmodels.
+47. Notifyaffectedparties. AGIlabsshouldnotifypartieswhowillbenegativelyaffectedby
+apowerfulmodelbeforedeployingit.*
+48. Inter-labscrutiny.AGIlabsshouldallowresearchersfromotherlabstoscrutinizepowerful
+modelsbeforedeployment.*
+49. Avoidcapabilitiesjumps. AGIlabsshouldnotdeploymodelsthataremuchmorecapable
+thananyexistingmodels.*
+50. Notifyotherlabs. AGIlabsshouldnotifyotherlabsbeforedeployingpowerfulmodels.*
+7Labeledas“Internaldeployments=externaldeployments”insomefiguresduetospaceconstraints.
+20
+
+C Listofsuggestedpractices
+Below,welistadditionalAGIsafetyandgovernancepracticesthatrespondentssuggested. Toensure
+anonymity,wehaverephrasedeachofthesuggestedpracticesinourownwordsandeditedtheminto
+thesamestructureasthestatementsusedinoursurvey(“AGIlabsshould...”).
+1. AGI labs should participate in democratic and participatory governance processes (e.g.
+citizenassemblies). Issuescouldincludethelevelofriskthatisacceptableandpreferences
+fordifferentgovernancemodels.
+2. AGIlabsshouldengagethepublicandcivilsocietygroupsindeterminingwhatrisksshould
+beconsideredandwhatlevelofriskisacceptable.
+3. AGIlabsshouldcontributetoimprovingAIandAGIliteracyamongthepublicandpolicy-
+makers.
+4. AGIlabsshouldbetransparentaboutwheretrainingdatacomesfrom.
+5. AGIlabsshouldusesystemcards.
+6. AGIlabsshouldreportwhatsafetyandalignmenttechniquestheyusedtodevelopamodel.
+7. AGIlabsshouldpublishtheirethicsandsafetyresearch.
+8. AGIlabsshouldmakecapabilitydemonstrationsavailabletopolicymakersandthepublic
+beforedeployment.
+9. AGIlabsshouldhavewrittendeploymentplansofwhattheywoulddowithanAGIorother
+advancedandpowerfulAIsystem.
+10. AGIlabsshouldpubliclypredictthefrequencyofharmfulAIincidents.
+11. AGIlabsshouldgeneraterealisticcatastrophicriskmodelsforadvancedAI.
+12. AGIlabsshouldtrackandreportontheirmodels’capabilitytoautomateAIresearchand
+development.
+13. AGIlabsshouldengageineffortstosystematicallyforecastfuturerisksandbenefitsofthe
+technologytheybuild.
+14. AGIlabsshouldgeneraterealisticcatastrophicriskmodelsforadvancedAI,potentially
+makingthesepublicorusingthemtoraiseawareness.
+15. AGIlabsshouldpublishanannualreportwheretheypresentthepredictedandactualimpacts
+oftheirwork,alongwiththeevidenceandassumptionsthesearebasedon.
+16. AGIlabsshouldpre-registerbigtrainingrunsincludingtheamountofcomputeused,the
+datausedfortraining,andhowmanyparametersthemodelwillhave.
+17. AGIlabsshouldengageinemployeeandinvestoreducationandawarenessontherisksof
+advancedAIsystemsandpotentialmitigatingproceduresthatneedtobetakenthattradeoff
+profitforsocietalbenefit.
+18. AGIlabsshouldadequatelyprotectwhistleblowers.
+19. AGIlabsshouldhaveanonboardprocessformanagersandnewemployeesthatinvolves
+contentexplaininghowtheorganizationbelievesaresponsibleAGIdeveloperwouldbehave
+andhowtheyareattemptingtomeetthatstandard.
+20. AGIlabsshouldpromoteaculturethatencouragesinternaldeliberationandcritique,and
+evaluatewhethertheyaresucceedinginbuildingsuchaculture.
+21. AGIlabsshouldhavededicatedprogramstoimprovethediversity,equity,andinclusionof
+theirtalent.
+22. AGIlabsshouldhaveindependentsafetyandethicsadvisoryboardstohelpwithcertain
+decisions.
+23. AGIlabsshouldhaveinternalreviewboards.
+24. AGI labs should be set up such that their governance structures permit them to tradeoff
+profitswithsocietalbenefit.
+25. AGIlabsshouldhavemergeandassistclauses.
+21
+
+26. AGIlabsshouldreporttoaninternationalnon-governmentalorganization(INGO)thatis
+publiclycommittedtohumanrightsanddemocraticvalues.
+27. AGIlabsshouldhaveanindependentboardofdirectorswithtechnicalAIsafetyexpertise
+whohavethemandatetoputthebenefitsforsocietyaboveprofitandshareholdervalue.
+28. AGIlabsshouldmaintainaviablewaytodivertfrombuildingAGI(e.g. tobuildnarrower
+modelsandapplications),incasebuildingAGIwillnotbepossibletodosafely.
+29. AGIlabsshouldusetheThreeLinesofDefenseriskmanagementframework.
+30. AGI labs should take measures to avoid being sued for trading off profits with societal
+benefit.
+31. AGIlabsshouldbesubjecttomandatoryinterpretabilitystandards.
+32. AGIlabsshouldconductevaluationduringtraining,beingpreparedtostopandanalyzeany
+trainingrunthatlookspotentiallyriskyorharmful.
+33. AGIlabsshouldsavelogsofinteractionswiththeAIsystem.
+34. AGIlabsshouldconsidercapsonmodelsize.
+35. AGIlabsshouldbeforcedtohavesystemsthatconsistofensemblesofcappedsizemodels
+insteadofoneincreasinglylargemodel.
+36. AGIlabsshouldensurethatAIsystemsinanensemblecommunicateinEnglishandthat
+thesecommunicationsareloggedforfutureanalysisifanincidentoccurs.
+37. AGIlabsshouldlimitAPIaccesstoapprovedandvettedapplicationstoforeclosepotential
+misuseanddualuserisks.
+38. AGIlabsshouldconductsimulatedcyberattacksontheirsystemstocheckforvulnerabilities.
+39. AGIlabsshouldhaveinternalcontrolsandprocessesthatpreventasinglepersonorgroup
+beingabletodeployanadvancedAIsystemwhengovernancemechanismshavefoundthis
+tobepotentiallyharmfulorillegal.
+40. AGIlabsshoulddisclosethedataandlaborpracticesinvolvedinthepre-trainingandtraining
+ofpowerfulAIsystems.
+41. AGIlabsshoulddisclosetheenvironmentalcostsofdevelopinganddeployingpowerfulAI
+systems.
+42. AGIlabstakemeasurestolimitpotentialharmsthatcouldarisefromAIsystemsbeing
+sentientordeservingmoralpatienthood.
+43. AGIlabsshouldcoordinateonself-regulatorybestpracticestheyuseforsafety.
+44. AGIlabsshouldcoordinateonbestpracticesforexternalauditingandred-teaming.
+45. AGIlabsshouldcoordinateonbestpracticesforincidentreporting.
+46. AGIlabsshouldreportclustersizesandtrainingplanstootherAGIlabstoavoidincorrect
+perceptionsofcurrentcapabilitiesandcomputeresources.
+47. AGIlabsshouldhavefeedbackmechanismswithcommunitiesthatareaffectedbytheir
+models.
+48. AGIlabsshouldhaveethicalprinciplesandsetout“redlines”fortheirworkinadvance.
+49. AGIlabsshouldincorporateaprivacy-preservinginmachinelearning(PPML)approachto
+auditingandgoverningAImodels.
+50. AGIlabsshoulduseresponsibleAIlicenses(RAIL)andengageinotherpracticesthatallow
+fordegreesofopennessonthespectrumfromclosedtoopen.
+22
+
+D Additionalfigures
+AGI Lab Academia Civil Society
+Pre-deployment risk assessment
+Dangerous capabilities evaluations
+Third-party model audits
+Safety restrictions
+Red teaming
+Monitor systems and their uses
+Alignment techniques
+Security incident response plan
+Post-deployment evaluations
+Report safety incidents
+Safety vs. capabilities
+Internal review before publication
+Pre-training risk assessment
+Emergency response plan
+Protection against espionage
+Pausing training of dangerous models
+Increasing levels of external scrutiny
+Publish alignment strategy
+Bug bounty programs
+Industry sharing of security information
+Security standards
+Publish internal risk assessment results
+Dual control
+Publish results of external scrutiny
+Military-grade information security
+Board risk committee
+Chief risk officer
+Statement about governance structure
+Publish views about AGI risk
+KYC screening
+Third-party governance audits
+Background checks
+Model containment
+Staged deployment
+Tracking model weights
+Internal audit
+No unsafe open-sourcing
+Researcher model access
+API access to powerful models
+Avoiding hype
+Gradual scaling
+Treat updates similarly to new models
+Pre-registration of large training runs
+Enterprise risk management
+Internal deployments = external deployments
+Notify a state actor before deployment
+Notify affected parties
+Inter-lab scrutiny
+Avoid capabilities jumps
+Notify other labs
+Strongly Somewhat Neither agree Somewhat Strongly
+disagree disagree nor disagree agree agree
+(-2) (-1) (0) (1) (2)
+Figure 6: Mean agreement of AGI lab, academia, and civil society respondents | The figure
+showsthemeanagreementand95%confidenceintervalforeachofthe50practices.
+23
+
+AGI Lab Everyone else
+Pre-deployment risk assessment
+Dangerous capabilities evaluations
+Third-party model audits
+Safety restrictions
+Red teaming
+Monitor systems and their uses
+Alignment techniques
+Security incident response plan
+Post-deployment evaluations
+Report safety incidents
+Safety vs. capabilities
+Internal review before publication
+Pre-training risk assessment
+Emergency response plan
+Protection against espionage
+Pausing training of dangerous models
+Increasing levels of external scrutiny
+Publish alignment strategy
+Bug bounty programs
+Industry sharing of security information
+Security standards
+Publish internal risk assessment results
+Dual control
+Publish results of external scrutiny
+Military-grade information security
+Board risk committee
+Chief risk officer
+Statement about governance structure
+Publish views about AGI risk
+KYC screening
+Third-party governance audits
+Background checks
+Model containment
+Staged deployment
+Tracking model weights
+Internal audit
+No unsafe open-sourcing
+Researcher model access
+API access to powerful models
+Avoiding hype
+Gradual scaling
+Treat updates similarly to new models
+Pre-registration of large training runs
+Enterprise risk management
+Internal deployments = external deployments
+Notify a state actor before deployment
+Notify affected parties
+Inter-lab scrutiny
+Avoid capabilities jumps
+Notify other labs
+Strongly Somewhat Neither agree Somewhat Strongly
+disagree disagree nor disagree agree agree
+(-2) (-1) (0) (1) (2)
+Figure7: MeanagreementofAGIlabrespondentsandallotherrespondents|Thefigureshows
+themeanagreementand95%confidenceintervalforeachofthe50practices.
+24
+
+Men Women
+Pre-deployment risk assessment
+Dangerous capabilities evaluations
+Third-party model audits
+Safety restrictions
+Red teaming
+Monitor systems and their uses
+Alignment techniques
+Security incident response plan
+Post-deployment evaluations
+Report safety incidents
+Safety vs. capabilities
+Internal review before publication
+Pre-training risk assessment
+Emergency response plan
+Protection against espionage
+Pausing training of dangerous models
+Increasing levels of external scrutiny
+Publish alignment strategy
+Bug bounty programs
+Industry sharing of security information
+Security standards
+Publish internal risk assessment results
+Dual control
+Publish results of external scrutiny
+Military-grade information security
+Board risk committee
+Chief risk officer
+Statement about governance structure
+Publish views about AGI risk
+KYC screening
+Third-party governance audits
+Background checks
+Model containment
+Staged deployment
+Tracking model weights
+Internal audit
+No unsafe open-sourcing
+Researcher model access
+API access to powerful models
+Avoiding hype
+Gradual scaling
+Treat updates similarly to new models
+Pre-registration of large training runs
+Enterprise risk management
+Internal deployments = external deployments
+Notify a state actor before deployment
+Notify affected parties
+Inter-lab scrutiny
+Avoid capabilities jumps
+Notify other labs
+Strongly Somewhat Neither agree Somewhat Strongly
+disagree disagree nor disagree agree agree
+(-2) (-1) (0) (1) (2)
+Figure8: Meanagreementformenandwomen|Thefigureshowsthemeanagreementand95%
+confidenceintervalforeachofthe50practices.
+25
+
+E Additionaltables
+Responsesandstatisticsacrossallrespondents
+Table1: Responsefrequencies|Numberofrespondentswhochoseeachansweroptionforeachof
+the50AGIsafetyandgovernancepractices. “Somewhatagree”and“stronglyagree”responseswere
+summedinthe“totalagreementcolumn”. “Somewhatdisagree”and“stronglydisagree”responses
+weresummedinthe“totalagreementcolumn”. nrepresentsthetotalnumberofindividualswho
+answeredeachitem. Theitemsareorderedbymeanagreementscoreacrossallrespondents.
+Strongly Somewhat Neitheragree Somewhat Strongly Idon’t
+AGIsafetyandgovernancepractice disagree(-2) disagree(-1) nordisagree(0) agree(1) agree(2) know(-88) Totaldisagreement Totalagreement n
+Pre-deploymentriskassessment 0 0 1 3 47 0 0 50 51
+Dangerouscapabilitiesevaluations 0 0 0 6 44 1 0 50 51
+Third-partymodelaudits 0 1 0 7 43 0 1 50 51
+Safetyrestrictions 0 0 1 8 42 0 0 50 51
+Redteaming 1 0 0 8 42 0 1 50 51
+Monitorsystemsandtheiruses 0 1 0 10 40 0 1 50 51
+Alignmenttechniques 1 0 1 7 42 0 1 49 51
+Securityincidentresponseplan 0 1 0 7 31 0 1 38 39
+Post-deploymentevaluations 0 1 0 7 29 0 1 36 37
+Reportsafetyincidents 1 0 0 10 39 1 1 49 51
+Safetyvs.capabilities 0 0 2 12 37 0 0 49 51
+Internalreviewbeforepublication 1 0 0 12 38 0 1 50 51
+Pre-trainingriskassessment 1 2 0 8 40 0 3 48 51
+Emergencyresponseplan 0 1 1 13 36 0 1 49 51
+Protectionagainstespionage 1 0 0 10 27 0 1 37 38
+Pausingtrainingofdangerousmodels 1 1 2 9 38 0 2 47 51
+Increasinglevelsofexternalscrutiny 0 1 1 16 32 1 1 48 51
+Publishalignmentstrategy 0 0 1 16 19 3 0 35 39
+Bugbountyprograms 0 1 1 20 28 1 1 48 51
+Industrysharingofsecurityinformation 0 0 2 15 20 1 0 35 38
+Securitystandards 3 0 1 9 31 7 3 40 51
+Publishresultsofinternalriskassessments 1 0 2 12 20 2 1 32 37
+Dualcontrol 1 0 2 12 20 3 1 32 38
+Publishresultsofexternalscrutiny 1 0 1 15 19 2 1 34 38
+Military-gradeinformationsecurity 2 1 2 15 30 1 3 45 51
+Boardriskcommittee 2 0 1 10 20 4 2 30 37
+Chiefriskofficer 1 0 3 11 19 4 1 30 38
+Statementaboutgovernancestructure 1 1 2 12 21 1 2 33 38
+PublishviewsaboutAGIrisk 1 0 4 19 25 2 1 44 51
+KYCscreening 0 0 4 16 17 1 0 33 38
+Third-partygovernanceaudits 1 0 2 15 17 2 1 32 37
+Backgroundchecks 0 2 3 12 19 2 2 31 38
+Modelcontainment 1 2 4 14 27 3 3 41 51
+Stageddeployment 2 0 2 22 25 0 2 47 51
+Trackingmodelweights 0 1 5 12 18 3 1 30 39
+Internalaudit 1 2 4 18 26 0 3 44 51
+Nounsafeopen-sourcing 1 6 1 14 29 0 7 43 51
+Researchermodelaccess 1 2 3 22 21 2 3 43 51
+APIaccesstopowerfulmodels 2 2 4 16 23 4 4 39 51
+Avoidinghype 0 1 6 27 17 0 1 44 51
+Gradualscaling 2 0 6 21 20 2 2 41 51
+Treatupdatessimilarlytonewmodels 0 7 2 18 23 1 7 41 51
+Pre-registrationoflargetrainingruns 2 3 4 21 19 2 5 40 51
+Enterpriseriskmanagement 2 1 6 15 14 13 3 29 51
+Treatinternaldeploymentssimilartoexternaldeployments 1 2 4 18 10 1 3 28 36
+Notifyastateactorbeforedeployment 2 3 6 24 13 3 5 37 51
+Notifyaffectedparties 1 1 6 12 8 8 2 20 36
+Inter-labscrutiny 1 5 3 16 7 7 6 23 39
+Avoidcapabilitiesjumps 2 4 6 13 8 4 6 21 37
+Notifyotherlabs 1 4 11 12 4 6 5 16 38
+26
+
+Table2:Responsepercentages|Percentageofrespondentswhochoseeachansweroptionforeachof
+the50AGIsafetyandgovernancepractices. “Somewhatagree”and“stronglyagree”responseswere
+summedinthe“totalagreementcolumn”. “Somewhatdisagree”and“stronglydisagree”responses
+weresummedinthe“totalagreementcolumn”. nrepresentsthetotalnumberofindividualswho
+answeredeachitemandrepresentsthedenominatorusedtocalculateeachpercentage. Theitemsare
+orderedbymeanagreementscoreacrossallrespondents.
+Strongly Somewhat Neitheragree Somewhat Strongly Idon’t
+AGIsafetyandgovernancepractice disagree(-2) disagree(-1) nordisagree(0) agree(1) agree(2) know(-88) Totaldisagreement Totalagreement n
+Pre-deploymentriskassessment 0.0% 0.0% 2.0% 5.9% 92.2% 0.0% 0.0% 98.0% 51
+Dangerouscapabilitiesevaluations 0.0% 0.0% 0.0% 11.8% 86.3% 2.0% 0.0% 98.0% 51
+Third-partymodelaudits 0.0% 2.0% 0.0% 13.7% 84.3% 0.0% 2.0% 98.0% 51
+Safetyrestrictions 0.0% 0.0% 2.0% 15.7% 82.4% 0.0% 0.0% 98.0% 51
+Redteaming 2.0% 0.0% 0.0% 15.7% 82.4% 0.0% 2.0% 98.0% 51
+Monitorsystemsandtheiruses 0.0% 2.0% 0.0% 19.6% 78.4% 0.0% 2.0% 98.0% 51
+Alignmenttechniques 2.0% 0.0% 2.0% 13.7% 82.4% 0.0% 2.0% 96.1% 51
+Securityincidentresponseplan 0.0% 2.6% 0.0% 17.9% 79.5% 0.0% 2.6% 97.4% 39
+Post-deploymentevaluations 0.0% 2.7% 0.0% 18.9% 78.4% 0.0% 2.7% 97.3% 37
+Reportsafetyincidents 2.0% 0.0% 0.0% 19.6% 76.5% 2.0% 2.0% 96.1% 51
+Safetyvs.capabilities 0.0% 0.0% 3.9% 23.5% 72.5% 0.0% 0.0% 96.1% 51
+Internalreviewbeforepublication 2.0% 0.0% 0.0% 23.5% 74.5% 0.0% 2.0% 98.0% 51
+Pre-trainingriskassessment 2.0% 3.9% 0.0% 15.7% 78.4% 0.0% 5.9% 94.1% 51
+Emergencyresponseplan 0.0% 2.0% 2.0% 25.5% 70.6% 0.0% 2.0% 96.1% 51
+Protectionagainstespionage 2.6% 0.0% 0.0% 26.3% 71.1% 0.0% 2.6% 97.4% 38
+Pausingtrainingofdangerousmodels 2.0% 2.0% 3.9% 17.6% 74.5% 0.0% 3.9% 92.2% 51
+Increasinglevelsofexternalscrutiny 0.0% 2.0% 2.0% 31.4% 62.7% 2.0% 2.0% 94.1% 51
+Publishalignmentstrategy 0.0% 0.0% 2.6% 41.0% 48.7% 7.7% 0.0% 89.7% 39
+Bugbountyprograms 0.0% 2.0% 2.0% 39.2% 54.9% 2.0% 2.0% 94.1% 51
+Industrysharingofsecurityinformation 0.0% 0.0% 5.3% 39.5% 52.6% 2.6% 0.0% 92.1% 38
+Securitystandards 5.9% 0.0% 2.0% 17.6% 60.8% 13.7% 5.9% 78.4% 51
+Publishresultsofinternalriskassessments 2.7% 0.0% 5.4% 32.4% 54.1% 5.4% 2.7% 86.5% 37
+Dualcontrol 2.6% 0.0% 5.3% 31.6% 52.6% 7.9% 2.6% 84.2% 38
+Publishresultsofexternalscrutiny 2.6% 0.0% 2.6% 39.5% 50.0% 5.3% 2.6% 89.5% 38
+Military-gradeinformationsecurity 3.9% 2.0% 3.9% 29.4% 58.8% 2.0% 5.9% 88.2% 51
+Boardriskcommittee 5.4% 0.0% 2.7% 27.0% 54.1% 10.8% 5.4% 81.1% 37
+Chiefriskofficer 2.6% 0.0% 7.9% 28.9% 50.0% 10.5% 2.6% 78.9% 38
+Statementaboutgovernancestructure 2.6% 2.6% 5.3% 31.6% 55.3% 2.6% 5.3% 86.8% 38
+PublishviewsaboutAGIrisk 2.0% 0.0% 7.8% 37.3% 49.0% 3.9% 2.0% 86.3% 51
+KYCscreening 0.0% 0.0% 10.5% 42.1% 44.7% 2.6% 0.0% 86.8% 38
+Third-partygovernanceaudits 2.7% 0.0% 5.4% 40.5% 45.9% 5.4% 2.7% 86.5% 37
+Backgroundchecks 0.0% 5.3% 7.9% 31.6% 50.0% 5.3% 5.3% 81.6% 38
+Modelcontainment 2.0% 3.9% 7.8% 27.5% 52.9% 5.9% 5.9% 80.4% 51
+Stageddeployment 3.9% 0.0% 3.9% 43.1% 49.0% 0.0% 3.9% 92.2% 51
+Trackingmodelweights 0.0% 2.6% 12.8% 30.8% 46.2% 7.7% 2.6% 76.9% 39
+Internalaudit 2.0% 3.9% 7.8% 35.3% 51.0% 0.0% 5.9% 86.3% 51
+Nounsafeopen-sourcing 2.0% 11.8% 2.0% 27.5% 56.9% 0.0% 13.7% 84.3% 51
+Researchermodelaccess 2.0% 3.9% 5.9% 43.1% 41.2% 3.9% 5.9% 84.3% 51
+APIaccesstopowerfulmodels 3.9% 3.9% 7.8% 31.4% 45.1% 7.8% 7.8% 76.5% 51
+Avoidinghype 0.0% 2.0% 11.8% 52.9% 33.3% 0.0% 2.0% 86.3% 51
+Gradualscaling 3.9% 0.0% 11.8% 41.2% 39.2% 3.9% 3.9% 80.4% 51
+Treatupdatessimilarlytonewmodels 0.0% 13.7% 3.9% 35.3% 45.1% 2.0% 13.7% 80.4% 51
+Pre-registrationoflargetrainingruns 3.9% 5.9% 7.8% 41.2% 37.3% 3.9% 9.8% 78.4% 51
+Enterpriseriskmanagement 3.9% 2.0% 11.8% 29.4% 27.5% 25.5% 5.9% 56.9% 51
+Treatinternaldeploymentssimilartoexternaldeployments 2.8% 5.6% 11.1% 50.0% 27.8% 2.8% 8.3% 77.8% 36
+Notifyastateactorbeforedeployment 3.9% 5.9% 11.8% 47.1% 25.5% 5.9% 9.8% 72.5% 51
+Notifyaffectedparties 2.8% 2.8% 16.7% 33.3% 22.2% 22.2% 5.6% 55.6% 36
+Inter-labscrutiny 2.6% 12.8% 7.7% 41.0% 17.9% 17.9% 15.4% 59.0% 39
+Avoidcapabilitiesjumps 5.4% 10.8% 16.2% 35.1% 21.6% 10.8% 16.2% 56.8% 37
+Notifyotherlabs 2.6% 10.5% 28.9% 31.6% 10.5% 15.8% 13.2% 42.1% 38
+27
+
+Table3:StatementStatistics:Allrespondents|Keystatisticsforeachofthepractices. nrepresents
+thetotalnumberofindividualswhoansweredeachitem. Theitemsareorderedbymeanagreement
+scoreacrossallrespondents.
+AGIsafetyandgovernancepractice Mean Median StandardError Variance FirstQuartile ThirdQuartile Inter-quartileRange Length
+Pre-deploymentriskassessment 1.90 2.00 0.05 0.13 2.00 2.00 0.00 51
+Dangerouscapabilitiesevaluations 1.88 2.00 0.05 0.11 2.00 2.00 0.00 51
+Third-partymodelaudits 1.80 2.00 0.07 0.28 2.00 2.00 0.00 51
+Safetyrestrictions 1.80 2.00 0.06 0.20 2.00 2.00 0.00 51
+Redteaming 1.76 2.00 0.09 0.42 2.00 2.00 0.00 51
+Monitorsystemsandtheiruses 1.75 2.00 0.08 0.31 2.00 2.00 0.00 51
+Alignmenttechniques 1.75 2.00 0.10 0.47 2.00 2.00 0.00 51
+Securityincidentresponseplan 1.74 2.00 0.10 0.35 2.00 2.00 0.00 39
+Post-deploymentevaluations 1.73 2.00 0.10 0.37 2.00 2.00 0.00 37
+Reportsafetyincidents 1.72 2.00 0.09 0.45 2.00 2.00 0.00 51
+Safetyvs.capabilities 1.69 2.00 0.08 0.30 1.00 2.00 1.00 51
+Internalreviewbeforepublication 1.69 2.00 0.09 0.46 1.50 2.00 0.50 51
+Emergencyresponseplan 1.65 2.00 0.09 0.39 1.00 2.00 1.00 51
+Pre-trainingriskassessment 1.65 2.00 0.12 0.71 2.00 2.00 0.00 51
+Protectionagainstespionage 1.63 2.00 0.12 0.56 1.00 2.00 1.00 38
+Pausingtrainingofdangerousmodels 1.61 2.00 0.12 0.68 1.50 2.00 0.50 51
+Increasinglevelsofexternalscrutiny 1.58 2.00 0.09 0.41 1.00 2.00 1.00 51
+Bugbountyprograms 1.50 2.00 0.09 0.42 1.00 2.00 1.00 39
+Publishalignmentstrategy 1.50 2.00 0.09 0.31 1.00 2.00 1.00 51
+Industrysharingofsecurityinformation 1.49 2.00 0.10 0.37 1.00 2.00 1.00 38
+Securitystandards 1.48 2.00 0.16 1.14 1.00 2.00 1.00 51
+Publishresultsofinternalriskassessments 1.43 2.00 0.14 0.72 1.00 2.00 1.00 37
+Dualcontrol 1.43 2.00 0.14 0.72 1.00 2.00 1.00 38
+Publishresultsofexternalscrutiny 1.42 2.00 0.13 0.65 1.00 2.00 1.00 38
+Military-gradeinformationsecurity 1.40 2.00 0.14 0.94 1.00 2.00 1.00 51
+Boardriskcommittee 1.39 2.00 0.18 1.06 1.00 2.00 1.00 37
+Chiefriskofficer 1.38 2.00 0.15 0.79 1.00 2.00 1.00 38
+Statementaboutgovernancestructure 1.38 2.00 0.15 0.85 1.00 2.00 1.00 38
+PublishviewsaboutAGIrisk 1.37 2.00 0.12 0.65 1.00 2.00 1.00 51
+KYCscreening 1.35 1.00 0.11 0.46 1.00 2.00 1.00 38
+Third-partygovernanceaudits 1.34 1.00 0.14 0.70 1.00 2.00 1.00 37
+Stageddeployment 1.33 1.00 0.12 0.79 1.00 2.00 1.00 38
+Backgroundchecks 1.33 2.00 0.14 0.74 1.00 2.00 1.00 51
+Modelcontainment 1.33 2.00 0.14 0.91 1.00 2.00 1.00 51
+Trackingmodelweights 1.31 1.50 0.14 0.68 1.00 2.00 1.00 39
+Internalaudit 1.29 2.00 0.13 0.85 1.00 2.00 1.00 51
+Nounsafeopen-sourcing 1.25 2.00 0.15 1.19 1.00 2.00 1.00 51
+Researchermodelaccess 1.22 1.00 0.13 0.80 1.00 2.00 1.00 51
+APIaccesstopowerfulmodels 1.19 1.00 0.15 1.11 1.00 2.00 1.00 51
+Avoidinghype 1.18 1.00 0.10 0.51 1.00 2.00 1.00 51
+Gradualscaling 1.16 1.00 0.13 0.89 1.00 2.00 1.00 51
+Treatupdatessimilarlytonewmodels 1.14 1.00 0.15 1.06 1.00 2.00 1.00 51
+Pre-registrationoflargetrainingruns 1.06 1.00 0.15 1.10 1.00 2.00 1.00 51
+Enterpriseriskmanagement 1.00 1.00 0.17 1.14 1.00 2.00 1.00 51
+Treatinternaldeploymentssimilartoexternaldeployments 0.97 1.00 0.16 0.91 1.00 2.00 1.00 36
+Notifyastateactorbeforedeployment 0.90 1.00 0.15 1.03 1.00 2.00 1.00 51
+Notifyaffectedparties 0.89 1.00 0.19 0.99 0.00 2.00 2.00 36
+Inter-labscrutiny 0.72 1.00 0.19 1.18 0.00 1.00 1.00 39
+Avoidcapabilitiesjumps 0.64 1.00 0.20 1.36 0.00 1.00 1.00 37
+Notifyotherlabs 0.44 0.50 0.17 0.96 0.00 1.00 1.00 38
+28
+
+Responsesandstatisticsbydemographicgroups
+Table4:StatementStatistics:Bysector(AGIlabs,academia,civilsociety)|Mean,standarderror
+and sample size (n) for each of the fifty items divided by respondents’ sector of work. Here we
+separateoutAGIlab,academia,andcivilsocietyrespondents,tocorrespondwiththeFigure6. These
+representthethreegroupswithsufficientlyhighsamplesizesforanalysesofgroupdifferences. The
+itemsareorderedbymeanagreementscoreacrossallrespondents.
+Mean Standarderror n
+AGIsafetyandgovernancepractice AGILab Academia Civilsociety AGILab Academia Civilsociety AGILab Academia Civilsociety
+Pre-deploymentriskassessment 1.96 1.82 1.82 0.04 0.18 0.12 25 11 11
+Dangerouscapabilitiesevaluations 1.92 1.91 1.91 0.06 0.09 0.09 25 11 11
+Third-partymodelaudits 1.80 1.82 1.82 0.13 0.12 0.12 25 11 11
+Safetyrestrictions 1.92 1.82 1.64 0.06 0.18 0.15 25 11 11
+Redteaming 1.76 1.82 1.64 0.17 0.12 0.15 25 11 11
+Monitorsystemsandtheiruses 1.72 1.82 1.82 0.14 0.12 0.12 25 11 11
+Alignmenttechniques 1.72 1.91 1.55 0.18 0.09 0.16 25 11 11
+Securityincidentresponseplan 1.77 2.00 1.71 0.09 0.00 0.18 25 11 11
+Post-deploymentevaluations 1.81 1.43 1.67 0.09 0.43 0.21 25 11 11
+Reportsafetyincidents 1.71 1.73 1.64 0.18 0.14 0.15 25 11 11
+Safetyvs.capabilities 1.68 1.82 1.64 0.13 0.12 0.15 25 11 11
+Internalreviewbeforepublication 1.68 1.82 1.45 0.17 0.12 0.16 25 11 11
+Pre-trainingriskassessment 1.56 1.73 1.73 0.17 0.27 0.27 25 11 11
+Emergencyresponseplan 1.68 1.82 1.36 0.15 0.12 0.15 25 11 11
+Protectionagainstespionage 1.68 1.57 1.67 0.19 0.20 0.21 25 11 11
+Pausingtrainingofdangerousmodels 1.36 1.91 1.91 0.21 0.09 0.09 25 11 11
+Increasinglevelsofexternalscrutiny 1.62 1.55 1.64 0.16 0.16 0.15 25 11 11
+Publishalignmentstrategy 1.63 1.57 1.43 0.11 0.20 0.20 25 11 11
+Bugbountyprograms 1.62 1.64 1.09 0.15 0.15 0.16 25 11 11
+Industrysharingofsecurityinformation 1.55 1.29 1.67 0.11 0.29 0.33 25 11 11
+Securitystandards 1.27 1.89 1.70 0.30 0.11 0.15 25 11 11
+Publishresultsofinternalriskassessments 1.65 1.00 1.33 0.11 0.63 0.33 25 11 11
+Dualcontrol 1.70 1.33 1.33 0.11 0.33 0.21 25 11 11
+Publishresultsofexternalscrutiny 1.59 1.50 1.40 0.11 0.22 0.40 25 11 11
+Military-gradeinformationsecurity 1.28 1.45 1.73 0.25 0.21 0.14 25 11 11
+Boardriskcommittee 1.61 1.00 1.17 0.12 0.68 0.65 25 11 11
+Chiefriskofficer 1.53 0.83 1.67 0.16 0.60 0.21 25 11 11
+Statementaboutgovernancestructure 1.57 1.43 1.17 0.13 0.30 0.48 25 11 11
+PublishviewsaboutAGIrisk 1.39 1.36 1.27 0.22 0.15 0.19 25 11 11
+KYCscreening 1.43 1.43 1.33 0.15 0.20 0.33 25 11 11
+Third-partygovernanceaudits 1.30 1.57 1.20 0.22 0.20 0.37 25 11 11
+Backgroundchecks 1.62 1.17 1.17 0.13 0.17 0.54 25 11 11
+Modelcontainment 1.25 1.45 1.36 0.24 0.21 0.20 25 11 11
+Stageddeployment 1.32 1.45 1.27 0.22 0.16 0.19 25 11 11
+Trackingmodelweights 1.35 1.43 1.33 0.17 0.30 0.49 25 11 11
+Internalaudit 1.12 1.73 1.36 0.23 0.14 0.20 25 11 11
+Nounsafeopen-sourcing 1.24 1.36 1.27 0.25 0.28 0.27 25 11 11
+Researchermodelaccess 1.38 1.00 0.82 0.19 0.30 0.23 25 11 11
+APIaccesstopowerfulmodels 1.08 1.44 1.50 0.25 0.24 0.17 25 11 11
+Avoidinghype 1.24 0.82 1.36 0.14 0.26 0.15 25 11 11
+Gradualscaling 1.13 1.36 1.09 0.25 0.15 0.21 25 11 11
+Treatupdatessimilarlytonewmodels 1.08 1.45 1.00 0.24 0.25 0.23 25 11 11
+Pre-registrationoflargetrainingruns 0.87 1.64 1.00 0.26 0.20 0.27 25 11 11
+Enterpriseriskmanagement 0.71 1.38 1.11 0.33 0.26 0.20 25 11 11
+Treatinternaldeploymentssimilartoexternaldeployments 1.10 1.17 0.50 0.23 0.17 0.34 25 11 11
+Notifyastateactorbeforedeployment 0.55 1.45 1.00 0.25 0.21 0.27 25 11 11
+Notifyaffectedparties 0.80 0.80 1.33 0.26 0.58 0.33 25 11 11
+Inter-labscrutiny 1.22 0.33 0.17 0.13 0.49 0.54 25 11 11
+Avoidcapabilitiesjumps 0.89 0.67 0.17 0.27 0.56 0.48 25 11 11
+Notifyotherlabs 0.72 0.80 0.00 0.19 0.37 0.37 25 11 11
+29
+
+Table5: StatementStatistics: Bysector(AGIlabs,allotherrespondents)|Mean,standarderror
+and sample size (n) for each of the fifty items divided by respondents’ sector of work. Here we
+separateoutAGIlabrespondentsfromallotherrespondents,tocorrespondwithFigure7. Theitems
+areorderedbymeanagreementscoreacrossallrespondents.
+Mean Standarderror n
+AGIsafetyandgovernancepractice AGILab Everyoneelse AGILab Everyoneelse AGILab Everyoneelse
+Pre-deploymentriskassessment 1.96 1.82 0.04 0.11 25 22
+Dangerouscapabilitiesevaluations 1.92 1.91 0.06 0.06 24 22
+Third-partymodelaudits 1.80 1.82 0.13 0.08 25 22
+Safetyrestrictions 1.92 1.73 0.06 0.12 25 22
+Redteaming 1.76 1.73 0.17 0.10 25 22
+Monitorsystemsandtheiruses 1.72 1.82 0.14 0.08 25 22
+Alignmenttechniques 1.72 1.73 0.18 0.10 25 22
+Securityincidentresponseplan 1.77 1.86 0.09 0.10 22 14
+Post-deploymentevaluations 1.81 1.54 0.09 0.24 21 13
+Reportsafetyincidents 1.71 1.68 0.18 0.10 24 22
+Safetyvs.capabilities 1.68 1.73 0.13 0.10 25 22
+Internalreviewbeforepublication 1.68 1.64 0.17 0.10 25 22
+Pre-trainingriskassessment 1.56 1.73 0.17 0.19 25 22
+Emergencyresponseplan 1.68 1.59 0.15 0.11 25 22
+Protectionagainstespionage 1.68 1.62 0.19 0.14 22 13
+Pausingtrainingofdangerousmodels 1.36 1.91 0.21 0.06 25 22
+Increasinglevelsofexternalscrutiny 1.62 1.59 0.16 0.11 24 22
+Publishalignmentstrategy 1.63 1.50 0.11 0.14 19 14
+Bugbountyprograms 1.62 1.36 0.15 0.12 24 22
+Industrysharingofsecurityinformation 1.55 1.46 0.11 0.22 22 13
+Securitystandards 1.27 1.79 0.30 0.10 22 19
+Publishresultsofinternalriskassessments 1.65 1.17 0.11 0.34 20 12
+Dualcontrol 1.70 1.33 0.11 0.19 20 12
+Publishresultsofexternalscrutiny 1.59 1.45 0.11 0.21 22 11
+Military-gradeinformationsecurity 1.28 1.59 0.25 0.13 25 22
+Boardriskcommittee 1.61 1.08 0.12 0.45 18 12
+Chiefriskofficer 1.53 1.25 0.16 0.33 19 12
+Statementaboutgovernancestructure 1.57 1.31 0.13 0.26 21 13
+PublishviewsaboutAGIrisk 1.39 1.32 0.22 0.12 23 22
+KYCscreening 1.43 1.38 0.15 0.18 21 13
+Third-partygovernanceaudits 1.30 1.42 0.22 0.19 20 12
+Backgroundchecks 1.62 1.17 0.13 0.27 21 12
+Modelcontainment 1.25 1.41 0.24 0.14 24 22
+Stageddeployment 1.32 1.36 0.22 0.12 25 22
+Trackingmodelweights 1.35 1.38 0.17 0.27 20 13
+Internalaudit 1.12 1.55 0.23 0.13 25 22
+Nounsafeopen-sourcing 1.24 1.32 0.25 0.19 25 22
+Researchermodelaccess 1.38 0.90 0.19 0.18 24 21
+APIaccesstopowerfulmodels 1.08 1.47 0.25 0.14 24 19
+Avoidinghype 1.24 1.09 0.14 0.16 25 22
+Gradualscaling 1.13 1.23 0.25 0.13 23 22
+Treatupdatessimilarlytonewmodels 1.08 1.23 0.24 0.17 24 22
+Pre-registrationoflargetrainingruns 0.87 1.32 0.26 0.18 23 22
+Enterpriseriskmanagement 0.71 1.24 0.33 0.16 17 17
+Treatinternaldeploymentssimilartoexternaldeployments 1.10 0.83 0.23 0.21 20 12
+Notifyastateactorbeforedeployment 0.55 1.23 0.25 0.17 22 22
+Notifyaffectedparties 0.80 1.09 0.26 0.31 15 11
+Inter-labscrutiny 1.22 0.25 0.13 0.35 18 12
+Avoidcapabilitiesjumps 0.89 0.42 0.27 0.36 18 12
+Notifyotherlabs 0.72 0.36 0.19 0.28 18 11
+30
+
+Table6: StatementStatistics: Bygender|Mean,standarderrorandsamplesize(n)foreachofthe
+fiftyitemsdividedbyrespondents’gender. Theserepresentthetwogroupswithsufficientlyhigh
+sample sizes for analyses of group differences. The items are ordered by mean agreement score
+acrossallrespondents.
+Mean Standarderror n
+AGIsafetyandgovernancepractice Men Women Men Women Men Women
+Pre-deploymentriskassessment 1.94 1.86 0.04 0.14 32 14
+Dangerouscapabilitiesevaluations 1.90 2.00 0.05 0.00 31 14
+Third-partymodelaudits 1.81 1.93 0.07 0.07 32 14
+Safetyrestrictions 1.75 2.00 0.09 0.00 32 14
+Redteaming 1.84 1.79 0.07 0.11 32 14
+Monitorsystemsandtheiruses 1.62 2.00 0.12 0.00 32 14
+Alignmenttechniques 1.62 2.00 0.15 0.00 32 14
+Securityincidentresponseplan 1.75 1.92 0.09 0.08 24 12
+Post-deploymentevaluations 1.70 2.00 0.10 0.00 23 11
+Reportsafetyincidents 1.81 1.79 0.07 0.11 31 14
+Safetyvs.capabilities 1.59 1.86 0.11 0.10 32 14
+Internalreviewbeforepublication 1.59 1.86 0.14 0.10 32 14
+Pre-trainingriskassessment 1.78 1.64 0.11 0.23 32 14
+Emergencyresponseplan 1.66 1.71 0.10 0.13 32 14
+Protectionagainstespionage 1.57 1.75 0.19 0.13 23 12
+Pausingtrainingofdangerousmodels 1.75 1.64 0.09 0.23 32 14
+Increasinglevelsofexternalscrutiny 1.56 1.79 0.10 0.11 32 14
+Publishalignmentstrategy 1.43 1.60 0.12 0.16 23 10
+Bugbountyprograms 1.53 1.57 0.10 0.14 32 14
+Industrysharingofsecurityinformation 1.35 1.73 0.13 0.14 23 11
+Securitystandards 1.44 1.75 0.22 0.13 27 12
+Publishresultsofinternalriskassessments 1.33 1.82 0.14 0.12 21 11
+Dualcontrol 1.50 1.50 0.13 0.22 22 10
+Publishresultsofexternalscrutiny 1.36 1.73 0.12 0.14 22 11
+Military-gradeinformationsecurity 1.47 1.36 0.15 0.25 32 14
+Boardriskcommittee 1.40 1.60 0.22 0.16 20 10
+Chiefriskofficer 1.58 1.25 0.16 0.18 19 12
+Statementaboutgovernancestructure 1.43 1.73 0.14 0.14 23 11
+PublishviewsaboutAGIrisk 1.33 1.50 0.12 0.17 30 14
+KYCscreening 1.23 1.50 0.16 0.15 22 12
+Third-partygovernanceaudits 1.48 1.33 0.13 0.19 21 12
+Backgroundchecks 1.42 1.22 0.16 0.28 24 9
+Modelcontainment 1.39 1.36 0.16 0.20 31 14
+Stageddeployment 1.34 1.57 0.15 0.17 32 14
+Trackingmodelweights 1.27 1.33 0.18 0.26 22 12
+Internalaudit 1.28 1.43 0.16 0.17 32 14
+Nounsafeopen-sourcing 1.38 1.07 0.18 0.32 32 14
+Researchermodelaccess 1.13 1.50 0.16 0.14 30 14
+APIaccesstopowerfulmodels 1.24 1.31 0.19 0.24 29 13
+Avoidinghype 1.06 1.21 0.13 0.19 32 14
+Gradualscaling 1.13 1.57 0.12 0.17 30 14
+Treatupdatessimilarlytonewmodels 1.00 1.36 0.17 0.29 31 14
+Pre-registrationoflargetrainingruns 1.13 1.36 0.15 0.25 31 14
+Enterpriseriskmanagement 0.90 1.23 0.24 0.20 21 13
+Treatinternaldeploymentssimilartoexternaldeployments 0.95 1.30 0.17 0.26 22 10
+Notifyastateactorbeforedeployment 0.93 1.14 0.18 0.21 30 14
+Notifyaffectedparties 1.07 1.10 0.18 0.31 15 10
+Inter-labscrutiny 0.72 0.82 0.27 0.23 18 11
+Avoidcapabilitiesjumps 0.62 1.00 0.20 0.44 21 9
+Notifyotherlabs 0.40 0.89 0.21 0.26 20 9
+31
+
+Demographics
+Table 7: Demographics of sample: Sector | Percentage and frequency of respondents by sector.
+Notethatrespondentscouldreportmorethanonesector
+Sector Sectorsubgroup Percentageoftotalsample Rawfrequency
+AGIlab 43.9% 25
+Academia 22.8% 13
+Civilsociety
+Thinktank 10.5% 6
+Nonprofit 12.3% 7
+organization
+Other
+Othertechcompany 1.8% 1
+Government 0% 0
+Consultingfirm 1.8% 1
+Other 1.8% 1
+Prefernottosay 5.3% 3
+Table8: Demographicsofsample: Gender|Percentageandfrequencyofrespondentsbygender
+Rawfrequency Percentageoftotalsample
+Gender
+Man 32 62.7%
+Woman 14 27.5%
+Prefernottosay 5 9.8%
+Anothergender 0 0.0%
+32
+
+F Additionalanalyses
+Deviationsfromthepre-registeredpre-analysisplan
+Wepre-registeredthesurveyonOSF(https://osf.io/s7vhr). Wegenerallyfollowedthepre-
+analysisplan. Wepresentseveraladditionaltop-linestatisticsthatwerenotnotedinthepre-analysis
+plan,suchashowmanystatementsreceivedamajorityofagreementresponses. Wedidnotconduct
+thepre-registeredregressionanalysestotestfortheeffectofsectororgenderduetothesmallsample
+size. Weranthepre-registeredMann-WhitneyUandChi-squaredtestsinstead,withappropriate
+correctionformultiplecomparisonswhereapplicable(usingtheHolm-Bonferronicorrection). We
+didnotruntheKolgmorov-Smirnovtests,sincetheMann-WhitneyU-testwasmoreappropriatefor
+theobserveddistributions.
+Clusteranalysis
+Inanattempttodiscovergroupsofresponsepatternswithinthepopulation,weattemptedtocluster
+respondentsusingtheirpatternofresponsesacrossquestionsandtheirreporteddemographicdata. In
+linewithourpre-analysisplan,weconductedk-meansclusteringonthedatasetofresponsesand
+demographiclabels(forthevariables“gender”and“sector”). Theaimofthisanalysisistodiscover
+high-dimensionalclustersorgroupsofresponsepatternswithinthepopulationofrespondents,andto
+visualizetheseinamoreinterpretable,low-dimensionalmanner. Toachievethis,weperformeda
+numberofstandarddatapre-processingstepsfordimensionalityreductiontechniques[42].
+Wefirstlypre-processedthedatatoremoverespondentswithmissingdemographicdata. Thegender
+andsectordemographicvariableswerethentransformedintobinaryfeatureswithone-hotencoding.
+In the final data pre-processing step, we standardized the data to ensure that the variables were
+approximately equally scaled (this was done using the StandardScaler functionality from the
+librarysklearn). Topartitiontheprocesseddataforvisualization, weemployedthestandardk-
+meansclusteringalgorithm. Inthisalgorithm,thenumberofclustersisahyperparameter,which
+mustbeestimatedorinferred. Toselecttheoptimalnumberofclustersinaprincipledmanner,we
+employedtwoacceptedmethods–theElbowmethodandsilhouetteanalysis[67]–whichevaluated
+the inertia and silhouette score of the model for a range of clusters n ∈ {2,3,4,5,6,7,8,9,10},
+wherenrepresentsthenumberofclusters).
+Basedonthisanalysis,wefoundtheoptimalnumberofclusterstobefour,andperformedk-means
+clustering with four clusters accordingly. To visualize this clustered data, we first reduced the
+dimensionalityoftheembeddeddatatotwodimensions(thatis,twoaxesforvisualization)using
+principalcomponentanalysis(PCA),andthenvisualizedtheresultsusingascatterplot. Wefound
+theclusterstobepoorlyseparated, implyingthatitisdifficulttorepresentgroupsinthisdataset
+inalow-dimensionalmanner(insupportofthis,theElbowerrormetricwasrelativelyhighforall
+givennumbersofclustersn∈{2,3,4,5,6,7,8,9,10}. Thiscouldbeduetoanumberofreasons:
+therelativelysmallsampleofthispopulation,poorscalingofthevariablesofthedata(asdiscussed
+above),orthepresenceofnon-convexclusters.
+Allofthecodeforthisanalysis,alongwithsomeinstructivevisualizations,canbefoundonOSF
+(https://osf.io/s7vhr).
+33
+
+References
+[1] AINowInstitute,A.Kak,andS.M.West. GeneralpurposeAIposesseriousrisks,shouldnotbeexcluded
+fromtheEU’sAIAct. https://ainowinstitute.org/publication/gpai-is-high-risk-shoul
+d-not-be-excluded-from-eu-ai-act,2023.
+[2] S.Alexander. OpenAI’s“PlanningforAGIandbeyond”. https://astralcodexten.substack.com/
+p/openais-planning-for-agi-and-beyond,2023.
+[3] S.Altman. PlanningforAGIandbeyond. https://openai.com/blog/planning-for-agi-and-b
+eyond,2023.
+[4] M.AnderljungandJ.Hazell. ProtectingsocietyfromAImisuse: Whenarerestrictionsoncapabilities
+warranted? arXivpreprintarXiv:2303.09377,2023.
+[5] Anthropic. CoreviewsonAIsafety:When,why,what,andhow. https://www.anthropic.com/inde
+x/core-views-on-ai-safety,2023.
+[6] ARC. UpdateonARC’srecentevalefforts. https://evals.alignment.org/blog/2023-03-18-up
+date-on-recent-evals,2023.
+[7] C.Ashurst, S.Barocas, R.Campbell, andD.Raji. Disentanglingthecomponentsofethicalresearch
+inmachinelearning. In2022ACMConferenceonFairness,Accountability,andTransparency,pages
+2057–2068,2022.
+[8] C.Ashurst,E.Hine,P.Sedille,andA.Carlier. AIethicsstatements: Analysisandlessonslearntfrom
+NeurIPSbroaderimpactstatements. In2022ACMConferenceonFairness,Accountability,andTrans-
+parency,pages2047–2056,2022.
+[9] M.Barnett. WhenwillthefirstgeneralAIsystembedevised,tested,andpubliclyannounced? https:
+//www.metaculus.com/questions/5121/date-of-artificial-general-intelligence,2020.
+[10] A.M.Barrett,D.Hendrycks,J.Newman,andB.Nonnecke. Actionableguidanceforhigh-consequenceAI
+riskmanagement:TowardsstandardsaddressingAIcatastrophicrisks. arXivpreprintarXiv:2206.08966,
+2023.
+[11] A. M. Barrett, J. Newman, D. Hendrycks, and B. Nonnecke. Seeking input and feedback: AI risk
+management-standardsprofileforincreasinglymulti-purposeorgeneral-purposeAI. https://cltc.ber
+keley.edu/seeking-input-and-feedback-ai-risk-management-standards-profile-for-
+increasingly-multi-purpose-or-general-purpose-ai,2023.
+[12] L. Bertuzzi. AI Act: MEPs close in on rules for general purpose AI, foundation models. https:
+//www.euractiv.com/section/artificial-intelligence/news/ai-act-meps-close-in-o
+n-rules-for-general-purpose-ai-foundation-models,2023.
+[13] L.Bertuzzi. LeadingEUlawmakersproposeobligationsforgeneralpurposeai. https://www.euract
+iv.com/section/artificial-intelligence/news/leading-eu-lawmakers-propose-oblig
+ations-for-general-purpose-ai,2023.
+[14] N.Bostrom. Howlongbeforesuperintelligence? InternationalJournalofFuturesStudies,2,1998.
+[15] N.Bostrom. Superintelligence:Paths,Dangers,Strategies. OxfordUniversityPress,2014.
+[16] N.Bostrom. Thevulnerableworldhypothesis. GlobalPolicy,10(4):455–476,2019.
+[17] M.Brundage,S.Avin,J.Clark,H.Toner,P.Eckersley,B.Garfinkel,A.Dafoe,P.Scharre,T.Zeitzoff,
+B. Filar, H. Anderson, H. Roff, G. C. Allen, J. Steinhardt, C. Flynn, S. Ó. hÉigeartaigh, S. Beard,
+H.Belfield,S.Farquhar,C.Lyle,R.Crootof,O.Evans,M.Page,J.Bryson,R.Yampolskiy,andD.Amodei.
+The malicious use of artificial intelligence: Forecasting, prevention, and mitigation. arXiv preprint
+arXiv:1802.07228,2018.
+[18] M.Brundage,S.Avin,J.Wang,H.Belfield,G.Krueger,G.Hadfield,H.Khlaaf,J.Yang,H.Toner,R.Fong,
+T.Maharaj,P.W.Koh,S.Hooker,J.Leung,A.Trask,E.Bluemke,J.Lebensold,C.O’Keefe,M.Koren,
+T.Ryffel,J.Rubinovitz,T.Besiroglu,F.Carugati,J.Clark,P.Eckersley,S.deHaas,M.Johnson,B.Laurie,
+A. Ingerman, I. Krawczuk, A. Askell, R. Cammarota, A. Lohn, D. Krueger, C. Stix, P. Henderson,
+L. Graham, C. Prunkl, B. Martin, E. Seger, N. Zilberman, S. Ó. hÉigeartaigh, F. Kroeger, G. Sastry,
+R.Kagan,A.Weller,B.Tse,E.Barnes,A.Dafoe,P.Scharre,A.Herbert-Voss,M.Rasser,S.Sodhani,
+C. Flynn, T. K. Gilbert, L. Dyer, S. Khan, Y. Bengio, and M. Anderljung. Toward trustworthy AI
+development:Mechanismsforsupportingverifiableclaims. arXivpreprintarXiv:2004.07213,2020.
+34
+
+[19] M.Brundage,K.Mayer,T.Eloundou,S.Agarwal,S.Adler,G.Krueger,J.Leike,andP.Mishkin. Lessons
+learnedonlanguagemodelsafetyandmisuse. https://openai.com/research/language-model-s
+afety-and-misuse,2022.
+[20] Cohere,OpenAI,andA.Labs. Bestpracticesfordeployinglanguagemodels. https://openai.com/b
+log/best-practices-for-deploying-language-models,2022.
+[21] R.Crootof. Artificialintelligenceresearchneedsresponsiblepublicationnorms. https://www.lawfar
+eblog.com/artificial-intelligence-research-needs-responsible-publication-norms,
+2019.
+[22] G.Falco,B.Shneiderman,J.Badger,R.Carrier,A.Dahbura,D.Danks,M.Eling,A.Goodloe,J.Gupta,
+C.Hart,M.Jirotka,H.Johnson,C.LaPointe,A.J.Llorens,A.K.Mackworth,C.Maple,S.E.Pálsson,
+F.Pasquale,A.Winfield,andZ.K.Yeong. GoverningAIsafetythroughindependentaudits. Nature
+MachineIntelligence,3(7):566–571,2021.
+[23] D. Ganguli, L. Lovitt, J. Kernion, A. Askell, Y. Bai, S. Kadavath, B. Mann, E. Perez, N. Schiefer,
+K.Ndousse,A.Jones,S.Bowman,A.Chen,T.Conerly,N.DasSarma,D.Drain,N.Elhage,S.El-Showk,
+S.Fort,Z.Hatfield-Dodds,T.Henighan,D.Hernandez,T.Hume,J.Jacobson,S.Johnston,S.Kravec,
+C.Olsson,S.Ringer,E.Tran-Johnson,D.Amodei,T.Brown,N.Joseph,S.McCandlish,C.Olah,J.Kaplan,
+andJ.Clark. Redteaminglanguagemodelstoreduceharms: Methods,scalingbehaviors,andlessons
+learned. arXivpreprintarXiv:2209.07858,2022.
+[24] B.Goertzel. Whocoinedtheterm“AGI”? https://goertzel.org/who-coined-the-term-agi,
+2011.
+[25] B.Goertzel. Artificialgeneralintelligence: Concept,stateoftheart,andfutureprospects. Journalof
+ArtificialGeneralIntelligence,5(1):1–46,2014.
+[26] B.GoertzelandC.Pennachin. ArtificialGeneralIntelligence. Springer,2007.
+[27] J.A.Goldstein,G.Sastry,M.Musser,R.DiResta,M.Gentzel,andK.Sedova. Generativelanguage
+modelsandautomatedinfluenceoperations:Emergingthreatsandpotentialmitigations. arXivpreprint
+arXiv:2301.04246,2023.
+[28] K.Grace, J.Salvatier, A.Dafoe, B.Zhang, andO.Evans. Viewpoint: WhenwillAIexceedhuman
+performance?EvidencefromAIexperts. JournalofArtificialIntelligenceResearch,62:729–754,2018.
+[29] R.Gruetzemacher,D.Paradice,andK.B.Lee. ForecastingtransformativeAI:Anexpertsurvey. arXiv
+preprintarXiv:1901.08579,2019.
+[30] M.A.Gubrud. Nanotechnologyandinternationalsecurity. https://web.archive.org/web/2011
+0427135521/http://www.foresight.org/Conferences/MNT05/Papers/Gubrud/index.html,
+1997.
+[31] D.Hassabis. AnnouncingGoogleDeepMind. https://www.deepmind.com/blog/announcing-goo
+gle-deepmind,2023.
+[32] HMGovernment. NationalAIstrategy. https://www.gov.uk/government/publications/natio
+nal-ai-strategy,2021.
+[33] I.Hogarth. WemustslowdowntheracetoGod-likeAI. https://www.ft.com/content/03895dc4-
+a3b7-481e-95cc-336a524f2ac2,2023.
+[34] ISO. 31000:2018Riskmanagement—Guidelines. https://www.iso.org/standard/65694.html,
+2018.
+[35] ISO/IEC. 23894:2023Informationtechnology—Artificialintelligence—Guidanceonriskmanagement.
+https://www.iso.org/standard/77304.html,2023.
+[36] K.Kavukcuoglu,P.Kohli,L.Ibrahim,D.Bloxwich,andS.Brown. Howourprincipleshelpeddefine
+AlphaFold’srelease. https://www.deepmind.com/blog/how-our-principles-helped-define
+-alphafolds-release,2022.
+[37] E.Klein. ThesurprisingthingA.I.engineerswilltellyouifyouletthem. https://www.nytimes.com/
+2023/04/16/opinion/this-is-too-important-to-leave-to-microsoft-google-and-face
+book.html,2023.
+35
+
+[38] V.KrakovnaandR.Shah. Somehigh-levelthoughtsontheDeepMindalignmentteam’sstrategy. https:
+//www.alignmentforum.org/posts/a9SPcZ6GXAg9cNKdi/linkpost-some-high-level-thou
+ghts-on-the-deepmind-alignment,2023.
+[39] M.Kruppa. GoogleDeepMindCEOsayssomeformofAGIpossibleinafewyears. https://www.wsj.
+com/articles/google-deepmind-ceo-says-some-form-of-agi-possible-in-a-few-years
+-2705f452,2023.
+[40] J.Leike. WhyI’moptimisticaboutouralignmentapproach. https://aligned.substack.com/p/ali
+gnment-optimism,2022.
+[41] J.Leike,J.Schulman,andJ.Wu. Ourapproachtoalignmentresearch. https://openai.com/blog/ou
+r-approach-to-alignment-research,2022.
+[42] A.Likas,N.Vlassis,andJ.J.Verbeek. Theglobalk-meansclusteringalgorithm. PatternRecognition,
+36(2):451–461,2003.
+[43] S.A.Lundqvist. Whyfirmsimplementriskgovernance:Steppingbeyondtraditionalriskmanagementto
+enterpriseriskmanagement. JournalofAccountingandPublicPolicy,34(5):441–466,2015.
+[44] J.H.McDonald. HandbookofBiologicalStatistics. SparkyHousePublishing,2009.
+[45] S.McGregor.PreventingrepeatedrealworldAIfailuresbycatalogingincidents:TheAIIncidentDatabase.
+InProceedingsoftheAAAIConferenceonArtificialIntelligence,pages15458–15463,2021.
+[46] Y.Mehdi. ReinventingsearchwithanewAI-poweredMicrosoftBingandEdge,yourcopilotfortheweb.
+https://blogs.microsoft.com/blog/2023/02/07/reinventing-search-with-a-new-ai-p
+owered-microsoft-bing-and-edge-your-copilot-for-the-web,2023.
+[47] C.Metz. “TheGodfatherofA.I.”leavesGoogleandwarnsofdangerahead. https://www.nytimes.co
+m/2023/05/01/technology/ai-google-chatbot-engineer-quits-hinton.html,2023.
+[48] P.Mishkin,L.Ahmad,M.Brundage,G.Krueger,andG.Sastry. DALL·E2preview:Risksandlimitations.
+https://github.com/openai/dalle-2-preview/blob/main/system-card.md,2022.
+[49] J.MökanderandL.Floridi. OperationalisingAIgovernancethroughethics-basedauditing:Anindustry
+casestudy. AIandEthics,pages1–18,2022.
+[50] J.Mökander,J.Morley,M.Taddeo,andL.Floridi. Ethics-basedauditingofautomateddecision-making
+systems:Nature,scope,andlimitations. ScienceandEngineeringEthics,27(44),2021.
+[51] J.Mökander,J.Schuett,H.R.Kirk,andL.Floridi. Auditinglargelanguagemodels: Athree-layered
+approach. arXivpreprintarXiv:2302.08500,2023.
+[52] L.Muehlhauser. WhatisAGI? https://intelligence.org/2013/08/11/what-is-agi,2013.
+[53] NIST. ArtificialIntelligenceRiskManagementFramework(AIRMF1.0). https://doi.org/10.602
+8/NIST.AI.100-1,2023.
+[54] OpenAI. Charter. https://openai.com/charter,2018.
+[55] OpenAI. AnnouncingOpenAI’sbugbountyprogram. https://openai.com/blog/bug-bounty-pro
+gram#OpenAI,2023.
+[56] OpenAI. GPT-4technicalreport. arXivpreprintarXiv:2303.08774,2023.
+[57] OpenAI. OurapproachtoAIsafety. https://openai.com/blog/our-approach-to-ai-safety,
+2023.
+[58] OpenAI. Safetybestpractices. https://platform.openai.com/docs/guides/safety-best-prac
+tices,2023.
+[59] L.A.Palinkas,S.M.Horwitz,C.A.Green,J.P.Wisdom,N.Duan,andK.Hoagwood.Purposefulsampling
+forqualitativedatacollectionandanalysisinmixedmethodimplementationresearch. Administrationand
+PolicyinMentalHealthandMentalHealthServicesResearch,42:533–544,2015.
+[60] PartnershiponAI. ManagingtherisksofAIresearch. https://partnershiponai.org/paper/resp
+onsible-publication-recommendations,2021.
+36
+
+[61] PartnershiponAI. PAIiscollaborativelydevelopingsharedprotocolsforlarge-scaleAImodelsafety.
+https://partnershiponai.org/pai-is-collaboratively-developing-shared-protocols
+-for-large-scale-ai-model-safety,2023.
+[62] E.Perez,S.Huang,F.Song,T.Cai,R.Ring,J.Aslanides,A.Glaese,N.McAleese,andG.Irving. Red
+teaminglanguagemodelswithlanguagemodels. arXivpreprintarXiv:2202.03286,2022.
+[63] B.Perrigo. DeepMind’sCEOhelpedtakeAImainstream.Nowhe’surgingcaution. https://time.com
+/6246119/demis-hassabis-deepmind-interview,2023.
+[64] S.Pichai. AnimportantnextsteponourAIjourney. https://blog.google/technology/ai/bard-g
+oogle-ai-search-updates,2023.
+[65] I.D.RajiandJ.Buolamwini. Actionableauditing: Investigatingtheimpactofpubliclynamingbiased
+performanceresultsofcommercialAIproducts. InProceedingsofthe2019AAAI/ACMConferenceonAI,
+Ethics,andSociety,pages429–435,2019.
+[66] I.D.Raji,P.Xu,C.Honigsberg,andD.Ho. Outsideroversight:Designingathirdpartyauditecosystem
+forAIgovernance. InProceedingsofthe2022AAAI/ACMConferenceonAI,Ethics,andSociety,pages
+557–571,2022.
+[67] D.M.Saputra,D.Saputra,andL.D.Oswari. Effectofdistancemetricsindeterminingk-valueink-means
+clusteringusingelbowandsilhouettemethod. InProceedingsoftheSriwijayaInternationalConference
+onInformationTechnologyandItsApplications,pages341–346,2020.
+[68] J.Schuett. ThreelinesofdefenseagainstrisksfromAI. arXivpreprintarXiv:2212.08364,2022.
+[69] J.Schuett.RiskmanagementintheArtificialIntelligenceAct.EuropeanJournalofRiskRegulation,pages
+1–19,2023.
+[70] J.Schuett. AGIlabsneedaninternalauditteam,forthcoming.
+[71] J.R.Searle. Minds,brains,andprograms. BehavioralandBrainSciences,3(3):417–424,1980.
+[72] T.Shevlane. Structuredaccess:AnemergingparadigmforsafeAIdeployment. InTheOxfordHandbook
+ofAIGovernance,2022.
+[73] T.ShevlaneandA.Dafoe. Theoffense-defensebalanceofscientificknowledge: DoespublishingAI
+researchreducemisuse? InProceedingsoftheAAAI/ACMConferenceonAI,Ethics,andSociety,pages
+173–179,2020.
+[74] N.Soares. CommentsonOpenAI’s“PlanningforAGIandbeyond”. https://www.lesswrong.com/po
+sts/uxnjXBwr79uxLkifG,2023.
+[75] I. Solaiman. The gradient of generative AI release: Methods and considerations. arXiv preprint
+arXiv:2302.04844,2023.
+[76] I.Solaiman,M.Brundage,J.Clark,A.Askell,A.Herbert-Voss,J.Wu,A.Radford,G.Krueger,J.W.Kim,
+S.Kreps,M.McCain,A.Newhouse,J.Blazakis,K.McGuffie,andJ.Wang. Releasestrategiesandthe
+socialimpactsoflanguagemodels. arXivpreprintarXiv:1908.09203,2019.
+[77] A. Solender and A. Gold. Scoop: Schumer lays groundwork for Congress to regulate AI. https:
+//www.axios.com/2023/04/13/congress-regulate-ai-tech,2023.
+[78] J.Spataro. IntroducingMicrosoft365Copilot–yourcopilotforwork. https://blogs.microsoft.co
+m/blog/2023/03/16/introducing-microsoft-365-copilot-your-copilot-for-work,2023.
+[79] Z.Stein-Perlman, B.Weinstein-Raun, andK.Grace. 2022expertsurveyonprogressinAI. https:
+//aiimpacts.org/2022-expert-survey-on-progress-in-ai,2022.
+[80] TheFutureSociety. IndustryCodeofConductforR&DofGPAIS,forthcoming.
+[81] H.Touvron,T.Lavril,G.Izacard,X.Martinet,M.-A.Lachaux,T.Lacroix,B.Rozière,N.Goyal,E.Hambro,
+F.Azhar,A.Rodriguez,A.Joulin,E.Grave,andG.Lample. LLaMA:Openandefficientfoundation
+languagemodels. arXivpreprintarXiv:2302.13971,2023.
+[82] I.UKDepartmentforScienceandTechnology. Apro-innovationapproachtoAIregulation. https:
+//assets.publishing.service.gov.uk/government/uploads/system/uploads/attachmen
+t_data/file/1146542/a_pro-innovation_approach_to_AI_regulation.pdf,2023.
+37
+
+[83] F.Urbina,F.Lentzos,C.Invernizzi,andS.Ekins.Dualuseofartificial-intelligence-powereddrugdiscovery.
+NatureMachineIntelligence,4(3):189–191,2022.
+[84] M.B.vanAsseltandO.Renn. Riskgovernance. JournalofRiskResearch,14(4):431–449,2011.
+[85] WhiteHouse. Factsheet:Biden-HarrisAdministrationannouncesnewactionstopromoteresponsibleAI
+innovationthatprotectsAmericans’rightsandsafety. https://www.whitehouse.gov/briefing-ro
+om/statements-releases/2023/05/04/fact-sheet-biden-harris-administration-annou
+nces-new-actions-to-promote-responsible-ai-innovation-that-protects-americans-
+rights-and-safety,2023.
+[86] WhiteHouse. ReadoutofWhiteHousemeetingwithCEOsonadvancingresponsibleartificialintelligence
+innovation. https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/0
+4/readout-of-white-house-meeting-with-ceos-on-advancing-responsible-artificial
+-intelligence-innovation,2023.
+[87] J.V.Wright. AneweraforAIandGoogleWorkspace. https://workspace.google.com/blog/prod
+uct-announcements/generative-ai,2023.
+[88] K.Wynroe,D.Atkinson,andJ.Sevilla. Literaturereviewoftransformativeartificialintelligencetimelines.
+https://epochai.org/blog/literature-review-of-transformative-artificial-intell
+igence-timelines,2023.
+[89] E.Yudkowsky. PausingAIdevelopmentsisn’tenough.Weneedtoshutitalldown. https://time.com
+/6266923/ai-eliezer-yudkowsky-open-letter-not-enough,2023.
+[90] B. Zhang, M. Anderljung, L. Kahn, N. Dreksler, M. C. Horowitz, and A. Dafoe. Ethics and gover-
+nanceofartificialintelligence:Evidencefromasurveyofmachinelearningresearchers. arXivpreprint
+arXiv:2105.02117,2021.
+38
