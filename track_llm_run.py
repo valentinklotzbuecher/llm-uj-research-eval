@@ -37,7 +37,7 @@ def write_metadata(rows: list[dict]):
 
     fieldnames = [
         'run_id', 'date', 'model', 'prompt_version', 'prompt_description',
-        'num_papers', 'papers_evaluated', 'output_combined_long',
+        'prompt_file', 'num_papers', 'papers_evaluated', 'output_combined_long',
         'output_metrics_long', 'output_tiers_long', 'output_json_dir',
         'notes', 'status'
     ]
@@ -47,7 +47,7 @@ def write_metadata(rows: list[dict]):
         writer.writeheader()
         writer.writerows(rows)
 
-def start_run(model: str, prompt_version: str, description: str, notes: str = "") -> str:
+def start_run(model: str, prompt_version: str, description: str, notes: str = "", prompt_text: str = None, prompt_source: str = None) -> str:
     """Start a new LLM evaluation run."""
     run_id = generate_run_id(model, prompt_version)
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -56,6 +56,20 @@ def start_run(model: str, prompt_version: str, description: str, notes: str = ""
     run_dir = RESULTS_DIR / run_id
     run_dir.mkdir(exist_ok=True)
     (run_dir / "json").mkdir(exist_ok=True)
+
+    # Handle prompt storage
+    prompt_file_path = None
+    if prompt_text:
+        # Save prompt text to run directory
+        prompt_file = run_dir / "system_prompt.txt"
+        with open(prompt_file, 'w') as f:
+            f.write(prompt_text)
+            if prompt_source:
+                f.write(f"\n\n# Source: {prompt_source}\n")
+        prompt_file_path = f"results/{run_id}/system_prompt.txt"
+    elif prompt_source:
+        # Just record where the prompt came from
+        prompt_file_path = prompt_source
 
     # Prepare file paths
     combined_long = f"results/{run_id}/combined_long.csv"
@@ -69,6 +83,7 @@ def start_run(model: str, prompt_version: str, description: str, notes: str = ""
         'model': model,
         'prompt_version': prompt_version,
         'prompt_description': description,
+        'prompt_file': prompt_file_path or '',
         'num_papers': '0',
         'papers_evaluated': '',
         'output_combined_long': combined_long,
@@ -199,6 +214,8 @@ def main():
     start_parser.add_argument('--prompt-version', required=True, help='Prompt version (e.g., v3, improved_v2)')
     start_parser.add_argument('--description', required=True, help='Brief description of this run')
     start_parser.add_argument('--notes', default='', help='Additional notes')
+    start_parser.add_argument('--prompt-file', help='Path to file containing prompt text (will be copied to run directory)')
+    start_parser.add_argument('--prompt-source', help='Reference to where prompt is defined (e.g., methods.qmd:line_312)')
 
     # Complete command
     complete_parser = subparsers.add_parser('complete', help='Mark a run as completed')
@@ -218,7 +235,14 @@ def main():
     args = parser.parse_args()
 
     if args.command == 'start':
-        start_run(args.model, args.prompt_version, args.description, args.notes)
+        # Read prompt file if provided
+        prompt_text = None
+        if args.prompt_file:
+            with open(args.prompt_file, 'r') as f:
+                prompt_text = f.read()
+
+        start_run(args.model, args.prompt_version, args.description, args.notes,
+                 prompt_text=prompt_text, prompt_source=args.prompt_source or args.prompt_file)
     elif args.command == 'complete':
         papers = [p.strip() for p in args.papers.split(',')]
         complete_run(args.run_id, papers, args.notes)
