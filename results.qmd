@@ -222,12 +222,12 @@ research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
   left_join(rsx, by = c("label_paper_title"))
  
 
-jtiers_llm <- read_csv(here("data", "journal_tiers_long.csv"), show_col_types = FALSE) |>
+jtiers_llm <- read_csv(here("data", "tiers_long.csv"), show_col_types = FALSE) |>
   mutate(middle_rating = score,
-         lower_ci = ci_lower,
-         upper_ci = ci_upper,
+         lower_ci = lo,
+         upper_ci = hi,
          criteria = if_else(tier_kind == "will", "journal_predict", "merits_journal"),
-         evaluator = model,
+         evaluator = currentmodel,  # Use global model name from setup_params.R
          label_paper = paper
          ) |>
   select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
