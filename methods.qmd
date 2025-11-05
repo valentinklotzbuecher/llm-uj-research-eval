@@ -493,7 +493,8 @@ for pdf in pdfs:
             "collected": False,
             "error": pd.NA,
         })
-        time.sleep(0.4)
+        print(f"✓ Started job for {pdf.name}, waiting 90s before next submission...")
+        time.sleep(90)  # Wait 90s between submissions to avoid TPM rate limits
     except Exception as e:
         print(f"⚠️ kickoff failed for {pdf.name}: {e}")
 
@@ -525,7 +526,8 @@ def _safe_read_csv(path, columns):
     if not p.exists():
         return pd.DataFrame(columns=columns)
     try:
-        df = pd.read_csv(p)
+        # Set dtype='object' for string columns to avoid dtype warnings
+        df = pd.read_csv(p, dtype={'error': 'object', 'reasoning_id': 'object'})
     except Exception:
         return pd.DataFrame(columns=columns)
     for c in columns:
