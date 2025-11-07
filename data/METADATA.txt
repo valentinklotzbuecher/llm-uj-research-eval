@@ -1,0 +1,71 @@
+# Metadata for Production Data Files
+
+## Active Production Data (Used in Quarto Book)
+
+### metrics_long.csv
+- **Run ID**: baseline_sept_2024
+- **Date**: 2024-09-15
+- **Model**: gpt-4
+- **Prompt Version**: baseline_v1
+- **Prompt Source**: methods.qmd:SYSTEM_PROMPT_MANUALFIX_NOUJ
+- **Papers**: 50
+- **Schema**: paper,metric,metric_type,value,lo,hi,rationale,scale_min,scale_max
+- **Metrics**: overall, claims_evidence, methods, advancing_knowledge, logic_communication, open_science, global_relevance
+- **Description**: Percentile ratings (0-100) with embedded rationale for each metric
+
+### tiers_long.csv
+- **Run ID**: baseline_sept_2024
+- **Date**: 2024-09-15
+- **Model**: gpt-4
+- **Prompt Version**: baseline_v1
+- **Prompt Source**: methods.qmd:TIERS_SYSTEM_PROMPT_MANUALFIX
+- **Papers**: 50
+- **Schema**: paper,tier_kind,score,lo,hi,rationale
+- **Tier Types**: tier_should (merits publication in tier X), tier_will (predicted actual publication tier)
+- **Scale**: 0-5 (0=predatory, 1-5=journal tiers)
+- **Description**: Journal tier predictions with rationale
+
+### combined_long.csv
+- **Run ID**: baseline_sept_2024
+- **Date**: 2024-09-15
+- **Model**: gpt-4
+- **Papers**: 50
+- **Schema**: Combined format with both metrics and tiers
+- **Description**: Master file combining all percentile and tier data
+
+## Human Evaluation Data
+
+### all_ratings.rds / all_ratings.csv
+- **Source**: Unjournal.org evaluation platform
+- **Last Updated**: 2024-09-15
+- **Format**: R data format / CSV
+- **Description**: Human evaluator ratings for research papers
+- **Papers**: Subset of papers with Unjournal evaluations
+
+### all_jtiers.rds / all_jtiers.csv
+- **Source**: Unjournal.org evaluation platform
+- **Last Updated**: 2024-10-04
+- **Format**: R data format / CSV
+- **Description**: Human evaluator journal tier predictions
+
+## Archive
+
+Old and experimental files moved to `data/archive/`:
+- metrics_long_old.csv - Previous version (date: 2024-10-08)
+- metrics_long_old (2).csv - Even older version (date: 2024-10-10)
+- metrics_meta_old.csv, metrics_meta old.csv - Old metadata files
+- combined_long_gpt-5.csv - GPT-5 experimental run (2024-10-18)
+- metrics_long_gpt-5.csv - GPT-5 metrics (2024-10-18)
+- tiers_long_gpt-5.csv - GPT-5 tiers (2024-10-18)
+
+## Full Documentation
+
+See `DATA_PROVENANCE.md` in the root directory for complete provenance information, schema evolution, and run metadata.
+
+## How to Update Production Data
+
+1. Move current files to archive: `mv data/*.csv data/archive/[filename]_YYYYMMDD.csv`
+2. Copy new run files from results: `cp results/[run_id]/*.csv data/`
+3. Update this METADATA.txt file with new run information
+4. Update results/llm_runs_metadata.csv to mark new production run
+5. Commit with message noting which run is now active

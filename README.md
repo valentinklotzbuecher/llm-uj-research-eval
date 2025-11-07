@@ -12,9 +12,30 @@ We are working on this collaboratively in [this Github repo](https://github.com/
 <!-- DR @VK Explain how to update this here.-->
 
 ## Data layout
-papers/    raw PDFs (tracked, large files OK)
-results/   generated JSON + CSV <!-- DR: there is no such folder, at least I couldn't find one. Was it .gitignored? -->
+
+```
+papers/    Raw PDFs of research papers (tracked in git, large files OK)
+data/      Production LLM evaluation data (used in Quarto book)
+results/   Experimental runs and timestamped LLM evaluations
 key/       openai_key.txt (git-ignored)
+```
+
+### Understanding the Data
+
+**📊 See [DATA_PROVENANCE.md](DATA_PROVENANCE.md) for complete documentation** of:
+- Which data files come from which LLM runs
+- Model, prompt, and date for each dataset
+- Schema evolution across different runs
+- How to identify and update production data
+
+**Quick reference**:
+- **Production data** (used in book): `data/metrics_long.csv`, `data/tiers_long.csv` from baseline_sept_2024 run (gpt-4)
+- **Experimental data**: `results/` directory with timestamped runs
+- **Run tracking**: `results/llm_runs_metadata.csv` - master registry of all LLM runs
+- **Metadata**: `data/METADATA.txt` - details on current production files
+- **Human evaluations**: `data/all_ratings.rds`, `data/all_jtiers.rds` from Unjournal.org
+
+**Active model**: Current production data uses **gpt-4** (baseline_sept_2024 run, ~50 papers)
 
 ## Other notes
 
