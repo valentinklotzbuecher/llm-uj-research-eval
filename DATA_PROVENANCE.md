@@ -215,3 +215,21 @@ See `system_prompts.py` for historical prompt text.
 ## Questions?
 
 See `CLAUDE.md` for detailed architecture notes and `README.md` for setup instructions.
+
+
+
+# Notes on Desired folder structure
+
+1. Separate 'input data'
+- papers themselves input into the LLM
+    - Subset of 'focal papers' to examine more closely
+- Unjournal evaluation content
+
+2. LLM output data (intermediate data, Json etc)
+- including one folder that represents our preferred outputs and
+- maybe other folders representing previous runs (?) ...
+- ... also tracked with meta-data
+
+3. Cleaned analysis data/ 'analysis sets'
+
+
