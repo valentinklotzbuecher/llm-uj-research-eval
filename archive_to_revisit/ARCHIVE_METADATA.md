@@ -1,6 +1,6 @@
 # Archive Metadata: Unused and Obsolete Files
 
-**Archive Date**: November 11, 2025
+**Archive Date**: November 11, 2024
 **Purpose**: This directory contains files that are not actively used in the main LLM evaluation pipeline, but may be useful for reference or future work.
 
 ## Quick Summary
@@ -24,7 +24,7 @@
 
 #### `Comparing-LLM-and-human-reviews-of-social-science-research-using-data-from-Unjournal.org.tex`
 - **Type**: LaTeX compiled output
-- **Date**: November 4, 2025
+- **Date**: November 2024
 - **Source**: Generated from Quarto render process
 - **Why archived**: Compiled artifact, can be regenerated with `quarto render`
 - **Dependencies**: None
@@ -52,7 +52,7 @@
 
 #### `render_log.txt`
 - **Type**: Quarto render log
-- **Date**: November 4, 2025 08:35
+- **Date**: November 2024 08:35
 - **Content**: Output from `quarto render 2>&1 | tee render_log.txt`
 - **Why archived**: Temporary log file, gitignored anyway (*.log in .gitignore)
 - **Dependencies**: None
@@ -60,7 +60,7 @@
 
 #### `TRACKING_SYSTEM_TEST_RESULTS.md`
 - **Type**: Test results document
-- **Date**: November 4, 2025
+- **Date**: November 2024
 - **Content**: Results from testing the run tracking system (track_llm_run.py)
 - **Why archived**: Test results for a specific run, not documentation
 - **Dependencies**: None
