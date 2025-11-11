@@ -5,13 +5,37 @@ This document explains the origin, structure, and metadata for all LLM evaluatio
 ## Quick Reference: Active Data Files
 
 ### Production Data (Used in Book)
-All files in `data/` folder are loaded by the Quarto book via `setup_params.R`.
+All files in `data/` folder are loaded by the Quarto book via `setup_params.R
+`.
+
+DR: I don't think so. This specifies the paths but it doesn't actually load anything.
+Note that this 'production data' is already an output of the code and process, coming from the papers and prompts fed into an LLM.
+
+
 
 | File | Source Run | Model | Papers | Description |
 |------|-----------|-------|--------|-------------|
 | `data/metrics_long.csv` | baseline_sept_2024 | gpt-4 | 50 | **PRIMARY**: Percentile ratings (0-100) with rationale |
 | `data/tiers_long.csv` | baseline_sept_2024 | gpt-4 | 50 | **PRIMARY**: Journal tier predictions (0-5) |
 | `data/combined_long.csv` | baseline_sept_2024 | gpt-4 | 50 | **PRIMARY**: All metrics in single long-format file |
+
+
+DR: Are these really from GPT-4? I somehow doubt it
+
+### Input papers and evaluation report content
+
+DR: Claude code didn't document this, but I think we should do.
+
+*Folders*
+
+- papers: A few papers to focus on?
+- `more papers`: I think these are the papers inputs into the main LLM calls for evaluation
+
+- paper_abstracts_meta_data: Should be a CSP file of all papers, their abstracts, and some information about the authors. This is for a sort of placebo test of whether the model is mainly/solely doing statistical discrimination
+
+- latest_papers_post_UJ: A cron job automatically downloads the latest versions of papers here based on their DOIs. This is for the "do authors adjust" side analysis.
+
+- unjournal_evaluations: The actual content of Unjournal's evaluations full-step. Using this somewhat in the quote do authors adjust" analysis, intend to use it in the LLM comparison in future
 
 ### Human Evaluation Data
 | File | Source | Description |
@@ -20,6 +44,9 @@ All files in `data/` folder are loaded by the Quarto book via `setup_params.R`.
 | `data/all_jtiers.rds` | Unjournal.org | Human journal tier predictions |
 | `data/all_jtiers.csv` | Unjournal.org | Human journal tier predictions (CSV) |
 | `data/all_ratings.csv` | Unjournal.org | Human evaluator ratings (CSV) |
+
+DR: all_ratings.csv Seems to have journal tiers as well. Note that the first column "label_paper" (Seems to be author-date) is sometimes missing but the next column "label_paper_title" Seems to be always present
+
 
 ## Data Structure by Schema Version
 
