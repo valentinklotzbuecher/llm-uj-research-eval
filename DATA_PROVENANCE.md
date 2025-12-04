@@ -29,7 +29,7 @@ DR: Claude code didn't document this, but I think we should do.
 *Folders*
 
 - papers: A few papers to focus on?
-- `more papers`: I think these are the papers inputs into the main LLM calls for evaluation
+- `more_papers`: I think these are the papers inputs into the main LLM calls for evaluation
 
 - paper_abstracts_meta_data: Should be a CSP file of all papers, their abstracts, and some information about the authors. This is for a sort of placebo test of whether the model is mainly/solely doing statistical discrimination
 

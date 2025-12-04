@@ -30,7 +30,7 @@ except ImportError:
     import pdfplumber
 
 # Configuration
-PAPERS_BEFORE_DIRS = ["papers", "more papers"]
+PAPERS_BEFORE_DIRS = ["papers", "more_papers"]
 PAPERS_AFTER_DIR = "latest_papers_post_UJ"
 EVALUATIONS_DIR = "unjournal_evaluations"
 OUTPUT_DIR = Path("paper_change_analysis")

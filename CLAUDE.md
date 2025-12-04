@@ -270,7 +270,7 @@ The `paper_change_analysis/` directory contains a separate analysis pipeline:
 - `scripts/llm_change_attribution.py`: (Optional) LLM analysis to assess if changes reflect evaluator feedback
 
 **Data inputs:**
-- `papers/` and `more papers/`: Before versions (at evaluation time)
+- `papers/` and `more_papers/`: Before versions (at evaluation time)
 - `latest_papers_post_UJ/`: After versions (latest available)
 - `latest_papers_post_UJ/metadata.csv`: Paper titles and metadata
 - `unjournal_evaluations/*.md`: Evaluation files with paper titles

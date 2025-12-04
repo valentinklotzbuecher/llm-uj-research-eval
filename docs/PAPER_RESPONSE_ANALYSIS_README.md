@@ -15,7 +15,7 @@ The pipeline uses LLMs to:
 ### Analysis Scripts
 
 - **`analyze_paper_changes.py`** - Phase 1: Paper matching and text extraction
-  - Finds paper pairs across `papers/`, `more papers/`, and `latest_papers_post_UJ/` folders
+  - Finds paper pairs across `papers/`, `more_papers/`, and `latest_papers_post_UJ/` folders
   - Extracts PDF text using pdfplumber
   - Computes text diffs between versions
   - Matches papers to evaluation files
@@ -99,7 +99,7 @@ The Coda public API doesn't expose:
 
 Papers have different naming conventions:
 - **latest_papers_post_UJ**: `"FirstName LastNameFirstName LastName_Title.pdf"`
-- **more papers**: `"LastName et al. YEAR.pdf"`
+- **more_papers**: `"LastName et al. YEAR.pdf"`
 
 **Solution:**
 - Fuzzy matching on author surnames

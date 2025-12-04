@@ -11,7 +11,7 @@ import re
 
 # Paths
 METADATA_CSV = "latest_papers_post_UJ/metadata.csv"
-BEFORE_DIRS = ["papers", "more papers"]
+BEFORE_DIRS = ["papers", "more_papers"]
 
 def normalize_text(text):
     """Normalize text for comparison."""
