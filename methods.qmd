@@ -29,7 +29,7 @@ All papers have completed The Unjournal's evaluation process (meaning the author
 
 
 Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked for the midpoint of their beliefs and their 90% credible interval, to communicate their uncertainty.
-For the journal rankings measure, we ask both "what journal ranking tier should this work be published in? (0.0-5.0)" and "what journal ranking tier will this work be published in? (0.0-5.0)", with some further explanation.The full prompt can be seen in the code below -- essentially copied from the Unjournal's guidelines page.
+For the journal rankings measure, we ask both "what journal ranking tier should this work be published in? (0.0-5.0)" and "what journal ranking tier will this work be published in? (0.0-5.0)", with some further explanation. The full system prompt is shown in @sec-full-prompt below, and is based on the Unjournal's guidelines page.
 
 <!-- *Internal note: The Python content below must be run externally* -->
 
@@ -309,7 +309,18 @@ TEXT_FORMAT_COMBINED = {
 
 #Todo -- adjust the 'diagnostic summary' below to take into account more aspects of our criteria
 
-SYSTEM_PROMPT_COMBINED = f"""
+# Import modular prompt system
+import sys
+sys.path.insert(0, '.')  # Add project root to Python path
+
+from prompts.versions.v4_assessment_current import SYSTEM_PROMPT
+
+# Use modular prompt
+SYSTEM_PROMPT_COMBINED = SYSTEM_PROMPT
+
+# Old hardcoded version commented out below for reference
+"""
+SYSTEM_PROMPT_COMBINED = f'''
 
 Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer.
 Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment -- give your assessment based on the *content* of the papers alone; do it based on your knowledge and insights.
@@ -405,7 +416,36 @@ Do not include citations, URLs, author identity, or any external information.
 - Tiers in [0, 5] with ci_lower ≤ score ≤ ci_upper.
 
 Do not include citations, URLs, author identity, or any external information.
-""".strip()
+'''.strip()
+"""
+
+```
+
+### Full System Prompt {#sec-full-prompt}
+
+The complete system prompt sent to the LLM for each paper evaluation is shown below. This prompt is constructed from modular components—see [PROMPT_VERSIONS.md](PROMPT_VERSIONS.md) for version history and [prompts/README.md](prompts/README.md) for details on the component-based architecture. The current version (v4_assessment_current) includes author-blind instructions and requests a 1000-word diagnostic assessment before scoring.
+
+::: {.callout-note collapse="true" appearance="minimal"}
+## Click to expand full prompt text
+
+```{python}
+#| echo: false
+#| output: asis
+
+# Import the current system prompt
+import sys
+sys.path.insert(0, '.')
+from prompts.versions.v4_assessment_current import SYSTEM_PROMPT
+
+# Display in a code block
+print("```text")
+print(SYSTEM_PROMPT)
+print("```")
+```
+
+:::
+
+```
 
 # Async-by-default kickoff: submit and return job metadata. No waiting.
 def evaluate_paper(pdf_path: Union[str, pathlib.Path],
