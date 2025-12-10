@@ -1,0 +1,625 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  11pt,
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrreprt}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{5}
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+
+\KOMAoption{captions}{tableheading,figureheading}
+\makeatletter
+\@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
+\@ifpackageloaded{fontawesome5}{}{\usepackage{fontawesome5}}
+\definecolor{quarto-callout-color}{HTML}{909090}
+\definecolor{quarto-callout-note-color}{HTML}{0758E5}
+\definecolor{quarto-callout-important-color}{HTML}{CC1914}
+\definecolor{quarto-callout-warning-color}{HTML}{EB9113}
+\definecolor{quarto-callout-tip-color}{HTML}{00A047}
+\definecolor{quarto-callout-caution-color}{HTML}{FC5300}
+\definecolor{quarto-callout-color-frame}{HTML}{acacac}
+\definecolor{quarto-callout-note-color-frame}{HTML}{4582ec}
+\definecolor{quarto-callout-important-color-frame}{HTML}{d9534f}
+\definecolor{quarto-callout-warning-color-frame}{HTML}{f0ad4e}
+\definecolor{quarto-callout-tip-color-frame}{HTML}{02b875}
+\definecolor{quarto-callout-caution-color-frame}{HTML}{fd7e14}
+\makeatother
+\makeatletter
+\@ifpackageloaded{bookmark}{}{\usepackage{bookmark}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Comparing LLM and human reviews of social science research using data from Unjournal.org},
+  pdfauthor={David Reinstein; Valentin Klotzbücher},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Comparing LLM and human reviews of social science research using
+data from Unjournal.org}
+\author{Valentin Klotzbücher, David Reinstein, and Tianmai M. Zhang}
+\date{2025-09-23}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+We adapt and refine LLM tools to generate peer-reviews and ratings of global-priorities relevant research in economics, social science, and policy. We compare these with human experts' evaluations and ratings, especially from The Unjournal (Unjournal.org). We aim  to benchmark performance, understand AI's research taste, and develop tools to improve research evaluation and
+dissemination.
+\end{abstract}
+
+\renewcommand*\contentsname{Table of contents}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\bookmarksetup{startatroot}
+
+\chapter{Introduction}\label{introduction}
+
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, toprule=.15mm, colframe=quarto-callout-warning-color-frame, bottomtitle=1mm, bottomrule=.15mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Work in progress}, left=2mm, coltitle=black, arc=.35mm, opacitybacktitle=0.6, rightrule=.15mm, titlerule=0mm, toptitle=1mm, breakable, colback=white, leftrule=.75mm, colbacktitle=quarto-callout-warning-color!10!white]
+
+Pages, metrics, and comparisons are under active development. Expect
+rough edges and frequent updates.
+
+\end{tcolorbox}
+
+Is AI good at peer-reviewing? Does it offer useful and valid feedback?
+Can it predict how human experts will rate research across a range of
+categories? How can it help academics do this ``thankless'' task better?
+Is it particularly good at spotting errors? Are there specific
+categories, e.g.~spotting math errors or judging real-world relevance,
+where it does surprisingly well or poorly? How does its ``research
+taste'' compare to humans?
+
+If AI research-evaluation works it could free up a lot of scientific
+resources -- perhaps \$1.5 billion/year in the US alone (Aczel, Szaszi,
+and Holcombe (\citeproc{ref-aczel2021billion}{2021}))) -- and offer more
+continual and detailed review, helping improve research. It could also
+help characterize methodological strengths/weaknesses across papers,
+aiding training and research direction-setting. Furthermore, a key
+promise of AI is to directly improve science and research. Understanding
+how AI engages with research evaluations may provide a window into its
+values, abilities, and limitations.
+
+In this project, we are testing the capabilities of current large
+language models (LLMs), illustrating whether they can generate research
+paper evaluations comparable to expert human reviews. The Unjournal
+systematically prioritizes `impactful' research and pays for
+high-quality human evaluations, structured quantified ratings, claim
+identification and assessment, and predictions. In this project, we use
+an AI (OpenAI's \texttt{GPT-5} model for now) to review social science
+research papers under the same criteria used by human reviewers for The
+Unjournal.
+
+Each paper is assessed on specific dimensions -- for example, the
+strength of its evidence, rigor of methods, clarity of communication,
+openness/reproducibility, relevance to global priorities, and overall
+quality. The LLM will provide quantitative scores (with uncertainty
+intervals) on these criteria and produce a written evaluation
+
+Our initial dataset will include research papers that have existing
+human evaluations. For each paper, the AI will generate: (1) numeric
+ratings on the defined criteria, (2) identification of the paper's key
+claims, and (3) a detailed review discussing the paper's contributions
+and weaknesses. We will then compare the AI-generated evaluations to the
+published human evaluations.
+
+Next, we will focus on papers currently under evaluation, i.e., where no
+human evaluation has been made public, to allow us to rule out any
+contamination.
+
+\bookmarksetup{startatroot}
+
+\chapter{Data and methods}\label{data-and-methods}
+
+We draw on two main sources:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\tightlist
+\item
+  Human evaluations from The Unjournal's public dataset (PubPub reports
+  and the Coda evaluation form export).\\
+\item
+  LLM‑generated evaluations produced by GPT-5 using a structured
+  JSON‑schema prompt.
+\end{enumerate}
+
+We report (i) the human dataset and curation, and (ii) the LLM
+evaluation pipeline (PDF ingestion → prompt → JSON result → tidy CSV).
+Code cells below show the exact configuration and contract used with the
+model, as well as the API call.
+
+\section{Unjournal.org}\label{unjournal.org}
+
+\href{https://unjournal.github.io/unjournaldata/index.html}{Unjournal
+Dat Blog}
+
+\section{LLM-based evaluation}\label{llm-based-evaluation}
+
+\subsection{Quantitative ratings}\label{quantitative-ratings}
+
+Following The Unjournal's
+\href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators}{standard
+guidelines for evaluators} and their
+\href{https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME}{academic
+evaluation form}, evaluators are asked to consider each paper along the
+following dimensions: \textbf{claims \& evidence}, \textbf{methods},
+\textbf{logic \& communication}, \textbf{open science}, \textbf{global
+relevance}, and an \textbf{overall} assessment. Ratings are interpreted
+as percentiles relative to serious recent work in the same area. For
+each metric, evaluators are asked to provide a midpoint and a 90\%
+credible interval to communicate uncertainty.
+
+Response schema \& system prompt: This section defines the
+\emph{contract} we expect back from the model:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{METRICS} lists the categories we score.
+\item
+  \texttt{metric\_schema} specifies the shape and bounds of each metric.
+\item
+  \texttt{response\_format} (JSON Schema) asks the model to return only
+  a JSON object conforming to that schema.
+\item
+  \texttt{SYSTEM\_PROMPT} explains scoring semantics (percentiles + 90\%
+  credible intervals) and how to set the \texttt{overall} score.
+\end{itemize}
+
+Below is the main helper that runs a single evaluation:
+
+\begin{itemize}
+\tightlist
+\item
+  extracts text with \texttt{pdf\_to\_string()},
+\item
+  calls Chat Completions with the strict JSON Schema in
+  \texttt{response\_format},
+\item
+  parses the returned JSON string into a Python dict.
+\end{itemize}
+
+Batch-evaluate all PDFs: This loop walks every \texttt{*.pdf} in
+\texttt{papers/}, calls \texttt{evaluate\_paper()}, pads a 0.8s sleep
+for rate‑limits, and collects the raw JSON dicts in memory
+(\texttt{records}). The nested \texttt{records} structure is converted
+to a tidy long format and written to \texttt{results/metrics\_long.csv}.
+
+\subsection{Journal ranking tiers}\label{journal-ranking-tiers}
+
+\begin{itemize}
+\tightlist
+\item
+  What journal ranking tier should this work be published in? (0.0-5.0)
+\item
+  What journal ranking tier will this work be published in? (0.0-5.0)
+\end{itemize}
+
+\subsection{Claim identification}\label{claim-identification}
+
+\subsection{Qualitative assessments}\label{qualitative-assessments}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\bookmarksetup{startatroot}
+
+\chapter{Results}\label{results}
+
+Here we present preliminaray results, starting with a comparison of the
+LLM‑generated quantitative ratings (, see
+the\href{methods.qmd}{(previous section}) with human evaluations across
+\href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators\#undefined-1}{the
+Unjournal's criteria}.
+
+Results on journal ranking tiers, claim identification, and full written
+reports will be added soon.
+
+\section{Quantitative ratings}\label{quantitative-ratings-1}
+
+\subsection{Overall ratings}\label{overall-ratings}
+
+We begin by comparing \emph{overall} scores.
+
+In Figure~\ref{fig-forest}, the orange diamond and line show the
+midpoint and its 90\% credible interval for each paper, while the green
+circles show every individual human evaluator's midpoint (with 90\% CI
+when provided).
+
+\begin{figure}
+
+\caption{\label{fig-forest}LLM vs individual Human ratings (overall).
+Each rating on its own lane: orange LLM midpoint+CI centered; green
+human midpoints (thin CI when available) offset per rater.}
+
+\includegraphics{results_files/figure-pdf/fig-forest-1.pdf}
+
+\end{figure}%
+
+Next, Figure~\ref{fig-rankslope} contrasts relative \emph{ranks} of
+papers under human and LLM scoring. Lines curve upward when the LLM
+ranks a paper higher than humans (orange), downward when lower (green).
+
+\begin{figure}
+
+\caption{\label{fig-rankslope}Relative ranking (overall) by LLM and
+Human evaluators}
+
+\includegraphics{results_files/figure-pdf/fig-rankslope-1.pdf}
+
+\end{figure}%
+
+\subsection{Individual metrics}\label{individual-metrics}
+
+We then look closer at the specific ratings on the criterion level.
+Figure~\ref{fig-heat} displays LLM − Human differences by paper ×
+metric; orange cells indicate higher LLM scores, green cells lower ones.
+
+\begin{figure}
+
+\caption{\label{fig-heat}LLM − Human differences by paper × metric}
+
+\includegraphics{results_files/figure-pdf/fig-heat-1.pdf}
+
+\end{figure}%
+
+Table~\ref{tbl-agreement} show agreement metrics across rating criteria.
+
+\begin{longtable}[]{@{}lrrrrr@{}}
+
+\caption{\label{tbl-agreement}Overall agreement across all metrics}
+
+\tabularnewline
+
+\toprule\noalign{}
+criteria & n & pearson & spearman & kappa\_unwtd & kappa\_quad \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+adv\_knowledge & 35 & 0.348 & 0.476 & 0.058 & 0.228 \\
+claims & 13 & 0.151 & 0.336 & 0.103 & 0.287 \\
+gp\_relevance & 36 & 0.314 & 0.173 & 0.186 & 0.130 \\
+logic\_comms & 36 & -0.010 & 0.116 & 0.007 & 0.002 \\
+methods & 35 & 0.210 & 0.427 & 0.097 & 0.327 \\
+open\_sci & 36 & 0.135 & 0.084 & 0.055 & 0.096 \\
+overall & 36 & 0.289 & 0.392 & 0.119 & 0.327 \\
+
+\end{longtable}
+
+\subsection{Rationale behind the largest
+differences}\label{rationale-behind-the-largest-differences}
+
+As a first shot at understanding sources of disagreement, we look at the
+reported rationale for those ratings that diverge the most from
+(average) human assessments.
+
+This is what GPT-5 reports ``overall'' on Williams et al.
+(\citeproc{ref-Williams2024}{2024}):
+
+\begin{verbatim}
+[1] "A strong, policy-relevant mapping and quantification exercise with solid validation and careful caveats. Especially useful for restoration targeting and climate mitigation planning. Main weaknesses are reliance on historical regrowth patterns (stationarity), omission of socioeconomic feasibility in mapping, regional accuracy variation, and somewhat opaque/narrow area uncertainty. Overall quality is high across categories; no single metric dominates, so the overall is the mean."
+\end{verbatim}
+
+\section{Journal ranking tiers}\label{journal-ranking-tiers-1}
+
+\section{Claim identification}\label{claim-identification-1}
+
+\section{Qualitative assessments}\label{qualitative-assessments-1}
+
+\bookmarksetup{startatroot}
+
+\chapter{Discussion}\label{discussion}
+
+\section{Preliminary findings}\label{preliminary-findings}
+
+\section{Limitations}\label{limitations}
+
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, toprule=.15mm, colframe=quarto-callout-warning-color-frame, bottomtitle=1mm, bottomrule=.15mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Planned updates and extesions}, left=2mm, coltitle=black, arc=.35mm, opacitybacktitle=0.6, rightrule=.15mm, titlerule=0mm, toptitle=1mm, breakable, colback=white, leftrule=.75mm, colbacktitle=quarto-callout-warning-color!10!white]
+
+\begin{itemize}
+\item
+  Related work
+\item
+  Slides
+\item
+  Extended evaluation:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Journal ranking tiers and predictions
+  \item
+    Claim identification
+  \item
+    Qualitative assessments and full evaluations
+  \item
+    Comparing evaluations across fields/areas
+  \end{itemize}
+\item
+  Improved workflow:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Improve PDF ingestion
+  \item
+    System prompt optimization
+  \item
+    Alternative models
+  \item
+    Extend set of papers
+  \end{itemize}
+\end{itemize}
+
+\end{tcolorbox}
+
+\bookmarksetup{startatroot}
+
+\chapter*{References}\label{references}
+\addcontentsline{toc}{chapter}{References}
+
+\markboth{References}{References}
+
+We used R v. 4.4.2 (\citeproc{ref-base}{R Core Team 2024}) and the
+following R packages: ggforce v. 0.5.0 (\citeproc{ref-ggforce}{Pedersen
+2025}), here v. 1.0.1 (\citeproc{ref-here}{Müller 2020}), janitor v.
+2.2.1 (\citeproc{ref-janitor}{Firke 2024}), knitr v. 1.50
+(\citeproc{ref-knitr2014}{Xie 2014}, \citeproc{ref-knitr2015}{2015},
+\citeproc{ref-knitr2025}{2025}), renv v. 1.1.5
+(\citeproc{ref-renv}{Ushey and Wickham 2025}), rmarkdown v. 2.29
+(\citeproc{ref-rmarkdown2018}{Xie, Allaire, and Grolemund 2018};
+\citeproc{ref-rmarkdown2020}{Xie, Dervieux, and Riederer 2020};
+\citeproc{ref-rmarkdown2024}{Allaire et al. 2024}), stringi v. 1.8.7
+(\citeproc{ref-stringi}{Gagolewski 2022}), tidyverse v. 2.0.0
+(\citeproc{ref-tidyverse}{Wickham et al. 2019}).
+
+\phantomsection\label{refs}
+\begin{CSLReferences}{1}{0}
+\bibitem[\citeproctext]{ref-aczel2021billion}
+Aczel, Balazs, Barnabas Szaszi, and Alex O Holcombe, {``A billion-dollar
+donation: Estimating the cost of researchers' time spent on peer
+review,''} \emph{Research integrity and peer review}, 6 (2021), 1--8
+(Springer).
+
+\bibitem[\citeproctext]{ref-rmarkdown2024}
+Allaire, JJ, Yihui Xie, Christophe Dervieux, Jonathan McPherson, Javier
+Luraschi, Kevin Ushey, Aron Atkins, Hadley Wickham, Joe Cheng, Winston
+Chang, and Richard Iannone,
+{``\href{https://github.com/rstudio/rmarkdown}{{rmarkdown}: Dynamic
+documents for r},''} (2024).
+
+\bibitem[\citeproctext]{ref-janitor}
+Firke, Sam, {``\href{https://github.com/sfirke/janitor}{{janitor}:
+Simple tools for examining and cleaning dirty data},''} (2024).
+
+\bibitem[\citeproctext]{ref-stringi}
+Gagolewski, Marek,
+{``\href{https://doi.org/10.18637/jss.v103.i02}{{stringi}: {F}ast and
+portable character string processing in {R}},''} \emph{Journal of
+Statistical Software}, 103 (2022), 1--59.
+
+\bibitem[\citeproctext]{ref-here}
+Müller, Kirill, {``\href{https://here.r-lib.org/}{{here}: A simpler way
+to find your files},''} (2020).
+
+\bibitem[\citeproctext]{ref-ggforce}
+Pedersen, Thomas Lin,
+{``\href{https://ggforce.data-imaginist.com}{{ggforce}: Accelerating
+{`{ggplot2}'}},''} (2025).
+
+\bibitem[\citeproctext]{ref-base}
+R Core Team, {``\href{https://www.R-project.org/}{{R}: A language and
+environment for statistical computing},''} (Vienna, Austria, R
+Foundation for Statistical Computing, 2024).
+
+\bibitem[\citeproctext]{ref-renv}
+Ushey, Kevin, and Hadley Wickham,
+{``\href{https://rstudio.github.io/renv/}{{renv}: Project
+environments},''} (2025).
+
+\bibitem[\citeproctext]{ref-tidyverse}
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy
+D'Agostino McGowan, Romain François, Garrett Grolemund, Alex Hayes,
+Lionel Henry, Jim Hester, Max Kuhn, Thomas Lin Pedersen, Evan Miller,
+Stephan Milton Bache, Kirill Müller, Jeroen Ooms, David Robinson, Dana
+Paige Seidel, Vitalie Spinu, Kohske Takahashi, Davis Vaughan, Claus
+Wilke, Kara Woo, and Hiroaki Yutani,
+{``\href{https://doi.org/10.21105/joss.01686}{Welcome to the
+{tidyverse}},''} \emph{Journal of Open Source Software}, 4 (2019), 1686.
+
+\bibitem[\citeproctext]{ref-Williams2024}
+Williams, Brooke A, Hawthorne L Beyer, Matthew E Fagan, Robin L Chazdon,
+Marina Schmoeller, Starry Sprenkle-Hyppolite, Bronson W Griscom, James
+EM Watson, Anazélia M Tedesco, Mariano Gonzalez-Roglich, and others,
+{``\href{https://doi.org/10.1038/s41586-024-08106-4}{Global potential
+for natural regeneration in deforested tropical regions},''}
+\emph{Nature}, 636 (2024), 131--137.
+
+\bibitem[\citeproctext]{ref-knitr2014}
+Xie, Yihui, {``{knitr}: A comprehensive tool for reproducible research
+in {R},''} in \emph{Implementing reproducible computational research},
+Victoria Stodden, Friedrich Leisch, and Roger D. Peng, eds. (Chapman;
+Hall/CRC, 2014).
+
+\bibitem[\citeproctext]{ref-knitr2015}
+------, {``\href{https://yihui.org/knitr/}{Dynamic documents with {R}
+and knitr},''} (Boca Raton, Florida, Chapman; Hall/CRC, 2015).
+
+\bibitem[\citeproctext]{ref-knitr2025}
+------, {``\href{https://yihui.org/knitr/}{{knitr}: A general-purpose
+package for dynamic report generation in {R}},''} (2025).
+
+\bibitem[\citeproctext]{ref-rmarkdown2018}
+Xie, Yihui, J. J. Allaire, and Garrett Grolemund,
+{``\href{https://bookdown.org/yihui/rmarkdown}{R markdown: The
+definitive guide},''} (Boca Raton, Florida, Chapman; Hall/CRC, 2018).
+
+\bibitem[\citeproctext]{ref-rmarkdown2020}
+Xie, Yihui, Christophe Dervieux, and Emily Riederer,
+{``\href{https://bookdown.org/yihui/rmarkdown-cookbook}{R markdown
+cookbook},''} (Boca Raton, Florida, Chapman; Hall/CRC, 2020).
+
+\end{CSLReferences}
+
+
+
+\end{document}

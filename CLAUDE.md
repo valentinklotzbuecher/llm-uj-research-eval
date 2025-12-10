@@ -171,7 +171,7 @@ python track_llm_run.py start \
   --prompt-version v3_diagnostic \
   --description "Testing diagnostic assessment approach" \
   --notes "Selected 10 papers with strong methodological critiques" \
-  --prompt-file example_prompt.txt  # Copy prompt to run directory
+  --prompt-file my_prompt.txt  # Copy prompt to run directory
   # OR
   --prompt-source "methods.qmd:line_312"  # Reference prompt location
 

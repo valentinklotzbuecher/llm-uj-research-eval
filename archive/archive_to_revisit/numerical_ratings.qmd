@@ -1,0 +1,669 @@
+# Numerical ratings (LLM work)
+
+Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), we ask the LLM to evaluate each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric the model returns a midpoint and a 90% credible interval to communicate uncertainty.
+
+<!-- Draw from our guidelines 
+https://raw.githubusercontent.com/unjournal/unjournal_gitbook/6aaf1da61d3c2c9d46074aaee3a9f05773587632/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators/README.md
+
+hosted at https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators
+
+And/or from our coda form linked above
+--> 
+
+```{python}
+#| label: "API setup (Chat Completions + safe tokenizer)"
+#| eval: false
+
+import os, pathlib, json, textwrap, re
+import pdfplumber, time, tiktoken
+import pandas as pd, numpy as np
+from openai import OpenAI
+import altair as alt; alt.renderers.enable("html")
+import plotly.io as pio
+import plotly.graph_objects as go
+from tqdm import tqdm  
+from IPython.display import Markdown, display
+
+#  Setup chunk:
+# * loads the main libraries (OpenAI SDK, Altair, Plotly, …)
+# * looks for your OpenAI key in **key/openai_key.txt** 
+# * initialises a client (`gpt-5`, via `UJ_MODEL`)
+# * defines `pdf_to_string()` — drops the reference section and hard‑caps at 180k tokens so we stay in‑context.
+
+# **API key hygiene.** 
+# The code only *reads* `key/openai_key.txt` if the environment variable isn’t already set. Keep this file out of version control (adjust gitignore).
+
+
+
+# ---------- API key ----------
+key_path = pathlib.Path("key/openai_key.txt")
+if os.getenv("OPENAI_API_KEY") is None and key_path.exists():
+    os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError("No API key found. Put it in key/openai_key.txt or set OPENAI_API_KEY.")
+
+client = OpenAI()
+
+# ---------- Model (GPT‑5) ----------
+MODEL = os.getenv("UJ_MODEL", "gpt-5")
+
+# ---------- PDF → text with a fixed tokenizer ----------
+_enc = tiktoken.get_encoding("o200k_base")  # large-context encoder
+
+def pdf_to_string(path, max_tokens=180_000):
+    """Extract text, drop references section, hard-cap by tokens."""
+    with pdfplumber.open(path) as pdf:
+        text = " ".join(p.extract_text() or "" for p in pdf.pages)
+    text = re.sub(r"\s+", " ", text)
+    m = re.search(r"\b(References|Bibliography)\b", text, flags=re.I)
+    if m: text = text[: m.start()]
+    toks = _enc.encode(text)
+    if len(toks) > max_tokens:
+        text = _enc.decode(toks[:max_tokens])
+    return text
+
+
+# Response schema & system prompt:
+# This section defines the *contract* we expect back from the model.
+
+# - **`METRICS`** lists the categories we score.
+# - **`metric_schema`** specifies the shape and bounds of each metric.
+# - **`response_format`** (JSON Schema) asks the model to return **only** a JSON
+#   object conforming to that schema.
+# - **`SYSTEM_PROMPT`** explains scoring semantics (percentiles + 90% credible
+#   intervals) and how to set the `overall` score.
+ 
+
+
+# -----------------------------
+# 1.  Metric list
+# -----------------------------
+METRICS = [
+    "overall",
+    "claims_evidence",
+    "methods",
+    "advancing_knowledge",
+    "logic_communication",
+    "open_science",
+    "global_relevance"
+]
+
+# -----------------------------
+# 2.  JSON schema
+# -----------------------------
+metric_schema = {
+    "type": "object",
+    "properties": {
+        "midpoint":    {"type": "integer", "minimum": 0, "maximum": 100},
+        "lower_bound": {"type": "integer", "minimum": 0, "maximum": 100},
+        "upper_bound": {"type": "integer", "minimum": 0, "maximum": 100},
+        "rationale":   {"type": "string"}
+    },
+    "required": ["midpoint", "lower_bound", "upper_bound", "rationale"],
+    "additionalProperties": False
+}
+
+response_format = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "paper_assessment_v1",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "metrics": {
+                    "type": "object",
+                    "properties": {m: metric_schema for m in METRICS},
+                    "required": METRICS,
+                    "additionalProperties": False
+                }
+            },
+            "required": ["metrics"],
+            "additionalProperties": False
+        }
+    }
+}
+
+
+# -----------------------------
+# 3.  System prompt
+# -----------------------------
+
+SYSTEM_PROMPT = textwrap.dedent(f"""
+You are an expert evaluator.
+
+We ask for a set of quantitative metrics. For each metric, we ask for a score and a 90% credible interval.
+
+Percentile rankings
+We ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on.
+The population of papers should be all serious research in the same area that you have encountered in the last three years.
+
+Midpoint rating and credible intervals 
+For each metric, we ask you to provide a 'midpoint rating' and a 90% credible interval as a measure of your uncertainty. 
+We want policymakers, researchers, funders, and managers to be able to use evaluations to update their beliefs and make better decisions. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. 
+You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.
+
+Overall assessment
+- Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness.importance to knowledge production, and importance to practice. 
+
+
+Claims, strength and characterization of evidence
+- Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
+
+Methods: Justification, reasonableness, validity, robustness
+- Are the methods used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? 
+- Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this?
+- Avoiding bias and questionable research practices (QRP): Did the authors take steps to reduce bias from opportunistic reporting and QRP? For example, did they do a strong pre-registration and pre-analysis plan, incorporate multiple hypothesis testing corrections, and report flexible specifications? 
+
+Advancing our knowledge and practice
+- To what extent does the project contribute to the field or to practice, particularly in ways that are relevant to global priorities and impactful interventions?
+- Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions? 
+- Does the project add useful value to other impactful research? We don't require surprising results; sound and well-presented null results can also be valuable.
+
+
+Logic and communication
+- Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced?
+- Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow?
+- Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? 
+- Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?
+
+Open, collaborative, replicable research
+- Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided?
+- Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained?? 
+- Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?
+- Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?
+
+Relevance to global priorities, usefulness for practitioners
+- Are the paper’s chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? 
+- Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? 
+- Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? 
+- Do they communicate (at least in the abstract or introduction)  in ways policymakers and decision-makers can understand, without misleading or oversimplifying?
+
+Return STRICT JSON matching the supplied schema.
+
+Fill every key in the object `metrics`:
+
+  {', '.join(METRICS)}
+
+Definitions are percentile scores (0 – 100) versus serious work in the field from the last 3 years.
+For `overall`:
+  • Default = arithmetic mean of the other six midpoints (rounded).  
+  • If, in your judgment, another value is better (e.g. one metric is far more decision-relevant), choose it **and explain why** in `overall.rationale`.
+
+Field meanings
+  midpoint      → best-guess percentile
+  lower_bound   → 5th-percentile plausible value
+  upper_bound   → 95th-percentile plausible value
+  rationale     → ≤100 words; terse but informative.
+
+Do **not** wrap the JSON in markdown fences or add extra text.
+""").strip()
+
+
+
+# Below is the main helper that runs a single evaluation:
+
+# - extracts text with `pdf_to_string()`,
+# - calls **Chat Completions** with the strict JSON Schema in `response_format`,
+# - parses the returned JSON string into a Python dict.
+
+
+def evaluate_paper(pdf_path: str | pathlib.Path, model: str = MODEL) -> dict:
+    paper_text = pdf_to_string(pdf_path)
+
+    chat = client.chat.completions.create(
+        model=model,                       # "gpt-5"
+        response_format=response_format,   # your JSON-Schema defined above
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": paper_text}
+        ],
+        # max_tokens=2500,                 # optional cap for the JSON block
+    )
+
+    raw_json = chat.choices[0].message.content
+    return json.loads(raw_json)
+
+
+# Minimal probe using Chat Completions (works on gpt-5 and o3)
+
+
+# A quick “smoke test” to confirm the client is alive and willing to emit JSON.
+# This intentionally uses the simple `json_object` format for wide model compatibility.
+
+
+# MODEL = "gpt-5"   #  "o3" 
+
+# probe = client.chat.completions.create(
+#     model=MODEL,
+#     messages=[
+#         {"role": "system", "content": "Return only valid JSON: {\"ok\": true}"},
+#         {"role": "user",   "content": "Return {\"ok\": true} only."}
+#     ],
+#     # Wide compatibility: ask for a JSON object (no schema)
+#     response_format={"type": "json_object"},
+# )
+
+# print(probe.choices[0].message.content)  # should print {"ok": true}
+
+
+
+```
+
+
+We iterate over `papers/*.pdf`, collect raw results and write a long CSV to `results/metrics_long.csv`.
+
+```{python}
+#| label: eval-many-metrics
+#| eval: false
+
+
+# Batch-evaluate all PDFs
+
+
+# This loop walks every `*.pdf` in `papers/`, calls `evaluate_paper()`,
+# pads a **0.8 s** sleep for rate‑limits, and collects the raw JSON dicts in memory
+# (`records`). We *don’t* write one JSON file per paper here; instead, the nested `records` structure is converted to a tidy long format and
+# written to `results/metrics_long.csv`.
+
+
+
+ROOT = pathlib.Path("papers")          # put your PDFs here
+OUT  = pathlib.Path("results")
+OUT.mkdir(exist_ok=True)
+
+pdfs = sorted(ROOT.glob("*.pdf"))
+
+records = []
+for pdf in tqdm(pdfs, desc="Metrics"):
+    try:
+        res = evaluate_paper(pdf)     # <-- 
+        res["paper"] = pdf.stem
+        records.append(res)
+        time.sleep(0.8)             
+    except Exception as e:
+        print(f"⚠️ {pdf.name}: {e}")
+
+
+
+tidy_rows = []
+for rec in records:
+    paper_id = rec["paper"]
+    for metric, vals in rec["metrics"].items():
+        tidy_rows.append({
+            "paper":   paper_id,
+            "metric":  metric,
+            **vals     # midpoint, lower_bound, upper_bound, rationale
+        })
+
+tidy = pd.DataFrame(tidy_rows)
+tidy.to_csv(OUT / "metrics_long.csv", index=False)
+# tidy.head()
+
+
+
+
+p = pathlib.Path("results/metrics_long.csv")
+if not p.exists():
+    display(Markdown("::: {.callout-warning}\n**No results yet.** Run the batch evaluation to generate `results/metrics_long.csv`.\n:::"))
+else:
+    tidy = pd.read_csv(p)
+    # Basic counts
+    n_papers = tidy["paper"].nunique()
+    n_rows   = len(tidy)
+    n_metrics = tidy["metric"].nunique()
+    # Overall-only slice
+    overall = tidy[tidy["metric"] == "overall"].copy()
+    mean_overall = overall["midpoint"].mean() if not overall.empty else np.nan
+    med_overall  = overall["midpoint"].median() if not overall.empty else np.nan
+
+    display(Markdown(
+        f"**Batch size:** {n_papers} papers  \n"
+        f"**Total metric rows:** {n_rows:,} across {n_metrics} metrics  \n"
+        f"**Overall ratings:** mean = {mean_overall:.1f}, median = {med_overall:.1f}"
+    ))
+
+
+  ```
+
+We use the following system prompt:
+
+```{python}
+#| label: tiers-setup
+#| eval: false
+#| code-fold: true
+
+from __future__ import annotations
+import os, pathlib, json, textwrap, re, time, math, random, hashlib, threading
+from typing import Any, Dict, Optional
+import pdfplumber, tiktoken
+import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Reuse your existing OpenAI client + MODEL set earlier:
+# client = OpenAI()
+# MODEL = os.getenv("UJ_MODEL", "gpt-5")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tokenizer + compact extractor for tiering (cheaper than full paper)
+# ─────────────────────────────────────────────────────────────────────────────
+_enc = tiktoken.get_encoding("o200k_base")
+
+def _truncate_tokens(txt: str, max_tokens: int) -> str:
+    toks = _enc.encode(re.sub(r"\s+", " ", txt))
+    if len(toks) > max_tokens:
+        toks = toks[:max_tokens]
+    return _enc.decode(toks)
+
+def pdf_to_tier_text(path, max_tokens: int = 25_000) -> str:
+    """
+    Cheaper extract: try to keep Abstract, Introduction, Results/Discussion, Conclusion.
+    Falls back gracefully to the whole (minus references) then truncates by tokens.
+    """
+    try:
+        with pdfplumber.open(path) as pdf:
+            full = " ".join(p.extract_text() or "" for p in pdf.pages)
+    except Exception:
+        # Fall back to the generic extractor in your earlier chunk, if defined:
+        return pdf_to_string(path, max_tokens=max_tokens)  # type: ignore
+
+    text = re.sub(r"\s+", " ", full)
+
+    # Drop references/bibliography
+    m = re.search(r"\b(References|Bibliography)\b", text, flags=re.I)
+    if m: text = text[: m.start()]
+
+    # Heuristic section pulls
+    chunks = []
+    def _grab(label, next_labels=("Introduction","1 ","I.","Background","Data","Model","Method", "Methods", "Approach")):
+        pat = rf"\b{label}\b"
+        m = re.search(pat, text, flags=re.I)
+        if not m: return None
+        start = m.start()
+        # stop at next section-ish header
+        next_pat = r"|".join([rf"\b{re.escape(nl)}\b" for nl in next_labels])
+        m2 = re.search(next_pat, text[m.end():], flags=re.I)
+        end = m.end() + (m2.start() if m2 else 5000)  # cap a bit if no clear end
+        return text[start:end]
+
+    for lab in ["Abstract", "Summary"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+    for lab in ["Introduction", "Motivation", "Overview"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+    for lab in ["Results", "Findings", "Discussion"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+    for lab in ["Conclusion", "Conclusions", "Policy Implications", "Implications"]:
+        s = _grab(lab)
+        if s: chunks.append(s)
+
+    if not chunks:
+        candidate = text
+    else:
+        candidate = " ".join(chunks)
+
+    return _truncate_tokens(candidate, max_tokens=max_tokens)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JSON schema + prompt (v2)
+# ─────────────────────────────────────────────────────────────────────────────
+TIERS_PROMPT_VERSION = "journal_tiers_v2_2025-09-14"
+
+TIERS_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "tier_should": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_lower":  {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_upper":  {"type": "number", "minimum": 0, "maximum": 5},
+                "rationale": {"type": "string", "maxLength": 400}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        },
+        "tier_will": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score":     {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_lower":  {"type": "number", "minimum": 0, "maximum": 5},
+                "ci_upper":  {"type": "number", "minimum": 0, "maximum": 5},
+                "rationale": {"type": "string", "maxLength": 400}
+            },
+            "required": ["score", "ci_lower", "ci_upper", "rationale"]
+        }
+    },
+    "required": ["tier_should", "tier_will"]
+}
+
+TIERS_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "journal_tiers_v2",
+        "strict": True,
+        "schema": TIERS_SCHEMA
+    }
+}
+
+TIERS_SYSTEM_PROMPT = textwrap.dedent("""
+You are an expert evaluator. Return STRICT JSON matching the provided schema.
+
+Scale (0–5; halves allowed):
+  5 = A-journal / top-five general
+  4 = top field or marginal A
+  3 = solid field
+  2 = niche / low-tier field
+  1 = working-paper outlet only
+  0 = not publishable
+
+Definitions:
+- tier_should = where the paper deserves to publish if quality-only decides.
+- tier_will   = realistic prediction given status/noise/connections.
+
+Rules:
+- Keep 0 ≤ ci_lower ≤ score ≤ ci_upper ≤ 5.
+- Round all scores to the nearest 0.5.
+- Rationale ≤ 40 words; focus on contribution, credibility, and fit.
+- No extra keys. No markdown. JSON only.
+""").strip()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers: rounding, clamping, validation, caching
+# ─────────────────────────────────────────────────────────────────────────────
+def _round_half(x: float) -> float:
+    return round(float(x) * 2.0) / 2.0
+
+def _clamp_0_5(x: float) -> float:
+    return max(0.0, min(5.0, float(x)))
+
+def _normalize_block(block: Dict[str, Any]) -> Dict[str, Any]:
+    s  = _round_half(_clamp_0_5(block.get("score", 0.0)))
+    lo = _round_half(_clamp_0_5(block.get("ci_lower", s)))
+    hi = _round_half(_clamp_0_5(block.get("ci_upper", s)))
+    # enforce ordering
+    if lo > s: lo, s = s, lo
+    if hi < s: hi, s = s, hi
+    if lo > hi: lo, hi = hi, lo
+    block["score"], block["ci_lower"], block["ci_upper"] = s, lo, hi
+    # Rationale hygiene
+    r = str(block.get("rationale", "")).strip()
+    block["rationale"] = re.sub(r"\s+", " ", r)
+    return block
+
+def _normalize_tiers(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if "tier_should" in payload:
+        payload["tier_should"] = _normalize_block(payload["tier_should"])
+    if "tier_will"   in payload:
+        payload["tier_will"]   = _normalize_block(payload["tier_will"])
+    return payload
+
+def _file_hash_bytes(path: pathlib.Path) -> bytes:
+    h = hashlib.sha1()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.digest()
+
+def _cache_key_for_tiers(pdf_path: pathlib.Path, model: str) -> str:
+    base = _file_hash_bytes(pdf_path)
+    extra = f"{model}|{TIERS_PROMPT_VERSION}".encode()
+    return hashlib.sha1(base + extra).hexdigest()
+
+CACHE_DIR = pathlib.Path("cache") / "journal_tiers"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_cache_lock = threading.Lock()
+
+```
+
+
+
+```{python}
+#| label: tiers-run-one
+#| eval: false
+#| code-fold: true
+
+def evaluate_journal_tiers(pdf_path: str | pathlib.Path,
+                           model: str = MODEL,
+                           seed: Optional[int] = 2025,
+                           max_tokens_extract: int = 25_000,
+                           verbose: bool = False) -> Dict[str, Any]:
+    """
+    Returns: dict with keys: tier_should{score,ci_lower,ci_upper,rationale},
+    tier_will{...}, plus bookkeeping fields.
+    Uses caching keyed to (pdf bytes, model, prompt_version).
+    """
+    pdf_path = pathlib.Path(pdf_path)
+    key = _cache_key_for_tiers(pdf_path, model)
+    cache_file = CACHE_DIR / f"{key}.json"
+
+    # Try cache
+    if cache_file.exists():
+        if verbose: print(f"cache hit: {pdf_path.name}")
+        data = json.loads(cache_file.read_text())
+        return data
+
+    # Extract compact text for this task
+    paper_text = pdf_to_tier_text(pdf_path, max_tokens=max_tokens_extract)
+
+    # Call model with strict JSON schema
+    backoff = 1.0
+    last_err = None
+    for attempt in range(6):
+        try:
+            chat = client.chat.completions.create(
+                model=model,
+                response_format=TIERS_RESPONSE_FORMAT,
+                seed=seed,
+                messages=[
+                    {"role": "system", "content": TIERS_SYSTEM_PROMPT},
+                    {"role": "user",   "content": paper_text}
+                ],
+            )
+            raw = chat.choices[0].message.content
+            payload = json.loads(raw)
+            payload = _normalize_tiers(payload)
+            payload["paper"] = pdf_path.stem
+            payload["model"] = model
+            payload["prompt_version"] = TIERS_PROMPT_VERSION
+            cache_file.write_text(json.dumps(payload, ensure_ascii=False))
+            return payload
+        except Exception as e:
+            last_err = e
+            # gentle jittered exponential backoff
+            time.sleep(backoff + random.random() * 0.25)
+            backoff *= 1.8
+
+    raise RuntimeError(f"Tier evaluation failed for {pdf_path.name}: {last_err}")
+
+
+```
+
+
+```{python}
+#| label: tiers-batch
+#| eval: false
+#| code-fold: true
+
+def batch_evaluate_journal_tiers(root: str | pathlib.Path = "papers",
+                                 out_csv_wide: str | pathlib.Path = "results/journal_tiers.csv",
+                                 out_csv_long: str | pathlib.Path = "results/journal_tiers_long.csv",
+                                 model: str = MODEL,
+                                 max_workers: int = 3,
+                                 verbose: bool = True) -> pd.DataFrame:
+    ROOT = pathlib.Path(root)
+    OUT  = pathlib.Path(out_csv_wide)
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+
+    pdfs = sorted(ROOT.glob("*.pdf"))
+    if verbose:
+        print(f"Tiering {len(pdfs)} papers with {max_workers} workers...")
+
+    rows = []
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = {ex.submit(evaluate_journal_tiers, pdf, model): pdf for pdf in pdfs}
+        for fut in as_completed(futs):
+            pdf = futs[fut]
+            try:
+                res = fut.result()
+                rows.append({
+                    "paper": pdf.stem,
+                    "model": res.get("model"),
+                    "prompt_version": res.get("prompt_version"),
+                    "should_score":     res["tier_should"]["score"],
+                    "should_ci_lower":  res["tier_should"]["ci_lower"],
+                    "should_ci_upper":  res["tier_should"]["ci_upper"],
+                    "should_rationale": res["tier_should"]["rationale"],
+                    "will_score":       res["tier_will"]["score"],
+                    "will_ci_lower":    res["tier_will"]["ci_lower"],
+                    "will_ci_upper":    res["tier_will"]["ci_upper"],
+                    "will_rationale":   res["tier_will"]["rationale"],
+                })
+                if verbose: print(f"✓ {pdf.name}")
+            except Exception as e:
+                print(f"⚠️ {pdf.name}: {e}")
+
+    wide = pd.DataFrame(rows)
+    wide.to_csv(OUT, index=False)
+
+    # Long format (two rows per paper)
+    long_rows = []
+    for r in rows:
+        for kind in ("should", "will"):
+            long_rows.append({
+                "paper": r["paper"],
+                "model": r["model"],
+                "prompt_version": r["prompt_version"],
+                "tier_kind": kind,
+                "score": r[f"{kind}_score"],
+                "ci_lower": r[f"{kind}_ci_lower"],
+                "ci_upper": r[f"{kind}_ci_upper"],
+                "rationale": r[f"{kind}_rationale"],
+            })
+    long = pd.DataFrame(long_rows)
+    pathlib.Path(out_csv_long).parent.mkdir(parents=True, exist_ok=True)
+    long.to_csv(out_csv_long, index=False)
+
+    return wide
+
+```
+
+
+```{python}
+
+batch_evaluate_journal_tiers(
+    root="papers",
+    out_csv_wide="results/journal_tiers.csv",
+    out_csv_long="results/journal_tiers_long.csv",
+    model=MODEL,
+    max_workers=3,
+    verbose=True
+)
+
+```
+
+---

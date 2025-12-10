@@ -1,95 +1,135 @@
 # LLM-based Research Evaluation Demo 📑🤖
 
-This Quarto book uses LLMs to evaluate research papers based on The Unjournal metrics, and compares the results to human evaluations. (See our abstract for more detail)
+This Quarto book uses LLMs to evaluate research papers based on The Unjournal metrics, and compares the results to human evaluations.
 
-We are working on this collaboratively in [this Github repo](https://github.com/valentinklotzbuecher/llm-uj-research-eval#)
+**Live site**: <https://llm-uj-research-eval.netlify.app>
 
+**Repository**: [github.com/valentinklotzbuecher/llm-uj-research-eval](https://github.com/valentinklotzbuecher/llm-uj-research-eval)
 
-## Live site
+## 📋 Quick Links
 
-<https://llm-uj-research-eval.netlify.app>
+- **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Complete guide to repository organization
+- **[DATA_PROVENANCE.md](DATA_PROVENANCE.md)** - Data lineage & LLM run tracking
+- **[CLAUDE.md](CLAUDE.md)** - Development guide (detailed architecture notes)
 
-<!-- DR @VK Explain how to update this here.-->
+## 🎯 What This Project Does
 
-## Data layout
+1. **Uploads research papers** (PDFs) to LLM APIs
+2. **Generates structured evaluations** using The Unjournal's rating schema
+3. **Compares LLM ratings** with human expert evaluations
+4. **Analyzes patterns** to understand AI's research assessment capabilities
 
-```
-papers/    Raw PDFs of research papers (tracked in git, large files OK)
-data/      Production LLM evaluation data (used in Quarto book)
-results/   Experimental runs and timestamped LLM evaluations
-key/       openai_key.txt (git-ignored)
-```
-
-### Understanding the Data
-
-**📊 See [DATA_PROVENANCE.md](DATA_PROVENANCE.md) for complete documentation** of:
-- Which data files come from which LLM runs
-- Model, prompt, and date for each dataset
-- Schema evolution across different runs
-- How to identify and update production data
-
-**Quick reference**:
-- **Production data** (used in book): `data/metrics_long.csv`, `data/tiers_long.csv` from baseline_sept_2024 run (gpt-4)
-- **Experimental data**: `results/` directory with timestamped runs
-- **Run tracking**: `results/llm_runs_metadata.csv` - master registry of all LLM runs
-- **Metadata**: `data/METADATA.txt` - details on current production files
-- **Human evaluations**: `data/all_ratings.rds`, `data/all_jtiers.rds` from Unjournal.org
-
-**Active model**: Current production data uses **gpt-4** (baseline_sept_2024 run, ~50 papers)
-
-## Other notes
-
-May need to do 
+## 📂 Repository Structure
 
 ```
-conda env create -f environment.yml
-conda activate qpy311
-
-# 2) (belt & braces) point Quarto at this exact python
-export QUARTO_PYTHON="$(which python)"
-
-
-quarto render
-
+├── index.qmd, methods.qmd, results.qmd, etc.  # Main Quarto book chapters
+├── data/          Production LLM evaluation results (gpt-4, 50 papers)
+├── papers/        Research papers (PDFs) to evaluate
+├── results/       Experimental runs & tracking metadata
+└── key/           openai_key.txt (git-ignored, required for API calls)
 ```
 
+**See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete directory guide.**
 
-### Development setup notes
+### Key Data Files
 
-This project uses R (managed by renv) and Python (managed by conda) together in Quarto. Follow these steps to reproduce the environment:
+- **Production data** (used in book): `data/metrics_long.csv`, `data/tiers_long.csv`
+  - Model: gpt-4 (baseline_sept_2024 run)
+  - Papers: ~50 evaluated research papers
+- **Human evaluations**: `data/all_ratings.rds`, `data/all_jtiers.rds` (from Unjournal.org)
+- **Run tracking**: `results/llm_runs_metadata.csv` (master registry of all LLM runs)
 
-1. R setup
-Open the project in RStudio.
+**See [DATA_PROVENANCE.md](DATA_PROVENANCE.md) for detailed data lineage.**
 
-Run:
-install.packages("renv")
-renv::restore()
+## 🚀 Development Setup
 
-This installs the R packages listed in renv.lock.
+This project uses **both R and Python** in Quarto. Follow these steps:
 
-2. Python setup
+### 1. Python Setup (via conda)
 
-We use a conda environment defined in environment.yml.
-Install Miniforge or Miniconda
+```bash
+# Install Miniforge or Miniconda
+# https://github.com/conda-forge/miniforge
 
-Create the environment (first time only):
+# Create environment (first time)
 conda env create -f environment.yml
 
-Or update an existing one:
+# Or update existing environment
 conda env update -n qpy311 -f environment.yml
 
-Activate it:
+# Activate environment
 conda activate qpy311
 
-3. Quarto + rendering
+# Tell Quarto which Python to use
+export QUARTO_PYTHON="$(which python)"
+```
 
-To check your setup:
+### 2. R Setup (via renv)
+
+```r
+# In RStudio or R console
+install.packages("renv")
+renv::restore()  # Installs packages from renv.lock
+```
+
+### 3. API Keys
+
+```bash
+# Create key file (git-ignored)
+echo "your-openai-api-key" > key/openai_key.txt
+```
+
+### 4. Build & Render
+
+```bash
+# Check setup
 quarto check
 
-To render the site:
+# Render full site
 quarto render
 
+# Render single document
+quarto render methods.qmd
+```
 
-Optional: add this to your shell config so Quarto always picks the right Python without needing conda activate:
+### Optional: Persistent Python Path
 
+Add to `~/.bashrc` or `~/.zshrc`:
+
+```bash
 export QUARTO_PYTHON="$(conda run -n qpy311 which python)"
+```
+
+---
+
+## 📚 Documentation
+
+- **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Repository organization guide
+- **[DATA_PROVENANCE.md](DATA_PROVENANCE.md)** - Data lineage & tracking
+- **[CLAUDE.md](CLAUDE.md)** - Architecture & development notes
+- **[data/README.md](data/README.md)** - Production data documentation
+- **[results/README_FOLDER.md](results/README_FOLDER.md)** - Experimental runs guide
+
+---
+
+## 🛠️ Key Tools
+
+- **`track_llm_run.py`** - CLI for tracking evaluation runs
+  ```bash
+  python track_llm_run.py start --model gpt-5 --prompt-version v2
+  python track_llm_run.py list
+  ```
+
+---
+
+## 📊 Current Status
+
+- **Model**: gpt-4 (baseline_sept_2024)
+- **Papers evaluated**: ~50
+- **Deployment**: Auto-deploy to Netlify on push to main
+
+---
+
+## 🤝 Contributing
+
+This is collaborative research. See [CLAUDE.md](CLAUDE.md) for detailed architecture and development guidance.
