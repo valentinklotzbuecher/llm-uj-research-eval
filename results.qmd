@@ -1605,8 +1605,8 @@ metrics_llm_pro <- read_csv(here("data", "metrics_long.csv"), show_col_types = F
     version = "GPT-5 Pro"
   )
 
-# Load GPT-5 metrics (from archive)
-metrics_llm_5 <- read_csv(here("data", "archive", "metrics_long_gpt-5.csv"), show_col_types = FALSE) %>%
+# Load GPT-5 metrics (comparison model)
+metrics_llm_5 <- read_csv(here("data", "metrics_long_gpt-5.csv"), show_col_types = FALSE) %>%
   clean_names() %>%
   mutate(
     label_paper = str_replace(paper, "et al ", "et al. "),
