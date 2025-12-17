@@ -66,6 +66,8 @@ From Unjournal.org evaluation platform:
 - `merged.csv`, `llm_uj_unmatched_llm.csv` - Data merging artifacts
 - `metrics_meta.csv` - Metadata about metrics
 
+- `Consider for LLM focus.csv` - Identification of most important critiques from humans on journal evaluations for 14 key papers, Ad hoc classification by David Reinstein based on consensus of evaluators and own takes
+
 ## Subdirectories
 
 ### `archive/`
@@ -74,8 +76,6 @@ Old and experimental data files (gpt-5 test runs, old versions). See `archive/RE
 ### `extracted/`
 Text extracted from PDFs (5 sample files). Used for text-based analysis experiments.
 
-### `journal_tiers/`
-Individual JSON files (40+ files) containing journal tier data per paper.
 
 ### `notes/`
 Notes and documentation files (45+ markdown files).
@@ -128,4 +128,4 @@ For detailed metadata on current production files:
 
 - **Data provenance**: `/DATA_PROVENANCE.md`
 - **Architecture**: `/CLAUDE.md`
-- **Setup**: `/README.md`
+Z- **Setup**: `/README.md`
