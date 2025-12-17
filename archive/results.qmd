@@ -1,0 +1,1709 @@
+---
+title: "Results"
+format: 
+  html: default
+  # pdf: default
+engine: knitr
+--- 
+
+```{r} 
+#| label: setup call
+#| code-summary: "Include global setup and parameters"
+
+source("setup_params.R")
+```
+
+```{r}
+#| label: setup-libs
+
+library("tidyverse")
+library("janitor")
+library("stringr")
+library("stringi") #probably redundant?
+library("lubridate")
+#library("readr") #redundant?
+library("here")
+library("knitr")
+library("kableExtra")    # For better table formatting
+library("ggforce")
+library("ggrepel")
+library("glue")
+library("ggalluvial")
+library("scales")
+library("viridis")       # For colorblind-friendly palettes
+library("ggbreak")
+library("irr")           # For Krippendorff's alpha
+
+
+```
+
+```{r}
+#| label: setup-themes
+
+ 
+UJ_ORANGE <- "#f19e4b"   # LLM
+UJ_GREEN  <- "#99bb66"   # Human
+
+theme_uj <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      legend.position = "bottom"
+    )
+}
+
+ 
+```
+
+
+
+```{r}
+#| label: functions-summaries
+
+# Canonical metric name mapping
+canon_metric <- function(x) dplyr::recode(
+  x,
+  "advancing_knowledge" = "adv_knowledge",
+  "open_science"        = "open_sci",
+  "logic_communication" = "logic_comms",
+  "global_relevance"    = "gp_relevance",
+  "claims_evidence"     = "claims",
+  .default = x
+)
+
+fix_bounds <- function(df, lo, hi) {
+  lo2 <- suppressWarnings(as.numeric(df[[lo]]))
+  hi2 <- suppressWarnings(as.numeric(df[[hi]]))
+  swap <- !is.na(lo2) & !is.na(hi2) & (lo2 > hi2)
+  df[swap, c(lo, hi)] <- df[swap, c(hi, lo)]
+  df
+}
+
+safe_min <- function(ci, pts) {
+  if (length(ci) == 0 || all(is.na(ci))) suppressWarnings(min(pts, na.rm = TRUE)) else suppressWarnings(min(ci, na.rm = TRUE))
+}
+safe_max <- function(ci, pts) {
+  if (length(ci) == 0 || all(is.na(ci))) suppressWarnings(max(pts, na.rm = TRUE)) else suppressWarnings(max(ci, na.rm = TRUE))
+}
+
+# Quantile/equal binning shared by both raters (for κ)
+bin_together <- function(a, b, n_bins = 5, strategy = c("quantile","equal")) {
+  strategy <- match.arg(strategy)
+  x <- c(a, b)
+  x <- x[is.finite(x)]
+  # discrete-ish fallback
+  if (length(unique(x)) <= max(3, n_bins)) {
+    u <- sort(unique(x))
+    f <- function(v) match(v, u) - 1L
+    return(list(a_bin = f(a), b_bin = f(b), k = length(u)))
+  }
+  if (strategy == "quantile") {
+    qs <- unique(quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE))
+    if (length(qs) - 1L < 2L) {
+      strategy <- "equal"
+    } else {
+      edges <- qs
+    }
+  }
+  if (strategy == "equal") {
+    lo <- min(x, na.rm = TRUE); hi <- max(x, na.rm = TRUE)
+    edges <- seq(lo, hi, length.out = n_bins + 1)
+  }
+  # widen to include endpoints robustly
+  edges[1] <- edges[1] - 1e-9
+  edges[length(edges)] <- edges[length(edges)] + 1e-9
+  a_bin <- cut(a, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  b_bin <- cut(b, breaks = edges, include.lowest = TRUE, labels = FALSE) - 1L
+  k <- max(c(a_bin, b_bin), na.rm = TRUE) + 1L
+  list(a_bin = a_bin, b_bin = b_bin, k = k)
+}
+
+# Cohen κ (unweighted, linear, quadratic)  
+
+weighted_kappa <- function(a_bin, b_bin, k = NULL, weights = c("quadratic","linear","unweighted")) {
+  weights <- match.arg(weights)
+  a <- as.integer(a_bin); b <- as.integer(b_bin)
+  keep <- is.finite(a) & is.finite(b)
+  a <- a[keep]; b <- b[keep]
+  if (!length(a)) return(NA_real_)
+  if (is.null(k)) k <- max(c(a,b)) + 1L
+
+  M <- matrix(0, nrow = k, ncol = k)
+  for (i in seq_along(a)) M[a[i]+1L, b[i]+1L] <- M[a[i]+1L, b[i]+1L] + 1
+  if (sum(M) == 0) return(NA_real_)
+  M <- M / sum(M)
+  r <- rowSums(M); csum <- colSums(M)
+  E <- r %*% t(csum)
+
+  I <- matrix(rep(0:(k-1), times = k), nrow = k)
+  J <- t(I)
+  if (weights == "quadratic") {
+    W <- ((I - J)^2) / ((k - 1)^2)
+  } else if (weights == "linear") {
+    W <- abs(I - J) / (k - 1)
+  } else {
+    W <- 1 - diag(1, k)  # 1 off-diagonal, 0 on diagonal
+  }
+  num <- sum(W * M); den <- sum(W * E)
+  if (den == 0) NA_real_ else 1 - num/den
+}
+
+
+
+metrics_meta <- readr::read_csv(here("data", "metrics_meta.csv"), show_col_types = FALSE) |>
+  janitor::clean_names()
+
+# Model label from meta 
+models_run   <- metrics_meta |>
+  dplyr::distinct(model) |>
+  dplyr::pull(model) |> na.omit()
+currentmodel <- if (length(models_run) == 1) models_run else paste(models_run, collapse = ", ")
+
+# Token summary (input + output + reasoning tokens when available)
+metrics_meta <- metrics_meta |>
+  dplyr::mutate(total_tokens = dplyr::coalesce(input_tokens, 0) +
+                                dplyr::coalesce(output_tokens, 0) +
+                                dplyr::coalesce(reasoning_tokens, 0))
+
+tok_sum <- metrics_meta |>
+  dplyr::summarise(
+    n_papers = dplyr::n_distinct(paper),
+    median_tokens = stats::median(total_tokens, na.rm = TRUE),
+    mean_tokens   = mean(total_tokens, na.rm = TRUE)
+  )
+
+
+
+reasoning_example = metrics_meta |>
+  filter(!is.na(reasoning_summary), 
+         paper == "Williams et al. 2024")
+
+
+```
+
+Here we present preliminary results, starting with a comparison of the LLM‑generated quantitative ratings (model: `r currentmodel`, see the[(previous section](methods.qmd)) with human evaluations across [the Unjournal's criteria](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#undefined-1). 
+
+
+
+## Journal ranking tiers
+
+
+```{r}
+#| label: load-data-tiers
+
+
+# paper_authors <- read_delim(here("data", "paper_authors.csv"), delim = ",")
+
+# Mapping paper keys - short titles
+UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
+  mutate(label_paper_title = research,
+         label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+
+# Unjournal ratings
+rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
+
+
+# UJ evaluated research
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>  
+  left_join(UJmap, by = c("label_paper_title")) |>
+  mutate(doi = str_trim(doi)) |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w31162", "Walker et al. 2023", label_paper, missing = label_paper)) |>
+  mutate(label_paper = if_else(doi == "doi.org/10.3386/w32728", "Hahn et al. 2025", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "https://doi.org/10.3386/w30011", "Bhat et al. 2022", label_paper, missing = label_paper))  |>
+  mutate(label_paper = if_else(doi == "10.1093/wbro/lkae010", "Crawfurd et al. 2023", label_paper, missing = label_paper))  |>
+  left_join(rsx, by = c("label_paper_title"))
+ 
+
+jtiers_llm <- read_csv(here("data", "tiers_long.csv"), show_col_types = FALSE) |>
+  mutate(middle_rating = score,
+         lower_ci = lo,
+         upper_ci = hi,
+         criteria = if_else(tier_kind == "will", "journal_predict", "merits_journal"),
+         evaluator = currentmodel,  # Use global model name from setup_params.R
+         label_paper = paper
+         ) |>
+  select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
+
+
+jtiers_uj <- research |>
+  filter(criteria== "merits_journal" | criteria == "journal_predict") |>
+  mutate(paper = label_paper,
+         rationale = "")  |>
+  select(c("label_paper", "evaluator", "middle_rating", "lower_ci", "upper_ci" , "criteria", "rationale"))
+
+
+jtiers <- jtiers_uj |>
+  rbind(jtiers_llm) |>
+  mutate(human = if_else(evaluator == "o3", "Human", "o3"),
+         lower_ci = if_else(lower_ci > 10, lower_ci/10, lower_ci))
+
+
+# write_csv(all_ratings, here("data", "all_jtiers.csv"))
+write_rds(
+  jtiers,
+  here("data", "all_jtiers.rds"),
+  compress = "none"
+  )
+
+
+```
+
+
+```{r}
+#| label: load-data-x
+
+# Mapping paper keys - short titles
+UJmap <- read_delim(here("data", "UJ_map.csv"), delim = ";") |>
+  mutate(label_paper_title = research,
+         label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+
+
+# LLM generated ratings
+metrics <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE)
+
+metrics <- metrics |> clean_names() |>
+  mutate(evaluator = currentmodel,
+         label_paper = str_replace(paper, "et al ", "et al. "),
+         middle_rating = midpoint,
+         lower_ci = lower_bound,
+         upper_ci = upper_bound,
+         criteria = canon_metric(metric)) |>  # Use canon_metric function
+  # mutate(criteria = factor(criteria)) |>
+  left_join(UJmap, by = c("label_paper")) |>
+  select(c("label_paper", "label_paper_title", "evaluator", "criteria", "middle_rating", "lower_ci", "upper_ci", "rationale"))
+  
+  
+# Unjournal ratings
+rsx <- read_csv(here("data", "rsx_evalr_rating.csv"), show_col_types = FALSE) |> 
+  clean_names()  |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
+
+# More on evaluated research
+research <- read_csv(here("data", "research.csv"), show_col_types = FALSE) |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)")
+
+# rsx_collapsed = rsx |>
+#   group_by(label_paper_title) |>
+#   summarise(g_middle_rating = mean(middle_rating, na.rm = TRUE)) |>
+#   left_join(UJmap, by = c("label_paper_title")) 
+
+# More journal rating info
+# jql70_raw <- read_csv(here("data", "jql70a.csv"), show_col_types = FALSE)
+jql_enriched_raw <- read_csv(here("data", "jql-enriched.csv"), show_col_types = FALSE)
+
+
+# Merge Unjournal data and keys
+rsx_research <- rsx  |>
+  left_join(research, by = c("label_paper_title")) |>  
+  left_join(UJmap, by = c("label_paper_title")) |>
+  select(c("label_paper", "label_paper_title", "evaluator","criteria","middle_rating","lower_ci","upper_ci")) |>
+  mutate(rationale = "") |>
+  mutate(
+    label_paper = if_else(label_paper_title == "A Welfare Analysis of Policies Impacting Climate Change", "Hahn et al. 2025", label_paper),
+    label_paper = if_else(label_paper_title == "Intergenerational Child Mortality Impacts of Deworming: Experimental Evidence from Two Decades of the Kenya Life Panel Survey
+", "Walker et al. 2023", label_paper)
+  )
+ 
+# Merge Unjournal data and LLM metrics
+all_ratings <- rbind(rsx_research, metrics) |>
+  mutate(criteria = factor(criteria)) |>
+  mutate(evaluator = factor(evaluator)) |>
+  mutate(label_paper_title = factor(label_paper_title)) |>
+  mutate(label_paper = factor(label_paper))
+
+# clean up
+# rm("metrics", "research", "rsx", "rsx_research", "UJmap")
+
+# write_csv(all_ratings, here("data", "all_ratings.csv"))
+write_rds(
+  all_ratings,
+  here("data", "all_ratings.rds"),
+  compress = "none"
+  )
+
+
+# Ensure numeric + fix any swapped CI bounds
+all_ratings <- all_ratings |>
+  mutate(across(c(middle_rating, lower_ci, upper_ci), as.numeric)) |>
+  fix_bounds("lower_ci","upper_ci")
+
+# Split: LLM vs Human raters (LLM = evaluator == 'GPT-5')
+human_raw <- all_ratings |>
+  filter(evaluator != currentmodel) |>
+  filter(!is.na(middle_rating))
+
+llm_raw <- all_ratings |>
+  filter(evaluator == currentmodel) |>
+  transmute(
+    label_paper, label_paper_title, criteria,
+    midpoint_llm = middle_rating,
+    lower_llm = lower_ci,
+    upper_llm = upper_ci
+  ) |>
+  distinct()
+ 
+
+
+
+human_use <- human_raw |>
+  group_by(label_paper, label_paper_title, criteria) |>
+  summarise(
+    midpoint_human   = mean(middle_rating, na.rm = TRUE),
+    # keep means of human CIs (used in one of the outlier tables)
+    lower_human      = mean(lower_ci, na.rm = TRUE),
+    upper_human      = mean(upper_ci, na.rm = TRUE),
+    # CI union (fallback to min/max of points where CI missing)
+    human_lo_union   = safe_min(lower_ci, middle_rating),
+    human_hi_union   = safe_max(upper_ci, middle_rating),
+    n_raters         = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  fix_bounds("human_lo_union","human_hi_union")
+
+# Merge to LLM
+merged <- llm_raw |>
+  inner_join(human_use, by = c("label_paper","label_paper_title","criteria")) |>
+  mutate(diff = midpoint_llm - midpoint_human)
+
+# Long form for distributions
+ratings_long <- merged |>
+  select(label_paper, label_paper_title, criteria, midpoint_llm, midpoint_human) |>
+  pivot_longer(starts_with("midpoint_"),
+               names_to = "rater", values_to = "score") |>
+  mutate(rater = recode(rater,
+                        midpoint_llm   = "LLM",
+                        midpoint_human = "Human"))
+
+```
+
+```{r}
+#| label: fig-forest-tiers
+#| fig-cap: "Journal tiers -- LLM vs individual Human ratings. Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (CI when available) offset per rater."
+#| fig-height: 13
+#| fig-width: 8
+
+
+jtiers <- jtiers |>
+  mutate(
+    who = if_else(evaluator == "o3", "LLM", "Human"),
+    mid = middle_rating, lo = lower_ci, hi = upper_ci
+  )  
+
+# order rows within each facet: by LLM mid if present, else median human
+ord_tbl <- jtiers %>%
+  group_by(criteria, label_paper) %>%
+  summarise(
+    ord = if (any(who == "LLM")) mid[which(who == "LLM")[1]] else median(mid[who == "Human"], na.rm = TRUE),
+    n_h = sum(who == "Human"),
+    .groups = "drop"
+  ) %>%
+  group_by(criteria) %>% arrange(desc(ord), .by_group = TRUE) %>%
+  mutate(level = paste(criteria, paste0(label_paper, " (n=", n_h, ")"), sep = "___"))
+
+jplot <- jtiers %>%
+  left_join(ord_tbl, by = c("criteria", "label_paper")) %>%
+  mutate(level = paste(criteria, paste0(label_paper, " (n=", n_h, ")"), sep = "___"),
+         paper_fac = factor(level, levels = ord_tbl$level))
+
+lab_fun <- function(x) sub("^.*___", "", x)
+
+set.seed(1)
+ggplot(jplot, aes(x = mid, y = paper_fac, colour = who, shape = who)) +
+  # humans: jittered lanes
+  geom_errorbarh(
+    data = subset(jplot, who == "Human" & is.finite(lo) & is.finite(hi)),
+    aes(xmin = lo, xmax = hi),
+    height = 0, alpha = 0.55, linewidth = 0.5,
+    position = position_jitter(height = 0.22, width = 0)
+  ) +
+  geom_point(
+    data = subset(jplot, who == "Human"),
+    size = 1.9, alpha = 0.9,
+    position = position_jitter(height = 0.22, width = 0)
+  ) +
+  # LLM: centered lane
+  geom_errorbarh(
+    data = subset(jplot, who == "LLM" & is.finite(lo) & is.finite(hi)),
+    aes(xmin = lo, xmax = hi),
+    height = 0, linewidth = 0.8
+  ) +
+  geom_point(
+    data = subset(jplot, who == "LLM"),
+    size = 2.4
+  ) +
+  facet_wrap(~criteria, ncol = 1, scales = "free_y",
+             labeller = as_labeller(c(journal_predict = "Where will this paper be published?", merits_journal = "Where should this paper be published?"))) +
+  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
+  scale_shape_manual(values = c(LLM = 18, Human = 16), name = NULL) +
+  scale_y_discrete(labels = lab_fun, expand = expansion(mult = c(0.02, 0.06))) +
+  coord_cartesian(xlim = c(0, 5)) +
+  labs(x = NULL, y = NULL) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  theme_uj() +
+  theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3),
+        axis.text.y = element_text(hjust = 0.98),
+        legend.position = "bottom")
+```
+
+### Vertical comparison: Journal tier ratings
+
+@fig-forest-tiers-vertical provides an alternative view of the journal tier ratings, displayed vertically for easier comparison with paper labels visible. The horizontal lines show mean ratings.
+
+```{r}
+#| label: fig-forest-tiers-vertical
+#| fig-cap: "Journal tier ratings: vertical format with means. Where should this paper be published? Human (green) vs LLM (orange)."
+#| fig-height: 6
+#| fig-width: 14
+
+tier_metric_use <- "merits_journal"  # "where should this be published"
+
+HH <- jtiers %>% filter(criteria == tier_metric_use, human == "Human")
+LL <- jtiers %>% filter(criteria == tier_metric_use, human != "Human")
+matched_tiers <- intersect(unique(HH$label_paper), unique(LL$label_paper))
+
+H_t <- HH %>%
+  filter(label_paper %in% matched_tiers) %>%
+  mutate(
+    lo = ifelse(is.finite(lower_ci), pmax(1, lower_ci), NA_real_),
+    hi = ifelse(is.finite(upper_ci), pmin(5, upper_ci), NA_real_)
+  )
+
+ord_t <- H_t %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(middle_rating, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(h_mean)) %>%
+  mutate(pos = row_number())
+
+H_tplot <- H_t %>%
+  inner_join(ord_t, by = "label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n() + 1) / 2) * 0.18,
+         x   = pos + off) %>%
+  ungroup()
+
+L_t <- LL %>%
+  filter(label_paper %in% matched_tiers) %>%
+  group_by(label_paper) %>%
+  summarise(
+    mid = mean(middle_rating, na.rm = TRUE),
+    lo  = suppressWarnings(min(coalesce(lower_ci, middle_rating), na.rm = TRUE)),
+    hi  = suppressWarnings(max(coalesce(upper_ci, middle_rating), na.rm = TRUE)),
+    .groups = "drop"
+  ) %>%
+  inner_join(ord_t, by = "label_paper") %>%
+  mutate(x = pos)
+
+H_pp <- H_t %>% group_by(label_paper) %>% summarise(h_mean = mean(middle_rating), .groups = "drop")
+hbar <- mean(H_pp$h_mean, na.rm = TRUE)
+lbar <- mean(L_t$mid,     na.rm = TRUE)
+
+x_ann <- if (nrow(ord_t) > 0) min(ord_t$pos) + 0.3 else 0
+
+ggplot() +
+  geom_vline(data = ord_t, aes(xintercept = pos), color = "grey92", linewidth = 0.3) +
+  geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dashed", linewidth = 0.8) +
+  geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
+  # Humans
+  geom_errorbar(data = subset(H_tplot, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1, alpha = 0.5, color = UJ_GREEN) +
+  geom_point(data = H_tplot, aes(x = x, y = middle_rating),
+             size = 3.0, alpha = 0.9, color = UJ_GREEN) +
+  # LLM
+  geom_errorbar(data = subset(L_t, is.finite(lo) & is.finite(hi)),
+                aes(x = x, ymin = lo, ymax = hi),
+                width = 0, linewidth = 1.0, color = UJ_ORANGE) +
+  geom_point(data = L_t, aes(x = x, y = mid),
+             size = 3.6, shape = 18, color = UJ_ORANGE) +
+  scale_x_continuous(breaks = ord_t$pos, labels = ord_t$label_paper,
+                     expand = expansion(mult = c(0.01, 0.03))) +
+  coord_cartesian(ylim = c(1, 5), clip = "off") +
+  labs(x = NULL, y = "Journal tier (1–5)",
+       title = "Where should this paper be published?") +
+  theme_uj() +
+  annotate("text", x = x_ann, y = 1.4,
+           label = sprintf("Means — Human: %.2f   LLM: %.2f", hbar, lbar),
+           hjust = 0, size = 4) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+        panel.grid.major.x = element_blank(),
+        plot.margin = margin(5, 40, 5, 5))
+
+```
+
+
+### Journal tier correlations with quality metrics
+
+Similar to [the analysis for human evaluations](https://unjournal.github.io/unjournaldata/posts/uj-data-update-2025/#fig-journal-quality-cors), we examine how both LLM and Human "where should this paper publish" ratings correlate with their respective other quality metrics. This reveals what dimensions each evaluator weighs most heavily when assessing journal placement.
+
+
+```{r}
+#| label: fig-tier-cors-comparison
+#| fig-cap: "How quality metrics predict journal tier: LLM vs Human evaluators"
+#| fig-height: 7
+#| fig-width: 10
+
+metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge",
+                    "logic_comms", "open_sci", "gp_relevance")
+
+# === LLM Correlations ===
+llm_cors_data <- llm_raw |>
+  filter(criteria %in% metrics_to_cor) |>
+  select(label_paper, criteria, midpoint_llm) |>
+  mutate(label_paper = as.character(label_paper),
+         criteria = as.character(criteria),
+         midpoint_llm = as.numeric(midpoint_llm)) |>
+  pivot_wider(names_from = criteria, values_from = midpoint_llm)
+
+# Get LLM tier predictions from jtiers data
+tier_should_llm <- jtiers_llm |>
+  filter(criteria == "merits_journal") |>
+  mutate(label_paper = as.character(label_paper)) |>
+  select(label_paper, tier_should = middle_rating) |>
+  mutate(tier_should = as.numeric(tier_should))
+
+llm_cors_data <- llm_cors_data |>
+  inner_join(tier_should_llm, by = "label_paper") |>
+  filter(!is.na(tier_should))
+
+cors_llm <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, function(m) {
+    if (m %in% names(llm_cors_data) && is.numeric(llm_cors_data[[m]])) {
+      cor(llm_cors_data[[m]], llm_cors_data$tier_should, use = "pairwise.complete.obs")
+    } else NA_real_
+  }),
+  source = "LLM"
+) |> filter(!is.na(correlation))
+
+# === Human Correlations ===
+human_cors_data <- human_use |>
+  filter(criteria %in% metrics_to_cor) |>
+  select(label_paper, criteria, midpoint_human) |>
+  mutate(label_paper = as.character(label_paper),
+         criteria = as.character(criteria),
+         midpoint_human = as.numeric(midpoint_human)) |>
+  pivot_wider(names_from = criteria, values_from = midpoint_human)
+
+tier_should_human <- jtiers_uj |>
+  filter(criteria == "merits_journal") |>
+  mutate(label_paper = as.character(label_paper)) |>
+  group_by(label_paper) |>
+  summarise(tier_should = mean(as.numeric(middle_rating), na.rm = TRUE), .groups = "drop")
+
+human_cors_data <- human_cors_data |>
+  inner_join(tier_should_human, by = "label_paper") |>
+  filter(!is.na(tier_should))
+
+cors_human <- tibble(
+  metric = metrics_to_cor,
+  correlation = map_dbl(metrics_to_cor, function(m) {
+    if (m %in% names(human_cors_data) && is.numeric(human_cors_data[[m]])) {
+      cor(human_cors_data[[m]], human_cors_data$tier_should, use = "pairwise.complete.obs")
+    } else NA_real_
+  }),
+  source = "Human"
+) |> filter(!is.na(correlation))
+
+# === Combine and create dumbbell plot ===
+cors_combined <- bind_rows(cors_llm, cors_human) |>
+  mutate(
+    metric_label = case_when(
+      metric == "overall" ~ "Overall",
+      metric == "claims" ~ "Claims & Evidence",
+      metric == "methods" ~ "Methods",
+      metric == "adv_knowledge" ~ "Advancing Knowledge",
+      metric == "logic_comms" ~ "Logic & Communication",
+      metric == "open_sci" ~ "Open Science",
+      metric == "gp_relevance" ~ "Global Relevance",
+      TRUE ~ metric
+    )
+  )
+
+cors_wide <- cors_combined |>
+  pivot_wider(names_from = source, values_from = correlation)
+
+# Compute avg_cor and reorder
+cors_wide <- cors_wide |>
+  rowwise() |>
+  mutate(avg_cor = mean(c_across(where(is.numeric)), na.rm = TRUE)) |>
+  ungroup() |>
+  mutate(metric_label = fct_reorder(metric_label, avg_cor))
+
+# Dumbbell plot
+# Only create plot if we have data for both Human and LLM
+if ("Human" %in% names(cors_wide) && "LLM" %in% names(cors_wide) &&
+    nrow(cors_wide) > 0 && sum(!is.na(cors_wide$Human)) > 0 && sum(!is.na(cors_wide$LLM)) > 0) {
+
+  ggplot(cors_wide, aes(y = metric_label)) +
+    geom_segment(aes(x = Human, xend = LLM, yend = metric_label),
+                 color = "gray50", linewidth = 1.2, alpha = 0.4) +
+    geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) +
+    geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray40", alpha = 0.5) +
+    geom_text(aes(x = Human, label = sprintf("%.2f", Human)),
+              hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") +
+    geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)),
+              hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") +
+    scale_x_continuous(limits = c(min(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) - 0.2,
+                                   max(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) + 0.2)) +
+    labs(
+      x = "Correlation with 'Where should this publish?'",
+      y = NULL,
+      title = "How quality metrics predict journal tier: LLM vs Human evaluators",
+      subtitle = paste0("Green = Human evaluators | Orange = ", currentmodel, " | Higher values = stronger weight in tier prediction")
+    ) +
+    theme_uj() +
+    theme(
+      panel.grid.major.x = element_line(color = "grey90"),
+      panel.grid.major.y = element_blank(),
+      plot.title.position = "plot"
+    )
+} else {
+  # Fallback message if data is missing
+  ggplot() +
+    annotate("text", x = 0.5, y = 0.5,
+             label = "Insufficient data for tier correlation plot.\nCheck that both LLM and Human tier predictions are available.",
+             hjust = 0.5, vjust = 0.5, size = 5) +
+    theme_void()
+}
+```
+
+<!-- Legacy commented code below - kept for reference
+<!-- ```{r} -->
+<!-- #| label: fig-tier-cors-comparison-old -->
+<!-- #| fig-cap: "Comparison of journal tier correlations: LLM vs Human evaluators. Green dots show Human correlations, orange dots show LLM correlations. Lines connect the same metric." -->
+<!-- #| fig-height: 6 -->
+<!-- #| fig-width: 9 -->
+
+<!-- # === LLM Correlations === -->
+<!-- llm_cors_data <- llm_raw |> -->
+<!--   select(label_paper, criteria, midpoint_llm) |> -->
+<!--   pivot_wider(names_from = criteria, values_from = midpoint_llm) -->
+
+<!-- tier_should_llm <- jtiers_llm |> -->
+<!--   filter(criteria == "merits_journal") |> -->
+<!--   select(label_paper, tier_should = middle_rating) -->
+
+<!-- llm_cors_data <- llm_cors_data |> -->
+<!--   left_join(tier_should_llm, by = "label_paper") |> -->
+<!--   filter(!is.na(tier_should)) -->
+
+<!-- metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge", -->
+<!--                     "logic_comms", "open_sci", "gp_relevance") -->
+
+<!-- cors_llm <- tibble( -->
+<!--   metric = metrics_to_cor, -->
+<!--   correlation = map_dbl(metrics_to_cor, function(m) { -->
+<!--     if (m %in% names(llm_cors_data)) { -->
+<!--       cor(llm_cors_data[[m]], llm_cors_data$tier_should, -->
+<!--           use = "pairwise.complete.obs") -->
+<!--     } else { -->
+<!--       NA_real_ -->
+<!--     } -->
+<!--   }), -->
+<!--   source = "LLM" -->
+<!-- ) |> -->
+<!--   filter(!is.na(correlation)) -->
+
+<!-- # === Human Correlations === -->
+<!-- human_cors_data <- human_raw |> -->
+<!--   select(label_paper, criteria, middle_rating) |> -->
+<!--   group_by(label_paper, criteria) |> -->
+<!--   summarise(midpoint_human = mean(middle_rating, na.rm = TRUE), .groups = "drop") |> -->
+<!--   pivot_wider(names_from = criteria, values_from = midpoint_human) -->
+
+<!-- tier_should_human <- jtiers_uj |> -->
+<!--   filter(criteria == "merits_journal") |> -->
+<!--   group_by(label_paper) |> -->
+<!--   summarise(tier_should = mean(middle_rating, na.rm = TRUE), .groups = "drop") -->
+
+<!-- human_cors_data <- human_cors_data |> -->
+<!--   left_join(tier_should_human, by = "label_paper") |> -->
+<!--   filter(!is.na(tier_should)) -->
+
+<!-- cors_human <- tibble( -->
+<!--   metric = metrics_to_cor, -->
+<!--   correlation = map_dbl(metrics_to_cor, function(m) { -->
+<!--     if (m %in% names(human_cors_data)) { -->
+<!--       cor(human_cors_data[[m]], human_cors_data$tier_should, -->
+<!--           use = "pairwise.complete.obs") -->
+<!--     } else { -->
+<!--       NA_real_ -->
+<!--     } -->
+<!--   }), -->
+<!--   source = "Human" -->
+<!-- ) |> -->
+<!--   filter(!is.na(correlation)) -->
+
+<!-- # === Combine and create dumbbell plot === -->
+<!-- cors_combined <- bind_rows(cors_llm, cors_human) |> -->
+<!--   mutate( -->
+<!--     metric_label = case_when( -->
+<!--       metric == "overall" ~ "Overall", -->
+<!--       metric == "claims" ~ "Claims & Evidence", -->
+<!--       metric == "methods" ~ "Methods", -->
+<!--       metric == "adv_knowledge" ~ "Advancing Knowledge", -->
+<!--       metric == "logic_comms" ~ "Logic & Communication", -->
+<!--       metric == "open_sci" ~ "Open Science", -->
+<!--       metric == "gp_relevance" ~ "Global Relevance", -->
+<!--       TRUE ~ metric -->
+<!--     ) -->
+<!--   ) -->
+
+<!-- cors_wide <- cors_combined |> -->
+<!--   pivot_wider(names_from = source, values_from = correlation) |> -->
+<!--   mutate( -->
+<!--     avg_cor = (Human + LLM) / 2, -->
+<!--     metric_label = fct_reorder(metric_label, avg_cor) -->
+<!--   ) -->
+
+<!-- # Dumbbell plot -->
+<!-- ggplot(cors_wide, aes(y = metric_label)) + -->
+<!--   geom_segment(aes(x = Human, xend = LLM, yend = metric_label), -->
+<!--                color = "gray50", linewidth = 1.2, alpha = 0.4) + -->
+<!--   geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) + -->
+<!--   geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) + -->
+<!--   geom_vline(xintercept = 0, linetype = "dashed", color = "gray40", alpha = 0.5) + -->
+<!--   geom_text(aes(x = Human, label = sprintf("%.2f", Human)), -->
+<!--             hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") + -->
+<!--   geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)), -->
+<!--             hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") + -->
+<!--   scale_x_continuous(limits = c(min(c(cors_wide$Human, cors_wide$LLM)) - 0.2, -->
+<!--                                  max(c(cors_wide$Human, cors_wide$LLM)) + 0.2)) + -->
+<!--   labs( -->
+<!--     x = "Correlation with 'Where should this publish?'", -->
+<!--     y = NULL, -->
+<!--     title = "How quality metrics predict journal tier: LLM vs Human evaluators", -->
+<!--     subtitle = paste0("Green = Human evaluators | Orange = ", currentmodel, " | Higher values = stronger weight in tier prediction") -->
+<!--   ) + -->
+<!--   theme_uj() + -->
+<!--   theme( -->
+<!--     panel.grid.major.x = element_line(color = "grey90"), -->
+<!--     panel.grid.major.y = element_blank(), -->
+<!--     plot.title.position = "plot" -->
+<!--   ) -->
+<!-- ``` -->
+
+This visualization reveals interesting differences in how LLM and human evaluators weight different quality dimensions when predicting journal placement. For instance, if the LLM's orange dot is much higher than the human's green dot for a particular metric, it suggests the LLM relies more heavily on that dimension when making its "should publish" assessment.
+
+## Quantitative ratings
+
+We evaluated `r tok_sum$n_papers` papers using `r currentmodel`, reading each manuscript directly from the PDF and returning a strict JSON assessment. 
+
+<!-- Before looking at the output, it is instructive to look at the reported reasoning summary of the LLM (only partially available).   -->
+<!-- For example, this is what `r currentmodel` reports about its reasoning for @Williams2024: -->
+
+<!-- r sprintf(reasoning_example$reasoning_summary) -->
+
+
+
+### Overall ratings
+
+We begin by comparing *overall* scores. 
+
+
+
+In @fig-forest, the orange diamond and line show the `r currentmodel` model's midpoint and its 90% credible interval for each paper, while the green circles show each individual human evaluator's midpoint (along with 90% CI when they provided these).
+
+Looking at this figure, we can visually assess agreement. If the orange diamond lies among the green circles and lines for a paper, the AI’s overall assessment is in line with the human range. If the orange diamond is far to the right (higher score) or left (lower score) relative to the green points, it indicates a notable disagreement.
+
+
+
+```{r}
+#| label: fig-forest
+#| fig-cap: "LLM vs individual Human ratings (overall). Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (thin CI when available) offset per rater."
+#| fig-height: 9
+#| fig-width: 8
+
+metric_name <- "overall"
+
+# Helper: symmetric lane offsets (skip 0 so center lane is reserved for LLM)
+lane_offsets <- function(m, gap = 0.18) { #DR @valentin -- we probably want a bigger gap between papers here
+  if (m <= 0) return(numeric(0))
+  k <- ceiling(m/2)
+  cand <- c(-seq_len(k), seq_len(k)) * gap
+  sort(cand)[seq_len(m)]
+}
+
+# Base ordering of papers (same logic as before) #DR @valentin  OK, I guess it's ordered by 'average human minus AI rating'? But we should then note this in the doc. Might also make the diagram dynamic if possible to let users sort in other ways, like  by human average rating, AI average rating, or alphabetically. 
+
+D_base <- merged |>
+  filter(criteria == metric_name) |>
+  mutate(paper_order = fct_reorder(label_paper, diff, .desc = FALSE)) |>
+  distinct(label_paper, label_paper_title, paper_order, n_raters) #DR @valentin -- maybe we don't need to put the number of raters here as the lines show that. At least as long as there's enough space to see that part of the diagram. 
+
+# Pretty label with # of human raters
+D_base <- D_base |>
+  mutate(paper_lab = paste0(label_paper, " (n=", n_raters, ")")) |>
+  arrange(paper_order) |>
+  mutate(pos = row_number())
+
+pos_map <- D_base |>
+  select(label_paper, paper_lab, pos)
+
+# --- Individual human ratings (each gets its own offset lane) --------------
+H_indiv <- human_raw |>
+  filter(criteria == metric_name) |>
+  inner_join(pos_map, by = "label_paper") |>
+  group_by(label_paper) |>
+  arrange(evaluator, .by_group = TRUE) |>
+  mutate(
+    h_id = row_number(),
+    n_h  = dplyr::n(),
+    off  = purrr::map2_dbl(n_h, h_id, ~ lane_offsets(.x)[.y]),  # <-- scalarize here
+    y    = pos + off
+  ) |>
+  ungroup() |>
+  transmute(
+    paper_lab,
+    y,
+    who = "Human",
+    mid = as.numeric(middle_rating),
+    lo  = suppressWarnings(as.numeric(lower_ci)),
+    hi  = suppressWarnings(as.numeric(upper_ci))
+  )
+
+# --- LLM midpoint + CI (one centered lane per paper) -----------------------
+L_llm <- llm_raw |>
+  filter(criteria == metric_name) |>
+  inner_join(pos_map, by = "label_paper") |>
+  mutate(y = pos) |>
+  transmute(
+    paper_lab,
+    y,
+    who = "LLM",
+    mid = as.numeric(midpoint_llm),
+    lo  = as.numeric(lower_llm),
+    hi  = as.numeric(upper_llm)
+  )
+
+Pts <- bind_rows(H_indiv, L_llm)
+
+# Axis limits from all intervals
+rng <- range(c(Pts$mid, Pts$lo, Pts$hi), na.rm = TRUE)
+pad <- 0.04 * diff(rng)
+xlim_use <- c(rng[1] - pad, rng[2] + pad)
+
+# Light separators per paper row
+row_lines <- pos_map$pos
+
+ggplot() +
+  geom_hline(yintercept = row_lines, color = "grey92", linewidth = 0.3) +
+  # Human CIs (thin) + points on their own lanes
+  geom_errorbarh(
+    data = H_indiv |> filter(is.finite(lo), is.finite(hi)),
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, alpha = 0.5, linewidth = 0.5
+  ) +
+  geom_point(
+    data = H_indiv,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 2.1, alpha = 0.9
+  ) +
+  # LLM CI (thicker) + diamond at center lane
+  geom_errorbarh(
+    data = L_llm,
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, linewidth = 0.7
+  ) +
+  geom_point(
+    data = L_llm,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 2.6
+  ) +
+  scale_color_manual(values = c(LLM = UJ_ORANGE, Human = UJ_GREEN), name = NULL) +
+  scale_shape_manual(values = c(LLM = 18, Human = 16), name = NULL) +
+  scale_y_reverse(
+    breaks = pos_map$pos,
+    labels = pos_map$paper_lab,
+    expand = expansion(mult = c(0.02, 0.06))
+  ) +
+  coord_cartesian(xlim = xlim_use) +
+  labs(x = NULL, y = NULL
+  ) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  theme_uj() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(hjust = 0.98)
+  )
+
+
+```
+
+
+```{r}
+#| label: forest-improved
+#| eval: false
+#| fig-height: 14
+#| fig-cap: "Journal tiers -- LLM vs individual Human ratings. Each rating on its own lane: orange LLM midpoint+CI centered; green human midpoints (CI when available) offset per rater."
+
+p <- ggplot() +
+  # Background grid lines for each paper row
+  geom_hline(yintercept = pos_map$pos, color = "grey90", linewidth = 0.4) +
+  
+  # Human intervals: dashed lines for distinction
+  geom_errorbarh(
+    data = H_indiv |> filter(is.finite(lo), is.finite(hi)),
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, alpha = 0.5, linewidth = 1.0, linetype = "dashed"
+  ) +
+  
+  # Human points: larger, semi-transparent for visibility
+  geom_point(
+    data = H_indiv,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 2.8, alpha = 0.9
+  ) +
+  
+  # LLM intervals: thicker solid lines
+  geom_errorbarh(
+    data = L_llm,
+    aes(y = y, xmin = lo, xmax = hi, colour = who),
+    height = 0, linewidth = 1.2
+  ) +
+  
+  # LLM points: diamond shape, largest
+  geom_point(
+    data = L_llm,
+    aes(x = mid, y = y, colour = who, shape = who),
+    size = 3.4, stroke = 1
+  ) +
+  
+ scale_color_manual(
+    values = c(LLM = UJ_ORANGE, Human = "#669933"),
+    name = NULL,
+    labels = c(LLM = "LLM", Human = "Human")
+  ) +
+  scale_shape_manual(
+    values = c(LLM = 18, Human = 16),
+    name = NULL,
+    labels = c(LLM = "LLM", Human = "Human")
+  ) +
+  
+  scale_y_reverse(
+    breaks = pos_map$pos,
+    labels = pos_map$paper_lab,
+    expand = expansion(mult = c(0.02, 0.06))
+  ) +
+  coord_cartesian(xlim = xlim_use) +
+  labs(x = NULL, y = NULL) +
+  
+  guides(
+    colour = guide_legend(override.aes = list(alpha = 1, size = 3.4)),
+    shape  = guide_legend(override.aes = list(size = 3.4))
+  ) +
+  
+  theme_uj() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(hjust = 0.98, size = 12),
+    legend.position = "bottom",
+    plot.margin = margin(10, 30, 10, 30)
+  ) 
+
+
+# Optional: For interactive exploration in HTML output
+ library(plotly)
+ ggplotly(p)
+
+```
+
+
+Next, @fig-forest-both shows the same data in a different format, with both human and LLM ratings displayed vertically. The horizontal dotted lines show the mean ratings for each group, making it easy to see the overall difference in rating levels between humans and AI.
+
+```{r}
+#| label: fig-forest-both
+#| fig-cap: "Overall ratings: Human (green circles) vs LLM (orange diamonds). Horizontal dotted lines show mean ratings."
+#| fig-height: 6
+#| fig-width: 14
+
+# Forest plot with both humans and LLM, vertical format with means
+
+matched <- intersect(
+  all_ratings %>% filter(evaluator == currentmodel, criteria=="overall") %>% pull(label_paper),
+  all_ratings %>% filter(evaluator != currentmodel, criteria=="overall") %>% pull(label_paper)
+)
+
+H_ind <- human_raw %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  mutate(lo = ifelse(is.finite(lower_ci), pmax(0, lower_ci), NA_real_),
+         hi = ifelse(is.finite(upper_ci), pmin(100, upper_ci), NA_real_))
+
+ord <- H_ind %>%
+  group_by(label_paper) %>%
+  summarise(h_mean = mean(middle_rating, na.rm=TRUE), .groups="drop") %>%
+  arrange(desc(h_mean)) %>% mutate(pos = row_number())
+
+H_plot <- H_ind %>%
+  inner_join(ord, by="label_paper") %>%
+  group_by(label_paper) %>%
+  mutate(off = (row_number() - (n()+1)/2) * 0.18,
+         x   = pos + off) %>% ungroup()
+
+# per-paper human mean and LLM summary
+H_pp <- H_ind %>% group_by(label_paper) %>% summarise(h_mean = mean(middle_rating), .groups="drop")
+L_c <- llm_raw %>%
+  filter(criteria=="overall", label_paper %in% matched) %>%
+  group_by(label_paper) %>%
+  summarise(mid = mean(midpoint_llm, na.rm=TRUE),
+            lo  = suppressWarnings(min(coalesce(lower_llm, midpoint_llm), na.rm=TRUE)),
+            hi  = suppressWarnings(max(coalesce(upper_llm, midpoint_llm), na.rm=TRUE)),
+            .groups="drop") %>%
+  inner_join(ord, by="label_paper") %>%
+  mutate(x = pos)
+
+# overall means to show as horizontal reference lines
+hbar <- mean(H_pp$h_mean, na.rm=TRUE)
+lbar <- mean(L_c$mid,     na.rm=TRUE)
+
+ggplot() +
+  geom_vline(data = ord, aes(xintercept = pos), color="grey92", linewidth=0.3) +
+  # mean lines
+  geom_hline(yintercept = hbar, color = UJ_GREEN,  linetype = "dotted", linewidth = 0.8) +
+  geom_hline(yintercept = lbar, color = UJ_ORANGE, linetype = "dotted", linewidth = 0.8) +
+  # humans
+  geom_errorbar(data = subset(H_plot, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1, alpha=0.5, color=UJ_GREEN) +
+  geom_point(data = H_plot, aes(x=x, y=middle_rating), size=3.0, alpha=0.9, color=UJ_GREEN) +
+  # LLM
+  geom_errorbar(data = subset(L_c, is.finite(lo)&is.finite(hi)),
+                aes(x=x, ymin=lo, ymax=hi),
+                width=0, linewidth=1.0, color=UJ_ORANGE) +
+  geom_point(data = L_c, aes(x=x, y=mid), size=3.6, shape=18, color=UJ_ORANGE) +
+  # x-axis paper labels
+  scale_x_continuous(breaks = ord$pos, labels = ord$label_paper, expand = expansion(mult = c(0.01, 0.03))) +
+  coord_cartesian(ylim = c(0,100), clip = "off") +
+  labs(x=NULL, y="Percentile (0–100)") +
+  theme_uj() +
+  annotate("text", x = 4, y = 40,
+           label = sprintf("Means — Human: %.1f   LLM: %.1f", hbar, lbar),
+           hjust = 0, size = 4) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+        panel.grid.major.x=element_blank(),
+        plot.margin = margin(5, 40, 5, 5))
+
+```
+
+### Scatter plot with association measures
+
+@fig-scatter-overall shows the correlation between human and LLM overall ratings, with a fitted regression line and key statistics.
+
+```{r}
+#| label: fig-scatter-overall
+#| fig-cap: "Scatter plot: Human vs LLM overall ratings with fitted line"
+#| fig-height: 8
+#| fig-width: 8
+
+D <- merged %>%
+  filter(criteria=="overall") %>%
+  transmute(Human = midpoint_human, LLM = midpoint_llm) %>%
+  filter(is.finite(Human), is.finite(LLM))
+
+# stats
+r    <- suppressWarnings(cor(D$Human, D$LLM, method="pearson"))
+rho  <- suppressWarnings(cor(D$Human, D$LLM, method="spearman"))
+MAE  <- mean(abs(D$LLM - D$Human))
+alpha_overall <- tryCatch({
+  if (requireNamespace("irr", quietly = TRUE)) {
+    M <- rbind(D$Human, D$LLM); irr::kripp.alpha(M, method = "interval")$value
+  } else NA_real_
+}, error = function(e) NA_real_)
+n <- nrow(D)
+
+ggplot(D, aes(x = Human, y = LLM)) +
+  geom_abline(slope=1, intercept=0, linetype="dashed", linewidth=0.8, color="grey60") +
+  geom_point(color=UJ_GREEN, size=4, alpha=0.9) +
+  stat_smooth(method="lm", se=FALSE, linewidth=1.5, color=UJ_ORANGE) +
+  coord_equal(xlim=c(25,100), ylim=c(25,100), expand=FALSE) +
+  annotate("text", x = 30, y = 95,
+           label = sprintf("n=%d | r=%.2f | ρ=%.2f | α=%.2f | MAE=%.1f",
+                          n, r, rho, alpha_overall, MAE),
+           hjust = 0, size = 4.5) +
+  labs(x="Human overall (0–100)", y="LLM overall (0–100)",
+       title = "Overall Rating: Human vs LLM Agreement") +
+  theme_uj()
+
+```
+
+
+Next, @fig-rankslope contrasts relative *ranks* of papers under human and LLM scoring. This visualization directly compares how the AI and the human reviewers rank each paper in terms of overall quality. Each paper is represented by a curve connecting two ranked lists: on the left, the papers are ordered top-to-bottom by the human overall score (rank 1 = highest rated by humans); on the right, the papers are ordered by the AI’s overall score (rank 1 = highest rated by AI). A paper that occupies the same rank in both lists would appear as a straight horizontal line. If the AI ranks a paper higher than the humans did, the line for that paper will slope upward from left to right (starting lower on the left and ending higher on the right). Those lines are drawn in orange, indicating “AI higher than human.” Conversely, if the AI ranks a paper lower, the line slopes downward (green line indicating “AI lower than human”).
+
+ 
+```{r}
+#| label: fig-rankslope
+#| fig-cap: "Relative ranking (overall) by LLM and Human evaluators"
+#| fig-height: 8
+#| fig-width: 8
+
+
+# Replace helper: make_s_bezier (now carries numeric Δrank info)
+make_s_bezier <- function(D, dx_base = 0.33, dx_min = 0.08) {
+  dy <- abs(D$pos_right - D$pos_left)
+  k  <- max(2, stats::quantile(dy, 0.75, na.rm = TRUE))
+  dx_i <- pmax(dx_min, dx_base * exp(-dy / k))
+
+  purrr::map_dfr(seq_len(nrow(D)), function(i) {
+    dr_i <- D$pos_left[i] - D$pos_right[i]   # Δrank = Human − LLM
+    tibble::tibble(
+      group = i,
+      x = c(0, dx_i[i], 1 - dx_i[i], 1),
+      y = c(D$pos_left[i], D$pos_left[i], D$pos_right[i], D$pos_right[i]),
+      dr  = dr_i,                  # signed Δrank
+      mag = abs(dr_i)              # |Δrank|
+    )
+  })
+}
+
+
+# --- replace build_rank_positions ------------------------------------------
+build_rank_positions <- function(metric) {
+  D <- merged |>
+    filter(criteria == metric) |>
+    # keep BOTH labels; create a display label preferring the short code
+    mutate(
+      label_use = dplyr::if_else(
+        !is.na(label_paper) & nzchar(as.character(label_paper)),
+        as.character(label_paper),
+        as.character(label_paper_title)
+      )
+    ) |>
+    select(label_use, label_paper, label_paper_title, midpoint_human, midpoint_llm)
+
+  if (!nrow(D)) return(NULL)
+
+  left  <- D |> arrange(desc(midpoint_human), label_use) |> mutate(pos_left  = row_number())
+  right <- D |> arrange(desc(midpoint_llm),   label_use) |> mutate(pos_right = row_number())
+
+  D |> 
+    left_join(left  |> select(label_use, pos_left),  by = "label_use") |>
+    left_join(right |> select(label_use, pos_right), by = "label_use") |>
+    mutate(delta = midpoint_llm - midpoint_human)
+}
+
+plot_rank_slope_S <- function(metric,
+                              D = NULL,
+                              right_width = 0.28,
+                              color_mode = c("gradient", "steps3"),
+                              soft_thresh = 5) {
+  color_mode <- match.arg(color_mode)
+  if (is.null(D)) D <- build_rank_positions(metric)
+  if (is.null(D) || !nrow(D)) return(ggplot() + theme_void())
+
+  # Pretty metric for legend title
+  lab_metric   <- stringr::str_to_title(gsub("_", " ", metric))
+  legend_title <- paste0("\u0394rank (H \u2212 LLM) — ", lab_metric)
+
+  # Ranks + right-side label
+  D <- D |>
+    mutate(
+      rank_h   = pos_left,                  # Human rank (1 = highest)
+      rank_l   = pos_right,                 # LLM   rank (1 = highest)
+      d_rank   = rank_h - rank_l,           # Δrank = Human − LLM
+      right_lab = sprintf("LLM #%d | H #%d | \u0394r=%+d", rank_l, rank_h, d_rank)
+    )
+
+  B <- make_s_bezier(D) |>
+    mutate(alpha_by = pmin(mag / soft_thresh, 1))  # fade small |Δr|
+
+  p <- ggplot()
+
+  if (color_mode == "gradient") {
+    p <- p +
+      ggforce::geom_bezier(
+        data = B,
+        aes(x = x, y = y, group = group, colour = dr, alpha = alpha_by),
+        size = 0.9
+      ) +
+      scale_color_gradient2(
+        low = UJ_GREEN, mid = "grey90", high = UJ_ORANGE, midpoint = 0,
+        name = legend_title
+      ) +
+      guides(colour = guide_colourbar(title.position = "top")) +
+      scale_alpha(range = c(0.45, 1), guide = "none")
+  } else { # "steps3": three colors, small diffs de-emphasized
+    B <- B |>
+      mutate(col3 = dplyr::case_when(
+        mag <= soft_thresh ~ "Small (≤5)",
+        dr > 0             ~ "LLM higher",
+        TRUE               ~ "LLM lower"
+      ))
+    p <- p +
+      ggforce::geom_bezier(
+        data = B,
+        aes(x = x, y = y, group = group, colour = col3),
+        size = 0.9, alpha = 0.9
+      ) +
+      scale_color_manual(
+        values = c("LLM higher" = UJ_ORANGE,
+                   "LLM lower"  = UJ_GREEN,
+                   "Small (≤5)" = "grey80"),
+        name = legend_title
+      ) +
+      guides(colour = guide_legend(title.position = "top"))
+  }
+
+  p +
+    geom_point(data = D, aes(x = 0, y = pos_left),
+               color = UJ_GREEN, size = 2.2) +
+    geom_point(data = D, aes(x = 1, y = pos_right),
+               color = UJ_ORANGE, shape = 18, size = 2.4) +
+    geom_text(data = D, aes(x = 0, y = pos_left, label = label_use),
+              hjust = 1.05, size = 3, color = "grey20") +
+    geom_text(data = D, aes(x = 1, y = pos_right, label = right_lab),
+              hjust = -0.05, size = 3, color = "grey20") +
+    scale_x_continuous(limits = c(-0.7, 1 + right_width),
+                       breaks = c(0, 1), labels = c("Human", "LLM"),
+                       expand = expansion(mult = 0)) +
+    scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
+    coord_cartesian(clip = "off") +
+    labs(x = NULL, y = NULL) +          # no title; caption handles description
+    theme_uj() +
+    theme(
+      axis.text.y  = element_blank(),   # hide y numbers
+      axis.ticks.y = element_blank(),
+      panel.grid.major.y = element_blank(),   # remove horizontal grid lines
+      panel.grid.minor.y = element_blank(),   # (defensive)
+      plot.margin = margin(t = 10, r = 190, b = 10, l = 140)
+    )
+}
+
+
+plot_rank_slope_S(metric_name)
+
+
+
+```
+
+In our results, we see a mix: many papers lie fairly close to horizontal (especially in the middle of the pack), but there are several with pronounced slopes. For example, a few orange lines curve sharply upward – these are papers that the AI considered to be among the top-ranked, while humans had them in the middle or lower end. Papers with steep green downward curves are ones humans rated highly but the AI was less impressed by. One can identify specific papers by these lines; for instance, one orange line corresponds to @Williams2024, which the AI ranked much higher than the median human rank. On the other hand, we see a green line for a paper that humans ranked very highly but AI did not – for example, Aghion et al. 2017 was among the top few for human evaluators, but the LLM overall score put it notably lower relative to others, hence a downward green curve.
+
+The overall pattern suggests that the AI and humans broadly agree on some top performers, but there are notable swaps in positions. It’s not the case that the AI simply gave everything high scores or low scores uniformly – it may have a distinct “taste,” elevating some work and devaluing other work differently than human referees. The question this raises is: on what basis are these differences happening? To explore that, we can look at the category-by-category differences next, followed by multidimensional modeling. However, we caution that the various observed characteristics of each paper are not determined independently from each other, and may also systematically relate to unobservable characteristics. Thus, unless we introduce exogenous variation (e.g., by altering the text of the papers shared, as in @Pataranutaporn2025), these results will be suggestive and exploratory, and not clearly causal or predictive. 
+
+### Individual metrics
+
+We then look closer at the specific ratings on the criterion level. @fig-heat displays Human − LLM differences by paper × metric. Each row is a paper (the rows here are ordered by the difference in overall score, with papers at the top being those humans scored higher than the AI, and at the bottom those the AI scored higher than humans). Each column is one of the criteria: Claims & Evidence, Methods, Advancing Knowledge, Logic & Communication, Open Science, Global Relevance, and Overall. The cell color shows the human score minus the AI score for that paper on that criterion. Green shades mean humans rated higher; orange shades mean the AI rated higher. White or light gray indicates the AI and human scores were about the same.
+
+```{r}
+#| label: fig-heat
+#| fig-height: 7
+#| fig-cap: "Human − LLM differences by paper × metric (green=humans rated higher, orange=LLM rated higher)"
+
+pair <- merged |>
+  transmute(paper = label_paper, metric = criteria,
+            diff = midpoint_human - midpoint_llm)  # NOTE: Inverted to Human - LLM
+
+# Row order by signed difference on 'overall' (descending)
+order_overall <- pair |>
+  filter(metric == "overall") |>
+  group_by(paper) |>
+  summarise(d = mean(diff, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(d)) |>  # Descending order
+  pull(paper)
+
+pair$paper <- factor(pair$paper, levels = unique(c(order_overall, pair$paper)))
+
+# Better metric labels
+metric_labels <- c(
+  "overall" = "Overall",
+  "claims" = "Claims & Evidence",
+  "methods" = "Methods",
+  "adv_knowledge" = "Adv. Knowledge",
+  "logic_comms" = "Logic & Comms",
+  "open_sci" = "Open Science",
+  "gp_relevance" = "Global Relevance"
+)
+
+pair <- pair |>
+  mutate(metric = factor(metric, levels = names(metric_labels), labels = unname(metric_labels)))
+
+ggplot(pair, aes(x = metric, y = paper, fill = diff)) +
+  geom_tile(color = "white", linewidth = 0.4) +
+  scale_fill_gradient2(low = UJ_ORANGE, mid = "grey95", high = UJ_GREEN,
+                       midpoint = 0,
+                       name = "Human − LLM") +
+  labs(x = NULL, y = NULL,
+       title = "Differences in ratings: Human minus LLM",
+       subtitle = "Green = humans rated higher | Orange = LLM rated higher") +
+  theme_uj() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title.position = "plot")
+
+```
+
+
+### Papers with highest relative human vs. AI preference
+
+The following table shows which papers humans rated most highly relative to AI (left column) and which papers AI rated most highly relative to humans (right column), based on overall ratings.
+
+```{r}
+#| label: tbl-top-preferences
+#| tbl-cap: "Papers with highest relative human vs. AI preference"
+
+# Helper: truncate long titles gracefully
+truncate_title <- function(title, max_len = 70) {
+  if (nchar(title) <= max_len) return(title)
+  substr_text <- substr(title, 1, max_len)
+  last_space <- max(gregexpr(" ", substr_text)[[1]])
+  if (last_space > 0) {
+    return(paste0(substr(title, 1, last_space - 1), "..."))
+  }
+  paste0(substr(title, 1, max_len), "...")
+}
+
+# Compute mean "overall" ratings per paper and source
+rating_diffs <- merged %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper, label_paper_title) %>%
+  summarise(
+    human_rating = mean(midpoint_human, na.rm = TRUE),
+    llm_rating = mean(midpoint_llm, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    diff = human_rating - llm_rating,
+    title_display = sapply(coalesce(label_paper_title, as.character(label_paper)), truncate_title)
+  )
+
+# Filter to non-ties only
+rating_diffs <- rating_diffs %>%
+  filter(diff != 0)
+
+# Top 5 where humans rated higher
+top_human_pref <- rating_diffs %>%
+  filter(diff > 0) %>%
+  arrange(desc(diff)) %>%
+  slice_head(n = 5) %>%
+  transmute(
+    Paper = title_display,
+    Delta = sprintf("+%.1f", diff)
+  )
+
+# Top 5 where LLM rated higher
+top_llm_pref <- rating_diffs %>%
+  filter(diff < 0) %>%
+  arrange(diff) %>%
+  slice_head(n = 5) %>%
+  transmute(
+    Paper = title_display,
+    Delta = sprintf("%.1f", diff)
+  )
+
+# Create side-by-side table
+max_rows <- max(nrow(top_human_pref), nrow(top_llm_pref))
+
+# Pad shorter table
+if (nrow(top_human_pref) < max_rows) {
+  top_human_pref <- top_human_pref %>%
+    bind_rows(tibble(Paper = rep("", max_rows - nrow(top_human_pref)),
+                     Delta = rep("", max_rows - nrow(top_human_pref))))
+}
+if (nrow(top_llm_pref) < max_rows) {
+  top_llm_pref <- top_llm_pref %>%
+    bind_rows(tibble(Paper = rep("", max_rows - nrow(top_llm_pref)),
+                     Delta = rep("", max_rows - nrow(top_llm_pref))))
+}
+
+combined_table <- bind_cols(
+  top_human_pref %>% rename(`Most human-preferred (Delta > 0)` = Paper, `Δ` = Delta),
+  top_llm_pref %>% rename(`Most AI-preferred (Delta < 0)` = Paper, `Δ` = Delta)
+)
+
+kable(combined_table, align = c("l", "r", "l", "r")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) %>%
+  column_spec(1, width = "40%") %>%
+  column_spec(2, width = "10%", color = UJ_GREEN, bold = TRUE) %>%
+  column_spec(3, width = "40%") %>%
+  column_spec(4, width = "10%", color = UJ_ORANGE, bold = TRUE)
+
+```
+
+
+This figure provides a more granular view of where AI and human evaluations diverge. A quick scan reveals a few systematic tendencies:
+
+For some criteria, the AI tended to score papers higher than humans. For example, in the Logic & Communication column, we see many orange cells – the AI often thought papers were a bit clearer or better argued (by its judgment) than the human evaluators did.
+
+In contrast, the Open Science column shows a notable amount of green. Here humans frequently gave higher scores than the AI. This suggests that the AI was harsher about transparency/reproducibility issues. Indeed, GPT often noted lack of code or data sharing in papers and penalized for it, whereas some human reviewers may have been more forgiving or did not emphasize open-science practices as strongly, or may have had lower expectations, especially for pre-journal-publication work. As a result, for many papers the AI's Open Science score is 5–10 points below the human average.
+
+@tbl-agreement shows agreement metrics across rating criteria. To quantify the agreements and differences observed, we calculated several statistics comparing LLM scores to human scores, aggregated by criterion:
+
+**Correlation (Pearson's r)** between the AI's and human scores across papers: This tells us, for example, if a paper that humans gave a high score also tended to get a high score from AI (regardless of absolute difference). The correlations vary by criterion, with some showing weak-to-moderate positive correlation, indicating partial alignment where the AI often rates the generally "better" papers higher, but with considerable noise. Some criteria show essentially no linear correlation, meaning the AI's ratings have no linear relationship with human ratings.
+
+**Spearman rank correlation (ρ)** provides a non-parametric measure of ranking agreement. This is often slightly higher than Pearson correlation, suggesting the AI is moderately good at ranking papers in roughly the same order as humans even if the exact scores differ. Some criteria (like Methods) show higher rank correlation, implying AI and humans somewhat agree on relative rankings, whereas others show very low or even slight negative correlation, implying essentially no agreement on those dimensions.
+
+**Mean Absolute Error (MAE)** provides an intuitive measure of the average points difference between LLM and human ratings on the 0-100 scale. This helps quantify the practical magnitude of disagreements.
+
+**Inter-rater reliability (Krippendorff's α)**: We use Krippendorff's alpha, which is specifically designed for interval-scale data like our percentile ratings. The table shows both α_LH (LLM-Human agreement) and α_HH (Human-Human agreement for context). Alpha values range from -1 to 1, where 1 indicates perfect agreement, 0 indicates agreement no better than chance, and negative values indicate systematic disagreement. Importantly, the α_HH column provides crucial context: even among human evaluators, agreement is often modest on subjective research evaluation tasks. By comparing α_LH to α_HH, we can assess whether the AI's agreement with humans is comparable to inter-human agreement. In general, α values below 0.40 are considered poor agreement, 0.40-0.60 moderate, and above 0.60 substantial agreement. Our results show that both LLM-human and human-human agreement vary considerably by criterion, with some dimensions showing near-zero agreement, suggesting these are particularly subjective or that evaluators (both human and AI) interpret these criteria differently.
+
+```{r}
+#| label: tbl-agreement
+#| tbl-cap: "Overall agreement metrics: LLM vs Human and Human vs Human"
+
+# LLM-Human agreement metrics
+llm_h_stats <- merged |>
+  group_by(criteria) |>
+  summarise(
+    n = sum(is.finite(midpoint_llm) & is.finite(midpoint_human)),
+    pearson = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "pearson")),
+    spearman = suppressWarnings(cor(midpoint_llm, midpoint_human, use = "pairwise.complete.obs", method = "spearman")),
+    MAE = mean(abs(midpoint_llm - midpoint_human), na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# LLM-Human Krippendorff's alpha
+llm_h_alpha <- merged |>
+  group_by(criteria) |>
+  group_modify(function(df, key){
+    M <- rbind(LLM = df$midpoint_llm, Human = df$midpoint_human)
+    tibble(
+      alpha_LH = tryCatch(
+        irr::kripp.alpha(M, method = "interval")$value,
+        error = function(e) NA_real_
+      )
+    )
+  }) |> ungroup()
+
+# Human-Human Krippendorff's alpha (for comparison context)
+hh_alpha <- human_raw |>
+  group_by(criteria) |>
+  group_modify(function(df, key){
+    wide <- df |>
+      distinct(evaluator, label_paper, middle_rating) |>
+      pivot_wider(names_from = label_paper, values_from = middle_rating)
+    if (ncol(wide) < 3) return(tibble(alpha_HH = NA_real_))
+    M <- as.matrix(wide[,-1, drop=FALSE])
+    rownames(M) <- wide$evaluator
+    tibble(
+      alpha_HH = tryCatch(
+        irr::kripp.alpha(M, method = "interval")$value,
+        error = function(e) NA_real_
+      )
+    )
+  }) |> ungroup()
+
+# Combine all metrics
+combined_agreement <- llm_h_stats |>
+  left_join(llm_h_alpha, by = "criteria") |>
+  left_join(hh_alpha, by = "criteria") |>
+  mutate(across(where(is.numeric), ~ round(.x, 3))) |>
+  arrange(criteria)
+
+kable(combined_agreement)
+
+
+
+```
+
+### Rationale behind the largest differences
+
+As a first shot at understanding sources of disagreement, we look at the reported rationale for those ratings that diverge the most from (average) human assessments. 
+
+
+```{r}
+#| label: rationale-outliers
+
+rationale_outlier = all_ratings |>
+  filter(evaluator == currentmodel, 
+         label_paper == "Williams et al. 2024",
+         criteria == "overall")
+
+```
+
+
+For @Williams2024 "overall", `r currentmodel` gives the following rationale: `r sprintf(rationale_outlier$rationale)`
+
+### Detailed example: Williams et al. (2024)
+
+As an illustrative case of where LLM and human ratings diverge, let's examine @Williams2024 in detail. This paper received notably different ratings from humans and the LLM across multiple criteria.
+
+```{r}
+#| label: tbl-williams-ratings
+#| tbl-cap: "Comparison of Human and LLM ratings for Williams et al. (2024)"
+
+williams_ratings <- all_ratings %>%
+  filter(grepl("Williams", label_paper, ignore.case = TRUE)) %>%
+  select(evaluator, criteria, middle_rating) %>%
+  mutate(is_llm = evaluator == currentmodel) %>%
+  group_by(is_llm, criteria) %>%
+  summarise(rating = mean(middle_rating, na.rm = TRUE), .groups = "drop") %>%
+  mutate(who = ifelse(is_llm, "LLM", "Human")) %>%
+  select(criteria, who, rating) %>%
+  pivot_wider(names_from = who, values_from = rating)
+
+# Only add Difference column if both LLM and Human columns exist
+if ("LLM" %in% names(williams_ratings) && "Human" %in% names(williams_ratings)) {
+  williams_ratings <- williams_ratings %>%
+    mutate(Difference = LLM - Human) %>%
+    arrange(match(criteria, c("overall", "claims", "methods", "adv_knowledge",
+                              "logic_comms", "open_sci", "gp_relevance")))
+
+  kable(williams_ratings, digits = 1, align = c("l", "r", "r", "r")) %>%
+    kable_styling(bootstrap_options = c("striped", "hover")) %>%
+    row_spec(which(williams_ratings$Difference > 10), background = "#ffe5cc") %>%
+    row_spec(which(williams_ratings$Difference < -10), background = "#e5f5e0")
+} else {
+  # Fallback if data structure is different
+  williams_ratings %>%
+    arrange(match(criteria, c("overall", "claims", "methods", "adv_knowledge",
+                              "logic_comms", "open_sci", "gp_relevance"))) %>%
+    kable(digits = 1) %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+}
+
+```
+
+**LLM rationale for Methods rating:**
+
+```{r}
+#| label: williams-methods-rationale
+#| results: asis
+
+williams_methods_rat <- all_ratings %>%
+  filter(grepl("Williams", label_paper, ignore.case = TRUE),
+         evaluator == currentmodel,
+         criteria == "methods") %>%
+  pull(rationale) %>%
+  first()
+
+if (length(williams_methods_rat) > 0 && !is.na(williams_methods_rat)) {
+  cat("> ", williams_methods_rat, "\n\n")
+} else {
+  cat("> (No rationale available)\n\n")
+}
+
+```
+
+In contrast, human evaluators for methods gave lower ratings (around 20-30th percentile) with concerns about data leakage, variables potentially incorporating post-2000 outcome data, and underestimation of uncertainty. This illustrates how the LLM may weigh certain methodological concerns differently than domain expert human evaluators.
+
+
+### Model comparison: GPT-5 vs GPT-5 Pro
+
+Since we evaluated papers using both GPT-5 and GPT-5 Pro (the current model), we can compare how these two versions of the frontier model differ in their ratings. @fig-gpt5-comparison shows this comparison.
+
+```{r}
+#| label: load-both-llms
+#| include: false
+
+# Load GPT-5 Pro metrics (already loaded as metrics)
+metrics_llm_pro <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE) %>%
+  clean_names() %>%
+  mutate(
+    label_paper = str_replace(paper, "et al ", "et al. "),
+    criteria = canon_metric(metric),
+    version = "GPT-5 Pro"
+  )
+
+# Load GPT-5 metrics (comparison model)
+metrics_llm_5 <- read_csv(here("data", "metrics_long_gpt-5.csv"), show_col_types = FALSE) %>%
+  clean_names() %>%
+  mutate(
+    label_paper = str_replace(paper, "et al ", "et al. "),
+    criteria = canon_metric(metric),
+    version = "GPT-5"
+  )
+
+# Combine both
+metrics_both_llms <- bind_rows(
+  metrics_llm_pro %>% transmute(label_paper, criteria, version, mid = as.numeric(midpoint)),
+  metrics_llm_5 %>% transmute(label_paper, criteria, version, mid = as.numeric(midpoint))
+)
+
+```
+
+```{r}
+#| label: fig-gpt5-comparison
+#| fig-cap: "GPT-5 vs GPT-5 Pro: Overall ratings compared to human ratings"
+#| fig-height: 8
+#| fig-width: 10
+
+# Get human means
+H_sc <- human_use %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper) %>%
+  summarise(Human = mean(midpoint_human, na.rm = TRUE), .groups = "drop")
+
+# Get LLM means for each version
+L_sc <- metrics_both_llms %>%
+  filter(criteria == "overall") %>%
+  group_by(label_paper, version) %>%
+  summarise(LLM = mean(mid, na.rm = TRUE), .groups = "drop")
+
+D_sc <- inner_join(H_sc, L_sc, by = "label_paper") %>%
+  filter(is.finite(Human), is.finite(LLM))
+
+# Calculate stats for each version
+stats_by_version <- D_sc %>%
+  group_by(version) %>%
+  summarise(
+    r = cor(Human, LLM, method = "pearson"),
+    rho = cor(Human, LLM, method = "spearman"),
+    MAE = mean(abs(LLM - Human)),
+    .groups = "drop"
+  )
+
+ggplot(D_sc, aes(x = Human, y = LLM, color = version, shape = version)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.8, color = "grey60") +
+  geom_point(size = 4, alpha = 0.8) +
+  stat_smooth(method = "lm", se = FALSE, linewidth = 1.5) +
+  coord_equal(xlim = c(25, 100), ylim = c(25, 100), expand = FALSE) +
+  scale_color_manual(
+    values = c("GPT-5 Pro" = UJ_ORANGE, "GPT-5" = UJ_GREEN),
+    name = NULL
+  ) +
+  scale_shape_manual(values = c("GPT-5 Pro" = 18, "GPT-5" = 15), name = NULL) +
+  labs(
+    x = "Human overall (0–100)",
+    y = "LLM overall (0–100)",
+    title = "Model Comparison: GPT-5 vs GPT-5 Pro",
+    caption = sprintf(
+      "GPT-5: r=%.2f, ρ=%.2f, MAE=%.1f | GPT-5 Pro: r=%.2f, ρ=%.2f, MAE=%.1f",
+      stats_by_version$r[stats_by_version$version == "GPT-5"],
+      stats_by_version$rho[stats_by_version$version == "GPT-5"],
+      stats_by_version$MAE[stats_by_version$version == "GPT-5"],
+      stats_by_version$r[stats_by_version$version == "GPT-5 Pro"],
+      stats_by_version$rho[stats_by_version$version == "GPT-5 Pro"],
+      stats_by_version$MAE[stats_by_version$version == "GPT-5 Pro"]
+    )
+  ) +
+  theme_uj() +
+  theme(legend.position = "top",
+        plot.caption = element_text(hjust = 0.5, size = 10))
+
+```
+
+This comparison shows how newer model versions (GPT-5 Pro vs GPT-5) may produce different ratings. Both models show broadly similar patterns in how they relate to human ratings, but there are notable differences in specific papers and overall calibration.
+
+
+## Statistical analyses of agreement (will move/integrate with Q&A)
+
+
+
+
+
+Krippendorff’s alpha
+
+## Claim identification
+
+
+## Qualitative assessments
+
+
+
+
+
+
+
+
+

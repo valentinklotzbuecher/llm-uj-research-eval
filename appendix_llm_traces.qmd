@@ -1,0 +1,271 @@
+---
+title: "LLM evaluation summaries and reasoning traces"
+---
+
+
+:::{.callout-important}
+
+Current testing with GPT-5 Pro to generate detailed reasoning traces and assessment summaries for various UNRELATED papers. The full outputs are included below for reference.
+
+:::
+
+
+
+\renewcommand\normalsize{\small}
+
+```{r}
+#| label: appendix-helpers
+
+
+library(jsonlite)
+library(purrr)
+library(dplyr)
+library(here)
+library(janitor)
+
+`%||%` <- function(x, y) if (!is.null(x)) x else y
+
+read_llm_from_json <- function(paper,
+                               json_dir = here::here("data", "llm_evals")) {
+  
+  # paper: string like "Williams et al. 2024"
+  
+  path <- file.path(json_dir, paste0(paper, ".response.json"))
+  if (!file.exists(path)) {
+    warning("JSON not found for paper: ", paper)
+    return(list(assessment = NA_character_, reasoning = NA_character_))
+  }
+  
+  j <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  out <- j$output %||% list()
+  
+  reasoning_block <- NULL
+  message_block   <- NULL
+  for (blk in out) {
+    if (is.list(blk) && identical(blk$type, "reasoning")) {
+      reasoning_block <- blk
+    }
+    if (is.list(blk) && identical(blk$type, "message")) {
+      message_block <- blk
+    }
+  }
+  
+  # full reasoning trace
+  
+  reasoning_full <- NA_character_
+  if (!is.null(reasoning_block)) {
+    summaries <- reasoning_block$summary %||% list()
+    if (length(summaries)) {
+      texts <- purrr::map_chr(summaries, ~ .x$text %||% "")
+      reasoning_full <- paste(texts, collapse = "\n\n")
+    }
+  }
+  
+  # assessment_summary from the JSON message content
+  
+  assessment_summary <- NA_character_
+  if (!is.null(message_block) && length(message_block$content) > 0) {
+    txt <- message_block$content[[1]]$text %||% ""
+    if (nzchar(txt)) {
+      parsed <- tryCatch(
+        jsonlite::fromJSON(txt, simplifyVector = TRUE),
+        error = function(e) NULL
+      )
+      if (!is.null(parsed) && !is.null(parsed$assessment_summary)) {
+        assessment_summary <- parsed$assessment_summary
+      }
+    }
+  }
+  
+  list(assessment = assessment_summary, reasoning = reasoning_full)
+}
+
+```
+
+
+
+
+
+
+
+
+```{r}
+#| label: appendix-llm-blocks
+#| results: 'asis'
+#| echo: false
+
+json_dir <- here::here("data", "llm_evals")
+
+# list all *.response.json files
+json_files <- list.files(
+  path = json_dir,
+  pattern = "\\.response\\.json$",
+  full.names = FALSE
+)
+
+# derive paper names from filenames: "<paper>.response.json" -> "<paper>"
+papers_all <- json_files |>
+  sub("\\.response\\.json$", "", x = _) |>
+  sort()
+
+# render each paper's LLM assessment + reasoning
+for (p in papers_all) {
+  dat <- read_llm_from_json(p, json_dir = json_dir)
+  if (is.na(dat$assessment) && is.na(dat$reasoning)) next
+
+  cat("## ", p, "\n\n", sep = "")
+
+  cat("::: {.callout-note}\n")
+  cat("#### Model assessment summary\n\n")
+  cat("::: {.small}\n")
+  if (!is.na(dat$assessment) && nzchar(dat$assessment)) {
+    cat(dat$assessment, "\n")
+  } else {
+    cat("No assessment summary found.\n")
+  }
+  cat(":::\n")
+  cat(":::\n\n")
+
+  cat("::: {.callout-tip}\n")
+  cat("#### Model reasoning trace\n\n")
+  cat("::: {.small}\n")
+  if (!is.na(dat$reasoning) && nzchar(dat$reasoning)) {
+    cat(dat$reasoning, "\n")
+  } else {
+    cat("No reasoning trace found.\n")
+  }
+  cat(":::\n")
+  cat(":::\n\n")
+
+  if (knitr::is_latex_output()) {
+    cat("\\newpage\n\n")
+  } else {
+    cat("---\n\n")
+  }
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ```{r} -->
+<!-- #| label: appendix-setup -->
+<!-- #| echo: false -->
+
+<!-- library(tidyverse) -->
+<!-- library(here) -->
+<!-- library(janitor) -->
+
+<!-- srcdata <- read_csv(here("results", "llm_evals_master.csv"), -->
+<!--                     show_col_types = FALSE) |> -->
+<!--   clean_names() -->
+
+<!-- render_llm_appendix_block <- function(paper_name) { -->
+<!--   row <- srcdata |> -->
+<!--     filter(paper == paper_name) |> -->
+<!--     slice(1) -->
+
+<!--   if (nrow(row) == 0L) { -->
+<!--     cat("No LLM evaluation found for", paper_name, "\n\n") -->
+<!--     return(invisible(NULL)) -->
+<!--   } -->
+
+<!--   assessment <- row$assessment_summary -->
+<!--   reasoning  <- row$reasoning_summary -->
+
+<!--   cat("### ", paper_name, "\n\n", sep = "") -->
+
+<!--   cat("**Model assessment summary**\n\n") -->
+<!--   cat("::: {.callout-note}\n") -->
+<!--   cat("::: {.small}\n") -->
+<!--   cat(assessment, "\n") -->
+<!--   cat(":::\n") -->
+<!--   cat(":::\n\n") -->
+
+<!--   cat("**Model reasoning trace (compressed summary)**\n\n") -->
+<!--   cat("::: {.callout-tip}\n") -->
+<!--   cat("::: {.small}\n") -->
+<!--   cat(reasoning, "\n") -->
+<!--   cat(":::\n") -->
+<!--   cat(":::\n\n") -->
+<!-- } -->
+
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- #| label: appendix-williams -->
+<!-- #| results: 'asis' -->
+
+<!-- render_llm_appendix_block("Williams et al. 2024") -->
+
+<!-- ``` -->
+
+<!-- \newpage -->
+
+<!-- Published as @Green2025 -->
+
+<!-- ```{r} -->
+<!-- #| label: appendix-green -->
+<!-- #| results: 'asis' -->
+
+<!-- render_llm_appendix_block("Green et al. 2025") -->
+
+<!-- ``` -->
+
+<!-- \newpage -->
+
+<!-- Adena2024, published as @Adena2025 -->
+
+
+<!-- ```{r} -->
+<!-- #| label: appendix-adena -->
+<!-- #| results: 'asis' -->
+
+<!-- render_llm_appendix_block("Adena and Hager 2024") -->
+
+<!-- ``` -->
+
+<!-- \newpage -->
+
+<!-- ```{r} -->
+<!-- #| label: appendix-peterman -->
+<!-- #| results: 'asis' -->
+
+<!-- render_llm_appendix_block("Peterman et al. 2025") -->
+
+<!-- ``` -->
+
+<!-- \newpage -->
+
+<!-- ```{r} -->
+<!-- #| label: appendix-Kudymowa -->
+<!-- #| results: 'asis' -->
+
+<!-- render_llm_appendix_block("Kudymowa et al. 2023") -->
+
+<!-- ``` -->
+
+ 

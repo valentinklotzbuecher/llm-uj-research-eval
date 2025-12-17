@@ -1,0 +1,56 @@
+---
+title: "Discussion"
+format: html
+---
+
+```{r} 
+#| label: setup call
+#| code-summary: "Include global setup and parameters"
+
+source("setup_params.R")
+```
+
+## Limitations
+
+*Sample size and representativeness:* We evaluated on only <!-- Let's soft-code --> ~40–50 papers, all in the social sciences and specifically chosen by The Unjournal for evaluation (which means they were considered high-impact or interesting). This is not a random sample of research literature. The papers also skew toward empirical and policy-relevant topics. The AI’s performance and alignment might differ in other fields (e.g., pure theory, biology) or on less polished papers.
+
+*Human agreement as a moving target:* The Unjournal human evaluations themselves are not a single ground truth. As evidence of this, we note substantial variability between reviewers.
+
+*Potential AI knowledge contamination:* We attempted to prevent giving the AI any information about the human evaluations, but we cannot be 100% sure that the model’s training data didn’t include some fragment of these papers, related discussions, or even The Unournal evaluations. We will be able to exclude this for the evaluations of *future* Unjournal evaluations. 
+
+Model limitations and “alignment” issues: While powerful, is not a domain expert with judgment honed by years of experience. It might be overly influenced by how a paper is written (fluency) or by irrelevant sections. It also tends to avoid extremely harsh language or low scores unless there is a clear reason, due to its alignment training to be helpful/polite – this could explain the general score inflation we observed. The model might fail to catch subtle methodological flaws that a field expert would notice, or conversely it might “hallucinate” a concern that isn’t actually a problem. Without ground truth about a paper’s actual quality, we used human consensus as a proxy; if the humans overlooked something, the AI could appear to “disagree” but possibly be pointing to a real issue.
+
+(There is also evidence, e.g. @Pataranutaporn2025 that LLMs show biases towards more prestigious author names, institutions, and towards male prestigious authors. We will provide further evidence on this in the next iterations, de-identifying the work under LLM evaluation.)
+
+Scoring calibration: The AI was prompted to use the 0–100 percentile scale, but calibrating that is hard. Humans likely had some calibration from guidelines or community norms (e.g. perhaps very few papers should get above 90). The AI might have been more liberal in using the high end of the scale (hence higher means). In future, a different prompt or examples could calibrate it to match the distribution of human scores more closely. We also only took one run from the AI for each paper; LLM outputs can have randomness, so a different run might vary slightly. (To do: aggregate across multiple runs.)
+
+Small differences and rounding: Our analysis treated the AI’s numeric outputs at face value. Small differences (e.g. AI 85 vs human 82) might not be meaningful in practice – both indicate a similar qualitative assessment (“very good”). Some of our metrics (like kappa) penalize any difference, even if minor. Thus, the “low agreement” statistics might sound worse than the reality where in many cases AI and humans were only off by a few points. We intend to analyze the distribution of absolute differences: a large portion might be within say ±5 points which could be considered essentially agreement in practice. The credible intervals add another layer: sometimes an AI’s score fell outside a human’s interval, but overlapping intervals could still mean they agree within uncertainty. We did observe that AI’s intervals were often narrower than humans’ (LLM tended to be confident, giving ~10-point spreads, whereas some human evaluators gave 20-point or left some intervals blank), which is another aspect of calibration.
+
+
+::: {.callout-warning}
+# Planned updates and extensions
+
+Also see internal [tasks/issues](https://coda.io/d/Comparing-LLM-Generated-Reviews-to-Human-Evaluations-in-Social-S_dSJIQH2CJD3/Tasks-Issues_suLMhWJf#Tasks-and-issues_tu28DguH/r153) in Coda
+
+
+- Related work
+- Slides
+
+- Extended evaluation: 
+  - Journal ranking tiers and predictions
+  - Claim identification
+  - Qualitative assessments and full evaluations
+  - Comparing evaluations across fields/areas
+
+- Improved workflow:
+  - Improve PDF ingestion
+  - System prompt optimization
+  - Alternative models
+  - Extend set of papers
+  
+- Aggregating multiple LLM runs
+- Anonymization
+- Evaluation of papers for prospective (uncontaminated) evaluation 
+
+- More grounded information theoretic metrics and robust statistical tests.
+:::
