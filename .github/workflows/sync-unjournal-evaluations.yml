@@ -1,0 +1,56 @@
+name: Sync Unjournal evaluations
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync-evaluations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out llm-uj-research-eval
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Clone unjournaldata
+        run: |
+          git clone https://github.com/unjournal/unjournaldata.git unjournaldata
+
+      - name: Install harvester dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r unjournaldata/requirements.txt
+
+      - name: Harvest PubPub exports
+        run: |
+          python unjournaldata/code/harvest_pubpub_assets.py \
+            --output-dir unjournaldata/pubpub_exports \
+            --community-host unjournal.pubpub.org
+
+      - name: Sync markdown to data/unjournal_evaluations
+        run: |
+          mkdir -p data/unjournal_evaluations
+          rsync -a --delete --include="*.md" --exclude="*" \
+            unjournaldata/pubpub_exports/ data/unjournal_evaluations/
+
+      - name: Commit and push if changed
+        run: |
+          if git status --porcelain | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/unjournal_evaluations
+            git commit -m "sync: update Unjournal evaluations from PubPub"
+            git push
+          else
+            echo "No changes to commit."
+          fi
