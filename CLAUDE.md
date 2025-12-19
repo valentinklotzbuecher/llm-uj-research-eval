@@ -95,12 +95,13 @@ Configuration: `_quarto.yml`
 
 **IMPORTANT: Data directory organization:**
 
-- **`data/`**: Production LLM evaluation results (large runs, ~40 papers)
-  - `metrics_long.csv` - Primary data file used by `results.qmd` and `slides_vk/index.qmd`
-  - `combined_long.csv` - All metrics combined
-  - `tiers_long.csv` - Journal tier predictions
-  - `metrics_long_gpt-5.csv` - Legacy GPT-5 run for comparison
-  - Pre-computed human evaluation data (`.rds` files)
+- **`data/`**: Production LLM evaluation results (large runs, ~50 papers)
+  - `metrics_long.csv` - Primary data file used by `results.qmd` and `slides_vk/index.qmd` (gpt-4, baseline_sept_2024)
+  - `combined_long.csv` - All metrics combined (gpt-4, baseline_sept_2024)
+  - `tiers_long.csv` - Journal tier predictions (gpt-4, baseline_sept_2024)
+  - `metrics_long_gpt-5.csv`, `combined_long_gpt-5.csv`, `tiers_long_gpt-5.csv` - GPT-5 comparison run (gpt5_oct_2024)
+  - Pre-computed human evaluation data (`.rds` and `.csv` files)
+  - `unjournal_evaluations/` - Markdown exports of Unjournal evaluations (synced weekly via GitHub Actions)
 
 - **`results/`**: New/test runs and metadata tracking
   - `llm_runs_metadata.csv` - Master tracking file for all evaluation runs
@@ -136,14 +137,22 @@ The LLM evaluation pipeline includes:
 
 ### System Prompts
 
-The file `system_prompts.py` contains three main prompts used historically:
+**Current approach:** The active system prompt is defined directly in `methods.qmd` as `SYSTEM_PROMPT_COMBINED` and is injected into the API call.
 
-- `SYSTEM_PROMPT_MANUALFIX_NOUJ`: Full text from Unjournal guidelines, used for comprehensive evaluations
-- `SYSTEM_PROMPT_GUIDELINES`: Shorter version referencing the Unjournal URL
-- `TIERS_SYSTEM_PROMPT_MANUALFIX`: Focused on journal tier predictions only
-- `FULL_GUIDELINES_PROMPT`: Complete evaluator guidelines in markdown format
+**Prompt modularization system:** The `prompts/` directory contains a modular prompt management system:
 
-**Current system prompt** is defined directly in `methods.qmd` as `SYSTEM_PROMPT_COMBINED` and is injected into the API call.
+- **`prompts/components/`**: Reusable prompt components (guidelines, calibration instructions, schema definitions, metric definitions)
+- **`prompts/versions/`**: Complete versioned prompts (v1_baseline_sept2024, v2_ignore_authors, v3_assessment_first, v4_assessment_expanded)
+- **`prompts/builder.py`**: Utilities for composing prompts from components
+- **`prompts/README.md`**: Complete documentation of the modular system
+
+This system enables:
+- Version control of prompts with clear lineage
+- Reusable components across versions
+- Easier A/B testing and experimentation
+- Clear documentation of what changed between versions
+
+**See `prompts/README.md` for detailed usage instructions.**
 
 ### LLM Evaluation Run Tracking System
 
@@ -236,9 +245,10 @@ When a tracked run is ready to use in `results.qmd`:
 **Current tracked runs:**
 
 See `results/llm_runs_metadata.csv` for complete history. Major runs include:
-- `baseline_sept_2024`: Initial baseline (~40 papers) → `data/combined_long.csv`
-- `gpt5_oct_2024`: GPT-5 comparison run (~40 papers) → `data/combined_long_gpt-5.csv`
-- `improved_prompt_oct28_2024`: Diagnostic assessment approach (2 papers, test run)
+- `baseline_sept_2024`: Initial baseline (~50 papers, gpt-4) → `data/combined_long.csv`, `data/metrics_long.csv`
+- `gpt5_oct_2024`: GPT-5 comparison run (~50 papers) → `data/combined_long_gpt-5.csv`, `data/metrics_long_gpt-5.csv`
+- `improved_prompt_oct28_2024`: Diagnostic assessment approach (2 papers, test run, gpt-5)
+- `20251104_gpt-5_systematic_10paper_v1`: 10-paper systematic evaluation (in_progress)
 
 ### Configuration Parameters
 
@@ -269,11 +279,13 @@ The `paper_change_analysis/` directory contains a separate analysis pipeline:
 - `scripts/generate_potential_matches.py`: Helper to create manual matching workflow
 - `scripts/llm_change_attribution.py`: (Optional) LLM analysis to assess if changes reflect evaluator feedback
 
+**Location:** `side_projects/paper_change_analysis/`
+
 **Data inputs:**
 - `papers/` and `more_papers/`: Before versions (at evaluation time)
 - `latest_papers_post_UJ/`: After versions (latest available)
 - `latest_papers_post_UJ/metadata.csv`: Paper titles and metadata
-- `unjournal_evaluations/*.md`: Evaluation files with paper titles
+- `data/unjournal_evaluations/*.md`: Evaluation files with paper titles (synced weekly via GitHub Actions)
 
 **Data outputs:**
 - `change_analysis_results.json`: Full results with line counts, text changes, evaluation matches
@@ -282,14 +294,13 @@ The `paper_change_analysis/` directory contains a separate analysis pipeline:
 
 **Key technique:** Evaluation matching uses regex to extract paper titles from markdown files (e.g., `Evaluation 1 of "Paper Title"`) and fuzzy matches against metadata titles.
 
-### Helper Scripts
+### Side Projects
 
-The `quick_helper_scripts_for_downloads_etc/` directory contains one-off utility scripts for:
+The `side_projects/` directory contains separate analysis pipelines and utilities:
 
-- Downloading papers and metadata from various sources
-- Extracting Unjournal evaluation data from PubPub
-- Processing crossref API data
-- Scheduled paper downloads via cron
+- **`paper_change_analysis/`**: Pipeline to track whether authors updated papers in response to Unjournal evaluations (see separate section below)
+- **`openalex_work_finding_citers/`**: Scripts for identifying citing papers using OpenAlex API
+- Other experimental analyses not part of the main LLM evaluation pipeline
 
 These are not part of the main evaluation or analysis pipelines.
 
@@ -356,11 +367,11 @@ These are loaded in R chunks and joined with LLM evaluation CSVs.
 ### To run paper response analysis
 
 ```bash
-conda activate qpy311_arm  # or qpy311
-python paper_change_analysis/scripts/analyze_paper_changes.py
+conda activate qpy311  # or qpy311_arm on Apple Silicon
+python side_projects/paper_change_analysis/scripts/analyze_paper_changes.py
 ```
 
-This analyzes changes between paper versions and matches them to evaluations. Results are saved to `paper_change_analysis/change_analysis_results.json` and rendered in the appendix.
+This analyzes changes between paper versions and matches them to evaluations. Results are saved to `side_projects/paper_change_analysis/change_analysis_results.json` and rendered in the appendix.
 
 ## Important Notes
 
@@ -386,6 +397,22 @@ When committing:
 The site is hosted on Netlify. The deployment process:
 1. Push to main branch on GitHub
 2. Netlify automatically runs `quarto render` and deploys `_book/` contents
+
+## Automated Data Sync
+
+**GitHub Actions workflow:** `.github/workflows/sync-unjournal-evaluations.yml`
+
+**Purpose:** Automatically sync Unjournal evaluation markdown files from the [unjournaldata](https://github.com/unjournal/unjournaldata) repository.
+
+**Schedule:** Weekly (Mondays at 6 AM UTC) or manual trigger
+
+**What it does:**
+1. Clones the unjournaldata repository
+2. Runs the PubPub harvester to fetch latest evaluation exports
+3. Syncs markdown files to `data/unjournal_evaluations/`
+4. Commits and pushes changes if any new evaluations are found
+
+This keeps the evaluation data fresh for the paper response analysis and other uses.
 
 ## Key Dependencies
 

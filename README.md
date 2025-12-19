@@ -23,21 +23,27 @@ This Quarto book uses LLMs to evaluate research papers based on The Unjournal me
 
 ```
 ├── index.qmd, methods.qmd, results.qmd, etc.  # Main Quarto book chapters
-├── data/          Production LLM evaluation results (gpt-4, 50 papers)
-├── papers/        Research papers (PDFs) to evaluate
-├── results/       Experimental runs & tracking metadata
-└── key/           openai_key.txt (git-ignored, required for API calls)
+├── data/           Production LLM evaluation results (gpt-4/gpt-5, 50 papers)
+├── papers/         Research papers (PDFs) to evaluate
+├── results/        Experimental runs & tracking metadata
+├── prompts/        Modular prompt management system (components & versions)
+├── side_projects/  Separate analysis pipelines (paper changes, citations)
+└── key/            openai_key.txt (git-ignored, required for API calls)
 ```
 
 **See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete directory guide.**
 
 ### Key Data Files
 
-- **Production data** (used in book): `data/metrics_long.csv`, `data/tiers_long.csv`
+- **Production data** (used in book): `data/metrics_long.csv`, `data/tiers_long.csv`, `data/combined_long.csv`
   - Model: gpt-4 (baseline_sept_2024 run)
+  - Papers: ~50 evaluated research papers
+- **Comparison data**: `data/metrics_long_gpt-5.csv`, `data/combined_long_gpt-5.csv`, `data/tiers_long_gpt-5.csv`
+  - Model: gpt-5 (gpt5_oct_2024 run)
   - Papers: ~50 evaluated research papers
 - **Human evaluations**: `data/all_ratings.rds`, `data/all_jtiers.rds` (from Unjournal.org)
 - **Run tracking**: `results/llm_runs_metadata.csv` (master registry of all LLM runs)
+- **Unjournal evaluations**: `data/unjournal_evaluations/` (markdown files, synced weekly via GitHub Actions)
 
 **See [DATA_PROVENANCE.md](DATA_PROVENANCE.md) for detailed data lineage.**
 
