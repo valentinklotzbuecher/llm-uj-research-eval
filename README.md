@@ -114,7 +114,8 @@ export QUARTO_PYTHON="$(conda run -n qpy311 which python)"
 - **[DATA_PROVENANCE.md](DATA_PROVENANCE.md)** - Data lineage & tracking
 - **[CLAUDE.md](CLAUDE.md)** - Architecture & development notes
 - **[data/README.md](data/README.md)** - Production data documentation
-- **[results/README_FOLDER.md](results/README_FOLDER.md)** - Experimental runs guide
+- **[results/README.md](results/README.md)** - Experimental runs guide
+- **[prompts/README.md](prompts/README.md)** - Prompt modularization system
 
 ---
 

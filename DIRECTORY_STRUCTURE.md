@@ -31,31 +31,53 @@ DR: `data` folder is output that was manually copied into the data folder; both 
 ```
 ├── data/                        # Production data used in book
 │   ├── metrics_long.csv         # LLM ratings (baseline_sept_2024, gpt-4, 50 papers)
-│   ├── tiers_long.csv           # Journal tier predictions
-│   ├── combined_long.csv        # All metrics combined
+│   ├── combined_long.csv        # All metrics combined (gpt-4)
+│   ├── tiers_long.csv           # Journal tier predictions (gpt-4)
+│   ├── metrics_long_gpt-5.csv   # GPT-5 comparison run
+│   ├── combined_long_gpt-5.csv  # GPT-5 all metrics
+│   ├── tiers_long_gpt-5.csv     # GPT-5 tier predictions
 │   ├── all_ratings.rds          # Human evaluations from Unjournal
+│   ├── all_jtiers.rds           # Human journal tier predictions
+│   ├── unjournal_evaluations/   # Markdown exports (synced weekly via GitHub Actions)
 │   └── README.md                # Full data documentation
 │
 ├── papers/                      # Research papers to evaluate (PDFs)
-│   └── [50+ PDF files]
+│   └── [3 PDF files currently]
 │
 └── results/                     # Experimental LLM runs
     ├── llm_runs_metadata.csv    # Master tracking file
     ├── jobs_index.csv           # Active job tracking
     ├── [timestamped runs]/      # Individual evaluation runs
-    └── README_FOLDER.md         # Run tracking documentation
+    └── README.md                # Run tracking documentation
 ```
 
-### Analysis Pipelines
+### Prompt Management
 ```
-├── paper_change_analysis/       # Tracks if authors updated papers post-evaluation
-│   ├── scripts/
-│   │   ├── analyze_paper_changes.py
-│   │   └── llm_change_attribution.py
-│   └── README.md
-│
-└── quick_helper_scripts_for_downloads_etc/
-    └── [utility scripts for downloads, data extraction]
+└── prompts/                     # Modular prompt system (NEW)
+    ├── components/              # Reusable prompt components
+    │   ├── base_guidelines.txt
+    │   ├── calibration_instructions.txt
+    │   ├── schema_instructions.txt
+    │   └── metric_definitions.txt
+    ├── versions/                # Versioned complete prompts
+    │   ├── v1_baseline_sept2024.py
+    │   ├── v2_ignore_authors.py
+    │   ├── v3_assessment_first.py
+    │   └── v4_assessment_expanded.py
+    ├── builder.py               # Prompt composition utilities
+    └── README.md                # Full documentation
+```
+
+### Side Projects & Analysis Pipelines
+```
+└── side_projects/
+    ├── paper_change_analysis/   # Tracks if authors updated papers post-evaluation
+    │   ├── scripts/
+    │   │   ├── analyze_paper_changes.py
+    │   │   └── llm_change_attribution.py
+    │   └── README.md
+    └── openalex_work_finding_citers/  # Citation network analysis
+        └── open_alex_scripts_seeds/
 ```
 
 ### Organization & Reference
@@ -69,12 +91,16 @@ DR: `data` folder is output that was manually copied into the data folder; both 
 │   ├── example_prompt.txt       # Test/example prompts
 │   └── render_log.txt           # Old build logs
 │
-├── side_projects/               # Related but separate work
-│   └── openalex_work_finding_citers/  # Citation network analysis
-│
 └── reference_materials/         # Background reading
     ├── Literature_review/       # Academic papers on LLM peer review
     └── docs/                    # Historical documentation
+```
+
+### Automation
+```
+└── .github/
+    └── workflows/
+        └── sync-unjournal-evaluations.yml  # Weekly sync of Unjournal evaluations
 ```
 
 ---
@@ -103,8 +129,11 @@ DR: `data` folder is output that was manually copied into the data folder; both 
 ### Documentation
 - `README.md` - Quick start & setup
 - `CLAUDE.md` - Instructions for Claude Code (development assistant)
+- `DIRECTORY_STRUCTURE.md` - This file (repository organization)
 - `DATA_PROVENANCE.md` - Data lineage & versions
+- `PROMPT_VERSIONS.md` - Prompt version tracking & characteristics
 - `CACHE_README.md` - Explanation of cache directories
+- `TRACKING_SYSTEM_TEST_RESULTS.md` - Test results for LLM run tracking
 
 ---
 
@@ -178,8 +207,10 @@ If further cleanup is desired:
 ## 📖 For More Details
 
 - **Data documentation**: [data/README.md](data/README.md)
-- **Results tracking**: [results/README_FOLDER.md](results/README_FOLDER.md)
+- **Results tracking**: [results/README.md](results/README.md)
+- **Prompt system**: [prompts/README.md](prompts/README.md)
 - **Archive inventory**: [archive/archive_to_revisit/ARCHIVE_METADATA.md](archive/archive_to_revisit/ARCHIVE_METADATA.md)
-- **Paper response analysis**: [paper_change_analysis/README.md](paper_change_analysis/README.md)
+- **Paper response analysis**: [side_projects/paper_change_analysis/README.md](side_projects/paper_change_analysis/README.md)
 - **Data provenance**: [DATA_PROVENANCE.md](DATA_PROVENANCE.md)
+- **Prompt versions**: [PROMPT_VERSIONS.md](PROMPT_VERSIONS.md)
 - **Setup & development**: [README.md](README.md) and [CLAUDE.md](CLAUDE.md)
