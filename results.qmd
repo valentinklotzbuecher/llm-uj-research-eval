@@ -649,124 +649,124 @@ llm_reasoning_steps <- bind_rows(purrr::map(parsed, "reasoning_steps"))
 ```
 
 
-```{r}
-#| label: tbl-llm-token-cost-summary
-#| tbl-cap: "Estimated token usage and cost of GPT‑5 Pro evaluations"
+<!-- ```{r} -->
+<!-- #| label: tbl-llm-token-cost-summary -->
+<!-- #| tbl-cap: "Estimated token usage and cost of GPT‑5 Pro evaluations" -->
 
-token_cost_summary <- llm_master |>
-  transmute(
-    paper,
-    input_tokens,
-    output_tokens,
-    reasoning_tokens,
-    total_tokens    = input_tokens + output_tokens,
-    est_cost_usd    = input_tokens  * price_in_per_token +
-      (output_tokens + reasoning_tokens) * price_out_per_token
-  ) |>
-  arrange(desc(est_cost_usd))
+<!-- token_cost_summary <- llm_master |> -->
+<!--   transmute( -->
+<!--     paper, -->
+<!--     input_tokens, -->
+<!--     output_tokens, -->
+<!--     reasoning_tokens, -->
+<!--     total_tokens    = input_tokens + output_tokens, -->
+<!--     est_cost_usd    = input_tokens  * price_in_per_token + -->
+<!--       (output_tokens + reasoning_tokens) * price_out_per_token -->
+<!--   ) |> -->
+<!--   arrange(desc(est_cost_usd)) -->
 
-token_cost_summary_display <- token_cost_summary |>
-  mutate(
-    est_cost_usd = round(est_cost_usd, 2)
-  )
+<!-- token_cost_summary_display <- token_cost_summary |> -->
+<!--   mutate( -->
+<!--     est_cost_usd = round(est_cost_usd, 2) -->
+<!--   ) -->
 
-knitr::kable(
-  token_cost_summary_display,
-  col.names = c(
-    "Paper", "Input tokens", "Output tokens", "Reasoning tokens",
-    "Total tokens", "Est. cost (USD)"
-  ),
-  align = c("l","r","r","r","r","r")
-)
+<!-- knitr::kable( -->
+<!--   token_cost_summary_display, -->
+<!--   col.names = c( -->
+<!--     "Paper", "Input tokens", "Output tokens", "Reasoning tokens", -->
+<!--     "Total tokens", "Est. cost (USD)" -->
+<!--   ), -->
+<!--   align = c("l","r","r","r","r","r") -->
+<!-- ) -->
 
-```
+<!-- ``` -->
 
-```{r}
-#| label: llm-williams-from-json
+<!-- ```{r} -->
+<!-- #| label: llm-williams-from-json -->
 
-# pricing for GPT‑5 Pro (USD / 1M tokens, from OpenAI API docs)
+<!-- # pricing for GPT‑5 Pro (USD / 1M tokens, from OpenAI API docs) -->
 
-gpt5pro_price_input  <- 15    # input per 1M tokens
-gpt5pro_price_output <- 120   # output per 1M tokens
+<!-- gpt5pro_price_input  <- 15    # input per 1M tokens -->
+<!-- gpt5pro_price_output <- 120   # output per 1M tokens -->
 
-price_in_per_token  <- gpt5pro_price_input  / 1e6
-price_out_per_token <- gpt5pro_price_output / 1e6
+<!-- price_in_per_token  <- gpt5pro_price_input  / 1e6 -->
+<!-- price_out_per_token <- gpt5pro_price_output / 1e6 -->
 
-# Williams row
+<!-- # Williams row -->
 
-williams_row <- llm_master |>
-  filter(paper == "Williams et al. 2024") |>
-  slice(1)
+<!-- williams_row <- llm_master |> -->
+<!--   filter(paper == "Williams et al. 2024") |> -->
+<!--   slice(1) -->
 
-# tokens + cost
+<!-- # tokens + cost -->
 
-williams_tokens <- williams_row |>
-  transmute(
-    input_tokens,
-    output_tokens,
-    reasoning_tokens,
-    total_tokens    = input_tokens + output_tokens,
-    est_cost_usd    = input_tokens  * price_in_per_token +
-      (output_tokens + reasoning_tokens) * price_out_per_token
-  )
+<!-- williams_tokens <- williams_row |> -->
+<!--   transmute( -->
+<!--     input_tokens, -->
+<!--     output_tokens, -->
+<!--     reasoning_tokens, -->
+<!--     total_tokens    = input_tokens + output_tokens, -->
+<!--     est_cost_usd    = input_tokens  * price_in_per_token + -->
+<!--       (output_tokens + reasoning_tokens) * price_out_per_token -->
+<!--   ) -->
 
-# 0–100 metrics
+<!-- # 0–100 metrics -->
 
-metric_labels <- c(
-  overall              = "Overall assessment",
-  claims_evidence      = "Claims & evidence",
-  methods              = "Methods",
-  advancing_knowledge  = "Advancing knowledge and practice",
-  logic_communication  = "Logic and communication",
-  open_science         = "Open, collaborative, replicable science",
-  global_relevance     = "Relevance to global priorities"
-)
+<!-- metric_labels <- c( -->
+<!--   overall              = "Overall assessment", -->
+<!--   claims_evidence      = "Claims & evidence", -->
+<!--   methods              = "Methods", -->
+<!--   advancing_knowledge  = "Advancing knowledge and practice", -->
+<!--   logic_communication  = "Logic and communication", -->
+<!--   open_science         = "Open, collaborative, replicable science", -->
+<!--   global_relevance     = "Relevance to global priorities" -->
+<!-- ) -->
 
-metric_order <- names(metric_labels)
+<!-- metric_order <- names(metric_labels) -->
 
-williams_metrics <- llm_metrics_long |>
-  filter(paper == "Williams et al. 2024",
-         metric %in% metric_order) |>
-  mutate(
-    metric_label = metric_labels[metric],
-    metric_label = factor(metric_label, levels = unname(metric_labels))
-  ) |>
-  arrange(metric_label) |>
-  transmute(
-    Criterion = metric_label,
-    Midpoint  = midpoint,
-    Lower_90  = lower_bound,
-    Upper_90  = upper_bound
-  )
+<!-- williams_metrics <- llm_metrics_long |> -->
+<!--   filter(paper == "Williams et al. 2024", -->
+<!--          metric %in% metric_order) |> -->
+<!--   mutate( -->
+<!--     metric_label = metric_labels[metric], -->
+<!--     metric_label = factor(metric_label, levels = unname(metric_labels)) -->
+<!--   ) |> -->
+<!--   arrange(metric_label) |> -->
+<!--   transmute( -->
+<!--     Criterion = metric_label, -->
+<!--     Midpoint  = midpoint, -->
+<!--     Lower_90  = lower_bound, -->
+<!--     Upper_90  = upper_bound -->
+<!--   ) -->
 
-# journal tiers
+<!-- # journal tiers -->
 
-williams_tiers <- llm_tiers_long |>
-  filter(paper == "Williams et al. 2024") |>
-  mutate(
-    Measure = recode(
-      tier_kind,
-      tier_should = "Deserved journal tier (should)",
-      tier_will   = "Predicted journal tier (will)"
-    )
-  ) |>
-  transmute(
-    Measure,
-    Score    = score,
-    Lower_90 = ci_lower,
-    Upper_90 = ci_upper
-  )
+<!-- williams_tiers <- llm_tiers_long |> -->
+<!--   filter(paper == "Williams et al. 2024") |> -->
+<!--   mutate( -->
+<!--     Measure = recode( -->
+<!--       tier_kind, -->
+<!--       tier_should = "Deserved journal tier (should)", -->
+<!--       tier_will   = "Predicted journal tier (will)" -->
+<!--     ) -->
+<!--   ) |> -->
+<!--   transmute( -->
+<!--     Measure, -->
+<!--     Score    = score, -->
+<!--     Lower_90 = ci_lower, -->
+<!--     Upper_90 = ci_upper -->
+<!--   ) -->
 
-# text blobs from JSON
+<!-- # text blobs from JSON -->
 
-williams_assessment       <- williams_row$assessment_summary
-williams_reasoning_full   <- williams_row$reasoning_full
-williams_reasoning_steps  <- llm_reasoning_steps |>
-  filter(paper == "Williams et al. 2024")
+<!-- williams_assessment       <- williams_row$assessment_summary -->
+<!-- williams_reasoning_full   <- williams_row$reasoning_full -->
+<!-- williams_reasoning_steps  <- llm_reasoning_steps |> -->
+<!--   filter(paper == "Williams et al. 2024") -->
 
 
 
-```
+<!-- ``` -->
 
 
 
