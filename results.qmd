@@ -770,63 +770,63 @@ llm_reasoning_steps <- bind_rows(purrr::map(parsed, "reasoning_steps"))
 
 
 
-### Case study: Williams et al. (2024)
+<!-- ### Case study: Williams et al. (2024) -->
 
 
-GPT‑5 Pro assigns an overall percentile of 86/100, with relatively high scores for claims and evidence (78), methods (74), advancing knowledge (92), logic and communication (86), open science (78), and global relevance (94). It predicts that the paper deserves publication in a high‑tier journal (tier‑should 4.4/5) and that it will, in practice, be published at roughly the same level (tier‑will 4.8/5). The two Unjournal evaluators, by contrast, each give an overall rating of 50/100 and much lower scores for methods and claims (20 and 5 for both criteria, for each evaluator), while still assigning relatively high journal‑tier ratings (around 3.5–4.5/5).
+<!-- GPT‑5 Pro assigns an overall percentile of 86/100, with relatively high scores for claims and evidence (78), methods (74), advancing knowledge (92), logic and communication (86), open science (78), and global relevance (94). It predicts that the paper deserves publication in a high‑tier journal (tier‑should 4.4/5) and that it will, in practice, be published at roughly the same level (tier‑will 4.8/5). The two Unjournal evaluators, by contrast, each give an overall rating of 50/100 and much lower scores for methods and claims (20 and 5 for both criteria, for each evaluator), while still assigning relatively high journal‑tier ratings (around 3.5–4.5/5). -->
 
-The qualitative content of the GPT‑5 Pro diagnostic summary overlaps strongly with the human evaluations. In its narrative assessment, the model highlights six main issues: reliance on the Global Forest Change (GFC) regrowth layer and the limited validation of this product; temporal “data leakage” between the multi‑year regrowth label and contemporaneous predictors; incomplete or optimistic treatment of uncertainty around the headline 215 Mha estimate; a broad and permissive definition of land “available for natural regeneration”; limitations of the carbon overlay and permanence assumptions; and only partial openness of code and workflows, which increases barriers to full replication.
+<!-- The qualitative content of the GPT‑5 Pro diagnostic summary overlaps strongly with the human evaluations. In its narrative assessment, the model highlights six main issues: reliance on the Global Forest Change (GFC) regrowth layer and the limited validation of this product; temporal “data leakage” between the multi‑year regrowth label and contemporaneous predictors; incomplete or optimistic treatment of uncertainty around the headline 215 Mha estimate; a broad and permissive definition of land “available for natural regeneration”; limitations of the carbon overlay and permanence assumptions; and only partial openness of code and workflows, which increases barriers to full replication. -->
 
-The Unjournal synthesis and individual evaluations describe a similar set of concerns. The joint synthesis report states that “methodological concerns fundamentally challenge the validity and utility of the central 215 Mha estimate,” and points to data leakage from contemporaneous predictors, confounding by socioeconomic factors and predictor choice, and discrepancies between the estimated magnitude and other reference information, together with a lack of historical validation. It also flags the narrow uncertainty intervals, the treatment of “biophysical potential” versus business‑as‑usual regrowth, additionality and opportunity costs in the policy framing, and the short‑term ephemerality of many regrowth events.
+<!-- The Unjournal synthesis and individual evaluations describe a similar set of concerns. The joint synthesis report states that “methodological concerns fundamentally challenge the validity and utility of the central 215 Mha estimate,” and points to data leakage from contemporaneous predictors, confounding by socioeconomic factors and predictor choice, and discrepancies between the estimated magnitude and other reference information, together with a lack of historical validation. It also flags the narrow uncertainty intervals, the treatment of “biophysical potential” versus business‑as‑usual regrowth, additionality and opportunity costs in the policy framing, and the short‑term ephemerality of many regrowth events. -->
 
-Issue by issue, the overlap is quite direct. On the regrowth data, both GPT‑5 Pro and the evaluators stress that the central 215 Mha estimate rests on a regrowth layer with non‑trivial classification errors and incomplete documentation, and that this undermines confidence in the magnitude and spatial pattern of the estimates. On temporal structure, both sides describe leakage from contemporaneous predictors into the regrowth classification and note that this can yield over‑optimistic performance metrics. On uncertainty, both the model’s summary and the human reports state that the published intervals around the 215 Mha and carbon estimates are narrow relative to plausible sources of error and do not fully propagate uncertainty from the regrowth classification, land‑availability masks, carbon scaling, and future land‑use dynamics. The definition of “available for natural regeneration” is described in both as broad or permissive, with potential for misinterpretation when mapped against policy‑relevant areas. Finally, both note that, although the inputs and gridded outputs are open, code availability and the complexity of pre‑processing steps limit full reproducibility.
+<!-- Issue by issue, the overlap is quite direct. On the regrowth data, both GPT‑5 Pro and the evaluators stress that the central 215 Mha estimate rests on a regrowth layer with non‑trivial classification errors and incomplete documentation, and that this undermines confidence in the magnitude and spatial pattern of the estimates. On temporal structure, both sides describe leakage from contemporaneous predictors into the regrowth classification and note that this can yield over‑optimistic performance metrics. On uncertainty, both the model’s summary and the human reports state that the published intervals around the 215 Mha and carbon estimates are narrow relative to plausible sources of error and do not fully propagate uncertainty from the regrowth classification, land‑availability masks, carbon scaling, and future land‑use dynamics. The definition of “available for natural regeneration” is described in both as broad or permissive, with potential for misinterpretation when mapped against policy‑relevant areas. Finally, both note that, although the inputs and gridded outputs are open, code availability and the complexity of pre‑processing steps limit full reproducibility. -->
 
-There are also points that appear mainly on one side. GPT‑5 Pro devotes more attention to technical implementation details such as the mismatch between coarse predictors and 30‑m outputs, the need for spatial cross‑validation that further reduces spatial leakage, the lack of spatially explicit error budgets for countries and biomes, and the absence of dynamic scenarios that vary climate and human pressures. The human evaluators more strongly emphasise distinctions between business‑as‑usual regrowth and “additional” potential, the implications of additionality and opportunity costs for policy claims, and the short‑term persistence of regrowth for long‑run carbon sequestration.
+<!-- There are also points that appear mainly on one side. GPT‑5 Pro devotes more attention to technical implementation details such as the mismatch between coarse predictors and 30‑m outputs, the need for spatial cross‑validation that further reduces spatial leakage, the lack of spatially explicit error budgets for countries and biomes, and the absence of dynamic scenarios that vary climate and human pressures. The human evaluators more strongly emphasise distinctions between business‑as‑usual regrowth and “additional” potential, the implications of additionality and opportunity costs for policy claims, and the short‑term persistence of regrowth for long‑run carbon sequestration. -->
 
-Overall, the Williams case shows that GPT‑5 Pro’s written assessment and the Unjournal evaluations discuss largely the same cluster of methodological and interpretive issues and often use similar language to describe them, while the numerical ratings for methods, claims, and overall quality differ substantially.
+<!-- Overall, the Williams case shows that GPT‑5 Pro’s written assessment and the Unjournal evaluations discuss largely the same cluster of methodological and interpretive issues and often use similar language to describe them, while the numerical ratings for methods, claims, and overall quality differ substantially. -->
 
-<!-- ```{r} -->
-<!-- #| label: tbl-llm-williams-metrics -->
-<!-- #| tbl-cap: "GPT‑5 Pro percentile ratings for Williams et al. (2024)" -->
-<!-- #| results: 'asis' -->
+<!-- <!-- ```{r} --> -->
+<!-- <!-- #| label: tbl-llm-williams-metrics --> -->
+<!-- <!-- #| tbl-cap: "GPT‑5 Pro percentile ratings for Williams et al. (2024)" --> -->
+<!-- <!-- #| results: 'asis' --> -->
 
-<!-- williams_metrics |> -->
-<!-- mutate(across(c(Midpoint, Lower_90, Upper_90), round, 1)) |> -->
-<!-- knitr::kable( -->
-<!-- col.names = c("Criterion", "Midpoint", "Lower 90%", "Upper 90%"), -->
-<!-- align = c("l","c","c","c") -->
-<!-- ) |> -->
-<!-- kableExtra::kable_styling(full_width = FALSE) -->
+<!-- <!-- williams_metrics |> --> -->
+<!-- <!-- mutate(across(c(Midpoint, Lower_90, Upper_90), round, 1)) |> --> -->
+<!-- <!-- knitr::kable( --> -->
+<!-- <!-- col.names = c("Criterion", "Midpoint", "Lower 90%", "Upper 90%"), --> -->
+<!-- <!-- align = c("l","c","c","c") --> -->
+<!-- <!-- ) |> --> -->
+<!-- <!-- kableExtra::kable_styling(full_width = FALSE) --> -->
 
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- #| label: tbl-llm-williams-tiers -->
-<!-- #| tbl-cap: "GPT‑5 Pro journal tier ratings for Williams et al. (2024)" -->
-<!-- #| results: 'asis' -->
-
-<!-- williams_tiers |> -->
-<!--   mutate(across(c(Score, Lower_90, Upper_90), round, 2)) |> -->
-<!--   knitr::kable( -->
-<!--     col.names = c("Measure", "Score", "Lower 90%", "Upper 90%"), -->
-<!--     align = c("l","c","c","c") -->
-<!--   ) |> -->
-<!--   kableExtra::kable_styling(full_width = FALSE) -->
+<!-- <!-- ``` --> -->
 
 
+<!-- <!-- ```{r} --> -->
+<!-- <!-- #| label: tbl-llm-williams-tiers --> -->
+<!-- <!-- #| tbl-cap: "GPT‑5 Pro journal tier ratings for Williams et al. (2024)" --> -->
+<!-- <!-- #| results: 'asis' --> -->
 
-<!-- ``` -->
+<!-- <!-- williams_tiers |> --> -->
+<!-- <!--   mutate(across(c(Score, Lower_90, Upper_90), round, 2)) |> --> -->
+<!-- <!--   knitr::kable( --> -->
+<!-- <!--     col.names = c("Measure", "Score", "Lower 90%", "Upper 90%"), --> -->
+<!-- <!--     align = c("l","c","c","c") --> -->
+<!-- <!--   ) |> --> -->
+<!-- <!--   kableExtra::kable_styling(full_width = FALSE) --> -->
 
-### Further case studies
 
-Beyond @Williams2024, the refined GPT‑5 Pro run produces similarly detailed assessments for the other three focal papers (summaries in Appendix). For @Adena2024 (published later as @Adena2025), the model highlights the strength of the nationwide geo‑randomized Facebook experiment and the use of total donations across channels, while flagging several internal threats: sparse and heterogeneous exposure that is only analysed as an ITT effect, potential spillovers and spatial correlation across postal codes, the absence of a clean treatment‑on‑the‑treated estimate, and the sensitivity of return‑on‑investment calculations to assumptions about donor lifetime value and unobserved costs. It also notes that code and data are not fully open, limiting replication despite preregistration and extensive appendices. 
 
-For @Green2025, the model emphasises the conceptual and open‑science strengths of the meta‑analysis (restriction to RCTs with behavioural outcomes, robust‑variance estimation, careful publication‑bias checks, reproducible R code and containers) but raises concerns about several technical choices: post‑hoc inclusion decisions, single‑coder data extraction, the ad‑hoc imputation of “unspecified null” results as a small positive effect, reliance on Glass’s Δ rather than Hedges’ g, incomplete description of how binary outcomes and cluster‑randomized trials are converted to standardized mean differences, and limited reporting of assumptions in the RVE and selection‑model steps. 
+<!-- <!-- ``` --> -->
 
-For @Peterman2024, GPT‑5 Pro again recognises a large, preregistered synthesis using RVE on more than 1,300 effects from 93 RCTs of social safety nets, but stresses that heterogeneity is very high and that pooled averages are reported without prediction intervals. It notes that diverse constructs are collapsed into a single Hedges’ g scale, that dependence structures and RVE correlation assumptions are only briefly described, that large multi‑arm studies may be overweighted, and that some internal inconsistencies (e.g. repeated but differing summary statistics) and the lack of a clear risk‑of‑bias synthesis or public extraction template limit interpretability and reproducibility. 
+<!-- ### Further case studies -->
 
-Taken together, these three cases suggest that GPT‑5 Pro is capable of reading complex applied work, reconstructing the main design and estimation strategy, and surfacing quite specific methodological and reporting issues. In the next stage of the project we plan to compare these model‑generated critiques more systematically to the corresponding Unjournal evaluations, including issue‑level adjudication by independent experts, to assess which problems are shared, which are missed by one side, and how often the model’s concerns are judged substantively correct.
+<!-- Beyond @Williams2024, the refined GPT‑5 Pro run produces similarly detailed assessments for the other three focal papers (summaries in Appendix). For @Adena2024 (published later as @Adena2025), the model highlights the strength of the nationwide geo‑randomized Facebook experiment and the use of total donations across channels, while flagging several internal threats: sparse and heterogeneous exposure that is only analysed as an ITT effect, potential spillovers and spatial correlation across postal codes, the absence of a clean treatment‑on‑the‑treated estimate, and the sensitivity of return‑on‑investment calculations to assumptions about donor lifetime value and unobserved costs. It also notes that code and data are not fully open, limiting replication despite preregistration and extensive appendices.  -->
+
+<!-- For @Green2025, the model emphasises the conceptual and open‑science strengths of the meta‑analysis (restriction to RCTs with behavioural outcomes, robust‑variance estimation, careful publication‑bias checks, reproducible R code and containers) but raises concerns about several technical choices: post‑hoc inclusion decisions, single‑coder data extraction, the ad‑hoc imputation of “unspecified null” results as a small positive effect, reliance on Glass’s Δ rather than Hedges’ g, incomplete description of how binary outcomes and cluster‑randomized trials are converted to standardized mean differences, and limited reporting of assumptions in the RVE and selection‑model steps.  -->
+
+<!-- For @Peterman2024, GPT‑5 Pro again recognises a large, preregistered synthesis using RVE on more than 1,300 effects from 93 RCTs of social safety nets, but stresses that heterogeneity is very high and that pooled averages are reported without prediction intervals. It notes that diverse constructs are collapsed into a single Hedges’ g scale, that dependence structures and RVE correlation assumptions are only briefly described, that large multi‑arm studies may be overweighted, and that some internal inconsistencies (e.g. repeated but differing summary statistics) and the lack of a clear risk‑of‑bias synthesis or public extraction template limit interpretability and reproducibility.  -->
+
+<!-- Taken together, these three cases suggest that GPT‑5 Pro is capable of reading complex applied work, reconstructing the main design and estimation strategy, and surfacing quite specific methodological and reporting issues. In the next stage of the project we plan to compare these model‑generated critiques more systematically to the corresponding Unjournal evaluations, including issue‑level adjudication by independent experts, to assess which problems are shared, which are missed by one side, and how often the model’s concerns are judged substantively correct. -->
 
 
 
