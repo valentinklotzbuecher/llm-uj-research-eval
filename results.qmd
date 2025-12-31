@@ -826,8 +826,434 @@ llm_reasoning_steps <- bind_rows(purrr::map(parsed, "reasoning_steps"))
 
 <!-- For @Peterman2024, GPT‑5 Pro again recognises a large, preregistered synthesis using RVE on more than 1,300 effects from 93 RCTs of social safety nets, but stresses that heterogeneity is very high and that pooled averages are reported without prediction intervals. It notes that diverse constructs are collapsed into a single Hedges’ g scale, that dependence structures and RVE correlation assumptions are only briefly described, that large multi‑arm studies may be overweighted, and that some internal inconsistencies (e.g. repeated but differing summary statistics) and the lack of a clear risk‑of‑bias synthesis or public extraction template limit interpretability and reproducibility.  -->
 
-<!-- Taken together, these three cases suggest that GPT‑5 Pro is capable of reading complex applied work, reconstructing the main design and estimation strategy, and surfacing quite specific methodological and reporting issues. In the next stage of the project we plan to compare these model‑generated critiques more systematically to the corresponding Unjournal evaluations, including issue‑level adjudication by independent experts, to assess which problems are shared, which are missed by one side, and how often the model’s concerns are judged substantively correct. -->
+<!-- Taken together, these three cases suggest that GPT‑5 Pro is capable of reading complex applied work, reconstructing the main design and estimation strategy, and surfacing quite specific methodological and reporting issues. In the next stage of the project we plan to compare these model‑generated critiques more systematically to the corresponding Unjournal evaluations, including issue‑level adjudication by independent experts, to assess which problems are shared, which are missed by one side, and how often the model's concerns are judged substantively correct. -->
 
+\clearpage
 
+## Multi-Model Comparison
 
+To assess whether different LLMs produce systematically different evaluations, we collected ratings from multiple providers: OpenAI (GPT-4o-mini), Anthropic (Claude Sonnet 4), and Google (Gemini 2.0 Flash). This section compares their outputs on the same papers.
+
+```{r}
+#| label: load-multimodel
+#| code-fold: true
+#| code-summary: "Load multi-model results"
+
+library(jsonlite)
+library(purrr)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(here)
+
+# Define model directories and display names
+model_dirs <- list(
+  "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
+  "claude_sonnet_4_20250514" = "Claude Sonnet 4",
+  "gemini_2.0_flash" = "Gemini 2.0 Flash"
+)
+
+# Model colors for plotting
+MODEL_COLORS <- c(
+  "GPT-4o-mini" = "#74aa9c",
+  "Claude Sonnet 4" = "#d4a574",
+  "Gemini 2.0 Flash" = "#7986cb",
+  "GPT-5 Pro" = UJ_ORANGE,
+  "Human" = UJ_GREEN
+)
+
+# Parse a single response JSON file
+parse_multimodel_response <- function(path, model_name) {
+  tryCatch({
+    r <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+    paper <- basename(path) |>
+      str_replace("\\.response\\.json$", "") |>
+      str_replace_all("_", " ")
+
+    # Parse the output_text JSON
+    if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
+      parsed <- jsonlite::fromJSON(r$output_text, simplifyVector = TRUE)
+      metrics <- parsed$metrics
+
+      # Extract percentile metrics
+      metric_rows <- list()
+      tier_rows <- list()
+
+      for (nm in names(metrics)) {
+        if (nm %in% c("tier_should", "tier_will")) {
+          tier_rows[[length(tier_rows) + 1]] <- tibble(
+            paper = paper,
+            model = model_name,
+            tier_kind = nm,
+            score = metrics[[nm]]$score,
+            ci_lower = metrics[[nm]]$ci_lower,
+            ci_upper = metrics[[nm]]$ci_upper
+          )
+        } else {
+          metric_rows[[length(metric_rows) + 1]] <- tibble(
+            paper = paper,
+            model = model_name,
+            metric = nm,
+            midpoint = metrics[[nm]]$midpoint,
+            lower_bound = metrics[[nm]]$lower_bound,
+            upper_bound = metrics[[nm]]$upper_bound
+          )
+        }
+      }
+
+      list(
+        metrics = bind_rows(metric_rows),
+        tiers = bind_rows(tier_rows),
+        summary = tibble(
+          paper = paper,
+          model = model_name,
+          assessment_summary = parsed$assessment_summary,
+          input_tokens = r$usage$input_tokens,
+          output_tokens = r$usage$output_tokens
+        )
+      )
+    } else {
+      # Try parsing from "parsed" field (Anthropic/Google format)
+      if (!is.null(r$parsed)) {
+        metrics <- r$parsed$metrics
+        metric_rows <- list()
+        tier_rows <- list()
+
+        for (nm in names(metrics)) {
+          if (nm %in% c("tier_should", "tier_will")) {
+            tier_rows[[length(tier_rows) + 1]] <- tibble(
+              paper = paper,
+              model = model_name,
+              tier_kind = nm,
+              score = metrics[[nm]]$score,
+              ci_lower = metrics[[nm]]$ci_lower,
+              ci_upper = metrics[[nm]]$ci_upper
+            )
+          } else {
+            metric_rows[[length(metric_rows) + 1]] <- tibble(
+              paper = paper,
+              model = model_name,
+              metric = nm,
+              midpoint = metrics[[nm]]$midpoint,
+              lower_bound = metrics[[nm]]$lower_bound,
+              upper_bound = metrics[[nm]]$upper_bound
+            )
+          }
+        }
+
+        list(
+          metrics = bind_rows(metric_rows),
+          tiers = bind_rows(tier_rows),
+          summary = tibble(
+            paper = paper,
+            model = model_name,
+            assessment_summary = r$parsed$assessment_summary,
+            input_tokens = r$input_tokens,
+            output_tokens = r$output_tokens
+          )
+        )
+      } else {
+        NULL
+      }
+    }
+  }, error = function(e) {
+    message(sprintf("Error parsing %s: %s", path, e$message))
+    NULL
+  })
+}
+
+# Load all multi-model results
+load_all_multimodel <- function() {
+  all_metrics <- list()
+  all_tiers <- list()
+  all_summaries <- list()
+
+  for (dir_name in names(model_dirs)) {
+    model_name <- model_dirs[[dir_name]]
+    json_dir <- here("results", dir_name, "json")
+
+    if (dir.exists(json_dir)) {
+      files <- list.files(json_dir, pattern = "\\.response\\.json$", full.names = TRUE)
+
+      for (f in files) {
+        result <- parse_multimodel_response(f, model_name)
+        if (!is.null(result)) {
+          all_metrics[[length(all_metrics) + 1]] <- result$metrics
+          all_tiers[[length(all_tiers) + 1]] <- result$tiers
+          all_summaries[[length(all_summaries) + 1]] <- result$summary
+        }
+      }
+    }
+  }
+
+  list(
+    metrics = bind_rows(all_metrics),
+    tiers = bind_rows(all_tiers),
+    summaries = bind_rows(all_summaries)
+  )
+}
+
+# Load the data
+mm_data <- load_all_multimodel()
+mm_metrics <- mm_data$metrics
+mm_tiers <- mm_data$tiers
+mm_summaries <- mm_data$summaries
+
+# Canonicalize metric names
+mm_metrics <- mm_metrics |>
+  mutate(criteria = canon_metric(metric))
+
+# Report what we loaded
+cat(sprintf("Loaded %d metric observations from %d models across %d papers\n",
+            nrow(mm_metrics),
+            n_distinct(mm_metrics$model),
+            n_distinct(mm_metrics$paper)))
+```
+
+```{r}
+#| label: fig-multimodel-overall
+#| fig-cap: "Overall percentile ratings by model"
+#| fig-width: 10
+#| fig-height: 6
+
+if (nrow(mm_metrics) > 0) {
+
+  overall_mm <- mm_metrics |>
+    filter(criteria == "overall") |>
+    mutate(paper = str_trunc(paper, 25))
+
+  # Add human averages for comparison
+  human_overall <- metrics_human |>
+    filter(criteria == "overall") |>
+    group_by(label_paper) |>
+    summarise(
+      mid = mean(mid, na.rm = TRUE),
+      lo = mean(lo, na.rm = TRUE),
+      hi = mean(hi, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    mutate(
+      model = "Human",
+      paper = label_paper,
+      criteria = "overall"
+    ) |>
+    select(paper, model, criteria, mid, lo, hi) |>
+    rename(midpoint = mid, lower_bound = lo, upper_bound = hi)
+
+  # Combine
+  plot_data <- bind_rows(
+    overall_mm |> select(paper, model, criteria, midpoint, lower_bound, upper_bound),
+    human_overall |> filter(paper %in% overall_mm$paper)
+  )
+
+  if (nrow(plot_data) > 0) {
+    # Order papers by human rating (if available), else by mean across models
+    paper_order <- plot_data |>
+      group_by(paper) |>
+      summarise(mean_mid = mean(midpoint, na.rm = TRUE), .groups = "drop") |>
+      arrange(desc(mean_mid)) |>
+      pull(paper)
+
+    plot_data <- plot_data |>
+      mutate(paper = factor(paper, levels = paper_order))
+
+    ggplot(plot_data, aes(x = paper, y = midpoint, color = model)) +
+      geom_errorbar(aes(ymin = lower_bound, ymax = upper_bound),
+                    width = 0, linewidth = 0.8, alpha = 0.6,
+                    position = position_dodge(width = 0.6)) +
+      geom_point(size = 3, position = position_dodge(width = 0.6)) +
+      scale_color_manual(values = MODEL_COLORS, name = "Evaluator") +
+      coord_cartesian(ylim = c(0, 100)) +
+      labs(x = NULL, y = "Overall percentile (0–100)") +
+      theme_uj() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 9),
+        legend.position = "right"
+      )
+  }
+} else {
+  cat("No multi-model data available yet.\n")
+}
+```
+
+@fig-multimodel-facet shows a faceted comparison across all evaluation criteria, allowing us to see whether models agree more on some dimensions than others.
+
+```{r}
+#| label: fig-multimodel-facet
+#| fig-cap: "Multi-model ratings by evaluation criterion"
+#| fig-width: 12
+#| fig-height: 8
+
+if (nrow(mm_metrics) > 0 && n_distinct(mm_metrics$paper) >= 1) {
+
+  metric_labels <- c(
+    overall = "Overall",
+    claims = "Claims",
+    methods = "Methods",
+    adv_knowledge = "Adv. Knowledge",
+    logic_comms = "Logic & Comms",
+    open_sci = "Open Science",
+    gp_relevance = "Global Relevance"
+  )
+
+  facet_data <- mm_metrics |>
+    filter(criteria %in% names(metric_labels)) |>
+    mutate(
+      criteria_label = factor(metric_labels[criteria], levels = metric_labels),
+      paper = str_trunc(paper, 20)
+    )
+
+  if (nrow(facet_data) > 0) {
+    ggplot(facet_data, aes(x = paper, y = midpoint, color = model)) +
+      geom_errorbar(aes(ymin = lower_bound, ymax = upper_bound),
+                    width = 0, linewidth = 0.6, alpha = 0.5,
+                    position = position_dodge(width = 0.5)) +
+      geom_point(size = 2.5, position = position_dodge(width = 0.5)) +
+      facet_wrap(~ criteria_label, ncol = 2, scales = "free_y") +
+      scale_color_manual(values = MODEL_COLORS, name = "Model") +
+      coord_cartesian(ylim = c(0, 100)) +
+      labs(x = NULL, y = "Percentile (0–100)") +
+      theme_uj() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+        strip.text = element_text(size = 10, face = "bold"),
+        legend.position = "bottom"
+      )
+  }
+} else {
+  cat("Insufficient multi-model data for faceted plot.\n")
+}
+```
+
+```{r}
+#| label: fig-multimodel-agreement
+#| fig-cap: "Model agreement: pairwise correlation of overall ratings"
+#| fig-width: 7
+#| fig-height: 6
+
+if (nrow(mm_metrics) > 0 && n_distinct(mm_metrics$model) >= 2) {
+
+  # Pivot to wide format for correlation
+  wide_overall <- mm_metrics |>
+    filter(criteria == "overall") |>
+    select(paper, model, midpoint) |>
+    pivot_wider(names_from = model, values_from = midpoint)
+
+  if (ncol(wide_overall) > 2) {
+    # Calculate correlation matrix
+    cor_mat <- wide_overall |>
+      select(-paper) |>
+      cor(use = "pairwise.complete.obs")
+
+    # Convert to long format for plotting
+    cor_long <- as.data.frame(as.table(cor_mat)) |>
+      rename(Model1 = Var1, Model2 = Var2, Correlation = Freq) |>
+      filter(as.character(Model1) <= as.character(Model2))  # upper triangle only
+
+    ggplot(cor_long, aes(x = Model1, y = Model2, fill = Correlation)) +
+      geom_tile(color = "white", linewidth = 0.5) +
+      geom_text(aes(label = sprintf("%.2f", Correlation)), size = 5) +
+      scale_fill_gradient2(low = "#d73027", mid = "white", high = "#1a9850",
+                           midpoint = 0.5, limits = c(0, 1)) +
+      labs(x = NULL, y = NULL, title = "Pairwise correlation of overall ratings") +
+      theme_uj() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()
+      )
+  }
+} else {
+  cat("Need at least 2 models for correlation analysis.\n")
+}
+```
+
+### Journal Tier Predictions Across Models
+
+```{r}
+#| label: fig-multimodel-tiers
+#| fig-cap: "Journal tier predictions by model (should publish)"
+#| fig-width: 10
+#| fig-height: 5
+
+if (nrow(mm_tiers) > 0) {
+
+  tier_should <- mm_tiers |>
+    filter(tier_kind == "tier_should") |>
+    mutate(paper = str_trunc(paper, 25))
+
+  if (nrow(tier_should) > 0) {
+    paper_order <- tier_should |>
+      group_by(paper) |>
+      summarise(mean_score = mean(score, na.rm = TRUE), .groups = "drop") |>
+      arrange(desc(mean_score)) |>
+      pull(paper)
+
+    tier_should <- tier_should |>
+      mutate(paper = factor(paper, levels = paper_order))
+
+    ggplot(tier_should, aes(x = paper, y = score, color = model)) +
+      geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                    width = 0, linewidth = 0.8, alpha = 0.6,
+                    position = position_dodge(width = 0.5)) +
+      geom_point(size = 3.5, position = position_dodge(width = 0.5)) +
+      scale_color_manual(values = MODEL_COLORS, name = "Model") +
+      scale_y_continuous(breaks = 1:5, limits = c(0.5, 5.5)) +
+      labs(x = NULL, y = "Journal tier (should publish)") +
+      theme_uj() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+        legend.position = "right"
+      )
+  }
+} else {
+  cat("No tier data available.\n")
+}
+```
+
+### Model Spread: How Much Do Models Disagree?
+
+```{r}
+#| label: fig-model-spread
+#| fig-cap: "Spread of model ratings per paper (range of midpoints across models)"
+#| fig-width: 10
+#| fig-height: 5
+
+if (nrow(mm_metrics) > 0 && n_distinct(mm_metrics$model) >= 2) {
+
+  spread_data <- mm_metrics |>
+    filter(criteria == "overall") |>
+    group_by(paper) |>
+    summarise(
+      min_mid = min(midpoint, na.rm = TRUE),
+      max_mid = max(midpoint, na.rm = TRUE),
+      mean_mid = mean(midpoint, na.rm = TRUE),
+      spread = max_mid - min_mid,
+      n_models = n(),
+      .groups = "drop"
+    ) |>
+    filter(n_models >= 2) |>
+    arrange(desc(spread)) |>
+    mutate(paper = str_trunc(paper, 25))
+
+  if (nrow(spread_data) > 0) {
+    spread_data <- spread_data |>
+      mutate(paper = factor(paper, levels = paper))
+
+    ggplot(spread_data, aes(x = paper)) +
+      geom_segment(aes(y = min_mid, yend = max_mid, xend = paper),
+                   linewidth = 2, color = "grey60") +
+      geom_point(aes(y = min_mid), size = 3, color = "#d73027") +
+      geom_point(aes(y = max_mid), size = 3, color = "#1a9850") +
+      geom_point(aes(y = mean_mid), size = 2, shape = 18, color = "black") +
+      geom_text(aes(y = max_mid + 3, label = sprintf("Δ=%.0f", spread)),
+                size = 3, hjust = 0) +
+      coord_flip(ylim = c(0, 100)) +
+      labs(x = NULL, y = "Overall percentile (0–100)",
+           subtitle = "Red = lowest model, Green = highest, Diamond = mean") +
+      theme_uj()
+  }
+} else {
+  cat("Need at least 2 models per paper for spread analysis.\n")
+}
+```
 
