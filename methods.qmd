@@ -236,17 +236,16 @@ def read_csv_or_empty(path, columns=None, **kwargs):
 ```
 
 
-We enforce a JSON Schema for the results. The model must return one object for each of the named criteria including a midpoint rating and a 90% interval for each rating. This guarantees that every paper is scored on the same fields with the same types and bounds. It makes the analysis reproducible and comparisons clean. 
+### JSON Schema
 
-We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision; these can also be incorporated into our metrics, penalizing a model's inaccuracy more when it's stated with high confidence.
+We enforce a strict JSON Schema for the output. The model must return one object for each metric, including a midpoint rating and a 90% credible interval. This guarantees that every paper is scored on the same fields with the same types and bounds. We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision.
 
 ```{python}
-#| label: schema-prompt
+#| label: schema-definition
 #| eval: false
 #| code-fold: true
-#| code-summary: "Schema, prompt, evaluator"
+#| code-summary: "JSON Schema definition"
 
-# --- Metrics and schema
 METRICS = [
     "overall",
     "claims_evidence",
@@ -304,23 +303,60 @@ TEXT_FORMAT_COMBINED = {
     "strict": True,
     "schema": COMBINED_SCHEMA,
 }
+```
 
-#Todo -- adjust the 'diagnostic summary' below to take into account more aspects of our criteria
+### System Prompt
 
-SYSTEM_PROMPT_COMBINED = f"""
+The system prompt is built from modular sections, each addressing a specific aspect of the evaluation task. We present each section below with brief explanations.
 
-Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer. 
+We instruct the model to act as an expert evaluator while explicitly preventing it from using author reputation, publication venue, or any prior knowledge of the paper's reception as evidence of quality.
+
+```{python}
+#| label: prompt-role
+#| eval: false
+#| code-fold: true
+#| code-summary: "Role and debiasing instructions"
+
+PROMPT_ROLE = """
+Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer.
+"""
+
+PROMPT_DEBIASING = """
 Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment; ignore where (or whether) the work is published, the prestige of any venue, and how much attention it has received. Do not use this as evidence about quality. You must base all judgments entirely on the content of the PDF.
+"""
+```
 
+Before scoring, we ask for a written assessment identifying key issues in the manuscript. This "think first, score second" approach encourages the model to ground its ratings in specific observations.
+
+```{python}
+#| label: prompt-diagnostic
+#| eval: false
+#| code-fold: true
+#| code-summary: "Diagnostic summary instructions"
+
+PROMPT_DIAGNOSTIC = """
 Diagnostic summary (Aim for about 1000 words, based only on the PDF):
 Provide a compact paragraph that identifies the most important issues you detect in the manuscript itself (e.g., identification threats, data limitations, misinterpretations, internal inconsistencies, missing robustness, replication barriers). Be specific, neutral, and concrete. This summary should precede any scoring and should guide your uncertainty. Output this text in the JSON field `assessment_summary`.
+"""
+```
 
+We define what percentile rankings mean and establish the reference group: "serious research in the same area encountered in the last three years." This anchors the model's judgments to a consistent baseline.
+
+```{python}
+#| label: prompt-percentile
+#| eval: false
+#| code-fold: true
+#| code-summary: "Percentile scale and reference group"
+
+PROMPT_PERCENTILE_INTRO = """
 We ask for a set of quantitative metrics, based on your insights. For each metric, we ask for a score and a 90% credible interval. We describe these in detail below.
 
-Percentile rankings relative to a reference group: For some questions, we ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on. Here the population of papers should be all serious research in the same area that you have encountered in the last three years.  *Unless this work is in our 'applied and policy stream', in which case the reference group should be "all applied and policy research you have read that is aiming at a similar audience, and that has similar goals".
+Percentile rankings relative to a reference group: For some questions, we ask for a percentile ranking from 0-100%. This represents "what proportion of papers in the reference group are worse than this paper, by this criterion". A score of 100% means this is essentially the best paper in the reference group. 0% is the worst paper. A score of 50% means this is the median paper; i.e., half of all papers in the reference group do this better, and half do this worse, and so on. Here the population of papers should be all serious research in the same area that you have encountered in the last three years. *Unless this work is in our 'applied and policy stream', in which case the reference group should be "all applied and policy research you have read that is aiming at a similar audience, and that has similar goals".
+"""
 
-"Serious" research? Academic research? 
-Here, we are mainly considering research done by professional researchers with high levels of training, experience, and familiarity with recent practice, who have time and resources to devote months or years to each such research project or paper. 
+PROMPT_REFERENCE_GROUP = """
+"Serious" research? Academic research?
+Here, we are mainly considering research done by professional researchers with high levels of training, experience, and familiarity with recent practice, who have time and resources to devote months or years to each such research project or paper.
 These will typically be written as 'working papers' and presented at academic seminars before being submitted to standard academic journals. Although no credential is required, this typically includes people with PhD degrees (or upper-level PhD students). Most of this sort of research is done by full-time academics (professors, post-docs, academic staff, etc.) with a substantial research remit, as well as research staff at think tanks and research institutions (but there may be important exceptions).
 
 What counts as the "same area"?
@@ -328,64 +364,104 @@ This is a judgment call. Some criteria to consider... First, does the work come 
 
 "Research that you have encountered"
 We are aiming for comparability across evaluators. If you suspect you are particularly exposed to higher-quality work in this category, compared to other likely evaluators, you may want to adjust your reference group downwards. (And of course vice-versa, if you suspect you are particularly exposed to lower-quality work.)
+"""
+```
 
+We define each of the seven percentile metrics, closely following The Unjournal's [guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators). Note the emphasis on global priorities and practical relevance over pure academic novelty.
+
+```{python}
+#| label: prompt-metrics
+#| eval: false
+#| code-fold: true
+#| code-summary: "Metric definitions"
+
+PROMPT_METRICS = """
 Midpoint rating and credible intervals: For each metric, we ask you to provide a 'midpoint rating' and a 90% credible interval as a measure of your uncertainty.
 
-	- "overall" - Overall assessment - Percentile ranking (0-100%): Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness, importance to knowledge production, and importance to practice.
+- "overall" - Overall assessment - Percentile ranking (0-100%): Judge the quality of the research heuristically. Consider all aspects of quality, credibility, importance to future impactful applied research, and practical relevance and usefulness, importance to knowledge production, and importance to practice.
 
-	- "claims_evidence" - Claims, strength and characterization of evidence (0-100%): Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
+- "claims_evidence" - Claims, strength and characterization of evidence (0-100%): Do the authors do a good job of (i) stating their main questions and claims, (ii) providing strong evidence and powerful approaches to inform these, and (iii) correctly characterizing the nature of their evidence?
 
-	- "methods" - Justification, reasonableness, validity, robustness (0-100%): Are the methods[^7] used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this? Did the authors take steps to reduce bias from opportunistic reporting and questionable research practices?
+- "methods" - Justification, reasonableness, validity, robustness (0-100%): Are the methods used well-justified and explained; are they a reasonable approach to answering the question(s) in this context? Are the underlying assumptions reasonable? Are the results and methods likely to be robust to reasonable changes in the underlying assumptions? Does the author demonstrate this? Did the authors take steps to reduce bias from opportunistic reporting and questionable research practices?
 
-	- "advancing_knowledge" - Advancing our knowledge and practice (0-100%): To what extent does the project contribute to the field or to practice, particularly in ways that are relevant[^10] to global priorities and impactful interventions? (Applied stream: please focus on ‘improvements that are actually helpful’.) Less weight to "originality and cleverness’: Originality and cleverness should be weighted less than the typical journal, because we focus on impact. Papers that apply existing techniques and frameworks more rigorously than previous work or apply them to new areas in ways that provide practical insights for GP (global priorities) and interventions should be highly valued. More weight should be placed on 'contribution to GP' than on 'contribution to the academic field'.
-			Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions?
-			Does the project add useful value to other impactful research?
-			We don't require surprising results; sound and well-presented null results can also be valuable.
+- "advancing_knowledge" - Advancing our knowledge and practice (0-100%): To what extent does the project contribute to the field or to practice, particularly in ways that are relevant to global priorities and impactful interventions? (Applied stream: please focus on 'improvements that are actually helpful'.) Less weight to "originality and cleverness": Originality and cleverness should be weighted less than the typical journal, because we focus on impact. Papers that apply existing techniques and frameworks more rigorously than previous work or apply them to new areas in ways that provide practical insights for GP (global priorities) and interventions should be highly valued. More weight should be placed on 'contribution to GP' than on 'contribution to the academic field'.
+    Do the paper's insights inform our beliefs about important parameters and about the effectiveness of interventions?
+    Does the project add useful value to other impactful research?
+    We don't require surprising results; sound and well-presented null results can also be valuable.
 
-	- "logic_communication" - "Logic and communication (0-100%): Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced? Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow? Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?
+- "logic_communication" - Logic and communication (0-100%): Are the goals and questions of the paper clearly expressed? Are concepts clearly defined and referenced? Is the reasoning "transparent"? Are assumptions made explicit? Are all logical steps clear and correct? Does the writing make the argument easy to follow? Are the conclusions consistent with the evidence (or formal proofs) presented? Do the authors accurately state the nature of their evidence, and the extent it supports their main claims? Are the data and/or analysis presented relevant to the arguments made? Are the tables, graphs, and diagrams easy to understand in the context of the narrative (e.g., no major errors in labeling)?
 
-	- "open_science" - Open, collaborative, replicable research (0-100%): This covers several considerations: 
-		- Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided? Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained??
-		- Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?  
-		- Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?
+- "open_science" - Open, collaborative, replicable research (0-100%): This covers several considerations:
+    - Replicability, reproducibility, data integrity: Would another researcher be able to perform the same analysis and get the same results? Are the methods explained clearly and in enough detail to enable easy and credible replication? For example, are all analyses and statistical tests explained, and is code provided? Is the source of the data clear? Is the data made as available as is reasonably possible? If so, is it clearly labeled and explained?
+    - Consistency: Do the numbers in the paper and/or code output make sense? Are they internally consistent throughout the paper?
+    - Useful building blocks: Do the authors provide tools, resources, data, and outputs that might enable or enhance future work and meta-analysis?
 
-	- "global_relevance" - Relevance to global priorities, usefulness for practitioners: Are the paper’s chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? Do they communicate (at least in the abstract or introduction)  in ways policymakers and decision-makers can understand, without misleading or oversimplifying?
+- "global_relevance" - Relevance to global priorities, usefulness for practitioners: Are the paper's chosen topic and approach likely to be useful to global priorities, cause prioritization, and high-impact interventions? Does the paper consider real-world relevance and deal with policy and implementation questions? Are the setup, assumptions, and focus realistic? Do the authors report results that are relevant to practitioners? Do they provide useful quantified estimates (costs, benefits, etc.) enabling practical impact quantification and prioritization? Do they communicate (at least in the abstract or introduction) in ways policymakers and decision-makers can understand, without misleading or oversimplifying?
+"""
+```
 
+We explain what credible intervals mean and how to construct them. This guidance helps ensure the model produces well-calibrated uncertainty estimates rather than artificially narrow intervals.
 
-The midpoint and 'credible intervals': expressing uncertainty - What are we looking for and why? 
-	- We want policymakers, researchers, funders, and managers to be able to use The Unjournal'; evaluations to update their beliefs and make better decisions. To do this well, they need to weigh multiple evaluations against each other and other sources of information. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. But it's hard to quantify statements like "very certain" or "somewhat uncertain" – different people may use the same phrases to mean different things. That's why we're asking for you a more precise measure, your credible intervals. These metrics are particularly useful for meta-science and meta-analysis. You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.
-	- How do I come up with these intervals? (Discussion and guidance): You may understand the concepts of uncertainty and credible intervals, but you might be unfamiliar with applying them in a situation like this one. You may have a certain best guess for the "Methods..." criterion. Still, even an expert can never be certain. E.g., you may misunderstand some aspect of the paper, there may be a method you are not familiar with, etc. Your uncertainty over this could be described by some distribution, representing your beliefs about the true value of this criterion. Your "'best guess" should be the central mass point of this distribution. For some questions, the "true value" refers to something objective, e.g. will this work be published in a top-ranked journal? In other cases, like the percentile rankings, the true value means "if you had complete evidence, knowledge, and wisdom, what value would you choose?" If you are well calibrated your 90% credible intervals should contain the true value 90% of the time. Consider the midpoint as the 'median of your belief distribution'
-	- We also ask for the 'midpoint', the center dot on that slider. Essentially, we are asking for the median of your belief distribution. By this we mean the percentile ranking such that you believe "there's a 50% chance that  the paper's true rank is higher than this, and a 50% chance that it actually ranks lower than this."
+```{python}
+#| label: prompt-uncertainty
+#| eval: false
+#| code-fold: true
+#| code-summary: "Credible interval guidance"
 
+PROMPT_UNCERTAINTY = """
+The midpoint and 'credible intervals': expressing uncertainty - What are we looking for and why?
+- We want policymakers, researchers, funders, and managers to be able to use The Unjournal's evaluations to update their beliefs and make better decisions. To do this well, they need to weigh multiple evaluations against each other and other sources of information. Evaluators may feel confident about their rating for one category, but less confident in another area. How much weight should readers give to each? In this context, it is useful to quantify the uncertainty. But it's hard to quantify statements like "very certain" or "somewhat uncertain" – different people may use the same phrases to mean different things. That's why we're asking for a more precise measure: your credible intervals. These metrics are particularly useful for meta-science and meta-analysis. You are asked to give a 'midpoint' and a 90% credible interval. Consider this as the smallest interval that you believe is 90% likely to contain the true value.
+- How do I come up with these intervals? (Discussion and guidance): You may understand the concepts of uncertainty and credible intervals, but you might be unfamiliar with applying them in a situation like this one. You may have a certain best guess for the "Methods..." criterion. Still, even an expert can never be certain. E.g., you may misunderstand some aspect of the paper, there may be a method you are not familiar with, etc. Your uncertainty over this could be described by some distribution, representing your beliefs about the true value of this criterion. Your "best guess" should be the central mass point of this distribution. For some questions, the "true value" refers to something objective, e.g. will this work be published in a top-ranked journal? In other cases, like the percentile rankings, the true value means "if you had complete evidence, knowledge, and wisdom, what value would you choose?" If you are well calibrated your 90% credible intervals should contain the true value 90% of the time. Consider the midpoint as the 'median of your belief distribution'.
+- We also ask for the 'midpoint', the center dot on that slider. Essentially, we are asking for the median of your belief distribution. By this we mean the percentile ranking such that you believe "there's a 50% chance that the paper's true rank is higher than this, and a 50% chance that it actually ranks lower than this."
+"""
+```
 
+In addition to percentile metrics, we ask for journal tier predictions on a 0-5 scale. These provide an external benchmark and, for papers that eventually publish, allow us to assess predictive accuracy.
+
+```{python}
+#| label: prompt-tiers
+#| eval: false
+#| code-fold: true
+#| code-summary: "Journal tier predictions"
+
+PROMPT_TIERS = """
 Additionally, we ask: What journal ranking tier should and will this work be published in?
 
 To help universities and policymakers make sense of our evaluations, we want to benchmark them against how research is currently judged. So, we would like you to assess the paper in terms of journal rankings. We ask for two assessments:
+1. a normative judgment about 'how well the research should publish';
+2. a prediction about where the research will be published.
+As before, we ask for a 90% credible interval.
 
-	1. a normative judgment about 'how well the research should publish';
-	2. a prediction about where the research will be published.
-	As before, we ask for a 90% credible interval.
+Journal ranking tiers are on a 0-5 scale, as follows:
+    0/5: "Won't publish/little to no value". Unlikely to be cited by credible researchers
+    1/5: OK/Somewhat valuable journal
+    2/5: Marginal B-journal/Decent field journal
+    3/5: Top B-journal/Strong field journal
+    4/5: Marginal A-Journal/Top field journal
+    5/5: A-journal/Top journal
 
-	Journal ranking tiers are on a 0-5 scale, as follows:
-		0/5: "Won't publish/little to no value".  Unlikely to be cited by credible researchers
-		1/5: OK/Somewhat valuable journal
-		2/5: Marginal B-journal/Decent field journal
-		3/5: Top B-journal/Strong field journal
-		4/5: Marginal A-Journal/Top field journal
-		5/5: A-journal/Top journal
+- We encourage you to consider a non-integer score, e.g. 4.6 or 2.2. If a paper would be most likely to be (or merits being) published in a journal that would rank about halfway between a top tier 'A journal' and a second tier (4/5) journal, you should rate it a 4.5. Similarly, if you think it has an 80% chance of (being/meriting) publication in a 'marginal B-journal' and a 20% chance of a Top B-journal, you should rate it 2.2. Please also use this continuous scale for providing credible intervals.
 
-	- We encourage you to consider a non-integer score, e.g. 4.6 or 2.2. If a paper/project would be most likely to be (or merits being) published in a journal that would rank about halfway between a top tier 'A journal' and a second tier (4/5) journal, you should rate it a 4.5. Similarly, if you think it has an 80%  chance of (being/meriting) publication in a 'marginal B-journal' and a 20% chance of a Top B-journal, you should rate it 2.2. Please also use this continuous scale for providing credible intervals. If a paper/project would be most likely to be (or merits being) published in a journal that would rank about halfway between a top tier 'A journal' and a second tier (4/5) journal, you should rate it a 4.5.
+- Journal ranking tier "should" (0.0-5.0)
+    Assess this paper on the journal ranking scale described above, considering only its merit, giving some weight to the category metrics we discussed above. Equivalently, where would this paper be published if:
+    1. the journal process was fair, unbiased, and free of noise, and that status, social connections, and lobbying to get the paper published didn't matter;
+    2. journals assessed research according to the category metrics we discussed above.
 
-	- Journal ranking tier "should" (0.0-5.0)
-		Schema: tiershould: Assess this paper on the journal ranking scale described above, considering only its merit, giving some weight to the category metrics we discussed above. Equivalently, where would this paper be published if: 
-		1. the journal process was fair, unbiased, and free of noise, and that status, social connections, and lobbying to get the paper published didn’t matter;
-		2. journals assessed research according to the category metrics we discussed above.
+- Journal ranking tier "will" (0.0-5.0)
+    What if this work has already been peer reviewed and published? If this work has already been published, and you know where, please report the prediction you would have given absent that knowledge.
+"""
+```
 
-	- Journal ranking tier "will" (0.0-5.0) 
-		Schema: tierwill: What if this work has already been peer reviewed and published? If this work has already been published, and you know where, please report the prediction you would have given absent that knowledge.
+Finally, we include instructions for self-consistency checks and the required JSON output format. The validation section encourages the model to ensure its scores align with its written assessment.
 
+```{python}
+#| label: prompt-validation
+#| eval: false
+#| code-fold: true
+#| code-summary: "Validation and output format"
+
+PROMPT_VALIDATION = """
 When you set the quantitative metrics:
-
 - Treat `midpoint` as your 50% belief (the value such that you think there is a 50% chance the true value is higher and 50% chance it is lower).
 - Treat `lower_bound` and `upper_bound` as an honest 90% credible interval (roughly the 5th and 95th percentiles of your belief distribution).
 
@@ -396,26 +472,54 @@ For the journal tier metrics (0.0–5.0):
 - You must always satisfy: ci_lower < score < ci_upper.
 
 Before finalising your JSON:
-
 - Check that your numeric scores are consistent with your own assessment_summary. If your summary describes serious or fundamental problems with methods, evidence, or interpretation, your scores for those metrics (and for "overall") should clearly reflect that.
 - Conversely, if you assign very high scores in any metric, your summary should explicitly justify why that aspect of the paper is unusually strong relative to other serious work in the field.
-- If you find yourself about to make the lower and upper bounds equal to the midpoint, adjust them so they form a non-degenerate interval that honestly reflects your uncertainty. Do not be afraid to use wide credible intervals when you are genuinely uncertain. 
+- If you find yourself about to make the lower and upper bounds equal to the midpoint, adjust them so they form a non-degenerate interval that honestly reflects your uncertainty. Do not be afraid to use wide credible intervals when you are genuinely uncertain.
+"""
 
-
-
+PROMPT_OUTPUT = """
 Fill both top-level keys:
 - `assessment_summary`: about 1000 words.
 - `metrics`: object containing all required metrics.
 
-Field names
+Field names:
 - Percentile metrics → `midpoint`, `lower_bound`, `upper_bound`.
 - Tier metrics → `score`, `ci_lower`, `ci_upper`.
 
 Return STRICT JSON matching the supplied schema. No preamble. No markdown. No extra text.
+"""
+```
 
-""".strip()
+The sections above are concatenated to form the complete system prompt:
 
-# Async-by-default kickoff: submit and return job metadata. No waiting.
+```{python}
+#| label: prompt-assembly
+#| eval: false
+#| code-fold: true
+#| code-summary: "Prompt assembly"
+
+SYSTEM_PROMPT_COMBINED = "\n".join([
+    PROMPT_ROLE,
+    PROMPT_DEBIASING,
+    PROMPT_DIAGNOSTIC,
+    PROMPT_PERCENTILE_INTRO,
+    PROMPT_REFERENCE_GROUP,
+    PROMPT_METRICS,
+    PROMPT_UNCERTAINTY,
+    PROMPT_TIERS,
+    PROMPT_VALIDATION,
+    PROMPT_OUTPUT,
+]).strip()
+```
+
+The `evaluate_paper` function uploads a PDF to the API and submits a background job for evaluation:
+
+```{python}
+#| label: evaluate-paper-fn
+#| eval: false
+#| code-fold: true
+#| code-summary: "Evaluation function"
+
 def evaluate_paper(pdf_path: Union[str, pathlib.Path],
                    model: Optional[str] = None,
                    use_reasoning: bool = True) -> Dict[str, Any]:
@@ -605,8 +709,271 @@ else:
 
 ```
 
+### Multi-Model Evaluation
+
+To compare model performance, we collect evaluations from multiple providers. This allows us to assess whether different models exhibit systematic biases or calibration differences.
+
+For OpenAI models without reasoning (e.g., GPT-4o), we use a simpler synchronous call:
+
+```{python}
+#| label: openai-multimodel
+#| eval: false
+#| code-fold: true
+#| code-summary: "OpenAI multi-model evaluation (GPT-4o, etc.)"
+
+OPENAI_MODELS = [
+    # "gpt-4o-2024-11-20",
+    "gpt-4o-mini-2024-07-18",  # cheaper, faster
+]
+
+def evaluate_paper_sync(pdf_path: pathlib.Path, model: str) -> Dict[str, Any]:
+    """Synchronous evaluation for models without background/reasoning support."""
+    fid = get_file_id(pdf_path, client)
+
+    resp = call_with_retries(lambda: client.responses.create(
+        model=model,
+        text={"format": TEXT_FORMAT_COMBINED},
+        input=[
+            {"role": "system", "content": [
+                {"type": "input_text", "text": SYSTEM_PROMPT_COMBINED}
+            ]},
+            {"role": "user", "content": [
+                {"type": "input_file", "file_id": fid},
+                {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
+            ]},
+        ],
+        max_output_tokens=12000,
+    ))
+
+    return {
+        "response_id": resp.id,
+        "model": model,
+        "output_text": _get_output_text(resp),
+        "usage": _resp_as_dict(resp).get("usage", {}),
+    }
+
+def run_openai_models(pdfs: list, models: list = OPENAI_MODELS, out_dir: pathlib.Path = None):
+    """Run evaluation across multiple OpenAI models."""
+    out_dir = out_dir or pathlib.Path("results")
+    results = []
+
+    for model in models:
+        model_dir = out_dir / model.replace("-", "_")
+        model_dir.mkdir(parents=True, exist_ok=True)
+        json_dir = model_dir / "json"
+        json_dir.mkdir(exist_ok=True)
+
+        for pdf in pdfs:
+            paper = pdf.stem
+            out_file = json_dir / f"{paper}.response.json"
+            if out_file.exists():
+                print(f"skip {paper} ({model}): exists")
+                continue
+            try:
+                print(f"Evaluating {paper} with {model}...")
+                result = evaluate_paper_sync(pdf, model)
+                with open(out_file, "w") as f:
+                    json.dump(result, f, ensure_ascii=False, indent=2)
+                results.append({"paper": paper, "model": model, "status": "completed"})
+                time.sleep(2)
+            except Exception as e:
+                print(f"Error {paper} ({model}): {e}")
+                results.append({"paper": paper, "model": model, "status": "failed", "error": str(e)})
+
+    return pd.DataFrame(results)
+```
+
+Anthropic's API differs from OpenAI: PDFs are passed as base64-encoded content, and calls are synchronous (no background jobs). We use Claude's native PDF support.
+
+```{python}
+#| label: anthropic-eval
+#| eval: false
+#| code-fold: true
+#| code-summary: "Anthropic Claude API evaluation"
+
+import anthropic
+import base64
+
+ANTHROPIC_KEY_PATH = pathlib.Path("key/anthropic_key.txt")
+if ANTHROPIC_KEY_PATH.exists():
+    os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_KEY_PATH.read_text().strip()
+
+anthropic_client = anthropic.Anthropic()
+
+ANTHROPIC_MODELS = [
+    "claude-sonnet-4-20250514",
+    # "claude-3-5-haiku-20241022",  # faster, cheaper
+]
+
+def evaluate_paper_anthropic(pdf_path: pathlib.Path, model: str) -> Dict[str, Any]:
+    """Evaluate using Anthropic's Claude API with native PDF support."""
+    pdf_base64 = base64.standard_b64encode(pdf_path.read_bytes()).decode("utf-8")
+
+    resp = call_with_retries(lambda: anthropic_client.messages.create(
+        model=model,
+        max_tokens=12000,
+        system=SYSTEM_PROMPT_COMBINED,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "document",
+                    "source": {"type": "base64", "media_type": "application/pdf", "data": pdf_base64},
+                },
+                {"type": "text", "text": "Return STRICT JSON per schema. No extra text."}
+            ],
+        }],
+    ))
+
+    output_text = resp.content[0].text if resp.content else ""
+    return {
+        "model": model,
+        "output_text": output_text,
+        "input_tokens": resp.usage.input_tokens,
+        "output_tokens": resp.usage.output_tokens,
+    }
+
+def run_anthropic_models(pdfs: list, models: list = ANTHROPIC_MODELS, out_dir: pathlib.Path = None):
+    """Run evaluation across Anthropic models."""
+    out_dir = out_dir or pathlib.Path("results")
+    results = []
+
+    for model in models:
+        model_dir = out_dir / model.replace("-", "_")
+        model_dir.mkdir(parents=True, exist_ok=True)
+        json_dir = model_dir / "json"
+        json_dir.mkdir(exist_ok=True)
+
+        for pdf in pdfs:
+            paper = pdf.stem
+            out_file = json_dir / f"{paper}.response.json"
+            if out_file.exists():
+                print(f"skip {paper} ({model}): exists")
+                continue
+            try:
+                print(f"Evaluating {paper} with {model}...")
+                result = evaluate_paper_anthropic(pdf, model)
+                result["parsed"] = _extract_json(result["output_text"])
+                with open(out_file, "w") as f:
+                    json.dump(result, f, ensure_ascii=False, indent=2)
+                results.append({"paper": paper, "model": model, "status": "completed"})
+                time.sleep(2)
+            except Exception as e:
+                print(f"Error {paper} ({model}): {e}")
+                results.append({"paper": paper, "model": model, "status": "failed", "error": str(e)})
+
+    return pd.DataFrame(results)
+```
+
+Google's Gemini API supports PDF via file upload:
+
+```{python}
+#| label: google-eval
+#| eval: false
+#| code-fold: true
+#| code-summary: "Google Gemini API evaluation"
+
+import google.generativeai as genai
+
+GOOGLE_KEY_PATH = pathlib.Path("key/google_key.txt")
+if GOOGLE_KEY_PATH.exists():
+    genai.configure(api_key=GOOGLE_KEY_PATH.read_text().strip())
+
+GOOGLE_MODELS = [
+    "gemini-2.0-flash",
+    # "gemini-1.5-pro",
+]
+
+def evaluate_paper_google(pdf_path: pathlib.Path, model_name: str) -> Dict[str, Any]:
+    """Evaluate using Google's Gemini API."""
+    uploaded_file = genai.upload_file(pdf_path, mime_type="application/pdf")
+
+    model = genai.GenerativeModel(model_name=model_name, system_instruction=SYSTEM_PROMPT_COMBINED)
+    resp = call_with_retries(lambda: model.generate_content(
+        [uploaded_file, "Return STRICT JSON per schema. No extra text."],
+        generation_config=genai.GenerationConfig(max_output_tokens=12000, response_mime_type="application/json"),
+    ))
+
+    try:
+        genai.delete_file(uploaded_file.name)
+    except Exception:
+        pass
+
+    return {
+        "model": model_name,
+        "output_text": resp.text or "",
+        "input_tokens": getattr(resp.usage_metadata, "prompt_token_count", None),
+        "output_tokens": getattr(resp.usage_metadata, "candidates_token_count", None),
+    }
+
+def run_google_models(pdfs: list, models: list = GOOGLE_MODELS, out_dir: pathlib.Path = None):
+    """Run evaluation across Google models."""
+    out_dir = out_dir or pathlib.Path("results")
+    results = []
+
+    for model in models:
+        model_dir = out_dir / model.replace("-", "_")
+        model_dir.mkdir(parents=True, exist_ok=True)
+        json_dir = model_dir / "json"
+        json_dir.mkdir(exist_ok=True)
+
+        for pdf in pdfs:
+            paper = pdf.stem
+            out_file = json_dir / f"{paper}.response.json"
+            if out_file.exists():
+                print(f"skip {paper} ({model}): exists")
+                continue
+            try:
+                print(f"Evaluating {paper} with {model}...")
+                result = evaluate_paper_google(pdf, model)
+                result["parsed"] = _extract_json(result["output_text"])
+                with open(out_file, "w") as f:
+                    json.dump(result, f, ensure_ascii=False, indent=2)
+                results.append({"paper": paper, "model": model, "status": "completed"})
+                time.sleep(2)
+            except Exception as e:
+                print(f"Error {paper} ({model}): {e}")
+                results.append({"paper": paper, "model": model, "status": "failed", "error": str(e)})
+
+    return pd.DataFrame(results)
+```
+
+A unified runner collects evaluations from all providers:
+
+```{python}
+#| label: run-all-models
+#| eval: false
+#| code-fold: true
+#| code-summary: "Run all providers"
+
+def run_all_models(pdfs: list = None, out_dir: pathlib.Path = None):
+    """Run evaluation across all configured models and providers."""
+    pdfs = pdfs or sorted(pathlib.Path("papers").glob("*.pdf"))
+    out_dir = out_dir or pathlib.Path("results")
+    all_results = []
+
+    for name, runner in [("openai", run_openai_models), ("anthropic", run_anthropic_models), ("google", run_google_models)]:
+        print(f"\n=== {name.upper()} ===")
+        try:
+            df = runner(pdfs, out_dir=out_dir)
+            df["provider"] = name
+            all_results.append(df)
+        except Exception as e:
+            print(f"{name} failed: {e}")
+
+    if all_results:
+        combined = pd.concat(all_results, ignore_index=True)
+        combined.to_csv(out_dir / "multi_model_summary.csv", index=False)
+        return combined
+    return pd.DataFrame()
 
 
+
+
+run_all_models()
+
+
+```
 
 
     
