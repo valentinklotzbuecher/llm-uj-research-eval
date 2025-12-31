@@ -1377,6 +1377,122 @@ if (nrow(scatter_data) > 0) {
 }
 ```
 
+### Token Usage and Cost
+
+```{r}
+#| label: tbl-token-cost
+#| tbl-cap: "Token usage and estimated cost per model"
+
+# Pricing per 1M tokens (USD) - as of late 2024
+pricing <- tribble(
+  ~model,              ~input_per_m, ~output_per_m,
+  "GPT-4o-mini",       0.15,         0.60,
+  "Claude Sonnet 4",   3.00,         15.00,
+  "Gemini 2.0 Flash",  0.075,        0.30,
+  "GPT-5 Pro",         15.00,        60.00
+)
+
+# Extract token usage from all JSON files
+extract_tokens <- function() {
+  all_tokens <- list()
+
+  for (dir_name in names(model_dirs)) {
+    model_name <- model_dirs[[dir_name]]
+    json_dir <- here("results", dir_name, "json")
+
+    if (dir.exists(json_dir)) {
+      files <- list.files(json_dir, pattern = "\\.response\\.json$", full.names = TRUE)
+
+      for (f in files) {
+        tryCatch({
+          r <- jsonlite::fromJSON(f, simplifyVector = FALSE)
+          paper <- basename(f) |>
+            str_replace("\\.response\\.json$", "") |>
+            str_replace_all("_", " ")
+
+          # Handle different JSON structures
+          if (!is.null(r$usage)) {
+            # OpenAI format
+            input_tok <- r$usage$input_tokens
+            output_tok <- r$usage$output_tokens
+          } else {
+            # Anthropic/Gemini format
+            input_tok <- r$input_tokens
+            output_tok <- r$output_tokens
+          }
+
+          all_tokens[[length(all_tokens) + 1]] <- tibble(
+            paper = paper,
+            model = model_name,
+            input_tokens = input_tok %||% NA_integer_,
+            output_tokens = output_tok %||% NA_integer_
+          )
+        }, error = function(e) NULL)
+      }
+    }
+  }
+
+  bind_rows(all_tokens)
+}
+
+token_data <- extract_tokens()
+
+if (nrow(token_data) > 0) {
+
+  # Calculate costs
+  token_summary <- token_data |>
+    left_join(pricing, by = "model") |>
+    mutate(
+      total_tokens = input_tokens + output_tokens,
+      cost_usd = (input_tokens * input_per_m + output_tokens * output_per_m) / 1e6
+    ) |>
+    group_by(model) |>
+    summarise(
+      `Papers` = n(),
+      `Avg input tokens` = round(mean(input_tokens, na.rm = TRUE)),
+      `Avg output tokens` = round(mean(output_tokens, na.rm = TRUE)),
+      `Total tokens` = sum(total_tokens, na.rm = TRUE),
+      `Total cost (USD)` = round(sum(cost_usd, na.rm = TRUE), 3),
+      `Avg cost/paper` = round(mean(cost_usd, na.rm = TRUE), 4),
+      .groups = "drop"
+    ) |>
+    arrange(desc(`Total cost (USD)`))
+
+  knitr::kable(token_summary,
+               align = c("l", rep("r", 6)),
+               format.args = list(big.mark = ","))
+} else {
+  cat("No token data available.\n")
+}
+```
+
+```{r}
+#| label: fig-cost-comparison
+#| fig-cap: "Cost per paper by model"
+#| fig-width: 8
+#| fig-height: 5
+
+if (nrow(token_data) > 0) {
+
+  cost_per_paper <- token_data |>
+    left_join(pricing, by = "model") |>
+    mutate(
+      cost_usd = (input_tokens * input_per_m + output_tokens * output_per_m) / 1e6,
+      paper_short = str_trunc(paper, 20)
+    ) |>
+    filter(!is.na(cost_usd))
+
+  ggplot(cost_per_paper, aes(x = reorder(model, cost_usd, FUN = median), y = cost_usd, fill = model)) +
+    geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+    geom_jitter(width = 0.2, alpha = 0.6, size = 2) +
+    scale_fill_manual(values = MODEL_COLORS, guide = "none") +
+    scale_y_log10(labels = scales::dollar_format(accuracy = 0.001)) +
+    coord_flip() +
+    labs(x = NULL, y = "Cost per paper (USD, log scale)") +
+    theme_uj()
+}
+```
+
 ### Summary Statistics: Model vs Human Agreement
 
 ```{r}
