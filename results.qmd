@@ -971,11 +971,39 @@ mm_summaries <- mm_data$summaries
 mm_metrics <- mm_metrics |>
   mutate(criteria = canon_metric(metric))
 
+# --- Add GPT-5 baseline from data/metrics_long.csv ---
+gpt5_baseline <- read_csv(here("data", "metrics_long.csv"), show_col_types = FALSE) |>
+  transmute(
+    paper = paper,
+    model = "GPT-5 Pro",
+    metric = metric,
+    midpoint = midpoint,
+    lower_bound = lower_bound,
+    upper_bound = upper_bound
+  ) |>
+  mutate(criteria = canon_metric(metric))
+
+# Add GPT-5 tiers
+gpt5_tiers <- read_csv(here("data", "tiers_long.csv"), show_col_types = FALSE) |>
+  transmute(
+    paper = paper,
+    model = "GPT-5 Pro",
+    tier_kind = tier_kind,
+    score = score,
+    ci_lower = lo,
+    ci_upper = hi
+  )
+
+# Combine all model metrics
+mm_metrics <- bind_rows(mm_metrics, gpt5_baseline)
+mm_tiers <- bind_rows(mm_tiers, gpt5_tiers)
+
 # Report what we loaded
 cat(sprintf("Loaded %d metric observations from %d models across %d papers\n",
             nrow(mm_metrics),
             n_distinct(mm_metrics$model),
             n_distinct(mm_metrics$paper)))
+cat("Models:", paste(unique(mm_metrics$model), collapse = ", "), "\n")
 ```
 
 ```{r}
@@ -1222,6 +1250,154 @@ if (nrow(mm_metrics) > 0 && n_distinct(mm_metrics$model) >= 2) {
   }
 } else {
   cat("Need at least 2 models per paper for spread analysis.\n")
+}
+```
+
+### Human vs LLM: Multi-Facet Scatter Plots
+
+To directly compare each model against human evaluators, we plot human mean ratings (x-axis) against model ratings (y-axis) for all papers with matched evaluations. Points on the diagonal indicate perfect agreement.
+
+```{r}
+#| label: fig-human-vs-models-scatter
+#| fig-cap: "Human vs LLM ratings: each panel shows one model's overall ratings against human mean"
+#| fig-width: 12
+#| fig-height: 8
+
+# Prepare human averages per paper
+human_avg <- metrics_human |>
+  filter(criteria == "overall") |>
+  group_by(label_paper) |>
+  summarise(
+    human_mid = mean(mid, na.rm = TRUE),
+    human_lo = mean(lo, na.rm = TRUE),
+    human_hi = mean(hi, na.rm = TRUE),
+    n_human = n(),
+    .groups = "drop"
+  ) |>
+  rename(paper = label_paper)
+
+# Join with LLM metrics
+scatter_data <- mm_metrics |>
+  filter(criteria == "overall") |>
+  inner_join(human_avg, by = "paper") |>
+  mutate(paper_short = str_trunc(paper, 18))
+
+if (nrow(scatter_data) > 0 && n_distinct(scatter_data$model) >= 1) {
+
+  # Calculate correlation per model
+  cor_labels <- scatter_data |>
+    group_by(model) |>
+    summarise(
+      r = cor(human_mid, midpoint, use = "complete.obs"),
+      rmse = sqrt(mean((human_mid - midpoint)^2, na.rm = TRUE)),
+      n = n(),
+      .groups = "drop"
+    ) |>
+    mutate(label = sprintf("r = %.2f, RMSE = %.1f (n=%d)", r, rmse, n))
+
+  ggplot(scatter_data, aes(x = human_mid, y = midpoint)) +
+    # Reference line (perfect agreement)
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    # Error bars
+    geom_errorbar(aes(ymin = lower_bound, ymax = upper_bound),
+                  width = 0, alpha = 0.3, color = "grey40") +
+    geom_errorbarh(aes(xmin = human_lo, xmax = human_hi),
+                   height = 0, alpha = 0.3, color = "grey40") +
+    # Points
+    geom_point(aes(color = model), size = 2.5, alpha = 0.8) +
+    # Paper labels for outliers
+    geom_text_repel(
+      data = scatter_data |>
+        group_by(model) |>
+        mutate(resid = abs(midpoint - human_mid)) |>
+        slice_max(resid, n = 2),
+      aes(label = paper_short),
+      size = 2.5, max.overlaps = 10, segment.alpha = 0.5
+    ) +
+    # Correlation labels
+    geom_text(
+      data = cor_labels,
+      aes(x = 15, y = 92, label = label),
+      hjust = 0, size = 3, inherit.aes = FALSE
+    ) +
+    facet_wrap(~ model, ncol = 2) +
+    scale_color_manual(values = MODEL_COLORS, guide = "none") +
+    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
+    labs(
+      x = "Human mean rating (0–100)",
+      y = "LLM rating (0–100)",
+      caption = "Dashed line = perfect agreement"
+    ) +
+    theme_uj() +
+    theme(strip.text = element_text(size = 11, face = "bold"))
+} else {
+  cat("No matched human-LLM data available.\n")
+}
+```
+
+```{r}
+#| label: fig-human-vs-models-interactive
+#| fig-cap: "Interactive comparison: Human vs LLM ratings (hover for details)"
+#| fig-width: 10
+#| fig-height: 7
+
+library(plotly)
+
+if (nrow(scatter_data) > 0) {
+
+  p <- ggplot(scatter_data, aes(
+    x = human_mid,
+    y = midpoint,
+    color = model,
+    text = paste0(
+      "<b>", paper, "</b><br>",
+      "Human: ", round(human_mid, 1), " [", round(human_lo, 1), "–", round(human_hi, 1), "]<br>",
+      "LLM: ", round(midpoint, 1), " [", round(lower_bound, 1), "–", round(upper_bound, 1), "]<br>",
+      "Diff: ", round(midpoint - human_mid, 1)
+    )
+  )) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    geom_point(size = 3, alpha = 0.7) +
+    scale_color_manual(values = MODEL_COLORS) +
+    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
+    labs(
+      x = "Human mean rating",
+      y = "LLM rating",
+      color = "Model"
+    ) +
+    theme_uj()
+
+  ggplotly(p, tooltip = "text") |>
+    layout(
+      legend = list(orientation = "h", y = -0.15),
+      hoverlabel = list(bgcolor = "white")
+    )
+} else {
+  cat("No data for interactive plot.\n")
+}
+```
+
+### Summary Statistics: Model vs Human Agreement
+
+```{r}
+#| label: tbl-model-agreement
+#| tbl-cap: "Agreement statistics: each model compared to human mean ratings"
+
+if (nrow(scatter_data) > 0) {
+
+  agreement_stats <- scatter_data |>
+    group_by(model) |>
+    summarise(
+      `N papers` = n(),
+      `Correlation (r)` = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
+      `Mean bias` = round(mean(midpoint - human_mid, na.rm = TRUE), 1),
+      `RMSE` = round(sqrt(mean((midpoint - human_mid)^2, na.rm = TRUE)), 1),
+      `MAE` = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
+      .groups = "drop"
+    ) |>
+    arrange(desc(`Correlation (r)`))
+
+  knitr::kable(agreement_stats, align = c("l", rep("r", 5)))
 }
 ```
 
