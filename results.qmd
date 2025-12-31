@@ -1396,6 +1396,7 @@ pricing <- tribble(
 extract_tokens <- function() {
   all_tokens <- list()
 
+  # Multi-model results
   for (dir_name in names(model_dirs)) {
     model_name <- model_dirs[[dir_name]]
     json_dir <- here("results", dir_name, "json")
@@ -1415,20 +1416,50 @@ extract_tokens <- function() {
             # OpenAI format
             input_tok <- r$usage$input_tokens
             output_tok <- r$usage$output_tokens
+            reasoning_tok <- r$usage$output_tokens_details$reasoning_tokens
           } else {
             # Anthropic/Gemini format
             input_tok <- r$input_tokens
             output_tok <- r$output_tokens
+            reasoning_tok <- NA_integer_
           }
 
           all_tokens[[length(all_tokens) + 1]] <- tibble(
             paper = paper,
             model = model_name,
             input_tokens = input_tok %||% NA_integer_,
-            output_tokens = output_tok %||% NA_integer_
+            output_tokens = output_tok %||% NA_integer_,
+            reasoning_tokens = reasoning_tok %||% NA_integer_
           )
         }, error = function(e) NULL)
       }
+    }
+  }
+
+  # GPT-5 Pro results (results/json/)
+  gpt5_json_dir <- here("results", "json")
+  if (dir.exists(gpt5_json_dir)) {
+    files <- list.files(gpt5_json_dir, pattern = "\\.response\\.json$", full.names = TRUE)
+
+    for (f in files) {
+      tryCatch({
+        r <- jsonlite::fromJSON(f, simplifyVector = FALSE)
+        paper <- basename(f) |>
+          str_replace("\\.response\\.json$", "") |>
+          str_replace_all("_", " ")
+
+        input_tok <- r$usage$input_tokens
+        output_tok <- r$usage$output_tokens
+        reasoning_tok <- r$usage$output_tokens_details$reasoning_tokens
+
+        all_tokens[[length(all_tokens) + 1]] <- tibble(
+          paper = paper,
+          model = "GPT-5 Pro",
+          input_tokens = input_tok %||% NA_integer_,
+          output_tokens = output_tok %||% NA_integer_,
+          reasoning_tokens = reasoning_tok %||% NA_integer_
+        )
+      }, error = function(e) NULL)
     }
   }
 
@@ -1439,28 +1470,30 @@ token_data <- extract_tokens()
 
 if (nrow(token_data) > 0) {
 
-  # Calculate costs
+  # Calculate costs (reasoning tokens billed at output rate for GPT-5 Pro)
   token_summary <- token_data |>
     left_join(pricing, by = "model") |>
     mutate(
+      reasoning_tokens = coalesce(reasoning_tokens, 0L),
       total_tokens = input_tokens + output_tokens,
+      # Reasoning tokens billed at output rate
       cost_usd = (input_tokens * input_per_m + output_tokens * output_per_m) / 1e6
     ) |>
     group_by(model) |>
     summarise(
       `Papers` = n(),
-      `Avg input tokens` = round(mean(input_tokens, na.rm = TRUE)),
-      `Avg output tokens` = round(mean(output_tokens, na.rm = TRUE)),
-      `Total tokens` = sum(total_tokens, na.rm = TRUE),
-      `Total cost (USD)` = round(sum(cost_usd, na.rm = TRUE), 3),
-      `Avg cost/paper` = round(mean(cost_usd, na.rm = TRUE), 4),
+      `Avg input` = scales::comma(round(mean(input_tokens, na.rm = TRUE))),
+      `Avg output` = scales::comma(round(mean(output_tokens, na.rm = TRUE))),
+      `Avg reasoning` = ifelse(sum(reasoning_tokens) > 0,
+                                scales::comma(round(mean(reasoning_tokens[reasoning_tokens > 0], na.rm = TRUE))),
+                                "—"),
+      `Total cost` = scales::dollar(sum(cost_usd, na.rm = TRUE), accuracy = 0.01),
+      `Cost/paper` = scales::dollar(mean(cost_usd, na.rm = TRUE), accuracy = 0.001),
       .groups = "drop"
     ) |>
-    arrange(desc(`Total cost (USD)`))
+    arrange(desc(as.numeric(gsub("[$,]", "", `Total cost`))))
 
-  knitr::kable(token_summary,
-               align = c("l", rep("r", 6)),
-               format.args = list(big.mark = ","))
+  knitr::kable(token_summary, align = c("l", rep("r", 6)))
 } else {
   cat("No token data available.\n")
 }
