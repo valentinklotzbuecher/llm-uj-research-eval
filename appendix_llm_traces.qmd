@@ -1,271 +1,370 @@
 ---
-title: "LLM Evaluation Summaries and Reasoning Traces"
+title: "LLM Evaluation Details"
+format:
+  html:
+    code-fold: true
 ---
 
+This appendix presents detailed LLM evaluations for each paper, including:
 
-:::{.callout-important}
+- **Numerical ratings** from all available models and human evaluators
+- **Assessment summaries** (collapsible) — the model's written evaluation
+- **Reasoning traces** (collapsible) — the model's internal reasoning process (GPT-5 Pro only)
 
-Current testing with GPT-5 Pro to generate detailed reasoning traces and assessment summaries for various UNRELATED papers. The full outputs are included below for reference.
-
-:::
-
-
-
-\renewcommand\normalsize{\small}
+Click on the callout headers to expand/collapse each section.
 
 ```{r}
-#| label: appendix-helpers
-
+#| label: appendix-setup
+#| code-fold: true
+#| code-summary: "Setup and helper functions"
 
 library(jsonlite)
 library(purrr)
 library(dplyr)
+library(tidyr)
+library(stringr)
 library(here)
-library(janitor)
+library(knitr)
+library(kableExtra)
 
 `%||%` <- function(x, y) if (!is.null(x)) x else y
 
-read_llm_from_json <- function(paper,
-                               json_dir = here::here("data", "llm_evals")) {
-  
-  # paper: string like "Williams et al. 2024"
-  
-  path <- file.path(json_dir, paste0(paper, ".response.json"))
-  if (!file.exists(path)) {
-    warning("JSON not found for paper: ", paper)
-    return(list(assessment = NA_character_, reasoning = NA_character_))
-  }
-  
-  j <- jsonlite::fromJSON(path, simplifyVector = FALSE)
-  out <- j$output %||% list()
-  
-  reasoning_block <- NULL
-  message_block   <- NULL
-  for (blk in out) {
-    if (is.list(blk) && identical(blk$type, "reasoning")) {
-      reasoning_block <- blk
+# Model directories to scan
+MODEL_DIRS <- list(
+  "gpt5_pro_updated_jan2026" = "GPT-5 Pro",
+  "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
+  "claude_sonnet_4_20250514" = "Claude Sonnet 4",
+  "gemini_2.0_flash" = "Gemini 2.0 Flash"
+)
+
+# Canonical metric names
+canon_metric <- function(x) dplyr::recode(
+
+  x,
+  "advancing_knowledge" = "Adv. Knowledge",
+  "adv_knowledge" = "Adv. Knowledge",
+  "open_science" = "Open Science",
+  "open_sci" = "Open Science",
+  "logic_communication" = "Logic & Comms",
+  "logic_comms" = "Logic & Comms",
+  "global_relevance" = "Global Relevance",
+  "gp_relevance" = "Global Relevance",
+  "claims_evidence" = "Claims",
+  "claims" = "Claims",
+  "overall" = "Overall",
+  "methods" = "Methods",
+  .default = x
+)
+
+# Parse a single JSON response file
+parse_paper_json <- function(path, model_name) {
+  tryCatch({
+    r <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+
+    # Extract parsed metrics
+    parsed <- NULL
+    if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
+      parsed <- jsonlite::fromJSON(r$output_text, simplifyVector = TRUE)
+    } else if (!is.null(r$parsed)) {
+      parsed <- r$parsed
+    } else if (!is.null(r$output)) {
+      msg <- purrr::detect(r$output, ~ .x$type == "message", .default = NULL)
+      if (!is.null(msg) && length(msg$content) > 0) {
+        parsed <- jsonlite::fromJSON(msg$content[[1]]$text, simplifyVector = TRUE)
+      }
     }
-    if (is.list(blk) && identical(blk$type, "message")) {
-      message_block <- blk
+
+    # Extract metrics
+    metrics_df <- NULL
+    if (!is.null(parsed$metrics)) {
+      rows <- list()
+      for (nm in names(parsed$metrics)) {
+        m <- parsed$metrics[[nm]]
+        if (nm %in% c("tier_should", "tier_will")) {
+          rows[[length(rows) + 1]] <- tibble(
+            metric = nm,
+            midpoint = m$score,
+            lower = m$ci_lower,
+            upper = m$ci_upper
+          )
+        } else {
+          rows[[length(rows) + 1]] <- tibble(
+            metric = nm,
+            midpoint = m$midpoint,
+            lower = m$lower_bound,
+            upper = m$upper_bound
+          )
+        }
+      }
+      metrics_df <- bind_rows(rows) |> mutate(model = model_name)
     }
-  }
-  
-  # full reasoning trace
-  
-  reasoning_full <- NA_character_
-  if (!is.null(reasoning_block)) {
-    summaries <- reasoning_block$summary %||% list()
-    if (length(summaries)) {
-      texts <- purrr::map_chr(summaries, ~ .x$text %||% "")
-      reasoning_full <- paste(texts, collapse = "\n\n")
+
+    # Extract assessment summary
+    assessment <- parsed$assessment_summary
+
+    # Extract reasoning trace (GPT-5 Pro only)
+    reasoning <- NA_character_
+    if (!is.null(r$output)) {
+      reasoning_block <- purrr::detect(r$output, ~ .x$type == "reasoning", .default = NULL)
+      if (!is.null(reasoning_block) && !is.null(reasoning_block$summary)) {
+        texts <- purrr::map_chr(reasoning_block$summary, ~ .x$text %||% "")
+        reasoning <- paste(texts, collapse = "\n\n")
+      }
     }
-  }
-  
-  # assessment_summary from the JSON message content
-  
-  assessment_summary <- NA_character_
-  if (!is.null(message_block) && length(message_block$content) > 0) {
-    txt <- message_block$content[[1]]$text %||% ""
-    if (nzchar(txt)) {
-      parsed <- tryCatch(
-        jsonlite::fromJSON(txt, simplifyVector = TRUE),
-        error = function(e) NULL
-      )
-      if (!is.null(parsed) && !is.null(parsed$assessment_summary)) {
-        assessment_summary <- parsed$assessment_summary
+
+    list(
+      metrics = metrics_df,
+      assessment = assessment,
+      reasoning = reasoning
+    )
+  }, error = function(e) {
+    NULL
+  })
+}
+
+# Load all LLM data for a specific paper
+load_paper_llm_data <- function(paper_name) {
+  all_metrics <- list()
+  all_assessments <- list()
+  reasoning <- NA_character_
+
+  for (dir_name in names(MODEL_DIRS)) {
+    model_name <- MODEL_DIRS[[dir_name]]
+
+    # Try different filename formats
+    json_dir <- here("results", dir_name, "json")
+    if (!dir.exists(json_dir)) next
+
+    # Look for matching file
+    paper_clean <- str_replace_all(paper_name, " ", "_")
+    possible_files <- c(
+      file.path(json_dir, paste0(paper_name, ".response.json")),
+      file.path(json_dir, paste0(paper_clean, ".response.json"))
+    )
+
+    path <- NULL
+    for (pf in possible_files) {
+      if (file.exists(pf)) {
+        path <- pf
+        break
+      }
+    }
+
+    if (is.null(path)) next
+
+    result <- parse_paper_json(path, model_name)
+    if (!is.null(result)) {
+      if (!is.null(result$metrics)) {
+        all_metrics[[length(all_metrics) + 1]] <- result$metrics
+      }
+      if (!is.null(result$assessment) && !is.na(result$assessment)) {
+        all_assessments[[model_name]] <- result$assessment
+      }
+      if (!is.na(result$reasoning) && nchar(result$reasoning) > 0) {
+        reasoning <- result$reasoning
       }
     }
   }
-  
-  list(assessment = assessment_summary, reasoning = reasoning_full)
+
+  list(
+    metrics = if (length(all_metrics) > 0) bind_rows(all_metrics) else NULL,
+    assessments = all_assessments,
+    reasoning = reasoning
+  )
 }
 
+# Load human data
+load_human_ratings <- function() {
+  rsx_path <- here("data", "rsx_evalr_rating.csv")
+  if (!file.exists(rsx_path)) return(NULL)
+
+  UJmap <- tryCatch(
+    read.csv(here("data", "UJ_map.csv"), sep = ";", stringsAsFactors = FALSE) |>
+      as_tibble() |>
+      transmute(label_paper_title = research, label_paper = paper),
+    error = function(e) NULL
+  )
+
+  rsx <- read.csv(rsx_path, stringsAsFactors = FALSE) |>
+    as_tibble() |>
+    janitor::clean_names() |>
+    mutate(label_paper_title = research) |>
+    select(-research)
+
+  if (!is.null(UJmap)) {
+    rsx <- rsx |>
+      mutate(label_paper_title = str_trim(label_paper_title)) |>
+      left_join(
+        UJmap |> distinct(label_paper_title, label_paper),
+        by = "label_paper_title",
+        relationship = "many-to-one"
+      )
+  }
+
+  rsx |>
+    filter(!is.na(label_paper)) |>
+    group_by(paper = label_paper, criteria) |>
+    summarise(
+      midpoint = mean(as.numeric(middle_rating), na.rm = TRUE),
+      lower = mean(as.numeric(lower_ci), na.rm = TRUE),
+      upper = mean(as.numeric(upper_ci), na.rm = TRUE),
+      n_evals = n(),
+      .groups = "drop"
+    ) |>
+    mutate(
+      model = "Human",
+      metric = criteria
+    ) |>
+    select(paper, model, metric, midpoint, lower, upper, n_evals)
+}
+
+human_ratings <- load_human_ratings()
+
+# Get all unique papers across all model directories
+get_all_papers <- function() {
+  papers <- c()
+
+  for (dir_name in names(MODEL_DIRS)) {
+    json_dir <- here("results", dir_name, "json")
+    if (!dir.exists(json_dir)) next
+
+    files <- list.files(json_dir, pattern = "\\.response\\.json$", full.names = FALSE)
+    paper_names <- files |>
+      str_replace("\\.response\\.json$", "") |>
+      str_replace_all("_", " ")
+
+    papers <- c(papers, paper_names)
+  }
+
+  sort(unique(papers))
+}
+
+all_papers <- get_all_papers()
+cat(sprintf("Found %d papers with LLM evaluations\n", length(all_papers)))
 ```
 
-
-
-
-
-
-
-
 ```{r}
-#| label: appendix-llm-blocks
+#| label: appendix-render
 #| results: 'asis'
 #| echo: false
 
-json_dir <- here::here("data", "llm_evals")
+# Metric display order
+metric_order <- c("Overall", "Claims", "Methods", "Adv. Knowledge",
+                  "Logic & Comms", "Open Science", "Global Relevance",
+                  "tier_should", "tier_will")
 
-# list all *.response.json files
-json_files <- list.files(
-  path = json_dir,
-  pattern = "\\.response\\.json$",
-  full.names = FALSE
-)
+for (paper in all_papers) {
 
-# derive paper names from filenames: "<paper>.response.json" -> "<paper>"
-papers_all <- json_files |>
-  sub("\\.response\\.json$", "", x = _) |>
-  sort()
+  cat("\n\n## ", paper, "\n\n", sep = "")
 
-# render each paper's LLM assessment + reasoning
-for (p in papers_all) {
-  dat <- read_llm_from_json(p, json_dir = json_dir)
-  if (is.na(dat$assessment) && is.na(dat$reasoning)) next
+  # Load data for this paper
+  llm_data <- load_paper_llm_data(paper)
 
-  cat("## ", p, "\n\n", sep = "")
+  # --- Numerical Ratings Table (percentile metrics only) ---
 
-  cat("::: {.callout-note}\n")
-  cat("#### Model assessment summary\n\n")
-  cat("::: {.small}\n")
-  if (!is.na(dat$assessment) && nzchar(dat$assessment)) {
-    cat(dat$assessment, "\n")
+  cat("### Ratings Comparison\n\n")
+
+  if (!is.null(llm_data$metrics) && nrow(llm_data$metrics) > 0) {
+
+    # Add human ratings for this paper if available
+    combined_metrics <- llm_data$metrics |>
+      mutate(
+        metric_display = canon_metric(metric),
+        n_evals = NA_integer_
+      )
+
+    if (!is.null(human_ratings)) {
+      human_paper <- human_ratings |>
+        filter(paper == !!paper) |>
+        mutate(metric_display = canon_metric(metric)) |>
+        filter(!is.na(metric_display), is.finite(midpoint), is.finite(lower), is.finite(upper))
+
+      if (nrow(human_paper) > 0) {
+        combined_metrics <- bind_rows(
+          combined_metrics |> select(model, metric_display, midpoint, lower, upper, n_evals),
+          human_paper    |> select(model, metric_display, midpoint, lower, upper, n_evals)
+        )
+      }
+    }
+
+    # Drop tier metrics for this appendix table to avoid cross-model inconsistencies
+    combined_metrics <- combined_metrics |>
+      filter(!metric_display %in% c("tier_should", "tier_will"))
+
+    # Remove rows with missing metric labels or non-finite values (e.g., spurious rows)
+    combined_metrics <- combined_metrics |>
+      filter(!is.na(metric_display), is.finite(midpoint), is.finite(lower), is.finite(upper))
+
+    # Collapse duplicates (e.g., multiple human evaluators) before pivoting
+    combined_metrics <- combined_metrics |>
+      group_by(model, metric_display) |>
+      summarise(
+        midpoint = mean(midpoint, na.rm = TRUE),
+        lower    = mean(lower, na.rm = TRUE),
+        upper    = mean(upper, na.rm = TRUE),
+        n_evals  = suppressWarnings(max(n_evals, na.rm = TRUE)),
+        .groups  = "drop"
+      ) |>
+      mutate(n_evals = ifelse(is.finite(n_evals), n_evals, NA_integer_))
+
+    # Pivot to wide format for table
+    ratings_wide <- combined_metrics |>
+      mutate(
+        rating_str = dplyr::case_when(
+          model == "Human" & is.finite(n_evals) ~ sprintf("%.0f [%.0f–%.0f] (n=%d)", midpoint, lower, upper, n_evals),
+          TRUE ~ sprintf("%.0f [%.0f–%.0f]", midpoint, lower, upper)
+        )
+      ) |>
+      select(model, metric_display, rating_str) |>
+      pivot_wider(names_from = model, values_from = rating_str, values_fill = "—")
+
+    # Order metrics
+    ratings_wide <- ratings_wide |>
+      mutate(metric_display = factor(metric_display, levels = metric_order)) |>
+      arrange(metric_display) |>
+      rename(Metric = metric_display)
+
+    # Print table
+    print(knitr::kable(ratings_wide, align = c("l", rep("r", ncol(ratings_wide) - 1))) |>
+      kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                                 full_width = FALSE, font_size = 12))
+    cat("\n\n")
+
   } else {
-    cat("No assessment summary found.\n")
+    cat("*No numerical ratings available.*\n\n")
   }
-  cat(":::\n")
-  cat(":::\n\n")
 
-  cat("::: {.callout-tip}\n")
-  cat("#### Model reasoning trace\n\n")
-  cat("::: {.small}\n")
-  if (!is.na(dat$reasoning) && nzchar(dat$reasoning)) {
-    cat(dat$reasoning, "\n")
-  } else {
-    cat("No reasoning trace found.\n")
-  }
-  cat(":::\n")
-  cat(":::\n\n")
+  # --- Assessment Summaries (Collapsible) ---
 
-  if (knitr::is_latex_output()) {
-    cat("\\newpage\n\n")
+  if (length(llm_data$assessments) > 0) {
+    for (model_name in names(llm_data$assessments)) {
+      assessment <- llm_data$assessments[[model_name]]
+      if (!is.null(assessment) && !is.na(assessment) && nchar(assessment) > 0) {
+
+        cat(sprintf("::: {.callout-note collapse=\"true\"}\n"))
+        cat(sprintf("## %s Assessment\n\n", model_name))
+        cat(assessment, "\n")
+        cat(":::\n\n")
+      }
+    }
   } else {
-    cat("---\n\n")
+    cat("::: {.callout-note collapse=\"true\"}\n")
+    cat("## Assessment Summary\n\n")
+    cat("*No assessment summary available.*\n")
+    cat(":::\n\n")
   }
+
+  # --- Reasoning Trace (Collapsible, GPT-5 Pro only) ---
+
+  if (!is.na(llm_data$reasoning) && nchar(llm_data$reasoning) > 50) {
+    cat("::: {.callout-tip collapse=\"true\"}\n")
+    cat("## GPT-5 Pro Reasoning Trace\n\n")
+    cat("::: {.small}\n")
+    cat(llm_data$reasoning, "\n")
+    cat(":::\n")
+    cat(":::\n\n")
+  }
+
+  cat("\n---\n\n")
 }
-
-
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- ```{r} -->
-<!-- #| label: appendix-setup -->
-<!-- #| echo: false -->
-
-<!-- library(tidyverse) -->
-<!-- library(here) -->
-<!-- library(janitor) -->
-
-<!-- srcdata <- read_csv(here("results", "llm_evals_master.csv"), -->
-<!--                     show_col_types = FALSE) |> -->
-<!--   clean_names() -->
-
-<!-- render_llm_appendix_block <- function(paper_name) { -->
-<!--   row <- srcdata |> -->
-<!--     filter(paper == paper_name) |> -->
-<!--     slice(1) -->
-
-<!--   if (nrow(row) == 0L) { -->
-<!--     cat("No LLM evaluation found for", paper_name, "\n\n") -->
-<!--     return(invisible(NULL)) -->
-<!--   } -->
-
-<!--   assessment <- row$assessment_summary -->
-<!--   reasoning  <- row$reasoning_summary -->
-
-<!--   cat("### ", paper_name, "\n\n", sep = "") -->
-
-<!--   cat("**Model assessment summary**\n\n") -->
-<!--   cat("::: {.callout-note}\n") -->
-<!--   cat("::: {.small}\n") -->
-<!--   cat(assessment, "\n") -->
-<!--   cat(":::\n") -->
-<!--   cat(":::\n\n") -->
-
-<!--   cat("**Model reasoning trace (compressed summary)**\n\n") -->
-<!--   cat("::: {.callout-tip}\n") -->
-<!--   cat("::: {.small}\n") -->
-<!--   cat(reasoning, "\n") -->
-<!--   cat(":::\n") -->
-<!--   cat(":::\n\n") -->
-<!-- } -->
-
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- #| label: appendix-williams -->
-<!-- #| results: 'asis' -->
-
-<!-- render_llm_appendix_block("Williams et al. 2024") -->
-
-<!-- ``` -->
-
-<!-- \newpage -->
-
-<!-- Published as @Green2025 -->
-
-<!-- ```{r} -->
-<!-- #| label: appendix-green -->
-<!-- #| results: 'asis' -->
-
-<!-- render_llm_appendix_block("Green et al. 2025") -->
-
-<!-- ``` -->
-
-<!-- \newpage -->
-
-<!-- Adena2024, published as @Adena2025 -->
-
-
-<!-- ```{r} -->
-<!-- #| label: appendix-adena -->
-<!-- #| results: 'asis' -->
-
-<!-- render_llm_appendix_block("Adena and Hager 2024") -->
-
-<!-- ``` -->
-
-<!-- \newpage -->
-
-<!-- ```{r} -->
-<!-- #| label: appendix-peterman -->
-<!-- #| results: 'asis' -->
-
-<!-- render_llm_appendix_block("Peterman et al. 2025") -->
-
-<!-- ``` -->
-
-<!-- \newpage -->
-
-<!-- ```{r} -->
-<!-- #| label: appendix-Kudymowa -->
-<!-- #| results: 'asis' -->
-
-<!-- render_llm_appendix_block("Kudymowa et al. 2023") -->
-
-<!-- ``` -->
-
- 
