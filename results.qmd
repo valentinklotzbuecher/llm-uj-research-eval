@@ -751,3 +751,138 @@ if (nrow(criteria_means) > 0) {
 **Future extensions:** add calibration diagnostics (share of human means within model 90% CIs by criterion), interval-width profiles by model/criterion, and cost–agreement frontiers (correlation vs. cost per paper).
 
 *Note: GPT-5 Pro evaluations include extended reasoning traces. See the [Appendix](appendix_llm_traces.qmd) for full assessment summaries and reasoning traces per paper.*
+
+## Prompt Comparison: Legacy vs Updated GPT-5 Pro
+
+We compare GPT-5 Pro evaluations between two prompt versions:
+
+- **Legacy (Oct 2024):** Original combined schema without assessment summary
+- **Updated (Jan 2026):** Modular prompt with explicit diagnostic assessment summary
+
+```{r}
+#| label: load-legacy-comparison
+#| code-fold: true
+#| code-summary: "Load legacy vs updated GPT-5 Pro data"
+#| message: false
+
+# Load legacy GPT-5 data
+legacy_metrics <- read_csv("data/metrics_long_gpt-5.csv", show_col_types = FALSE) |>
+  transmute(
+    paper_raw = paper,
+    paper = str_replace_all(paper, " ", "_") |> str_replace_all("\\.", ""),  # normalize
+    metric = metric,
+    legacy_mid = midpoint,
+    legacy_lo = lower_bound,
+    legacy_hi = upper_bound
+  )
+
+# Load updated GPT-5 Pro data
+updated_metrics <- read_csv("data/metrics_long_gpt5_pro_jan2026.csv", show_col_types = FALSE) |>
+  transmute(
+    paper = str_replace_all(paper, "\\.", ""),  # remove dots for matching
+    metric = metric,
+    updated_mid = midpoint,
+    updated_lo = lower_bound,
+    updated_hi = upper_bound
+  )
+
+# Join by normalized paper name and metric
+prompt_comparison <- legacy_metrics |>
+  inner_join(updated_metrics, by = c("paper", "metric")) |>
+  mutate(
+    diff = updated_mid - legacy_mid,
+    metric_label = case_when(
+      metric == "overall" ~ "Overall",
+      metric == "claims_evidence" ~ "Claims",
+      metric == "methods" ~ "Methods",
+      metric == "advancing_knowledge" ~ "Adv. Knowledge",
+      metric == "logic_communication" ~ "Logic & Comms",
+      metric == "open_science" ~ "Open Science",
+      metric == "global_relevance" ~ "Global Relevance",
+      TRUE ~ metric
+    )
+  )
+
+n_matched_papers <- n_distinct(prompt_comparison$paper)
+```
+
+We matched `r n_matched_papers` papers across both runs.
+
+```{r}
+#| label: fig-prompt-scatter
+#| fig-cap: "Legacy vs Updated GPT-5 Pro ratings (overall metric)"
+#| fig-width: 8
+#| fig-height: 7
+
+overall_comp <- prompt_comparison |> filter(metric == "overall")
+
+if (nrow(overall_comp) > 0) {
+  cor_val <- cor(overall_comp$legacy_mid, overall_comp$updated_mid, use = "complete.obs")
+
+  ggplot(overall_comp, aes(x = legacy_mid, y = updated_mid)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
+    geom_point(alpha = 0.7, size = 2.5, color = UJ_ORANGE) +
+    geom_smooth(method = "lm", se = TRUE, alpha = 0.2, color = UJ_BLUE) +
+    annotate("text", x = 55, y = 95,
+             label = paste0("r = ", round(cor_val, 2)),
+             size = 5, fontface = "bold") +
+    labs(
+      x = "Legacy Prompt (Oct 2024)",
+      y = "Updated Prompt (Jan 2026)",
+      title = "GPT-5 Pro: Overall Rating Comparison",
+      subtitle = "Dashed line = perfect agreement"
+    ) +
+    coord_fixed(xlim = c(40, 100), ylim = c(40, 100)) +
+    theme_uj()
+}
+```
+
+```{r}
+#| label: fig-prompt-diff-by-metric
+#| fig-cap: "Rating difference (Updated - Legacy) by criterion"
+#| fig-width: 10
+#| fig-height: 5
+
+if (nrow(prompt_comparison) > 0) {
+  metric_order <- prompt_comparison |>
+    group_by(metric_label) |>
+    summarise(mean_diff = mean(diff, na.rm = TRUE)) |>
+    arrange(mean_diff) |>
+    pull(metric_label)
+
+  prompt_comparison |>
+    mutate(metric_label = factor(metric_label, levels = metric_order)) |>
+    ggplot(aes(x = metric_label, y = diff)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+    geom_boxplot(fill = UJ_ORANGE, alpha = 0.6, outlier.alpha = 0.3) +
+    labs(
+      x = NULL,
+      y = "Rating Difference (Updated - Legacy)",
+      title = "Prompt Version Effect by Criterion",
+      subtitle = "Positive = updated prompt rates higher"
+    ) +
+    theme_uj() +
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+}
+```
+
+```{r}
+#| label: tbl-prompt-summary
+#| tbl-cap: "Summary statistics: Legacy vs Updated prompt"
+
+if (nrow(prompt_comparison) > 0) {
+  prompt_comparison |>
+    group_by(Criterion = metric_label) |>
+    summarise(
+      `Legacy Mean` = round(mean(legacy_mid, na.rm = TRUE), 1),
+      `Updated Mean` = round(mean(updated_mid, na.rm = TRUE), 1),
+      `Mean Diff` = round(mean(diff, na.rm = TRUE), 1),
+      `SD Diff` = round(sd(diff, na.rm = TRUE), 1),
+      .groups = "drop"
+    ) |>
+    kable() |>
+    kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+}
+```
+
+The updated prompt with explicit diagnostic assessment appears to produce systematically different ratings. The correlation between prompt versions indicates the degree of consistency across the prompt change.
