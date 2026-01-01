@@ -54,11 +54,17 @@ from openai import OpenAI
 
 # ---------- Configuration (in-file, no external deps)
 API_KEY_PATH = pathlib.Path(os.getenv("OPENAI_KEY_PATH", "key/openai_key.txt"))
-MODEL        = os.getenv("OPENAI_MODEL", "gpt-5-pro")
+MODEL        = os.getenv("OPENAI_MODEL", "gpt-5-pro-2025-10-06")
 FILE_PURPOSE = "assistants"  # for Responses API file inputs
+
+# Run ID for organizing outputs - change this for each new evaluation run
+# Set via environment variable or modify directly here
+RUN_ID       = os.getenv("UJ_RUN_ID", "gpt5_pro_updated_jan2026")
 RESULTS_DIR  = pathlib.Path("results")
 RESULTS_DIR.mkdir(exist_ok=True)
-FILE_CACHE   = RESULTS_DIR / ".file_cache.json"
+RUN_DIR      = RESULTS_DIR / RUN_ID
+RUN_DIR.mkdir(exist_ok=True)
+FILE_CACHE   = RESULTS_DIR / ".file_cache.json"  # shared across runs
 
 # ---------- API key bootstrap
 if os.getenv("OPENAI_API_KEY") is None and API_KEY_PATH.exists():
@@ -572,8 +578,8 @@ The Python pipeline uploads each PDF once and caches the returned file id keyed 
 import pathlib, time
 
 ROOT = pathlib.Path(os.getenv("UJ_PAPERS_DIR", "papers")).expanduser()
-OUT  = pathlib.Path("results"); OUT.mkdir(exist_ok=True)
-IDX  = OUT / "jobs_index.csv"
+# Use RUN_DIR for isolated outputs, but jobs_index stays in results/ for monitoring
+IDX  = RESULTS_DIR / "jobs_index.csv"
 
 pdfs = sorted(ROOT.glob("*.pdf"))
 print("Found PDFs:", [p.name for p in pdfs])
@@ -629,9 +635,9 @@ We then polls job status and, for each completed job, retrieve the raw JSON obje
 
 import json, pathlib, pandas as pd
 
-OUT = pathlib.Path("results")
-IDX = OUT / "jobs_index.csv"
-JSN = OUT / "json"; JSN.mkdir(exist_ok=True)
+# Use RUN_DIR for outputs, jobs_index in RESULTS_DIR for monitoring
+IDX = RESULTS_DIR / "jobs_index.csv"
+JSN = RUN_DIR / "json"; JSN.mkdir(exist_ok=True)
 
 def _safe_read_csv(path, columns):
     p = pathlib.Path(path)
@@ -754,7 +760,7 @@ def evaluate_paper_sync(pdf_path: pathlib.Path, model: str) -> Dict[str, Any]:
 
 def run_openai_models(pdfs: list, models: list = OPENAI_MODELS, out_dir: pathlib.Path = None):
     """Run evaluation across multiple OpenAI models."""
-    out_dir = out_dir or pathlib.Path("results")
+    out_dir = out_dir or RESULTS_DIR  # multi-model outputs go to results/{model}/
     results = []
 
     for model in models:
@@ -835,7 +841,7 @@ def evaluate_paper_anthropic(pdf_path: pathlib.Path, model: str) -> Dict[str, An
 
 def run_anthropic_models(pdfs: list, models: list = ANTHROPIC_MODELS, out_dir: pathlib.Path = None):
     """Run evaluation across Anthropic models."""
-    out_dir = out_dir or pathlib.Path("results")
+    out_dir = out_dir or RESULTS_DIR  # multi-model outputs go to results/{model}/
     results = []
 
     for model in models:
@@ -908,7 +914,7 @@ def evaluate_paper_google(pdf_path: pathlib.Path, model_name: str) -> Dict[str, 
 
 def run_google_models(pdfs: list, models: list = GOOGLE_MODELS, out_dir: pathlib.Path = None):
     """Run evaluation across Google models."""
-    out_dir = out_dir or pathlib.Path("results")
+    out_dir = out_dir or RESULTS_DIR  # multi-model outputs go to results/{model}/
     results = []
 
     for model in models:
@@ -949,7 +955,7 @@ A unified runner collects evaluations from all providers:
 def run_all_models(pdfs: list = None, out_dir: pathlib.Path = None):
     """Run evaluation across all configured models and providers."""
     pdfs = pdfs or sorted(pathlib.Path("papers").glob("*.pdf"))
-    out_dir = out_dir or pathlib.Path("results")
+    out_dir = out_dir or RESULTS_DIR  # multi-model outputs go to results/{model}/
     all_results = []
 
     for name, runner in [("openai", run_openai_models), ("anthropic", run_anthropic_models), ("google", run_google_models)]:
