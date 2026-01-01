@@ -981,5 +981,227 @@ run_all_models()
 
 ```
 
+### GPT-5.2 Pro Focal Run (with Key Issues)
 
-    
+This section evaluates 14 focal papers using GPT-5.2 Pro with an extended schema that outputs a numbered list of key issues alongside the standard metrics.
+
+```{python}
+#| label: focal-config
+#| eval: false
+#| code-fold: true
+#| code-summary: "Focal run configuration"
+
+FOCAL_MODEL = "gpt-5.2-pro-2025-12-11"
+FOCAL_RUN_DIR = RESULTS_DIR / "gpt52_pro_focal_jan2026"
+FOCAL_RUN_DIR.mkdir(exist_ok=True)
+(FOCAL_RUN_DIR / "json").mkdir(exist_ok=True)
+
+FOCAL_PAPERS = [
+    "Acemoglu_et_al._2024",
+    "Adena_and_Hager_2024",
+    "Benabou_et_al._2023",
+    "Bilal_and_Kaenzig_2024",
+    "Blimpo_and_Castaneda-Dower_2025",
+    "Bruers_2021",
+    "Clancy_2024",
+    "Dullaghan_and_Zhang_2022",
+    "Frech_et_al._2023",
+    "Green_et_al._2025",
+    "McGuire_et_al._2024",
+    "Peterman_et_al._2025",
+    "Weaver_et_al._2025",
+    "Williams_et_al._2024",
+]
+
+# Extended schema with key_issues array
+COMBINED_SCHEMA_WITH_ISSUES = {
+    "type": "object",
+    "properties": {
+        "assessment_summary": {"type": "string"},
+        "key_issues": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                **{m: metric_schema for m in METRICS},
+                "tier_should": TIER_METRIC_SCHEMA,
+                "tier_will":   TIER_METRIC_SCHEMA,
+            },
+            "required": METRICS + ["tier_should", "tier_will"],
+            "additionalProperties": False,
+        },
+    },
+    "required": ["assessment_summary", "key_issues", "metrics"],
+    "additionalProperties": False,
+}
+
+TEXT_FORMAT_WITH_ISSUES = {
+    "type": "json_schema",
+    "name": "paper_assessment_with_key_issues_v1",
+    "strict": True,
+    "schema": COMBINED_SCHEMA_WITH_ISSUES,
+}
+
+# Extended output prompt with key_issues instruction
+PROMPT_OUTPUT_WITH_ISSUES = """
+Fill all three top-level keys:
+- `assessment_summary`: about 1000 words.
+- `key_issues`: a numbered list (array of strings) identifying the most important methodological, interpretive, or evidential issues in the paper. Each item should be a concise statement (1-2 sentences) that a reader could use as a checklist. Aim for 5-15 issues depending on the paper. Order from most to least important.
+- `metrics`: object containing all required metrics.
+
+Field names:
+- Percentile metrics → `midpoint`, `lower_bound`, `upper_bound`.
+- Tier metrics → `score`, `ci_lower`, `ci_upper`.
+
+Return STRICT JSON matching the supplied schema. No preamble. No markdown. No extra text.
+"""
+
+SYSTEM_PROMPT_WITH_ISSUES = "\n".join([
+    PROMPT_ROLE,
+    PROMPT_DEBIASING,
+    PROMPT_DIAGNOSTIC,
+    PROMPT_PERCENTILE_INTRO,
+    PROMPT_REFERENCE_GROUP,
+    PROMPT_METRICS,
+    PROMPT_UNCERTAINTY,
+    PROMPT_TIERS,
+    PROMPT_VALIDATION,
+    PROMPT_OUTPUT_WITH_ISSUES,
+]).strip()
+```
+
+```{python}
+#| label: focal-kickoff
+#| eval: false
+#| code-summary: "Kick off focal paper jobs → gpt52_pro_focal_jan2026/jobs_index.csv"
+
+import time
+
+FOCAL_IDX = FOCAL_RUN_DIR / "jobs_index.csv"
+cols = ["paper","pdf","response_id","file_id","model","status","created_at","last_update","collected","error"]
+idx = read_csv_or_empty(FOCAL_IDX, columns=cols)
+
+existing = dict(zip(idx["paper"], idx["status"])) if not idx.empty else {}
+started = []
+
+for paper_name in FOCAL_PAPERS:
+    pdf_path = pathlib.Path("papers") / f"{paper_name}.pdf"
+
+    if not pdf_path.exists():
+        print(f"⚠️ PDF not found: {pdf_path}")
+        continue
+
+    if existing.get(paper_name) in ("queued", "in_progress", "incomplete"):
+        print(f"⏭️ Skip {paper_name}: job already running")
+        continue
+
+    if existing.get(paper_name) == "completed":
+        print(f"✅ Skip {paper_name}: already completed")
+        continue
+
+    try:
+        fid = get_file_id(pdf_path, client)
+
+        kickoff = call_with_retries(lambda: client.responses.create(
+            model=FOCAL_MODEL,
+            text={"format": TEXT_FORMAT_WITH_ISSUES},
+            input=[
+                {"role": "system", "content": [
+                    {"type": "input_text", "text": SYSTEM_PROMPT_WITH_ISSUES}
+                ]},
+                {"role": "user", "content": [
+                    {"type": "input_file", "file_id": fid},
+                    {"type": "input_text", "text": "Return STRICT JSON per schema. No extra text."}
+                ]},
+            ],
+            max_output_tokens=15000,
+            background=True,
+            store=True,
+            reasoning={"effort": "high", "summary": "detailed"},
+        ))
+        kd = _resp_as_dict(kickoff)
+
+        started.append({
+            "paper": paper_name,
+            "pdf": str(pdf_path),
+            "response_id": kd.get("id"),
+            "file_id": fid,
+            "model": FOCAL_MODEL,
+            "status": kd.get("status") or "queued",
+            "created_at": kd.get("created_at") or pd.Timestamp.utcnow().isoformat(),
+            "last_update": pd.Timestamp.utcnow().isoformat(),
+            "collected": False,
+            "error": pd.NA,
+        })
+        print(f"✓ Started job for {paper_name}")
+        time.sleep(90)  # Wait between submissions
+
+    except Exception as e:
+        print(f"❌ Failed {paper_name}: {e}")
+
+if started:
+    idx = pd.concat([idx, pd.DataFrame(started)], ignore_index=True)
+    idx.drop_duplicates(subset=["paper"], keep="last", inplace=True)
+    idx.to_csv(FOCAL_IDX, index=False)
+    print(f"\n✓ Started {len(started)} jobs → {FOCAL_IDX}")
+else:
+    print("No new jobs started.")
+```
+
+```{python}
+#| label: focal-collect
+#| eval: false
+#| code-summary: "Collect focal paper results"
+
+FOCAL_IDX = FOCAL_RUN_DIR / "jobs_index.csv"
+FOCAL_JSON = FOCAL_RUN_DIR / "json"
+
+idx = pd.read_csv(FOCAL_IDX, dtype={'error': 'object'})
+print(f"Polling {len(idx)} focal jobs...")
+
+for i, row in idx.iterrows():
+    paper = row["paper"]
+    resp_id = row["response_id"]
+
+    if pd.isna(resp_id):
+        continue
+
+    json_path = FOCAL_JSON / f"{paper}.response.json"
+    if json_path.exists() and row.get("collected") == True:
+        continue
+
+    try:
+        resp = client.responses.retrieve(resp_id)
+        rd = _resp_as_dict(resp)
+        status = rd.get("status", "unknown")
+        idx.at[i, "status"] = status
+        idx.at[i, "last_update"] = pd.Timestamp.utcnow().isoformat()
+
+        if status == "completed":
+            with open(json_path, "w") as f:
+                json.dump(rd, f, ensure_ascii=False, indent=2, default=str)
+            idx.at[i, "collected"] = True
+
+            m = _reasoning_meta(resp)
+            idx.at[i, "input_tokens"] = m.get("input_tokens")
+            idx.at[i, "output_tokens"] = m.get("output_tokens")
+            idx.at[i, "reasoning_tokens"] = m.get("reasoning_tokens")
+            print(f"✓ Collected: {paper}")
+
+        elif status == "failed":
+            idx.at[i, "error"] = rd.get("error", "Unknown")
+            print(f"✗ Failed: {paper}")
+
+        else:
+            print(f"⏳ {status}: {paper}")
+
+    except Exception as e:
+        print(f"⚠️ Error {paper}: {e}")
+
+idx.to_csv(FOCAL_IDX, index=False)
+counts = idx["status"].value_counts().to_dict()
+print(f"\nStatus: {counts}")
+```
+
