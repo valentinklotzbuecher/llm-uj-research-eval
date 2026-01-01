@@ -1,0 +1,353 @@
+{
+  "id": "resp_0c9cb10483d4bc0500695682537d248190b0c4db31cc766340",
+  "created_at": 1767277139.0,
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "metadata": {},
+  "model": "gpt-5.2-pro-2025-12-11",
+  "object": "response",
+  "output": [
+    {
+      "id": "rs_0c9cb10483d4bc050069568315ea8481908706df69b7047c23",
+      "summary": [
+        {
+          "text": "**Evaluating research quality**\n\nI think this report likely has above-average depth and transparency, though some methods feel novel and a bit subjective. The claims and evidence could be rated around 70, and methods might be closer to 65. The logic and communication seem strong at 75. It’s unclear if the code or data are open, which might put open science around a moderate 60. Overall, I’d say the report could score about 70, although it feels more like an NGO report than a standard research article.",
+          "type": "summary_text"
+        }
+      ],
+      "type": "reasoning"
+    },
+    {
+      "id": "msg_0c9cb10483d4bc0500695683189d408190a4b4fd09064ef8bc",
+      "content": [
+        {
+          "annotations": [],
+          "text": "{\n  \"assessment_summary\": \"This report is an unusually detailed, decision-oriented cost-effectiveness evaluation of two large-scale lay-delivered psychotherapy programs in Africa, expressed in WELLBYs per $1,000. Its strongest features are (i) a broad systematic review/meta-analysis backbone (84 RCT “interventions”, multilevel meta-analysis, multiple follow-ups/outcomes), (ii) explicit separation of evidence sources (general RCT evidence, charity-related RCT evidence, charity monitoring pre–post), (iii) an unusually explicit catalogue of internal/external validity “adjustments”, and (iv) extensive sensitivity/robustness reporting. However, the headline cost-effectiveness claims rely on a chain of modeling and judgment calls where several key steps are only weakly identified by data, are highly assumption-dependent, and sometimes combine heterogeneous constructs in ways that can readily shift results by multiples. The most important vulnerabilities are: (1) the construction of “total effect over time” from a linear decay model and a triangular area-under-the-curve formula, with ad hoc handling of a small number of influential long-term follow-ups; (2) the conversion from standardized effects (SD-years) on mixed mental health and subjective wellbeing instruments into WELLBYs via a single global SD mapping; (3) the use of non-causal charity pre–post data corrected by a “pseudo-synthetic control” derived from control arms of other trials, which is not a standard identification strategy and risks substantial residual bias; (4) subjective weighting across the three evidence sources, justified as an “unsolved problem,” which is central to the final point estimates and especially consequential for StrongMinds given one low-effect RCT; and (5) the inclusion of household spillovers based on very sparse evidence, acknowledged as “very low” quality, yet contributing a large fraction (~30–40%) of total benefits.\\n\\nOn the general evidence: the report’s systematic review/meta-analysis appears carefully executed (double extraction checks, RoB assessment with two rounds, multilevel modeling to address dependence across outcomes/follow-ups), and the decision to trim extreme effect sizes (g>2) and exclude “high” RoB studies is defensible for a decision report. That said, the effect-size distribution is highly heterogeneous and the report introduces several strong filters/adjustments with limited external validation: (i) outlier removal by a hard threshold (g>2) can interact with small-study effects and can change perceived heterogeneity; (ii) an “Iran indicator” is used to downweight large effects from one country based on suspicion of bias and broader concerns about paper integrity—this may be prudent, but it is an unusually strong, partly conjectural adjustment that could also remove genuine contextual differences; and (iii) publication bias correction is implemented by averaging multiple methods (some known to behave poorly under heterogeneity), which is transparent but still not clearly calibrated to the estimand given multilevel dependence and time-moderation.\\n\\nThe total-effect-over-time modeling is a major driver of cost-effectiveness. The baseline assumption is linear decay until the effect hits zero, then integrating the triangle. While this is a reasonable first approximation, psychotherapy effects plausibly decay nonlinearly, may plateau, or may show maintenance/booster dynamics; the linear model can over- or under-estimate tails. The handling of a small set of very long follow-ups is particularly influential: the report excludes four long-term effect sizes from the core time model but then applies a bespoke multiplicative “time adjustment” (1.54) intended to represent a 50/50 compromise between models with and without these points. This is candidly described as lacking clear precedent. Because duration multiplies into total WELLBYs, this decision can materially change cost-effectiveness and should be considered a structural uncertainty, not merely a robustness check.\\n\\nThe charity-specific evidence is treated thoughtfully but remains the largest substantive uncertainty. For Friendship Bench, the major concern is dosage: the charity’s reported mean attendance of 1.12 sessions out of up to 6 drives a large downward adjustment via a chosen log dose-response function. The justification that early sessions may be especially therapeutic/psychoeducational is plausible, but the exact mapping from attended sessions to effect size is weakly evidenced, and the log(+1) functional form is essentially a normative prior. For StrongMinds, the core tension is between a single low-effect RCT (implemented via a partner on adolescents with low compliance and pandemic overlap) and much larger non-causal M&E pre–post improvements; the report argues for limited relevance of the RCT and gives it 20% weight, but this is ultimately a judgment. The additional upward “relevance” adjustments to the low-effect RCT (compliance LATE uplift, adult–adolescent adjustment from an external database, partner-type adjustment) are internally coherent, yet increase dependence on assumptions about what differs between study and current operations.\\n\\nThe M&E pre–post component is both potentially valuable and methodologically fragile. The proposed “pseudo-synthetic control” uses control-arm change from other LMIC psychotherapy trials on similar scales to subtract spontaneous remission and related trends. This does not ensure exchangeability between charity clients and those external control arms (different baselines, recruitment, measurement contexts, regression-to-the-mean dynamics, seasonality, interviewer effects, and differential survey incentives). The report partially acknowledges this by giving low weights and applying large generic discounts (replication 0.51 and response bias 0.85), but these are themselves not estimated in the charity context and could either overcorrect or undercorrect.\\n\\nFinally, the overall conclusion that these programs are ~5–6× as cost-effective as cash transfers depends on the WELLBY framework choices: the assumed mapping from SD-years to WELLBYs (using a global SD≈2 on a 0–10 ladder), treating affective mental health scales and SWB scales as exchangeable (supported by a separate report rather than directly validated here), and including household spillovers with wide uncertainty. These choices are defensible in an applied welfare context but should be interpreted as producing a “model-based decision metric” rather than a tight empirical estimate. Overall, the report is a strong example of transparent, impact-oriented synthesis, but its quantitative point estimates should be taken as moderately uncertain and sensitive to a few non-standard modeling/elicitation decisions that are only partially anchored by data.\",\n  \"key_issues\": [\n    \"1) Total-effect-over-time relies on a linear decay assumption and triangular area-under-curve; psychotherapy effects may decay nonlinearly or have long tails, making total WELLBYs highly assumption-sensitive.\",\n    \"2) Handling of influential long-term follow-ups is ad hoc (exclude from core time model, then apply a 1.54 multiplicative compromise); this is a structural modeling choice without clear precedent and materially affects results.\",\n    \"3) The WELLBY conversion (SD-years → WELLBYs via a single “SD=2 on 0–10 ladder” mapping) and combining affective mental health (MHa) with SWB outcomes embed normative/construct assumptions that can shift cross-intervention comparisons.\",\n    \"4) Charity M&E pre–post effects are “corrected” using a pseudo-synthetic control from other trials’ control arms; exchangeability is not established, so residual bias (regression to mean, measurement context, incentives, selection/attrition) could be large.\",\n    \"5) Subjective weights across evidence sources (general RCTs vs charity-related RCTs vs M&E) are central to the headline estimates; the procedure is transparent but remains a major source of discretion, especially for StrongMinds where the RCT conflicts with other evidence.\",\n    \"6) Household spillovers contribute ~30–40% of total benefits but are estimated from very sparse and heterogeneous evidence (few interventions, one dominant study) and acknowledged as very low-quality; the spillover prior strongly affects totals.\",\n    \"7) Dosage adjustment for Friendship Bench is driven by extremely low reported attendance (1.12 sessions) and a chosen log(+1) dose-response form; empirical support for this functional form and parameterization is limited.\",\n    \"8) The “Iran study” adjustment treats larger effects as likely biased based on contextual suspicion; while potentially prudent, it risks discarding true contextual heterogeneity and is not validated against independent indicators of study quality.\",\n    \"9) Publication-bias adjustment uses an average of multiple correction methods (some known to perform poorly under heterogeneity); the resulting discount is not clearly tied to the estimand under multilevel dependence and time moderation.\",\n    \"10) The replication (0.51) and response-bias (0.85) discounts for M&E data are generic and not estimated in the charity context; they may double-count some biases or miss others, and materially alter the M&E contribution.\",\n    \"11) StrongMinds RCT relevance assessment is plausible but partly speculative (pilot/partner/adolescents/COVID); the decision to downweight rather than treat as a serious negative update is consequential and could be contested.\",\n    \"12) Cost modeling includes counterfactual partner adjustments for StrongMinds; these assumptions are important to $/WELLBY and would benefit from clearer empirical grounding and uncertainty propagation.\"\n  ],\n  \"metrics\": {\n    \"overall\": {\n      \"midpoint\": 72,\n      \"lower_bound\": 60,\n      \"upper_bound\": 82\n    },\n    \"claims_evidence\": {\n      \"midpoint\": 70,\n      \"lower_bound\": 56,\n      \"upper_bound\": 82\n    },\n    \"methods\": {\n      \"midpoint\": 66,\n      \"lower_bound\": 50,\n      \"upper_bound\": 78\n    },\n    \"advancing_knowledge\": {\n      \"midpoint\": 74,\n      \"lower_bound\": 58,\n      \"upper_bound\": 86\n    },\n    \"logic_communication\": {\n      \"midpoint\": 78,\n      \"lower_bound\": 66,\n      \"upper_bound\": 88\n    },\n    \"open_science\": {\n      \"midpoint\": 58,\n      \"lower_bound\": 40,\n      \"upper_bound\": 72\n    },\n    \"global_relevance\": {\n      \"midpoint\": 88,\n      \"lower_bound\": 75,\n      \"upper_bound\": 95\n    },\n    \"tier_should\": {\n      \"score\": 3.3,\n      \"ci_lower\": 2.5,\n      \"ci_upper\": 4.1\n    },\n    \"tier_will\": {\n      \"score\": 2.7,\n      \"ci_lower\": 1.8,\n      \"ci_upper\": 3.6\n    }\n  }\n}",
+          "type": "output_text",
+          "logprobs": []
+        }
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "temperature": 1.0,
+  "tool_choice": "auto",
+  "tools": [],
+  "top_p": 0.98,
+  "background": true,
+  "max_output_tokens": 15000,
+  "max_tool_calls": null,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": "detailed"
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "status": "completed",
+  "text": {
+    "format": {
+      "name": "paper_assessment_with_key_issues_v1",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "assessment_summary": {
+            "type": "string"
+          },
+          "key_issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "overall": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "claims_evidence": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "methods": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "advancing_knowledge": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "logic_communication": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "open_science": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "global_relevance": {
+                "type": "object",
+                "properties": {
+                  "midpoint": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lower_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "upper_bound": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                },
+                "required": [
+                  "midpoint",
+                  "lower_bound",
+                  "upper_bound"
+                ],
+                "additionalProperties": false
+              },
+              "tier_should": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "ci_lower": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "ci_upper": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  }
+                },
+                "required": [
+                  "score",
+                  "ci_lower",
+                  "ci_upper"
+                ],
+                "additionalProperties": false
+              },
+              "tier_will": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "ci_lower": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "ci_upper": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5
+                  }
+                },
+                "required": [
+                  "score",
+                  "ci_lower",
+                  "ci_upper"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "overall",
+              "claims_evidence",
+              "methods",
+              "advancing_knowledge",
+              "logic_communication",
+              "open_science",
+              "global_relevance",
+              "tier_should",
+              "tier_will"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "assessment_summary",
+          "key_issues",
+          "metrics"
+        ],
+        "additionalProperties": false
+      },
+      "type": "json_schema",
+      "description": null,
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "top_logprobs": 0,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 76049,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2772,
+    "output_tokens_details": {
+      "reasoning_tokens": 547
+    },
+    "total_tokens": 78821
+  },
+  "user": null,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1767277336,
+  "store": true
+}
