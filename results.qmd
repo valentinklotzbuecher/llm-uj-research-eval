@@ -34,6 +34,7 @@ UJ_BLUE   <- "#4e79a7"
 
 MODEL_COLORS <- c(
   "GPT-5 Pro" = "#f19e4b",
+  "GPT-5.2 Pro" = "#e57c23",
   "GPT-4o-mini" = "#74aa9c",
   "Claude Sonnet 4" = "#d4a574",
   "Gemini 2.0 Flash" = "#7986cb",
@@ -65,6 +66,7 @@ canon_metric <- function(x) dplyr::recode(
 pricing <- tribble(
   ~model,              ~input_per_m, ~output_per_m,
   "GPT-5 Pro",         15.00,        60.00,
+  "GPT-5.2 Pro",       15.00,        60.00,
   "GPT-4o-mini",       0.15,         0.60,
   "Claude Sonnet 4",   3.00,         15.00,
   "Gemini 2.0 Flash",  0.075,        0.30
@@ -154,6 +156,7 @@ n_human_evaluators <- n_distinct(metrics_human$evaluator)
 
 model_dirs <- list(
   "gpt5_pro_updated_jan2026" = "GPT-5 Pro",
+  "gpt52_pro_focal_jan2026" = "GPT-5.2 Pro",
   "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
   "claude_sonnet_4_20250514" = "Claude Sonnet 4",
   "gemini_2.0_flash" = "Gemini 2.0 Flash"

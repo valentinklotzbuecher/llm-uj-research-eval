@@ -9,7 +9,13 @@ This appendix presents detailed LLM evaluations for each paper, including:
 
 - **Numerical ratings** from all available models and human evaluators
 - **Assessment summaries** (collapsible) — the model's written evaluation
+- **Key issues** (GPT-5.2 Pro only) — numbered list of methodological and evidential concerns
 - **Reasoning traces** (collapsible) — the model's internal reasoning process (GPT-5 Pro only)
+
+The appendix is organized into two sections:
+
+1. **Focal Papers** — 14 papers evaluated with GPT-5.2 Pro using an extended prompt that produces structured key issues
+2. **Other Papers** — remaining papers with standard evaluations
 
 Click on the callout headers to expand/collapse each section.
 
@@ -32,9 +38,28 @@ library(kableExtra)
 # Model directories to scan
 MODEL_DIRS <- list(
   "gpt5_pro_updated_jan2026" = "GPT-5 Pro",
+  "gpt52_pro_focal_jan2026" = "GPT-5.2 Pro",
   "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
   "claude_sonnet_4_20250514" = "Claude Sonnet 4",
   "gemini_2.0_flash" = "Gemini 2.0 Flash"
+)
+
+# Focal papers (evaluated with GPT-5.2 Pro with key_issues)
+FOCAL_PAPERS <- c(
+  "Acemoglu et al. 2024",
+  "Adena and Hager 2024",
+  "Benabou et al. 2023",
+  "Bilal and Kaenzig 2024",
+  "Blimpo and Castaneda-Dower 2025",
+  "Bruers 2021",
+  "Clancy 2024",
+  "Dullaghan and Zhang 2022",
+  "Frech et al. 2023",
+  "Green et al. 2025",
+  "McGuire et al. 2024",
+  "Peterman et al. 2025",
+  "Weaver et al. 2025",
+  "Williams et al. 2024"
 )
 
 # Canonical metric names
@@ -102,6 +127,12 @@ parse_paper_json <- function(path, model_name) {
     # Extract assessment summary
     assessment <- parsed$assessment_summary
 
+    # Extract key_issues (GPT-5.2 Pro focal run only)
+    key_issues <- NULL
+    if (!is.null(parsed$key_issues) && length(parsed$key_issues) > 0) {
+      key_issues <- parsed$key_issues
+    }
+
     # Extract reasoning trace (GPT-5 Pro only)
     reasoning <- NA_character_
     if (!is.null(r$output)) {
@@ -115,6 +146,7 @@ parse_paper_json <- function(path, model_name) {
     list(
       metrics = metrics_df,
       assessment = assessment,
+      key_issues = key_issues,
       reasoning = reasoning
     )
   }, error = function(e) {
@@ -126,6 +158,7 @@ parse_paper_json <- function(path, model_name) {
 load_paper_llm_data <- function(paper_name) {
   all_metrics <- list()
   all_assessments <- list()
+  all_key_issues <- list()
   reasoning <- NA_character_
 
   for (dir_name in names(MODEL_DIRS)) {
@@ -160,6 +193,9 @@ load_paper_llm_data <- function(paper_name) {
       if (!is.null(result$assessment) && !is.na(result$assessment)) {
         all_assessments[[model_name]] <- result$assessment
       }
+      if (!is.null(result$key_issues) && length(result$key_issues) > 0) {
+        all_key_issues[[model_name]] <- result$key_issues
+      }
       if (!is.na(result$reasoning) && nchar(result$reasoning) > 0) {
         reasoning <- result$reasoning
       }
@@ -169,6 +205,7 @@ load_paper_llm_data <- function(paper_name) {
   list(
     metrics = if (length(all_metrics) > 0) bind_rows(all_metrics) else NULL,
     assessments = all_assessments,
+    key_issues = all_key_issues,
     reasoning = reasoning
   )
 }
@@ -253,7 +290,26 @@ metric_order <- c("Overall", "Claims", "Methods", "Adv. Knowledge",
                   "Logic & Comms", "Open Science", "Global Relevance",
                   "tier_should", "tier_will")
 
-for (paper in all_papers) {
+# Separate focal papers from others
+focal_in_corpus <- all_papers[all_papers %in% FOCAL_PAPERS]
+other_papers <- all_papers[!all_papers %in% FOCAL_PAPERS]
+
+# --- Focal Papers Section ---
+if (length(focal_in_corpus) > 0) {
+  cat("\n\n# Focal Papers (GPT-5.2 Pro with Key Issues)\n\n")
+  cat("These 14 papers were evaluated with GPT-5.2 Pro using an extended prompt that identifies key methodological and evidential issues.\n\n")
+}
+
+for (paper in c(focal_in_corpus, other_papers)) {
+
+  # Add section header when transitioning to other papers
+
+  if (paper == other_papers[1] && length(other_papers) > 0) {
+    cat("\n\n# Other Papers\n\n")
+  }
+
+  is_focal <- paper %in% FOCAL_PAPERS
+  focal_badge <- if (is_focal) " {.focal}" else ""
 
   cat("\n\n## ", paper, "\n\n", sep = "")
 
@@ -352,6 +408,22 @@ for (paper in all_papers) {
     cat("## Assessment Summary\n\n")
     cat("*No assessment summary available.*\n")
     cat(":::\n\n")
+  }
+
+  # --- Key Issues (Collapsible, GPT-5.2 Pro focal run only) ---
+
+  if (length(llm_data$key_issues) > 0) {
+    for (model_name in names(llm_data$key_issues)) {
+      issues <- llm_data$key_issues[[model_name]]
+      if (length(issues) > 0) {
+        cat(sprintf("::: {.callout-warning collapse=\"false\"}\n"))
+        cat(sprintf("## %s: Key Issues Identified\n\n", model_name))
+        for (i in seq_along(issues)) {
+          cat(sprintf("%d. %s\n", i, issues[i]))
+        }
+        cat("\n:::\n\n")
+      }
+    }
   }
 
   # --- Reasoning Trace (Collapsible, GPT-5 Pro only) ---
