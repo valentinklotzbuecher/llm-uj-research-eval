@@ -699,7 +699,8 @@ all_overall <- bind_rows(
   metrics_human |> filter(criteria == "overall") |> transmute(paper, model, rating = mid),
   llm_metrics |> filter(criteria == "overall") |> transmute(paper, model, rating = midpoint)
 ) |>
-  filter(paper %in% matched_papers)
+  filter(paper %in% matched_papers) |>
+  filter(model != "Claude Sonnet 4")
 
 if (nrow(all_overall) > 0) {
   ggplot(all_overall, aes(x = rating, fill = model)) +
