@@ -636,6 +636,178 @@ if (requireNamespace("irr", quietly = TRUE)) {
 }
 ```
 
+<!-- CLAUDE GENERATED: Human-human vs Human-LLM baseline comparison -->
+
+### Human-Human vs Human-LLM Agreement (Baseline Context)[^baseline-ai]
+
+[^baseline-ai]: This section was added with AI assistance to address feedback about contextualizing agreement metrics.
+
+To interpret human-LLM agreement, we must compare against **human-human agreement** as an upper bound. If human evaluators only agree with each other at α = 0.5, then expecting LLMs to achieve α = 0.8 with humans would be unrealistic. The table below shows both:
+
+- **α~HH~**: Krippendorff's alpha among human evaluators (treating each evaluator as a separate rater)
+- **α~HL~**: Krippendorff's alpha between human mean and each LLM model
+
+```{r}
+#| label: tbl-human-baseline
+#| tbl-cap: "Human-human vs Human-LLM agreement by criterion (Krippendorff's α)"
+#| code-fold: true
+
+if (requireNamespace("irr", quietly = TRUE)) {
+
+  library(irr)
+
+  criteria_list <- c("overall", "claims", "methods", "adv_knowledge",
+                     "logic_comms", "open_sci", "gp_relevance")
+
+  criterion_labels <- c(
+    overall = "Overall", claims = "Claims", methods = "Methods",
+    adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
+    open_sci = "Open Science", gp_relevance = "Global Relevance"
+  )
+
+  # Compute human-human alpha (each evaluator as separate rater)
+  compute_hh_alpha <- function(criterion) {
+    human_wide <- metrics_human |>
+      filter(criteria == criterion, paper %in% matched_papers) |>
+      select(paper, evaluator, mid) |>
+      distinct() |>
+      pivot_wider(names_from = paper, values_from = mid)
+
+    if (nrow(human_wide) < 2 || ncol(human_wide) < 3) return(NA_real_)
+
+    M <- as.matrix(human_wide[, -1, drop = FALSE])
+    tryCatch({
+      irr::kripp.alpha(M, method = "interval")$value
+    }, error = function(e) NA_real_)
+  }
+
+  # Compute human-LLM alpha for a specific model
+  compute_hl_alpha <- function(criterion, model_name) {
+    human_mean <- metrics_human |>
+      filter(criteria == criterion, paper %in% matched_papers) |>
+      group_by(paper) |>
+      summarise(Human = mean(mid, na.rm = TRUE), .groups = "drop")
+
+    llm_rating <- llm_metrics |>
+      filter(criteria == criterion, model == model_name, paper %in% matched_papers) |>
+      select(paper, midpoint) |>
+      rename(LLM = midpoint)
+
+    combined <- inner_join(human_mean, llm_rating, by = "paper")
+    if (nrow(combined) < 3) return(NA_real_)
+
+    M <- rbind(Human = combined$Human, LLM = combined$LLM)
+    tryCatch({
+      irr::kripp.alpha(M, method = "interval")$value
+    }, error = function(e) NA_real_)
+  }
+
+  # Get unique LLM models
+  llm_models <- unique(llm_metrics$model)
+
+  # Build comparison table
+  baseline_results <- tibble(Criterion = criterion_labels[criteria_list]) |>
+    mutate(criterion_key = criteria_list) |>
+    rowwise() |>
+    mutate(
+      `α_HH` = compute_hh_alpha(criterion_key)
+    ) |>
+    ungroup()
+
+  # Add columns for each LLM model
+  for (mod in llm_models) {
+    col_name <- paste0("α_HL (", mod, ")")
+    baseline_results <- baseline_results |>
+      rowwise() |>
+      mutate(!!col_name := compute_hl_alpha(criterion_key, mod)) |>
+      ungroup()
+  }
+
+  # Format for display
+  baseline_display <- baseline_results |>
+    select(-criterion_key) |>
+    mutate(across(where(is.numeric), ~ ifelse(is.na(.x), "—", sprintf("%.2f", .x))))
+
+  knitr::kable(baseline_display, align = c("l", rep("r", ncol(baseline_display) - 1)))
+}
+```
+
+**Interpretation**: If α~HL~ approaches or exceeds α~HH~, the LLM is performing at or above the level of agreement humans achieve with each other—a meaningful benchmark for "human-level" evaluation consistency.
+
+<!-- END CLAUDE GENERATED -->
+
+<!-- CLAUDE GENERATED: Calibration analysis -->
+
+### Uncertainty Interval Coverage (LLM Credible Interval Assessment)[^calib-ai]
+
+[^calib-ai]: This analysis addresses feedback about LLM uncertainty quantification.
+
+LLMs report 90% credible intervals alongside their point estimates. If these intervals are **well-specified**, approximately 90% of human mean ratings should fall within them. Lower coverage suggests the LLM is overconfident; higher coverage suggests unnecessary uncertainty.
+
+```{r}
+#| label: tbl-ci-coverage
+#| tbl-cap: "Share of human mean ratings within LLM 90% credible intervals"
+#| code-fold: true
+
+# Compute CI coverage: % of human means within LLM [lower_bound, upper_bound]
+compute_coverage <- function(criterion, model_name) {
+  human_mean <- metrics_human |>
+    filter(criteria == criterion, paper %in% matched_papers) |>
+    group_by(paper) |>
+    summarise(human_mid = mean(mid, na.rm = TRUE), .groups = "drop")
+
+  llm_ci <- llm_metrics |>
+    filter(criteria == criterion, model == model_name, paper %in% matched_papers) |>
+    select(paper, lower_bound, upper_bound)
+
+  combined <- inner_join(human_mean, llm_ci, by = "paper") |>
+    filter(!is.na(lower_bound), !is.na(upper_bound))
+
+  if (nrow(combined) < 3) return(NA_real_)
+
+  # Check if human mean falls within LLM CI
+  covered <- combined |>
+    mutate(in_ci = human_mid >= lower_bound & human_mid <= upper_bound) |>
+    summarise(coverage = mean(in_ci, na.rm = TRUE)) |>
+    pull(coverage)
+
+  covered
+}
+
+criteria_list <- c("overall", "claims", "methods", "adv_knowledge",
+                   "logic_comms", "open_sci", "gp_relevance")
+
+criterion_labels <- c(
+  overall = "Overall", claims = "Claims", methods = "Methods",
+  adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
+  open_sci = "Open Science", gp_relevance = "Global Relevance"
+)
+
+llm_models <- unique(llm_metrics$model)
+
+coverage_results <- tibble(Criterion = criterion_labels[criteria_list]) |>
+  mutate(criterion_key = criteria_list)
+
+for (mod in llm_models) {
+  col_name <- mod
+  coverage_results <- coverage_results |>
+    rowwise() |>
+    mutate(!!col_name := compute_coverage(criterion_key, mod)) |>
+    ungroup()
+}
+
+# Format for display
+coverage_display <- coverage_results |>
+  select(-criterion_key) |>
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.x), "—", scales::percent(.x, accuracy = 1))))
+
+knitr::kable(coverage_display, align = c("l", rep("r", ncol(coverage_display) - 1)))
+```
+
+**Interpretation**: Coverage near 90% indicates well-specified uncertainty. Coverage below 70% suggests systematic overconfidence; coverage above 95% may indicate overly wide intervals that provide little information.
+
+<!-- END CLAUDE GENERATED -->
+
 ### Agreement by Evaluation Criterion
 
 ```{r}
