@@ -501,7 +501,16 @@ Note: human means carry their own variance; correlations here are bounded by hum
 scatter_data <- llm_metrics |>
   filter(criteria == "overall") |>
   inner_join(human_avg, by = "paper") |>
-  mutate(diff = midpoint - human_mid, paper_short = str_trunc(paper, 25))
+  mutate(
+    diff = midpoint - human_mid,
+    paper_short = str_trunc(paper, 25),
+    # Ensure no NA values break ggplotly
+    human_lo = coalesce(human_lo, human_mid),
+    human_hi = coalesce(human_hi, human_mid),
+    lower_bound = coalesce(lower_bound, midpoint),
+    upper_bound = coalesce(upper_bound, midpoint)
+  ) |>
+  filter(!is.na(human_mid), !is.na(midpoint))
 
 if (nrow(scatter_data) > 0) {
 
@@ -521,11 +530,20 @@ if (nrow(scatter_data) > 0) {
     labs(x = "Human mean rating (0–100)", y = "LLM rating (0–100)", color = "Model") +
     theme_uj()
 
-  ggplotly(p, tooltip = "text") |>
-    layout(
-      legend = list(orientation = "h", y = -0.12, x = 0.5, xanchor = "center"),
-      hoverlabel = list(bgcolor = "white")
-    )
+  # Use tryCatch to handle ggplotly errors gracefully
+  tryCatch({
+    ggplotly(p, tooltip = "text") |>
+      layout(
+        legend = list(orientation = "h", y = -0.12, x = 0.5, xanchor = "center"),
+        hoverlabel = list(bgcolor = "white")
+      )
+  }, error = function(e) {
+    # Fallback to static plot if ggplotly fails
+    print(p)
+    message("Note: Interactive plot unavailable, showing static version.")
+  })
+} else {
+  cat("No matching data for scatter plot.\n")
 }
 ```
 
@@ -829,11 +847,22 @@ boot_cor <- function(data, n_boot = 1000) {
   n <- nrow(data)
   for (i in 1:n_boot) {
     idx <- sample(1:n, n, replace = TRUE)
-    cors[i] <- cor(data$human[idx], data$llm[idx], use = "complete.obs")
+    # Use tryCatch to handle edge cases (e.g., constant values in sample)
+    cors[i] <- tryCatch(
+      cor(data$human[idx], data$llm[idx], use = "complete.obs"),
+      error = function(e) NA_real_,
+      warning = function(w) NA_real_
+    )
+  }
+  # Remove NAs before computing quantiles
+  cors_valid <- cors[!is.na(cors)]
+  if (length(cors_valid) < n_boot * 0.5) {
+    # Too many failed bootstraps - return NAs
+    return(c(estimate = NA_real_, ci_lo = NA_real_, ci_hi = NA_real_))
   }
   c(estimate = cor(data$human, data$llm, use = "complete.obs"),
-    ci_lo = quantile(cors, 0.025),
-    ci_hi = quantile(cors, 0.975))
+    ci_lo = quantile(cors_valid, 0.025, na.rm = TRUE),
+    ci_hi = quantile(cors_valid, 0.975, na.rm = TRUE))
 }
 
 # Prepare data: overall rating comparison
@@ -854,11 +883,17 @@ boot_results <- map_dfr(llm_models, function(mod) {
 
   if (nrow(combined) >= 5) {
     res <- boot_cor(combined)
+    ci_lo <- res["ci_lo.2.5%"]
+    ci_hi <- res["ci_hi.97.5%"]
+    # Handle different quantile naming conventions
+    if (is.na(ci_lo)) ci_lo <- res["ci_lo"]
+    if (is.na(ci_hi)) ci_hi <- res["ci_hi"]
+
     tibble(
       Model = mod,
       n = nrow(combined),
       r = res["estimate"],
-      `95% CI` = sprintf("[%.2f, %.2f]", res["ci_lo.2.5%"], res["ci_hi.97.5%"])
+      `95% CI` = if (is.na(ci_lo) || is.na(ci_hi)) "—" else sprintf("[%.2f, %.2f]", ci_lo, ci_hi)
     )
   } else {
     tibble(Model = mod, n = nrow(combined), r = NA_real_, `95% CI` = "—")
