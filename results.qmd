@@ -878,6 +878,117 @@ if (nrow(boot_results) > 0) {
 
 <!-- END CLAUDE GENERATED -->
 
+<!-- CLAUDE GENERATED: Information-theoretic measures -->
+
+### Information-Theoretic Perspective: Mutual Information[^info-ai]
+
+[^info-ai]: Information-theoretic interpretation added with AI assistance.
+
+Beyond correlation, we can ask: **how much information do LLM ratings convey about human ratings?** We use *mutual information* (MI), a fundamental concept from information theory [@cover2006elements; @shannon1948mathematical].
+
+**What is mutual information?** MI quantifies the *reduction in uncertainty* about one variable when you learn the value of another. Formally, MI(X;Y) = H(X) - H(X|Y), where H is entropy (average surprise/uncertainty). In plain terms:
+
+- Before seeing the LLM rating, you have some uncertainty about what the human rating will be
+- After seeing the LLM rating, how much does your uncertainty decrease?
+- MI measures this decrease, in *bits* (the same unit used in data compression and communication)
+
+**Why use MI instead of (or alongside) correlation?**
+
+| Property | Correlation (r) | Mutual Information |
+|----------|----------------|-------------------|
+| Captures linear relationships | Yes | Yes |
+| Captures nonlinear relationships | No | Yes |
+| Detects threshold effects | No | Yes |
+| Scale | -1 to +1 | 0 to ∞ bits |
+| Sensitive to outliers | Yes | Less so |
+
+A practical example: suppose the LLM predicts human ratings perfectly when the paper is methodology-focused, but randomly when it's theory-focused. Correlation might show r = 0.5 (moderate), but MI would reveal this is *inconsistent* performance rather than *uniformly moderate* performance. This distinction matters for deciding when to trust LLM evaluations.
+
+**How to interpret MI values (for 5-bin discretization):**
+
+- **0 bits**: Independence—LLM ratings tell you nothing about human ratings
+- **~0.5 bits**: Weak association—knowing LLM rating slightly reduces uncertainty
+- **~1.0 bits**: Moderate association—knowing LLM rating roughly halves your uncertainty
+- **~1.5 bits**: Strong association—substantial predictive value
+- **2.32 bits** (maximum): Perfect prediction—the LLM quintile perfectly determines the human quintile
+
+We discretize ratings into quintiles (5 bins) because MI is formally defined for discrete distributions. This preserves ordinal structure while avoiding overfitting to noise in continuous ratings.
+
+```{r}
+#| label: tbl-mutual-info
+#| tbl-cap: "Mutual information between human and LLM overall ratings"
+#| code-fold: true
+
+# Discretize into quintiles
+discretize <- function(x, n_bins = 5) {
+  breaks <- quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE)
+  breaks <- unique(breaks)
+  if (length(breaks) < 2) return(rep(1, length(x)))
+  cut(x, breaks = breaks, labels = FALSE, include.lowest = TRUE)
+}
+
+# Compute mutual information: MI(X;Y) = sum p(x,y) log2(p(x,y) / p(x)p(y))
+compute_mi <- function(x, y) {
+  if (length(x) < 5 || length(y) < 5) return(NA_real_)
+
+  x_disc <- discretize(x)
+  y_disc <- discretize(y)
+
+  valid <- !is.na(x_disc) & !is.na(y_disc)
+  x_disc <- x_disc[valid]
+  y_disc <- y_disc[valid]
+
+  if (length(x_disc) < 5) return(NA_real_)
+
+  # Joint distribution p(x,y)
+  joint <- table(x_disc, y_disc) / length(x_disc)
+  # Marginal distributions p(x), p(y)
+  px <- rowSums(joint)
+  py <- colSums(joint)
+
+  # MI = sum over all (x,y) of p(x,y) * log2(p(x,y) / (p(x)*p(y)))
+  mi <- 0
+  for (i in seq_along(px)) {
+    for (j in seq_along(py)) {
+      if (joint[i, j] > 0 && px[i] > 0 && py[j] > 0) {
+        mi <- mi + joint[i, j] * log2(joint[i, j] / (px[i] * py[j]))
+      }
+    }
+  }
+  mi
+}
+
+llm_models <- unique(llm_metrics$model)
+
+mi_results <- map_dfr(llm_models, function(mod) {
+  llm_overall <- llm_metrics |>
+    filter(criteria == "overall", model == mod, paper %in% matched_papers) |>
+    group_by(paper) |>
+    summarise(llm = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+  combined <- inner_join(human_overall, llm_overall, by = "paper")
+  mi_val <- compute_mi(combined$human, combined$llm)
+
+  max_mi <- log2(5)  # ≈ 2.32 bits for 5 bins
+  norm_mi <- if (!is.na(mi_val)) mi_val / max_mi else NA_real_
+
+  tibble(
+    Model = mod,
+    n = nrow(combined),
+    `MI (bits)` = ifelse(is.na(mi_val), "—", sprintf("%.2f", mi_val)),
+    `Normalized` = ifelse(is.na(norm_mi), "—", sprintf("%.0f%%", norm_mi * 100))
+  )
+})
+
+if (nrow(mi_results) > 0) {
+  knitr::kable(mi_results, align = c("l", "r", "r", "r"))
+}
+```
+
+**Interpretation**: Normalized MI above 50% indicates substantial predictive value. If MI is low despite moderate correlation, investigate which paper characteristics the LLM struggles with—this points toward targeted improvements or hybrid human-AI workflows where humans handle cases the LLM finds difficult.
+
+<!-- END CLAUDE GENERATED -->
+
 ### Agreement by Evaluation Criterion
 
 ```{r}
@@ -1236,6 +1347,17 @@ if (length(ord_p) > 0 && nrow(Ddiff) > 0) {
 }
 ```
 
+This visualization helps identify: (1) papers with systematic disagreement across all criteria, (2) criteria where humans and LLMs consistently diverge, and (3) potential patterns related to paper characteristics.
+
+<!-- END CLAUDE GENERATED -->
+
+<!-- CLAUDE GENERATED: Top disagreement cases -->
+
+## Papers with Largest Human-LLM Disagreement[^disagree-ai]
+
+[^disagree-ai]: This table was added with AI assistance to facilitate qualitative investigation of outliers.
+
+Understanding *why* specific papers generate disagreement can inform both LLM limitations and potential human biases. The table below shows papers where humans and LLMs diverged most.
 
 ```{r}
 #| label: tbl-top-disagreement
