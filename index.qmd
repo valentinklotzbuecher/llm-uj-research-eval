@@ -37,7 +37,7 @@ Our initial dataset will include the `r n_papers` research papers that have exis
 
 This complements other AI-evaluation approaches and benchmarks (outlined below), offering in-depth comparisons and oversight in a high-nuance and high-value context: global-priorities-relevant economics and social-science research, and leveraging The Unjournal's ongoing pipeline as a continual experimental and feedback environment.
 
-<!-- CLAUDE EDIT 2: Added structured research goals section from slides -->
+<!-- CLAUDE EDIT 2: Added structured research goals section from slides ... DR Jan 3 checked OK, may need better integration-->
 
 ## Research Goals and Questions (overview)
 
@@ -52,7 +52,9 @@ This complements other AI-evaluation approaches and benchmarks (outlined below),
 3.  **The nature of frontier AI 'preferences & tastes' over research**
     -   Which types of papers and approaches do default models tend to 'like' more/less relative to humans when given the same guidelines?
     -   Do we see signs of characteristic preferences that help us understand how AIs are likely to prioritize, conduct, and evaluate research?
-4.  **Hybrid human-AI performance** (future trials) <!-- END CLAUDE EDIT 2 -->
+4.  **Hybrid human-AI performance** (future trials)
+
+<!-- END CLAUDE EDIT 2 -->
 
 ## Our work in context[^index-4]
 
@@ -100,11 +102,11 @@ There have been several other empirical benchmarking projects, including work co
 
 <!-- CLAUDE EDIT 3: Moved footnote to more visible location and renamed it -->
 
-Our approach differs from prior work by (i) focusing on structured, percentile-based quantitative ratings with credible intervals that map to decision-relevant dimensions used by The Unjournal; (ii) comparing those ratings to published human evaluations rather than using LLM-as-judge; and (iii) curating contamination-aware inputs (paper text extraction with reference-section removal and token caps), with a roadmap to add multi-modal checks when we score figure- or table-dependent criteria. <!-- END CLAUDE EDIT 3 -->
+How our work differs from prior work:^[Claude gets at it only imperfectly --  adjust this or cut it -- we cover this again below: "Our approach differs from prior work by (i) focusing on structured, percentile-based quantitative ratings with credible intervals that map to decision-relevant dimensions used by The Unjournal; (ii) comparing those ratings to published human evaluations rather than using LLM-as-judge; and (iii) curating contamination-aware inputs (paper text extraction with reference-section removal and token caps), with a roadmap to add multi-modal checks when we score figure- or table-dependent criteria".]
 
 <!-- **The Black Spatula Project.** A community effort to spot and document critical errors in scientific papers (see <https://the-black-spatula-project.github.io/>).  -->
 
-<!-- CLAUDE EDIT 4: Expanded "AI research taste" stub section with content linking to broader AI-for-science claims -->
+<!-- CLAUDE EDIT 4: Expanded "AI research taste" stub section with content linking to broader AI-for-science claims. DR: This seems correct and reasonable, but could be made more specific with more links to related work and applications -->
 
 ### AI research taste and potential to guide research
 
@@ -120,7 +122,7 @@ This connects to broader debates about the returns to science in the presence of
 
 ### Our present focus, The Unjournal opportunity
 
-<!-- CLAUDE EDIT 5: Added clearer "Our unique advantages" framing from slides -->
+<!-- CLAUDE EDIT 5: Added clearer "Our unique advantages" framing from slides -- DR: This seems accurate and relevant in general-->
 
 Our project distinguishes itself through several unique advantages:
 
@@ -168,9 +170,61 @@ This project is ongoing. Our planned next steps include:
 
 10. **Implications for The Unjournal/evaluation processes**: What can we learn to improve evaluation systems? <!-- END CLAUDE EDIT 6 -->
 
-## Project planning, funding, status
+ ## Project planning, funding, status
 
-## 
+<!-- CLAUDE GENERATED: Project/funding section from proposal document ... DR: Lightly human-edited -->
+
+This benchmarking project is a collaboration with [The Unjournal](https://unjournal.org), a nonprofit that has published 55+ detailed evaluation packages and received >$600k in grants from major funders (including the Survival and Flourishing Fund and EA Funds) to build open, quantitative evaluation infrastructure and processes, focusing on global-priorities-relevant research in economics, policy, and social science.[^project-ai]
+
+[^project-ai]: This section was drafted with AI assistance and reviewed by the authors.
+
+### Team
+
+**Core team:**
+
+- **David Reinstein (PI)**: Economist, founder/director of The Unjournal. 25+ years research experience (UC Berkeley, Essex, Exeter, Rethink Priorities). Track record of building evaluation infrastructure and working with impact-focused organizations.
+- **Valentin Klotzbücher (Co-lead)**: Economist and statistician (University of Basel). Applied econometrics, causal inference, and reproducible pipelines (R/Quarto). Co-leads current LLM–Unjournal benchmarking work.
+- **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs." Active contributor to Black Spatula Project.
+- **Lorenzo Pacchiardi (Advisor)**: Research Associate, Leverhulme Centre for the Future of Intelligence, Cambridge. Leads Open Philanthropy–funded project on benchmarking LLM data science tasks. Unjournal advisory board.
+
+<!-- DR: cut for now **Casey Wimsatt (Engineering)**: Developer/entrepreneur, Black Spatula Project. Leads automated error-detection tooling. -->
+
+We plan to leverage additional support from Unjournal management team, operations staff, and evaluator pool (200+ credentialed researchers).
+
+### Funding and budget
+
+We are actively seeking funding to expand this work beyond pilot scale to a rigorous scientific benchmark. Example budget scenarios (need refinement and detail):
+
+| Level | Amount | Scope |
+|-------|--------|-------|
+| Minimum | ~$120k | Analysis of existing evaluations, limited experiments |
+| Target | ~$320k | Full 100-paper benchmark, multiple models, dashboard, publication |
+| Maximum | ~$450k | Expanded experiments, more human evaluations, richer comparisons |
+
+Key cost categories include: core team time (PI + co-lead), engineering & development, human evaluation payments (the "ground truth"), and compute/API costs. No model training or large-compute capabilities work—all spending focuses on evaluation, tooling, and human experimentation.
+
+### Deliverables
+
+1. **Open benchmark dataset**: Papers + human evaluations + LLM outputs + adjudication scores
+2. **Public dashboard**: Updatable website where new models can be compared
+3. **Open-source codebase**: Pipelines for running AI evaluations and computing metrics
+4. **Failure-mode taxonomy**: Documented patterns of AI reasoning failures
+5. **"Taste/alignment" analysis**: Quantitative comparison of human vs. AI research preferences
+6. **Academic paper**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals
+7. **Practical guidance**: Playbook for when AI peer review helps and where it fails
+
+### Project timeline (very approcimate)
+
+| Phase | Months | Activities |
+|-------|--------|------------|
+| Setup | 1–3 | Pipeline integration, evaluation design, baseline LLM runs |
+| Core benchmarking | 4–9 | Full LLM evaluations, human adjudication, new human evaluations |
+| Analysis | 10–15 | Agreement, bias, and failure-mode analyses |
+| Dissemination | 16–18 | Publications, dashboard, outreach, final dataset release |
+
+For more details, see [The Unjournal](https://unjournal.org) and the [project repository](https://github.com/daaronr/llm-uj-research-eval).
+
+<!-- END CLAUDE GENERATED -->
 
 ```{=html}
 <!-- Methodological implications we (will) adopt from the literature:
