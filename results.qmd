@@ -808,6 +808,76 @@ knitr::kable(coverage_display, align = c("l", rep("r", ncol(coverage_display) - 
 
 <!-- END CLAUDE GENERATED -->
 
+<!-- CLAUDE GENERATED: Formal statistical tests -->
+
+### Statistical Significance of Agreement Measures[^stats-ai]
+
+[^stats-ai]: Bootstrap inference was added with AI assistance to quantify uncertainty in agreement metrics.
+
+To assess whether observed correlations are statistically meaningful and to compare models, we compute **bootstrap 95% confidence intervals** for Pearson correlations. This nonparametric approach makes no distributional assumptions and accounts for the small sample sizes typical in evaluation studies.
+
+```{r}
+#| label: tbl-bootstrap-ci
+#| tbl-cap: "Bootstrap 95% CIs for human-LLM correlation (overall ratings)"
+#| code-fold: true
+
+set.seed(42)  # reproducibility
+
+# Bootstrap function for correlation
+boot_cor <- function(data, n_boot = 1000) {
+  cors <- numeric(n_boot)
+  n <- nrow(data)
+  for (i in 1:n_boot) {
+    idx <- sample(1:n, n, replace = TRUE)
+    cors[i] <- cor(data$human[idx], data$llm[idx], use = "complete.obs")
+  }
+  c(estimate = cor(data$human, data$llm, use = "complete.obs"),
+    ci_lo = quantile(cors, 0.025),
+    ci_hi = quantile(cors, 0.975))
+}
+
+# Prepare data: overall rating comparison
+human_overall <- metrics_human |>
+  filter(criteria == "overall", paper %in% matched_papers) |>
+  group_by(paper) |>
+  summarise(human = mean(mid, na.rm = TRUE), .groups = "drop")
+
+llm_models <- unique(llm_metrics$model)
+
+boot_results <- map_dfr(llm_models, function(mod) {
+  llm_overall <- llm_metrics |>
+    filter(criteria == "overall", model == mod, paper %in% matched_papers) |>
+    group_by(paper) |>
+    summarise(llm = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+  combined <- inner_join(human_overall, llm_overall, by = "paper")
+
+  if (nrow(combined) >= 5) {
+    res <- boot_cor(combined)
+    tibble(
+      Model = mod,
+      n = nrow(combined),
+      r = res["estimate"],
+      `95% CI` = sprintf("[%.2f, %.2f]", res["ci_lo.2.5%"], res["ci_hi.97.5%"])
+    )
+  } else {
+    tibble(Model = mod, n = nrow(combined), r = NA_real_, `95% CI` = "—")
+  }
+})
+
+if (nrow(boot_results) > 0) {
+  boot_results <- boot_results |>
+    mutate(r = ifelse(is.na(r), "—", sprintf("%.2f", r))) |>
+    arrange(desc(as.numeric(ifelse(r == "—", "-1", r))))
+
+  knitr::kable(boot_results, align = c("l", "r", "r", "r"))
+}
+```
+
+**Interpretation**: Non-overlapping confidence intervals suggest statistically distinguishable performance. Wide intervals reflect uncertainty due to limited sample size—a common constraint in evaluation research where obtaining more human judgments is costly.
+
+<!-- END CLAUDE GENERATED -->
+
 ### Agreement by Evaluation Criterion
 
 ```{r}
@@ -922,9 +992,320 @@ if (nrow(criteria_means) > 0) {
 }
 ```
 
+<!-- CLAUDE GENERATED: Tier correlation dumbbell plot -->
+
+## Evaluation Priorities: What Predicts Journal Tier Judgments?[^tier-ai]
+
+[^tier-ai]: This analysis was added with AI assistance to reveal differences in what humans vs. LLMs emphasize when predicting journal outcomes.
+
+How do evaluators translate quality assessments into journal tier predictions? By correlating each criterion with "where should this publish?" judgments, we can see which factors each evaluator type weighs most heavily. Divergence here reveals systematic differences in evaluation priorities—what we might call "taste."
+
+```{r}
+#| label: fig-tier-correlations
+#| fig-cap: "Correlation of each criterion with journal tier predictions"
+#| fig-width: 12
+#| fig-height: 7
+#| code-fold: true
+
+# Load human tier data if available
+human_tiers_file <- "data/all_jtiers.csv"
+
+if (file.exists(human_tiers_file)) {
+
+  human_tiers_raw <- read_csv(human_tiers_file, show_col_types = FALSE) |>
+    clean_names()
+
+  # Check what columns are available and find the tier prediction column
+  # Typically 'merits_journal' or similar
+  tier_col <- intersect(names(human_tiers_raw), c("merits_journal", "journal_tier", "tier_should", "mid"))
+
+  if (length(tier_col) > 0) {
+
+    # Prepare human tier data
+    human_tier_data <- human_tiers_raw |>
+      filter(!is.na(.data[[tier_col[1]]])) |>
+      rename(tier_should = !!tier_col[1])
+
+    # Get paper identifier column
+    paper_col <- intersect(names(human_tier_data), c("label_paper", "paper", "research"))
+    if (length(paper_col) > 0) {
+      human_tier_data <- human_tier_data |> rename(paper = !!paper_col[1])
+    }
+
+    metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge",
+                        "logic_comms", "open_sci", "gp_relevance")
+
+    # === Human Correlations ===
+    human_wide <- metrics_human |>
+      filter(criteria %in% metrics_to_cor, paper %in% matched_papers) |>
+      group_by(paper, criteria) |>
+      summarise(mid = mean(mid, na.rm = TRUE), .groups = "drop") |>
+      pivot_wider(names_from = criteria, values_from = mid)
+
+    # Join with human tier predictions
+    human_tier_match <- human_tier_data |>
+      group_by(paper) |>
+      summarise(tier_should = mean(tier_should, na.rm = TRUE), .groups = "drop")
+
+    human_cors_data <- human_wide |>
+      inner_join(human_tier_match, by = "paper")
+
+    if (nrow(human_cors_data) >= 5) {
+      cors_human <- tibble(
+        metric = metrics_to_cor,
+        correlation = sapply(metrics_to_cor, function(m) {
+          if (m %in% names(human_cors_data) && !all(is.na(human_cors_data[[m]]))) {
+            cor(human_cors_data[[m]], human_cors_data$tier_should, use = "pairwise.complete.obs")
+          } else NA_real_
+        }),
+        source = "Human"
+      )
+    } else {
+      cors_human <- tibble(metric = character(), correlation = numeric(), source = character())
+    }
+
+    # === LLM Correlations ===
+    llm_wide <- llm_metrics |>
+      filter(criteria %in% metrics_to_cor, model == primary_model, paper %in% matched_papers) |>
+      group_by(paper, criteria) |>
+      summarise(mid = mean(midpoint, na.rm = TRUE), .groups = "drop") |>
+      pivot_wider(names_from = criteria, values_from = mid)
+
+    llm_tier_match <- llm_tiers |>
+      filter(tier_kind == "tier_should", model == primary_model) |>
+      group_by(paper) |>
+      summarise(tier_should = mean(score, na.rm = TRUE), .groups = "drop")
+
+    llm_cors_data <- llm_wide |>
+      inner_join(llm_tier_match, by = "paper")
+
+    if (nrow(llm_cors_data) >= 5) {
+      cors_llm <- tibble(
+        metric = metrics_to_cor,
+        correlation = sapply(metrics_to_cor, function(m) {
+          if (m %in% names(llm_cors_data) && !all(is.na(llm_cors_data[[m]]))) {
+            cor(llm_cors_data[[m]], llm_cors_data$tier_should, use = "pairwise.complete.obs")
+          } else NA_real_
+        }),
+        source = "LLM"
+      )
+    } else {
+      cors_llm <- tibble(metric = character(), correlation = numeric(), source = character())
+    }
+
+    # === Combine and plot ===
+    cors_combined <- bind_rows(cors_human, cors_llm) |>
+      filter(!is.na(correlation)) |>
+      mutate(
+        metric_label = case_when(
+          metric == "overall" ~ "Overall",
+          metric == "claims" ~ "Claims & Evidence",
+          metric == "methods" ~ "Methods",
+          metric == "adv_knowledge" ~ "Advancing Knowledge",
+          metric == "logic_comms" ~ "Logic & Communication",
+          metric == "open_sci" ~ "Open Science",
+          metric == "gp_relevance" ~ "Global Relevance",
+          TRUE ~ metric
+        )
+      )
+
+    if (nrow(cors_combined) > 0) {
+      # Order by average correlation
+      metric_order_cors <- cors_combined |>
+        group_by(metric_label) |>
+        summarise(avg_cor = mean(correlation, na.rm = TRUE), .groups = "drop") |>
+        arrange(desc(avg_cor)) |>
+        pull(metric_label)
+
+      cors_wide <- cors_combined |>
+        mutate(metric_label = factor(metric_label, levels = metric_order_cors)) |>
+        pivot_wider(names_from = source, values_from = correlation)
+
+      # Dumbbell plot
+      ggplot(cors_wide, aes(y = metric_label)) +
+        geom_segment(aes(x = Human, xend = LLM, yend = metric_label),
+                     color = "gray50", linewidth = 1.2, alpha = 0.4) +
+        geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) +
+        geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) +
+        geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
+        geom_text(aes(x = Human, label = sprintf("%.2f", Human)),
+                  hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") +
+        geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)),
+                  hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") +
+        scale_x_continuous(
+          limits = c(min(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) - 0.15,
+                     max(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) + 0.15)
+        ) +
+        labs(
+          x = "Correlation with 'Where should this publish?'",
+          y = NULL,
+          subtitle = paste0("Green = Human, Orange = ", primary_model)
+        ) +
+        theme_uj() +
+        theme(
+          panel.grid.major.x = element_line(color = "grey90"),
+          panel.grid.major.y = element_blank(),
+          axis.text.y = element_text(size = 11)
+        )
+    } else {
+      cat("Insufficient correlation data for dumbbell plot.\n")
+    }
+  } else {
+    cat("Tier prediction column not found in human data.\n")
+  }
+} else {
+  cat("Human tier data file not found.\n")
+}
+```
+
+**Interpretation**: Large divergences indicate different evaluation philosophies. For example, if humans weight "open science" heavily but LLMs don't, this suggests the LLM may undervalue reproducibility when forming overall judgments.
+
+<!-- END CLAUDE GENERATED -->
+
 ---
 
-**Future extensions:** add calibration diagnostics (share of human means within model 90% CIs by criterion), interval-width profiles by model/criterion, and cost–agreement frontiers (correlation vs. cost per paper).
+<!-- CLAUDE GENERATED: Human-LLM gap heatmap -->
+
+## Systematic Rating Differences by Paper and Criterion[^gap-ai]
+
+[^gap-ai]: This visualization was added with AI assistance to identify patterns in human-LLM disagreement.
+
+The heatmap below shows **Human − LLM** differences for each paper and criterion. Green indicates humans rated higher than the LLM; orange indicates the LLM rated higher. Papers are ordered by their overall rating difference.
+
+```{r}
+#| label: fig-gap-heatmap
+#| fig-cap: "Human − LLM rating differences by paper and criterion"
+#| fig-width: 14
+#| fig-height: 8
+#| code-fold: true
+
+metric_order <- c("overall", "claims", "methods", "adv_knowledge",
+                  "logic_comms", "open_sci", "gp_relevance")
+metric_lab <- c(
+  overall = "Overall",
+  claims = "Claims & Evidence",
+  methods = "Methods",
+  adv_knowledge = "Adv. Knowledge",
+  logic_comms = "Logic & Comms",
+  open_sci = "Open Science",
+  gp_relevance = "Global Relevance"
+)
+
+# Use the first/primary LLM model for comparison (GPT-5 Pro if available)
+primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
+
+H_mean <- metrics_human |>
+  filter(criteria %in% metric_order, paper %in% matched_papers) |>
+  group_by(paper, criteria) |>
+  summarise(h = mean(mid, na.rm = TRUE), .groups = "drop")
+
+L_mean <- llm_metrics |>
+  filter(criteria %in% metric_order, model == primary_model, paper %in% matched_papers) |>
+  group_by(paper, criteria) |>
+  summarise(l = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+Ddiff <- inner_join(H_mean, L_mean, by = c("paper", "criteria")) |>
+  mutate(diff = h - l) |>
+  mutate(crit = factor(criteria, levels = metric_order, labels = metric_lab[metric_order]))
+
+# Order papers by overall difference (Human−LLM)
+ord_p <- Ddiff |>
+  filter(criteria == "overall") |>
+  arrange(desc(diff)) |>
+  pull(paper)
+
+if (length(ord_p) > 0 && nrow(Ddiff) > 0) {
+  ggplot(Ddiff, aes(x = factor(paper, levels = ord_p), y = crit, fill = diff)) +
+    geom_tile(color = "white", linewidth = 0.25) +
+    scale_fill_gradient2(
+      low = UJ_ORANGE, mid = "grey95", high = UJ_GREEN, midpoint = 0,
+      name = "Human − LLM",
+      limits = c(-30, 30),
+      oob = scales::squish
+    ) +
+    labs(x = NULL, y = NULL,
+         subtitle = paste0("Primary model: ", primary_model)) +
+    theme_uj() +
+    theme(
+      axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 7),
+      axis.text.y = element_text(size = 11),
+      panel.grid = element_blank()
+    )
+} else {
+  cat("Insufficient data for gap heatmap.\n")
+}
+```
+
+
+```{r}
+#| label: tbl-top-disagreement
+#| tbl-cap: "Papers with largest human vs. LLM rating differences"
+#| code-fold: true
+
+# Compute mean overall ratings and differences
+H_overall <- metrics_human |>
+  filter(criteria == "overall", paper %in% matched_papers) |>
+  group_by(paper) |>
+  summarise(human_rating = mean(mid, na.rm = TRUE), .groups = "drop")
+
+L_overall <- llm_metrics |>
+  filter(criteria == "overall", model == primary_model, paper %in% matched_papers) |>
+  group_by(paper) |>
+  summarise(llm_rating = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+rating_diffs <- H_overall |>
+  inner_join(L_overall, by = "paper") |>
+  mutate(diff = human_rating - llm_rating)
+
+# Helper: truncate long titles
+truncate_title <- function(title, max_len = 50) {
+  if (nchar(title) <= max_len) return(title)
+  paste0(substr(title, 1, max_len - 3), "...")
+}
+
+# Top 5 where humans rated higher
+top_human_pref <- rating_diffs |>
+  filter(diff > 0) |>
+  arrange(desc(diff)) |>
+  slice_head(n = 5) |>
+  mutate(
+    Paper = sapply(paper, truncate_title),
+    `Human Rating` = round(human_rating, 0),
+    `LLM Rating` = round(llm_rating, 0),
+    `Difference` = sprintf("%+.0f", diff),
+    Direction = "Human > LLM"
+  ) |>
+  select(Paper, `Human Rating`, `LLM Rating`, Difference, Direction)
+
+# Top 5 where LLM rated higher
+top_llm_pref <- rating_diffs |>
+  filter(diff < 0) |>
+  arrange(diff) |>
+  slice_head(n = 5) |>
+  mutate(
+    Paper = sapply(paper, truncate_title),
+    `Human Rating` = round(human_rating, 0),
+    `LLM Rating` = round(llm_rating, 0),
+    `Difference` = sprintf("%+.0f", diff),
+    Direction = "LLM > Human"
+  ) |>
+  select(Paper, `Human Rating`, `LLM Rating`, Difference, Direction)
+
+# Combine
+top_disagree <- bind_rows(top_human_pref, top_llm_pref)
+
+if (nrow(top_disagree) > 0) {
+  knitr::kable(top_disagree, align = c("l", "r", "r", "r", "l"))
+} else {
+  cat("Insufficient data for disagreement analysis.\n")
+}
+```
+
+These outliers merit qualitative investigation: examining the paper characteristics, human evaluator comments, and LLM rationales may reveal systematic patterns in what drives disagreement.
+
+<!-- END CLAUDE GENERATED -->
+
+---
 
 *Note: GPT-5 Pro evaluations include extended reasoning traces. See the [Appendix](appendix_llm_traces.qmd) for full assessment summaries and reasoning traces per paper.*
 
