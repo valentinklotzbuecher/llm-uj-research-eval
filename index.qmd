@@ -19,23 +19,27 @@ Pages, metrics, and comparisons are under active development. Expect rough edges
 
 Is AI good at peer-reviewing? Does it offer useful and valid feedback? Can it predict how human experts will rate research across a range of categories? How can it help academics do this "thankless" task better? Is it particularly good at spotting errors? Are there specific categories, e.g. spotting math errors or judging real-world relevance, where it does surprisingly well or poorly? How does its "research taste" compare to humans?
 
-If AI research-evaluation works it could free up a lot of scientific resources -- perhaps \$1.5 billion/year in the US alone [@aczel2021billion] -- and offer more continual and detailed review, helping improve research and address the "[peer-review crisis](https://www.nature.com/articles/d41586-025-02457-2)". Numerous accounts report a system under strain, with widespread difficulty finding human peer reviewers with appropriate expertise willing to put in careful effort. A potential influx of AI-generated or AI-human hybrid research could exacerbate this problem.[^index-1] AI research evaluation could also help characterize methodological strengths/weaknesses across papers, aiding training and research direction-setting.
+If AI research-evaluation works it could free up a lot of scientific resources -- perhaps \$1.5 billion/year in the US alone [@aczel2021billion] -- and offer more continual and detailed review, helping improve research and address the "[peer-review crisis](https://www.nature.com/articles/d41586-025-02457-2)". Numerous accounts report a system under strain, with widespread difficulty finding human peer reviewers with appropriate expertise willing to put in careful effort. A nascent influx of AI-generated or AI-human hybrid research seems likely to exacerbate this problem.[^index-1] AI research evaluation could also help characterize methodological strengths and weaknesses across papers, aiding research training and research direction-setting.
 
-[^index-1]: Proposed solutions include a credit or payment-based model. \[add references here\].
+[^index-1]: E.g., see [anectodal reports](https://www.linkedin.com/feed/update/urn:li:activity:7411759911480524800/). Proposed solutions include a credit or payment-based model. \[add references here\].
 
-Furthermore, "[the leaders of the biggest A.I. labs](https://www.anytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis" – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Understanding how AI engages with research evaluations may provide a window into its values, abilities, and limitations.[^index-2]
+Furthermore, "[the leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis" – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Understanding how AI engages with research evaluations may provide a window into its values, abilities, and limitations.[^index-2]
 
 [^index-2]: @eger2025: "When it comes to using AI tools for science, ethics is of overarching importance. This is because the AI tools exhibit various limitations, e.g., they (i) may hallucinate and fabricate content, (ii) exhibit bias, (iii) may have limited reasoning abilities and (iv) sometimes lack suitable evaluation, ... among many other concerns such as risks of fake science, plagiarism, and lack of human authority. Indeed, the European Union has recently released guidelines on the responsible use of AI for science. In it, it points out that, while "\[r\]esearch is one of the sectors that could be most significantly disrupted by generative AI" where "AI has great potential for accelerating scientific discovery and improving the effectiveness and pace of research and verification processes"
 
 In this project, we pilot the use of The Unjournal's evaluations as a benchmark to test the capabilities of current large language models (LLMs) and bespoke agent-based tools, considering how the research evaluations these generate compare to expert human reviews. The Unjournal systematically prioritizes 'impactful' research and pays for high-quality human evaluations, structured quantified ratings, claim identification and assessment, and predictions. They further labeled and classified "major consensus critiques" from a subset of these evaluations.[^index-3]
 
-[^index-3]: An individual rater (David Reinstein) curated a pilot version of this [here](https://coda.io/d/Unjournal-Public-Pages_ddIEzDONWdb/Piloting-a-benchmark-rubric-for-LLM-tools-Public_su7jCZTB#_luqSuSgh), focusing on critiques identified by multiple evaluators and/or confirmed by the author or evaluation manager. Future work will systematically employ multiple enumerators with a pre-defined rubric.
+[^index-3]: An individual rater (David Reinstein, Co-director of The Unjournal) curated a pilot version of this [here](https://coda.io/d/Unjournal-Public-Pages_ddIEzDONWdb/Piloting-a-benchmark-rubric-for-LLM-tools-Public_su7jCZTB#_luqSuSgh), focusing on critiques identified by multiple evaluators and/or confirmed by the author or evaluation manager. We are currently (Jan 5, 2026) comparing this ennumeration to the issues identified by LLM's (see "Results: Critiques" chapter). Future work will systematically employ multiple enumerators with a pre-defined rubric.
 
-We next prompt LLMs and agent-based tools (Dec 2025: e.g., OpenAI's GPT-5.2 Pro model) to review the same set of quantitative social science research evaluated by The Unjournal's human evaluators, with the same set of criteria and guidelines. Each paper is assessed on specific dimensions – for example, the strength of its evidence, rigor of methods, clarity of communication, openness/reproducibility, relevance to global priorities, and overall quality. The LLM will provide quantitative scores (with uncertainty intervals) on these criteria and produce a written evaluation.
+We next prompt several LLMs and agent-based tools[^index-4] to review the same set of quantitative social science research evaluated by The Unjournal's human evaluators, with the same set of criteria and guidelines. Each paper is assessed on specific dimensions – for example, the strength of its evidence, rigor of methods, clarity of communication, openness/reproducibility, relevance to global priorities, and overall quality. The LLM will provide quantitative scores (with uncertainty intervals) on these criteria and produce a written evaluation.
 
-Our initial dataset will include the `r n_papers` research papers that have existing Unjournal human evaluations. For each paper, the AI will generate: (1) numeric ratings on the defined criteria, (2) identification of the paper's key claims, and (3) a detailed review enumerating and discussing the paper's contributions and weaknesses. We then compare the AI-generated evaluations to the published human evaluations, considering both quantitative metrics (e.g., inter-rater reliability), identification of consensus critiques, and qualitative comparison. The next phase will train and tune models, and measure their performance on research currently in The Unjournal's pipeline, i.e., where no human evaluation has yet been made public, to enable out-of-time validation, confirmatory hypothesis tests, and less risk of model contamination.
+[^index-4]: Dec 2025 focus: OpenAI's GPT-5.2 Pro model
 
-This complements other AI-evaluation approaches and benchmarks (outlined below), offering in-depth comparisons and oversight in a high-nuance and high-value context: global-priorities-relevant economics and social-science research, and leveraging The Unjournal's ongoing pipeline as a continual experimental and feedback environment.
+Our initial dataset will include the `r n_papers` research papers that have existing Unjournal human evaluations.[^index-5] For each paper, the AI will generate: (1) numeric ratings on the defined criteria, (2) identification of the paper's key claims, and (3) a detailed review enumerating and discussing the paper's contributions and weaknesses. We then compare the AI-generated evaluations to the published human evaluations, considering both quantitative metrics (e.g., inter-rater reliability), identification of consensus critiques, and qualitative comparison. The next phase will train and tune models, and measure their performance on research currently in The Unjournal's pipeline, i.e., where no human evaluation has yet been made public, to enable out-of-time validation, confirmatory hypothesis tests, and less risk of model contamination.
+
+[^index-5]: This is slightly off as of January 2026. We only have 56 papers with official Unjournal evaluations. I suspect this data includes some papers that are either duplicated or in our pipeline for given an independent non-official evaluation
+
+This complements other recent work on AI-evaluation approaches and benchmarks, outlined below. Our work offers in-depth comparisons and oversight in a high-nuance and high-value context: global-priorities-relevant economics and social-science research, and leverages The Unjournal's ongoing pipeline as a continual experimental and feedback environment.
 
 <!-- CLAUDE EDIT 2: Added structured research goals section from slides ... DR Jan 3 checked OK, may need better integration-->
 
@@ -43,11 +47,11 @@ This complements other AI-evaluation approaches and benchmarks (outlined below),
 
 1.  **Measure the value of frontier AI research evaluation vs. human peer review**
     -   Is state-of-the-art AI research evaluation reliable and useful enough to replace human peer review in these contexts?
-    -   Reverse question (The Unjournal was asked): "Are human evaluations worth it"?
-    -   How well can it predict what humans will report?
-    -   What are its strengths & weaknesses relative to humans, e.g., in terms of: (1) Predicting journal outcomes, citations, etc. (2) Generating feedback deemed most useful by humans (3) Spotting research errors (4) Diagnosing different types of strengths and limitations (e.g., reasoning transparency, justification of methods and assumptions, communication) (5) Judging content without biases/statistical discrimination based on prestige labels, etc.
+    -   Reverse question: The Unjournal was asked – "Are *human* evaluations worth it"?
+    -   How well can AI predict what humans will report?
+    -   What are AI's strengths & weaknesses relative to humans, e.g., in terms of: (1) Predicting journal outcomes, citations, etc. (2) Generating feedback deemed most useful by humans (3) Spotting research errors (4) Diagnosing different types of strengths and limitations (e.g., reasoning transparency, justification of methods and assumptions, communication) (5) Judging content without biases/statistical discrimination based on prestige labels, etc.
 2.  **Compare methods for AI research-evaluation, find the best approaches**
-    -   Which come closer to (the desirable features of) human evaluations and in which ways?
+    -   Which approaches come closest to (the desirable features of) human evaluations and in which ways?
     -   What gets closest to the 'frontier', doing better in terms of outcomes like those mentioned above?
 3.  **The nature of frontier AI 'preferences & tastes' over research**
     -   Which types of papers and approaches do default models tend to 'like' more/less relative to humans when given the same guidelines?
@@ -56,17 +60,17 @@ This complements other AI-evaluation approaches and benchmarks (outlined below),
 
 <!-- END CLAUDE EDIT 2 -->
 
-## Our work in context[^index-4]
+## Our work in context[^index-6]
 
-[^index-4]: We maintain a NotebookLM of the most relevant and related research [here](https://notebooklm.google.com/notebook/f4dde07a-a1bc-470d-93b2-052a3c795933).
+[^index-6]: We maintain a NotebookLM of the most relevant and related research [here](https://notebooklm.google.com/notebook/f4dde07a-a1bc-470d-93b2-052a3c795933).
 
 ### AI practical research applications
 
 @Luo2025 survey LLM roles from idea generation to peer review, including experiment planning and automated scientific writing. They highlight opportunities (productivity, coverage of long documents) alongside governance needs (provenance, detection of LLM-generated content, standardizing tooling) and call for reliable evaluation frameworks.
 
-@korinek2025ai considers the specific potential in economic research, offering "working examples and step-by-step code" to help economists use agents for literature reviews, econometric code, fetching and analyzing economic data, and coordinate complex research workflows. He advocates economists using AI tools to boost productivity and "to understand their capabilities and limitations." He calls for human researcher oversight "to ensure they pursue the right objectives and maintain research integrity". He outlines a range of current limitations and open questions (outlined [here](https://docs.google.com/document/d/1CVNnG6Jw3gr1sbI9Z_vIIJ1BI9O-8-Eev6D2j22vaeg/edit?tab=t.0#heading=h.9pcc2azfjlro)), including hallucinations, mistakes compounding through multi-agent workflows and "brittleness to small variations in prompts". At the higher level, he argues "the questions that will matter most—what problems deserve investigation, how should we evaluate trade-offs, what constitutes progress—will remain irreducibly human."
+@korinek2025ai considers the specific potential for using AI in economic research, offering "working examples and step-by-step code" to help economists use agents for literature reviews, econometric code, fetching and analyzing economic data, and coordinate complex research workflows. He advocates economists using AI tools to boost productivity and "to understand \[these tools'\] capabilities and limitations." He calls for human researcher oversight "to ensure \[these tools\] pursue the right objectives and maintain research integrity". He outlines a range of current limitations and open questions (outlined [here](https://docs.google.com/document/d/1CVNnG6Jw3gr1sbI9Z_vIIJ1BI9O-8-Eev6D2j22vaeg/edit?tab=t.0#heading=h.9pcc2azfjlro)), including hallucinations, mistakes compounding through multi-agent workflows and "brittleness to small variations in prompts". At the higher level, he argues "the questions that will matter most—what problems deserve investigation, how should we evaluate trade-offs, what constitutes progress—will remain irreducibly human."
 
-@mitchener2025kosmos present Kosmos, an AI scientist for autonomous discovery. However, evaluations reveal important limitations:
+@mitchener2025kosmos present Kosmos, "an AI scientist for autonomous discovery". However, evaluations reveal important limitations:
 
 -   "Kosmos was found to be only 57% accurate in statements that required interpretation of results, likely due to its propensity to conflate statistically significant results with scientifically valuable ones"
 
@@ -74,9 +78,9 @@ This complements other AI-evaluation approaches and benchmarks (outlined below),
 
 ### AI peer review, error detection, and research evaluation
 
-@son2025flaws evaluates LLMs on 83 papers paired with 91 confirmed significant scientific errors. This resembles our own approach, although they focus on erratta/retraction-worthy errors, while we consider more nuanced methodological limitations. Their strongest (OpenAI o3) model identified only 21.1% of these errors, with only 6.1% precision.[^index-5]
+@son2025flaws evaluates LLMs on 83 papers paired with 91 confirmed significant scientific errors. This resembles our own approach, although they focus on erratta/retraction-worthy errors, while we consider more nuanced methodological limitations. Their strongest (OpenAI o3) model identified only 21.1% of these errors, with only 6.1% precision.[^index-7]
 
-[^index-5]: They asked domain experts to do qualitative analysis, which found most false positives were hallucinations or student-level misconceptions
+[^index-7]: They asked domain experts to do qualitative analysis, which found most false positives were hallucinations or student-level misconceptions
 
 @eger2025 provide a broad review of LLMs in science and a focused discussion of AI‑assisted peer review. They argue: (i) peer‑review data is scarce and concentrated in CS/OpenReview venues; (ii) targeted assistance that preserves human autonomy is preferable to end‑to‑end reviewing; and (iii) ethics and governance (bias, provenance, detection of AI‑generated text) are first‑class constraints.
 
@@ -88,7 +92,7 @@ This complements other AI-evaluation approaches and benchmarks (outlined below),
 
 They compare the LLMs' ratings with the RePEC rankings for the journals the papers were published in, finding general alignment. They find mixed results on detecting AI-generated papers. In the names/institutions comparisons, they also find the LLMs show biases towards named high-prestige male authors relative to high-prestige female authors, as well as biases towards elite institutions and US/UK universities.
 
-There have been several other empirical benchmarking projects, including work covered in LLM4SR: A Survey on Large Language Models for Scientific Research and [Transforming Science with Large Language Models: A Survey on AI-assisted Scientific Discovery, Experimentation, Content Generation, and Evaluation](https://arxiv.org/abs/2502.05151). (We will discuss these here.)
+There have been several other empirical benchmarking projects, including work covered in LLM4SR: A Survey on Large Language Models for Scientific Research and [Transforming Science with Large Language Models: A Survey on AI-assisted Scientific Discovery, Experimentation, Content Generation, and Evaluation](https://arxiv.org/abs/2502.05151). (*We plan to discuss these further here.*)
 
 @Zhang2025Replication
 
@@ -102,15 +106,15 @@ There have been several other empirical benchmarking projects, including work co
 
 <!-- CLAUDE EDIT 3: Moved footnote to more visible location and renamed it -->
 
-How our work differs from prior work:[^index-6]
+We discuss how our approach differs from prior work [below](#sec-our-present-focus-the-unjournal-opportunity).[^index-8]
 
-[^index-6]: Claude gets at it only imperfectly -- adjust this or cut it -- we cover this again below: "Our approach differs from prior work by (i) focusing on structured, percentile-based quantitative ratings with credible intervals that map to decision-relevant dimensions used by The Unjournal; (ii) comparing those ratings to published human evaluations rather than using LLM-as-judge; and (iii) curating contamination-aware inputs (paper text extraction with reference-section removal and token caps), with a roadmap to add multi-modal checks when we score figure- or table-dependent criteria".
+[^index-8]: See below. Claude's brief summary "Our approach differs from prior work by (i) focusing on structured, percentile-based quantitative ratings with credible intervals that map to decision-relevant dimensions used by The Unjournal; (ii) comparing those ratings to published human evaluations rather than using LLM-as-judge; and (iii) curating contamination-aware inputs (paper text extraction with reference-section removal and token caps), with a roadmap to add multi-modal checks when we score figure- or table-dependent criteria".
 
 <!-- **The Black Spatula Project.** A community effort to spot and document critical errors in scientific papers (see <https://the-black-spatula-project.github.io/>).  -->
 
 <!-- CLAUDE EDIT 4: Expanded "AI research taste" stub section with content linking to broader AI-for-science claims. DR: This seems correct and reasonable, but could be made more specific with more links to related work and applications -->
 
-### AI research taste and potential to guide research
+### AI research taste and potential to guide research {#sec-ai-research-taste-and-potential-to-guide-research}
 
 A key motivation for this work stems from broader claims about AI's potential to accelerate scientific discovery and "revolutionize science." If AI systems are to contribute meaningfully to research—not just as tools but as evaluators and potential collaborators—we need to understand their "taste": what they value, what they miss, and whether their priorities align with human expert judgment and real-world research impact.
 
@@ -122,21 +126,21 @@ Understanding LLM preferences and blind spots when evaluating research provides 
 
 This connects to broader debates about the returns to science in the presence of technological risk [@clancy2023returns], where optimistic forecasts of AI-accelerated science must be weighed against potential downsides and the question of whether AI judgments align with what actually advances knowledge and improves outcomes. <!-- END CLAUDE EDIT 4 -->
 
-### Our present focus, The Unjournal opportunity
+### Our present focus, The Unjournal opportunity {#sec-our-present-focus-the-unjournal-opportunity}
 
 <!-- CLAUDE EDIT 5: Added clearer "Our unique advantages" framing from slides -- DR: This seems accurate and relevant in general-->
 
 Our project distinguishes itself through several unique advantages:
 
-**Actual human evaluations**: We use *actual* human evaluations of research in economics and adjacent fields, past and *prospective*, including both reports, ratings, and predictions.[^index-7] Other work has relied on collections of research and grant reviews, including NLPEER, SubstanReview, and the Swiss National Science Foundation. That data has a heavy focus on computer-science adjacent fields, and is less representative of mainstream research peer review practices in older, established academic fields. Note that The Unjournal commissions the evaluation of impactful research, often from high-prestige working paper archives like NBER, and makes all evaluations public, even if they are highly critical of the paper.
+**Actual human evaluations**: We use *actual* human evaluations of research in economics and adjacent fields, past and *prospective*, including both reports, ratings, and predictions.[^index-9] Other work has relied on collections of research and grant reviews, including NLPEER, SubstanReview, and the Swiss National Science Foundation. That data has a heavy focus on computer-science adjacent fields, and is less representative of mainstream research peer review practices in older, established academic fields. Note that The Unjournal commissions the evaluation of impactful research, often from high-prestige working paper archives like NBER, and makes all evaluations public, even if they are highly critical of the paper.
 
-[^index-7]: For additional context on The Unjournal's approach and evaluation criteria, see our [evaluator guidelines](https://unjournal.org).
+[^index-9]: For additional context on The Unjournal's approach and evaluation criteria, see our [evaluator guidelines](https://unjournal.org).
 
 **Rich, structured data**: The Unjournal's 55+ evaluation packages enable us to train and benchmark the models. Their detailed written reports and multi-dimensional percentile ratings with credible intervals allow us to compare the 'taste', priorities, and comparative ratings of humans relative to AI models across the different criteria and domains.
 
-**Ground truth outcomes**: The 'journal tier prediction' outcomes provide an external ground-truth[^index-8] enabling a human-vs-LLM horse race.
+**Ground truth outcomes**: The 'journal tier prediction' outcomes provide an external ground-truth[^index-10] enabling a human-vs-LLM horse race.
 
-[^index-8]: About verifiable publication outcomes, not about the 'true quality' of the paper of course.
+[^index-10]: These represent ground trths about verifiable publication outcomes not about the 'true quality' of the paper.
 
 **Prospective pipeline**: The Unjournal's pipeline of future evaluations allows for clean out-of-training-data predictions and evaluation, serving as a "live testing lab" for a new judging panel, enabling out-of-time testing and validation from authors and human evaluators.
 
@@ -149,6 +153,8 @@ The economics, social science, and global-impact policy context provides a uniqu
 <!-- CLAUDE EDIT 6: Added "Next steps" section from slides -->
 
 ## Next steps and future directions
+
+<!-- Make this a folding box or something ... readers don't need to see it right away, it's a bit of an inside thing -->
 
 This project is ongoing. Our planned next steps include:
 
@@ -172,13 +178,15 @@ This project is ongoing. Our planned next steps include:
 
 10. **Implications for The Unjournal/evaluation processes**: What can we learn to improve evaluation systems? <!-- END CLAUDE EDIT 6 -->
 
-\## Project planning, funding, status
+## Project planning, funding, status
 
 <!-- CLAUDE GENERATED: Project/funding section from proposal document ... DR: Lightly human-edited -->
 
-This benchmarking project is a collaboration with [The Unjournal](https://unjournal.org), a nonprofit that has published 55+ detailed evaluation packages and received \>\$600k in grants from major funders (including the Survival and Flourishing Fund and EA Funds) to build open, quantitative evaluation infrastructure and processes, focusing on global-priorities-relevant research in economics, policy, and social science.[^index-9]
+This benchmarking project is a collaboration with [The Unjournal](https://unjournal.org), a grant-funded nonprofit[^index-11] that has published 55+ detailed evaluation packages to build open, quantitative evaluation infrastructure and processes, focusing on global-priorities-relevant research in economics, policy, and social science.[^index-12]
 
-[^index-9]: This section was drafted with AI assistance and reviewed by the authors.
+[^index-11]: Funders include the Survival and Flourishing Fund, the Long Term Future Fund, and EA Funds; they make all grant information public [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/grants-and-proposals).
+
+[^index-12]: This section was drafted with AI assistance and reviewed by the authors.
 
 ### Team
 
@@ -186,16 +194,16 @@ This benchmarking project is a collaboration with [The Unjournal](https://unjour
 
 -   **David Reinstein (PI)**: Economist, founder/director of The Unjournal. 25+ years research experience (UC Berkeley, Essex, Exeter, Rethink Priorities). Track record of building evaluation infrastructure and working with impact-focused organizations.
 -   **Valentin Klotzbücher (Co-lead)**: Economist and statistician (University of Basel). Applied econometrics, causal inference, and reproducible pipelines (R/Quarto). Co-leads current LLM–Unjournal benchmarking work.
--   **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs." Active contributor to Black Spatula Project.
+-   **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs." Active contributor to the Black Spatula Project.
 -   **Lorenzo Pacchiardi (Advisor)**: Research Associate, Leverhulme Centre for the Future of Intelligence, Cambridge. Leads Open Philanthropy–funded project on benchmarking LLM data science tasks. Unjournal advisory board.
 
 <!-- DR: cut for now **Casey Wimsatt (Engineering)**: Developer/entrepreneur, Black Spatula Project. Leads automated error-detection tooling. -->
 
-We plan to leverage additional support from Unjournal management team, operations staff, and evaluator pool (200+ credentialed researchers).
+We plan to leverage additional support from Unjournal's management team, operations staff, and evaluator pool (200+ credentialed researchers).
 
 ### Funding and budget
 
-We are actively seeking funding to expand this work beyond pilot scale to a rigorous scientific benchmark. Example budget scenarios (need refinement and detail):
+We are actively seeking funding, in conjunction with The Unjournal, to expand this work beyond the pilot scale to a more robust and rigorous scientific benchmark. Example budget scenarios (need refinement and detail):
 
 | Level | Amount | Scope |
 |-----------------------|--------------------------|-----------------------|
@@ -203,7 +211,7 @@ We are actively seeking funding to expand this work beyond pilot scale to a rigo
 | Target | \~\$320k | Full 100-paper benchmark, multiple models, dashboard, publication |
 | Maximum | \~\$450k | Expanded experiments, more human evaluations, richer comparisons |
 
-Key cost categories include: core team time (PI + co-lead), engineering & development, human evaluation payments (the "ground truth"), and compute/API costs. No model training or large-compute capabilities work—all spending focuses on evaluation, tooling, and human experimentation.
+*Key cost categories include*: Core team time (PI + co-lead), engineering and development, payments for human research evaluators (extending The Unjournal's pipeline), payments for enumerators/experts to label and provide human feedback on LLM evaluator claims and critiques, and compute/API costs. ThNo model training or large-compute capabilities work—all spending focuses on evaluation, tooling, and human experimentation.
 
 ### Deliverables
 
@@ -215,7 +223,9 @@ Key cost categories include: core team time (PI + co-lead), engineering & develo
 6.  **Academic paper**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals
 7.  **Practical guidance**: Playbook for when AI peer review helps and where it fails
 
-### Project timeline (very approcimate)
+### Project timeline (target version, very approximate)
+
+<!-- DR: This merits a lot more detail. We can move some of the content we did not have room for in the main proposal here, or to other subsections in this section -->
 
 | Phase | Months | Activities |
 |-------------------|----------------------|--------------------------------|
@@ -224,7 +234,7 @@ Key cost categories include: core team time (PI + co-lead), engineering & develo
 | Analysis | 10–15 | Agreement, bias, and failure-mode analyses |
 | Dissemination | 16–18 | Publications, dashboard, outreach, final dataset release |
 
-For more details, see [The Unjournal](https://unjournal.org) and the [project repository](https://github.com/daaronr/llm-uj-research-eval).
+For more details, see [The Unjournal](https://unjournal.org) and out [project repository](https://github.com/daaronr/llm-uj-research-eval).
 
 <!-- END CLAUDE GENERATED -->
 
@@ -242,7 +252,6 @@ I'd like to add that we should also adapt the @Pataranutaporn2025 insights to ru
 
 FURTHER motivating examples to integrate
 
-https://www.linkedin.com/posts/robert-kubinec-9191a9a_sigh-have-just-come-across-another-case-activity-7413286390035283969-iA1T?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAI3jbkBzdWgXA3vIgod5NJRjfI203P59qY
-
+https://www.linkedin.com/feed/update/urn:li:activity:7411759911480524800/
 -->
 ```
