@@ -307,7 +307,7 @@ We compare LLM-generated research evaluations against human expert reviews from 
 
 ## Evaluation Overview
 
-We submit each PDF through a single, schema-enforced Responses call. The system prompt mirrors the Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. We enforce well-formed intervals (`lower < midpoint < upper` for 0–100 metrics; `ci_lower < score < ci_upper` for 0–5 tiers). GPT-5 Pro runs with reasoning effort = "high", so traces are available for audit (see [Methods](methods.qmd)).
+We submit each PDF through a single, schema-enforced Responses call. The system prompt mirrors the Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. We enforce well-formed intervals (lower < midpoint < upper for 0–100 metrics; ci_lower < score < ci_upper for 0–5 tiers). GPT-5 Pro runs with reasoning effort = "high", so traces are available for audit (see [Methods](methods.qmd)).
 
 Metrics (0–100 unless noted): overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), global_relevance (decision and priority usefulness). Journal tiers (0–5, continuous) capture where the work should publish vs. will publish.
 
@@ -381,7 +381,7 @@ Hover over any point to see details. Click legend items to show/hide models.
 #| label: fig-forest-plotly
 #| fig-cap: "Interactive forest plot: Human and LLM overall ratings by paper"
 #| fig-width: 12
-#| fig-height: 10
+#| fig-height: 15
 
 forest_human <- metrics_human |>
   filter(criteria == "overall") |>
