@@ -1,0 +1,1602 @@
+---
+title: "Results: Ratings"
+format:
+  html: default
+engine: knitr
+---
+
+```{r}
+#| label: setup
+#| code-summary: "Setup and libraries"
+#| code-fold: true
+#| message: false
+#| warning: false
+
+source("setup_params.R")
+
+library("tidyverse")
+library("janitor")
+library("stringr")
+library("here")
+library("knitr")
+library("kableExtra")
+library("ggrepel")
+library("scales")
+library("jsonlite")
+library("purrr")
+library("tibble")
+library("plotly")
+
+# Theme and colors
+UJ_ORANGE <- "#f19e4b"   # LLM primary
+UJ_GREEN  <- "#99bb66"   # Human
+UJ_BLUE   <- "#4e79a7"
+
+MODEL_COLORS <- c(
+  "GPT-5 Pro" = "#f19e4b",
+  "GPT-5.2 Pro" = "#c9302c",
+  "GPT-4o-mini" = "#74aa9c",
+  "Claude Sonnet 4" = "#d4a574",
+  "Gemini 2.0 Flash" = "#7986cb",
+  "Human" = "#99bb66"
+)
+
+theme_uj <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      legend.position = "bottom"
+    )
+}
+
+canon_metric <- function(x) dplyr::recode(
+  x,
+  "advancing_knowledge" = "adv_knowledge",
+  "open_science"        = "open_sci",
+  "logic_communication" = "logic_comms",
+  "global_relevance"    = "gp_relevance",
+  "claims_evidence"     = "claims",
+  .default = x
+)
+
+`%||%` <- function(x, y) if (!is.null(x)) x else y
+
+# Pricing per 1M tokens (USD)
+pricing <- tribble(
+  ~model,              ~input_per_m, ~output_per_m,
+  "GPT-5 Pro",         15.00,        60.00,
+  "GPT-5.2 Pro",       15.00,        60.00,
+  "GPT-4o-mini",       0.15,         0.60,
+  "Claude Sonnet 4",   3.00,         15.00,
+  "Gemini 2.0 Flash",  0.075,        0.30
+)
+```
+
+```{r}
+#| label: load-human-data
+#| code-fold: true
+#| code-summary: "Load human evaluation data"
+#| message: false
+
+# Load human ratings from Unjournal
+UJmap <- read_delim("data/UJ_map.csv", delim = ";", show_col_types = FALSE) |>
+  mutate(label_paper_title = research, label_paper = paper) |>
+  select(c("label_paper_title", "label_paper"))
+
+rsx <- read_csv("data/rsx_evalr_rating.csv", show_col_types = FALSE) |>
+  clean_names() |>
+  mutate(label_paper_title = research) |>
+  select(-c("research"))
+
+research <- read_csv("data/research.csv", show_col_types = FALSE) |>
+  clean_names() |>
+  filter(status == "50_published evaluations (on PubPub, by Unjournal)") |>
+  left_join(UJmap, by = c("label_paper_title")) |>
+  mutate(doi = str_trim(doi)) |>
+  mutate(label_paper = case_when(
+    doi == "https://doi.org/10.3386/w31162" ~ "Walker et al. 2023",
+    doi == "doi.org/10.3386/w32728" ~ "Hahn et al. 2025",
+    doi == "https://doi.org/10.3386/w30011" ~ "Bhat et al. 2022",
+    doi == "10.1093/wbro/lkae010" ~ "Crawfurd et al. 2023",
+    TRUE ~ label_paper
+  )) |>
+  left_join(rsx, by = c("label_paper_title"))
+
+key_map <- research |>
+  transmute(label_paper_title = str_trim(label_paper_title), label_paper = label_paper) |>
+  filter(!is.na(label_paper_title)) |>
+  distinct(label_paper_title, label_paper) |>
+  group_by(label_paper_title) |>
+  slice(1) |>
+  ungroup()
+
+rsx_research <- rsx |>
+  mutate(label_paper_title = str_trim(label_paper_title)) |>
+  left_join(key_map, by = "label_paper_title", relationship = "many-to-one")
+
+metrics_human <- rsx_research |>
+  mutate(criteria = canon_metric(criteria)) |>
+  filter(criteria %in% c("overall", "claims", "methods", "adv_knowledge", "logic_comms", "open_sci", "gp_relevance")) |>
+  transmute(
+    paper = label_paper, criteria, evaluator, model = "Human",
+    mid = as.numeric(middle_rating),
+    lo = suppressWarnings(as.numeric(lower_ci)),
+    hi = suppressWarnings(as.numeric(upper_ci))
+  ) |>
+  filter(!is.na(paper), !is.na(mid)) |>
+  mutate(
+    lo = ifelse(is.finite(lo), pmax(0, pmin(100, lo)), NA_real_),
+    hi = ifelse(is.finite(hi), pmax(0, pmin(100, hi)), NA_real_)
+  ) |>
+  mutate(across(c(mid, lo, hi), ~ round(.x, 4))) |>
+  distinct(paper, criteria, model, evaluator, mid, lo, hi)
+
+human_avg <- metrics_human |>
+  filter(criteria == "overall") |>
+  group_by(paper) |>
+  summarise(
+    human_mid = mean(mid, na.rm = TRUE),
+    human_lo = mean(lo, na.rm = TRUE),
+    human_hi = mean(hi, na.rm = TRUE),
+    n_human = n(),
+    .groups = "drop"
+  )
+
+# Summary stats for inline use
+n_human_papers <- n_distinct(metrics_human$paper)
+n_human_evaluators <- n_distinct(metrics_human$evaluator)
+```
+
+```{r}
+#| label: load-llm-data
+#| code-fold: true
+#| code-summary: "Load LLM evaluation data (all models)"
+#| message: false
+
+model_dirs <- list(
+  "gpt5_pro_updated_jan2026" = "GPT-5 Pro",
+  "gpt52_pro_focal_jan2026" = "GPT-5.2 Pro",
+  "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
+  "claude_sonnet_4_20250514" = "Claude Sonnet 4",
+  "gemini_2.0_flash" = "Gemini 2.0 Flash"
+)
+
+parse_response <- function(path, model_name) {
+  tryCatch({
+    r <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+    paper <- basename(path) |>
+      str_replace("\\.response\\.json$", "") |>
+      str_replace_all("_", " ")
+
+    parsed <- NULL
+    if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
+      parsed <- jsonlite::fromJSON(r$output_text, simplifyVector = TRUE)
+    } else if (!is.null(r$parsed)) {
+      parsed <- r$parsed
+    } else if (!is.null(r$output)) {
+      msg <- purrr::detect(r$output, ~ .x$type == "message", .default = NULL)
+      if (!is.null(msg) && length(msg$content) > 0) {
+        parsed <- jsonlite::fromJSON(msg$content[[1]]$text, simplifyVector = TRUE)
+      }
+    }
+
+    if (is.null(parsed)) return(NULL)
+
+    metrics <- parsed$metrics
+    metric_rows <- list()
+    tier_rows <- list()
+
+    for (nm in names(metrics)) {
+      if (nm %in% c("tier_should", "tier_will")) {
+        tier_rows[[length(tier_rows) + 1]] <- tibble(
+          paper = paper, model = model_name, tier_kind = nm,
+          score = metrics[[nm]]$score,
+          ci_lower = metrics[[nm]]$ci_lower,
+          ci_upper = metrics[[nm]]$ci_upper
+        )
+      } else {
+        metric_rows[[length(metric_rows) + 1]] <- tibble(
+          paper = paper, model = model_name, metric = nm,
+          midpoint = metrics[[nm]]$midpoint,
+          lower_bound = metrics[[nm]]$lower_bound,
+          upper_bound = metrics[[nm]]$upper_bound
+        )
+      }
+    }
+
+    input_tok <- r$usage$input_tokens %||% r$input_tokens
+    output_tok <- r$usage$output_tokens %||% r$output_tokens
+    reasoning_tok <- r$usage$output_tokens_details$reasoning_tokens
+
+    list(
+      metrics = bind_rows(metric_rows),
+      tiers = bind_rows(tier_rows),
+      tokens = tibble(
+        paper = paper, model = model_name,
+        input_tokens = input_tok %||% NA_integer_,
+        output_tokens = output_tok %||% NA_integer_,
+        reasoning_tokens = reasoning_tok %||% NA_integer_
+      ),
+      summary = tibble(
+        paper = paper, model = model_name,
+        assessment_summary = parsed$assessment_summary
+      )
+    )
+  }, error = function(e) NULL)
+}
+
+load_all_llm <- function() {
+  all_metrics <- list()
+  all_tiers <- list()
+  all_tokens <- list()
+  all_summaries <- list()
+
+  for (dir_name in names(model_dirs)) {
+    model_name <- model_dirs[[dir_name]]
+    json_dir <- here("results", dir_name, "json")
+
+    if (dir.exists(json_dir)) {
+      files <- list.files(json_dir, pattern = "\\.response\\.json$", full.names = TRUE)
+
+      for (f in files) {
+        result <- parse_response(f, model_name)
+        if (!is.null(result)) {
+          all_metrics[[length(all_metrics) + 1]] <- result$metrics
+          all_tiers[[length(all_tiers) + 1]] <- result$tiers
+          all_tokens[[length(all_tokens) + 1]] <- result$tokens
+          all_summaries[[length(all_summaries) + 1]] <- result$summary
+        }
+      }
+    }
+  }
+
+  list(
+    metrics = bind_rows(all_metrics) |> mutate(criteria = canon_metric(metric)),
+    tiers = bind_rows(all_tiers),
+    tokens = bind_rows(all_tokens),
+    summaries = bind_rows(all_summaries)
+  )
+}
+
+llm_data <- load_all_llm()
+llm_metrics <- llm_data$metrics
+llm_tiers <- llm_data$tiers
+llm_tokens <- llm_data$tokens
+llm_summaries <- llm_data$summaries
+
+# Summary stats for inline use
+n_llm_models <- n_distinct(llm_metrics$model)
+n_llm_papers <- n_distinct(llm_metrics$paper)
+llm_model_names <- unique(llm_metrics$model)
+llm_model_list <- paste(llm_model_names, collapse = ", ")
+
+# Papers with both human and LLM data
+matched_papers <- intersect(
+ unique(metrics_human$paper),
+ unique(llm_metrics$paper)
+)
+n_matched <- length(matched_papers)
+
+# Cost summary
+cost_data <- llm_tokens |>
+  left_join(pricing, by = "model") |>
+  mutate(
+    reasoning_tokens = coalesce(reasoning_tokens, 0L),
+    cost_usd = (input_tokens * input_per_m + output_tokens * output_per_m) / 1e6
+  )
+
+total_cost <- sum(cost_data$cost_usd, na.rm = TRUE)
+total_evaluations <- nrow(llm_tokens)
+
+# Per-model summaries
+model_summary <- cost_data |>
+  group_by(model) |>
+  summarise(
+    n_papers = n(),
+    avg_input = round(mean(input_tokens, na.rm = TRUE)),
+    avg_output = round(mean(output_tokens, na.rm = TRUE)),
+    avg_reasoning = round(mean(reasoning_tokens[reasoning_tokens > 0], na.rm = TRUE)),
+    total_cost = sum(cost_usd, na.rm = TRUE),
+    cost_per_paper = mean(cost_usd, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+We compare LLM-generated research evaluations against human expert reviews from [The Unjournal](https://unjournal.org). This analysis covers `r n_llm_papers` papers evaluated by `r n_llm_models` frontier LLMs (`r llm_model_list`), with `r n_matched` papers having both human and LLM evaluations for direct comparison. Human evaluations come from `r n_human_evaluators` expert reviewers across `r n_human_papers` papers in The Unjournal's database.
+
+## Evaluation Overview
+
+We submit each PDF through a single, schema-enforced Responses call. The system prompt mirrors the Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. We enforce well-formed intervals (`lower < midpoint < upper` for 0–100 metrics; `ci_lower < score < ci_upper` for 0–5 tiers). GPT-5 Pro runs with reasoning effort = "high", so traces are available for audit (see [Methods](methods.qmd)).
+
+Metrics (0–100 unless noted): overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), global_relevance (decision and priority usefulness). Journal tiers (0–5, continuous) capture where the work should publish vs. will publish.
+
+Each numeric field carries a midpoint (model’s 50% belief) and a 90% credible interval; wide intervals indicate acknowledged uncertainty.
+
+::: {.callout-note}
+## Future Models
+
+We plan to extend this comparison to newer frontier models as they become available, including GPT-5.2 Pro, Claude Opus 4.5, Gemini 3, and Grok 3. 
+:::
+
+### Token Usage and Cost
+
+Token costs are computed from API-reported input/output tokens (GPT-5 Pro runs with `reasoning` = high). Use the boxplot log scale to compare efficiency frontiers; reasoning tokens are reported when available.
+
+```{r}
+#| label: tbl-cost-overview
+#| tbl-cap: "Token usage and estimated cost per model"
+
+if (nrow(llm_tokens) > 0) {
+
+  cost_table <- model_summary |>
+    transmute(
+      Model = model,
+      Papers = n_papers,
+      `Avg input` = scales::comma(avg_input),
+      `Avg output` = scales::comma(avg_output),
+      `Avg reasoning` = ifelse(is.finite(avg_reasoning) & avg_reasoning > 0,
+                                scales::comma(avg_reasoning), "—"),
+      `Total cost` = scales::dollar(total_cost, accuracy = 0.01),
+      `Cost/paper` = scales::dollar(cost_per_paper, accuracy = 0.001)
+    ) |>
+    arrange(desc(as.numeric(gsub("[$,]", "", `Total cost`))))
+
+  knitr::kable(cost_table, align = c("l", rep("r", 6)))
+}
+```
+
+Total cost across all `r total_evaluations` LLM evaluations: **`r scales::dollar(total_cost, accuracy = 0.01)`**.
+
+```{r}
+#| label: fig-cost-box
+#| fig-cap: "Cost per paper by model (log scale)"
+#| fig-width: 9
+#| fig-height: 5
+
+if (nrow(cost_data) > 0) {
+
+  ggplot(cost_data, aes(x = reorder(model, cost_usd, FUN = median), y = cost_usd, fill = model)) +
+    geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+    geom_jitter(width = 0.15, alpha = 0.5, size = 2) +
+    scale_fill_manual(values = MODEL_COLORS, guide = "none") +
+    scale_y_log10(labels = scales::dollar_format(accuracy = 0.001)) +
+    coord_flip() +
+    labs(x = NULL, y = "Cost per paper (USD, log scale)") +
+    theme_uj()
+}
+```
+
+---
+
+## Interactive Forest Plot: Human vs LLM Ratings
+
+The forest plot below shows **overall percentile ratings** for each of the `r n_matched` papers with matched human and LLM evaluations. Human evaluator ratings are shown in green (individual evaluators as small dots, mean as diamond). LLM ratings from different models are shown with distinct colors.
+
+Interpretation: points are midpoints, horizontal bars are the model’s 90% credible interval.
+
+Hover over any point to see details. Click legend items to show/hide models.
+
+```{r}
+#| label: fig-forest-plotly
+#| fig-cap: "Interactive forest plot: Human and LLM overall ratings by paper"
+#| fig-width: 12
+#| fig-height: 10
+
+forest_human <- metrics_human |>
+  filter(criteria == "overall") |>
+  transmute(paper, model = "Human", evaluator, mid, lo, hi, is_mean = FALSE)
+
+forest_human_means <- human_avg |>
+  transmute(paper, model = "Human", evaluator = "Mean",
+            mid = human_mid, lo = human_lo, hi = human_hi, is_mean = TRUE)
+
+forest_llm <- llm_metrics |>
+  filter(criteria == "overall") |>
+  transmute(paper, model, evaluator = model,
+            mid = midpoint, lo = lower_bound, hi = upper_bound, is_mean = FALSE)
+
+forest_data <- bind_rows(forest_human, forest_human_means, forest_llm) |>
+  filter(paper %in% matched_papers)
+
+if (nrow(forest_data) > 0) {
+
+  paper_order <- forest_data |>
+    filter(model == "Human", is_mean) |>
+    arrange(desc(mid)) |>
+    pull(paper)
+
+  forest_data <- forest_data |>
+    mutate(
+      paper = factor(paper, levels = rev(paper_order)),
+      paper_num = as.numeric(paper),
+      hover_text = paste0(
+        "<b>", paper, "</b><br>",
+        model, ifelse(evaluator != model & !is_mean, paste0(" (", evaluator, ")"), ""), "<br>",
+        "Rating: ", round(mid, 1),
+        ifelse(!is.na(lo) & !is.na(hi), paste0(" [", round(lo, 1), "–", round(hi, 1), "]"), "")
+      )
+    )
+
+  p <- plot_ly() |>
+    add_segments(x = 25, xend = 25, y = 0.5, yend = length(paper_order) + 0.5,
+                 line = list(color = "lightgray", dash = "dot"),
+                 showlegend = FALSE, hoverinfo = "none") |>
+    add_segments(x = 50, xend = 50, y = 0.5, yend = length(paper_order) + 0.5,
+                 line = list(color = "gray", dash = "dot"),
+                 showlegend = FALSE, hoverinfo = "none") |>
+    add_segments(x = 75, xend = 75, y = 0.5, yend = length(paper_order) + 0.5,
+                 line = list(color = "lightgray", dash = "dot"),
+                 showlegend = FALSE, hoverinfo = "none")
+
+  models_to_plot <- c("Human", setdiff(unique(forest_data$model), "Human"))
+
+  for (m in models_to_plot) {
+    model_data <- forest_data |> filter(model == m)
+
+    if (m == "Human") {
+      indiv <- model_data |> filter(!is_mean)
+      if (nrow(indiv) > 0) {
+        p <- p |> add_trace(
+          data = indiv, type = "scatter", mode = "markers",
+          x = ~mid, y = ~paper_num,
+          marker = list(color = MODEL_COLORS[m], size = 6, opacity = 0.4),
+          text = ~hover_text, hoverinfo = "text",
+          name = "Human (individual)", legendgroup = "Human"
+        )
+      }
+      means <- model_data |> filter(is_mean)
+      if (nrow(means) > 0) {
+        p <- p |> add_trace(
+          data = means, type = "scatter", mode = "markers",
+          x = ~mid, y = ~paper_num,
+          error_x = list(type = "data", symmetric = FALSE,
+                         arrayminus = ~(mid - lo), array = ~(hi - mid),
+                         color = MODEL_COLORS[m], thickness = 1.5),
+          marker = list(color = MODEL_COLORS[m], size = 12, symbol = "diamond"),
+          text = ~hover_text, hoverinfo = "text",
+          name = "Human (mean)", legendgroup = "Human"
+        )
+      }
+    } else {
+      p <- p |> add_trace(
+        data = model_data, type = "scatter", mode = "markers",
+        x = ~mid, y = ~paper_num,
+        error_x = list(type = "data", symmetric = FALSE,
+                       arrayminus = ~(mid - lo), array = ~(hi - mid),
+                       color = MODEL_COLORS[m], thickness = 1.5),
+        marker = list(color = MODEL_COLORS[m], size = 10),
+        text = ~hover_text, hoverinfo = "text", name = m
+      )
+    }
+  }
+
+  p <- p |> layout(
+    xaxis = list(title = "Overall percentile (0–100)", range = c(0, 105), zeroline = FALSE),
+    yaxis = list(title = "", ticktext = paper_order, tickvals = seq_along(paper_order), tickmode = "array"),
+    legend = list(orientation = "h", y = -0.1, x = 0.5, xanchor = "center"),
+    hovermode = "closest",
+    margin = list(l = 200)
+  )
+
+  p
+
+} else {
+  cat("No matched human-LLM data available for forest plot.\n")
+}
+```
+
+## Human vs LLM Scatter Plot
+
+Each point represents a paper, with human mean rating on the x-axis and LLM rating on the y-axis. Points on the diagonal indicate perfect agreement.
+
+Note: human means carry their own variance; correlations here are bounded by human inter-rater noise.
+
+```{r}
+#| label: fig-scatter-interactive
+#| fig-cap: "Interactive scatter: Human vs LLM overall ratings"
+#| fig-width: 10
+#| fig-height: 8
+
+scatter_data <- llm_metrics |>
+  filter(criteria == "overall") |>
+  inner_join(human_avg, by = "paper") |>
+  mutate(
+    diff = midpoint - human_mid,
+    paper_short = str_trunc(paper, 25),
+    # Ensure no NA values break ggplotly
+    human_lo = coalesce(human_lo, human_mid),
+    human_hi = coalesce(human_hi, human_mid),
+    lower_bound = coalesce(lower_bound, midpoint),
+    upper_bound = coalesce(upper_bound, midpoint)
+  ) |>
+  filter(!is.na(human_mid), !is.na(midpoint))
+
+if (nrow(scatter_data) > 0) {
+
+  p <- ggplot(scatter_data, aes(
+    x = human_mid, y = midpoint, color = model,
+    text = paste0(
+      "<b>", paper, "</b><br>",
+      "Human: ", round(human_mid, 1), " [", round(human_lo, 1), "–", round(human_hi, 1), "]<br>",
+      "LLM: ", round(midpoint, 1), " [", round(lower_bound, 1), "–", round(upper_bound, 1), "]<br>",
+      "Diff: ", sprintf("%+.1f", diff)
+    )
+  )) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    geom_point(size = 3.5, alpha = 0.7) +
+    scale_color_manual(values = MODEL_COLORS) +
+    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
+    labs(x = "Human mean rating (0–100)", y = "LLM rating (0–100)", color = "Model") +
+    theme_uj()
+
+  # Use tryCatch to handle ggplotly errors gracefully
+  tryCatch({
+    ggplotly(p, tooltip = "text") |>
+      layout(
+        legend = list(orientation = "h", y = -0.12, x = 0.5, xanchor = "center"),
+        hoverlabel = list(bgcolor = "white")
+      )
+  }, error = function(e) {
+    # Fallback to static plot if ggplotly fails
+    print(p)
+    message("Note: Interactive plot unavailable, showing static version.")
+  })
+} else {
+  cat("No matching data for scatter plot.\n")
+}
+```
+
+## Model Agreement Statistics
+
+We assess agreement between LLM and human evaluators using multiple metrics:
+
+- **Pearson r**: Linear correlation between ratings
+- **Spearman ρ**: Rank-based correlation (robust to outliers)
+- **Mean bias**: Average difference (LLM − Human); positive = LLM rates higher
+- **RMSE/MAE**: Error magnitude measures
+
+```{r}
+#| label: tbl-agreement
+#| tbl-cap: "Agreement between each LLM and human mean ratings (overall criterion)"
+
+if (nrow(scatter_data) > 0) {
+
+  agreement_tbl <- scatter_data |>
+    group_by(Model = model) |>
+    summarise(
+      N = n(),
+      `Pearson r` = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
+      `Spearman ρ` = round(cor(human_mid, midpoint, method = "spearman", use = "complete.obs"), 3),
+      `Mean bias` = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
+      RMSE = round(sqrt(mean((midpoint - human_mid)^2, na.rm = TRUE)), 1),
+      MAE = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
+      .groups = "drop"
+    ) |>
+    arrange(desc(`Pearson r`))
+
+  knitr::kable(agreement_tbl, align = c("l", rep("r", 6)))
+}
+```
+
+### Inter-Rater Agreement (Krippendorff's Alpha)
+
+Krippendorff's alpha measures agreement among multiple raters, accounting for chance agreement. Values above 0.8 indicate good agreement; 0.67–0.8 is acceptable for exploratory research.
+Ceiling effects apply because human evaluators are not perfectly aligned.
+
+```{r}
+#| label: tbl-krippendorff
+#| tbl-cap: "Inter-rater agreement: Krippendorff's alpha by criterion"
+
+# Install irr if needed: install.packages("irr")
+if (requireNamespace("irr", quietly = TRUE)) {
+
+  library(irr)
+
+  # Prepare data: each row = paper, each column = rater (human mean + each LLM)
+  compute_alpha <- function(criterion) {
+
+    # Human mean per paper
+    human_crit <- metrics_human |>
+      filter(criteria == criterion, paper %in% matched_papers) |>
+      group_by(paper) |>
+      summarise(Human = mean(mid, na.rm = TRUE), .groups = "drop")
+
+    # LLM ratings per paper
+    llm_crit <- llm_metrics |>
+      filter(criteria == criterion, paper %in% matched_papers) |>
+      select(paper, model, midpoint) |>
+      pivot_wider(names_from = model, values_from = midpoint)
+
+    # Combine
+    combined <- human_crit |>
+      inner_join(llm_crit, by = "paper") |>
+      select(-paper)
+
+    if (nrow(combined) < 3 || ncol(combined) < 2) return(NA_real_)
+
+    # Krippendorff's alpha (interval scale)
+    tryCatch({
+      ka <- kripp.alpha(t(as.matrix(combined)), method = "interval")
+      ka$value
+    }, error = function(e) NA_real_)
+  }
+
+  criteria_list <- c("overall", "claims", "methods", "adv_knowledge",
+                     "logic_comms", "open_sci", "gp_relevance")
+
+  alpha_results <- tibble(
+    Criterion = c("Overall", "Claims", "Methods", "Adv. Knowledge",
+                  "Logic & Comms", "Open Science", "Global Relevance"),
+    criterion_key = criteria_list
+  ) |>
+    rowwise() |>
+    mutate(
+      `Krippendorff's α` = compute_alpha(criterion_key),
+      `α (formatted)` = ifelse(is.na(`Krippendorff's α`), "—",
+                                sprintf("%.3f", `Krippendorff's α`)),
+      Interpretation = case_when(
+        is.na(`Krippendorff's α`) ~ "Insufficient data",
+        `Krippendorff's α` >= 0.8 ~ "Good",
+        `Krippendorff's α` >= 0.67 ~ "Acceptable",
+        `Krippendorff's α` >= 0.4 ~ "Fair",
+        TRUE ~ "Poor"
+      )
+    ) |>
+    ungroup() |>
+    select(Criterion, `α (formatted)`, Interpretation) |>
+    rename(`Krippendorff's α` = `α (formatted)`)
+
+  knitr::kable(alpha_results, align = c("l", "r", "l"))
+
+} else {
+  cat("*Install the `irr` package for Krippendorff's alpha: `install.packages('irr')`*\n")
+}
+```
+
+<!-- CLAUDE GENERATED: Human-human vs Human-LLM baseline comparison -->
+
+### Human-Human vs Human-LLM Agreement (Baseline Context)[^baseline-ai]
+
+[^baseline-ai]: This section was added with AI assistance to address feedback about contextualizing agreement metrics.
+
+To interpret human-LLM agreement, we must compare against **human-human agreement** as an upper bound. If human evaluators only agree with each other at α = 0.5, then expecting LLMs to achieve α = 0.8 with humans would be unrealistic. The table below shows both:
+
+- **α~HH~**: Krippendorff's alpha among human evaluators (treating each evaluator as a separate rater)
+- **α~HL~**: Krippendorff's alpha between human mean and each LLM model
+
+```{r}
+#| label: tbl-human-baseline
+#| tbl-cap: "Human-human vs Human-LLM agreement by criterion (Krippendorff's α)"
+#| code-fold: true
+
+if (requireNamespace("irr", quietly = TRUE)) {
+
+  library(irr)
+
+  criteria_list <- c("overall", "claims", "methods", "adv_knowledge",
+                     "logic_comms", "open_sci", "gp_relevance")
+
+  criterion_labels <- c(
+    overall = "Overall", claims = "Claims", methods = "Methods",
+    adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
+    open_sci = "Open Science", gp_relevance = "Global Relevance"
+  )
+
+  # Compute human-human alpha (each evaluator as separate rater)
+  compute_hh_alpha <- function(criterion) {
+    human_wide <- metrics_human |>
+      filter(criteria == criterion, paper %in% matched_papers) |>
+      select(paper, evaluator, mid) |>
+      distinct() |>
+      pivot_wider(names_from = paper, values_from = mid)
+
+    if (nrow(human_wide) < 2 || ncol(human_wide) < 3) return(NA_real_)
+
+    M <- as.matrix(human_wide[, -1, drop = FALSE])
+    tryCatch({
+      irr::kripp.alpha(M, method = "interval")$value
+    }, error = function(e) NA_real_)
+  }
+
+  # Compute human-LLM alpha for a specific model
+  compute_hl_alpha <- function(criterion, model_name) {
+    human_mean <- metrics_human |>
+      filter(criteria == criterion, paper %in% matched_papers) |>
+      group_by(paper) |>
+      summarise(Human = mean(mid, na.rm = TRUE), .groups = "drop")
+
+    llm_rating <- llm_metrics |>
+      filter(criteria == criterion, model == model_name, paper %in% matched_papers) |>
+      select(paper, midpoint) |>
+      rename(LLM = midpoint)
+
+    combined <- inner_join(human_mean, llm_rating, by = "paper")
+    if (nrow(combined) < 3) return(NA_real_)
+
+    M <- rbind(Human = combined$Human, LLM = combined$LLM)
+    tryCatch({
+      irr::kripp.alpha(M, method = "interval")$value
+    }, error = function(e) NA_real_)
+  }
+
+  # Get unique LLM models
+  llm_models <- unique(llm_metrics$model)
+
+  # Build comparison table
+  baseline_results <- tibble(Criterion = criterion_labels[criteria_list]) |>
+    mutate(criterion_key = criteria_list) |>
+    rowwise() |>
+    mutate(
+      `α_HH` = compute_hh_alpha(criterion_key)
+    ) |>
+    ungroup()
+
+  # Add columns for each LLM model
+  for (mod in llm_models) {
+    col_name <- paste0("α_HL (", mod, ")")
+    baseline_results <- baseline_results |>
+      rowwise() |>
+      mutate(!!col_name := compute_hl_alpha(criterion_key, mod)) |>
+      ungroup()
+  }
+
+  # Format for display
+  baseline_display <- baseline_results |>
+    select(-criterion_key) |>
+    mutate(across(where(is.numeric), ~ ifelse(is.na(.x), "—", sprintf("%.2f", .x))))
+
+  knitr::kable(baseline_display, align = c("l", rep("r", ncol(baseline_display) - 1)))
+}
+```
+
+**Interpretation**: If α~HL~ approaches or exceeds α~HH~, the LLM is performing at or above the level of agreement humans achieve with each other—a meaningful benchmark for "human-level" evaluation consistency.
+
+<!-- END CLAUDE GENERATED -->
+
+<!-- CLAUDE GENERATED: Calibration analysis -->
+
+### Uncertainty Interval Coverage (LLM Credible Interval Assessment)[^calib-ai]
+
+[^calib-ai]: This analysis addresses feedback about LLM uncertainty quantification.
+
+LLMs report 90% credible intervals alongside their point estimates. If these intervals are **well-specified**, approximately 90% of human mean ratings should fall within them. Lower coverage suggests the LLM is overconfident; higher coverage suggests unnecessary uncertainty.
+
+```{r}
+#| label: tbl-ci-coverage
+#| tbl-cap: "Share of human mean ratings within LLM 90% credible intervals"
+#| code-fold: true
+
+# Compute CI coverage: % of human means within LLM [lower_bound, upper_bound]
+compute_coverage <- function(criterion, model_name) {
+  human_mean <- metrics_human |>
+    filter(criteria == criterion, paper %in% matched_papers) |>
+    group_by(paper) |>
+    summarise(human_mid = mean(mid, na.rm = TRUE), .groups = "drop")
+
+  llm_ci <- llm_metrics |>
+    filter(criteria == criterion, model == model_name, paper %in% matched_papers) |>
+    select(paper, lower_bound, upper_bound)
+
+  combined <- inner_join(human_mean, llm_ci, by = "paper") |>
+    filter(!is.na(lower_bound), !is.na(upper_bound))
+
+  if (nrow(combined) < 3) return(NA_real_)
+
+  # Check if human mean falls within LLM CI
+  covered <- combined |>
+    mutate(in_ci = human_mid >= lower_bound & human_mid <= upper_bound) |>
+    summarise(coverage = mean(in_ci, na.rm = TRUE)) |>
+    pull(coverage)
+
+  covered
+}
+
+criteria_list <- c("overall", "claims", "methods", "adv_knowledge",
+                   "logic_comms", "open_sci", "gp_relevance")
+
+criterion_labels <- c(
+  overall = "Overall", claims = "Claims", methods = "Methods",
+  adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
+  open_sci = "Open Science", gp_relevance = "Global Relevance"
+)
+
+llm_models <- unique(llm_metrics$model)
+
+coverage_results <- tibble(Criterion = criterion_labels[criteria_list]) |>
+  mutate(criterion_key = criteria_list)
+
+for (mod in llm_models) {
+  col_name <- mod
+  coverage_results <- coverage_results |>
+    rowwise() |>
+    mutate(!!col_name := compute_coverage(criterion_key, mod)) |>
+    ungroup()
+}
+
+# Format for display
+coverage_display <- coverage_results |>
+  select(-criterion_key) |>
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.x), "—", scales::percent(.x, accuracy = 1))))
+
+knitr::kable(coverage_display, align = c("l", rep("r", ncol(coverage_display) - 1)))
+```
+
+**Interpretation**: Coverage near 90% indicates well-specified uncertainty. Coverage below 70% suggests systematic overconfidence; coverage above 95% may indicate overly wide intervals that provide little information.
+
+<!-- END CLAUDE GENERATED -->
+
+<!-- CLAUDE GENERATED: Formal statistical tests -->
+
+### Statistical Significance of Agreement Measures[^stats-ai]
+
+[^stats-ai]: Bootstrap inference was added with AI assistance to quantify uncertainty in agreement metrics.
+
+To assess whether observed correlations are statistically meaningful and to compare models, we compute **bootstrap 95% confidence intervals** for Pearson correlations. This nonparametric approach makes no distributional assumptions and accounts for the small sample sizes typical in evaluation studies.
+
+```{r}
+#| label: tbl-bootstrap-ci
+#| tbl-cap: "Bootstrap 95% CIs for human-LLM correlation (overall ratings)"
+#| code-fold: true
+
+set.seed(42)  # reproducibility
+
+# Bootstrap function for correlation
+boot_cor <- function(data, n_boot = 1000) {
+  cors <- numeric(n_boot)
+  n <- nrow(data)
+  for (i in 1:n_boot) {
+    idx <- sample(1:n, n, replace = TRUE)
+    # Use tryCatch to handle edge cases (e.g., constant values in sample)
+    cors[i] <- tryCatch(
+      cor(data$human[idx], data$llm[idx], use = "complete.obs"),
+      error = function(e) NA_real_,
+      warning = function(w) NA_real_
+    )
+  }
+  # Remove NAs before computing quantiles
+  cors_valid <- cors[!is.na(cors)]
+  if (length(cors_valid) < n_boot * 0.5) {
+    # Too many failed bootstraps - return NAs
+    return(c(estimate = NA_real_, ci_lo = NA_real_, ci_hi = NA_real_))
+  }
+  c(estimate = cor(data$human, data$llm, use = "complete.obs"),
+    ci_lo = quantile(cors_valid, 0.025, na.rm = TRUE),
+    ci_hi = quantile(cors_valid, 0.975, na.rm = TRUE))
+}
+
+# Prepare data: overall rating comparison
+human_overall <- metrics_human |>
+  filter(criteria == "overall", paper %in% matched_papers) |>
+  group_by(paper) |>
+  summarise(human = mean(mid, na.rm = TRUE), .groups = "drop")
+
+llm_models <- unique(llm_metrics$model)
+
+boot_results <- map_dfr(llm_models, function(mod) {
+  llm_overall <- llm_metrics |>
+    filter(criteria == "overall", model == mod, paper %in% matched_papers) |>
+    group_by(paper) |>
+    summarise(llm = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+  combined <- inner_join(human_overall, llm_overall, by = "paper")
+
+  if (nrow(combined) >= 5) {
+    res <- boot_cor(combined)
+    ci_lo <- res["ci_lo.2.5%"]
+    ci_hi <- res["ci_hi.97.5%"]
+    # Handle different quantile naming conventions
+    if (is.na(ci_lo)) ci_lo <- res["ci_lo"]
+    if (is.na(ci_hi)) ci_hi <- res["ci_hi"]
+
+    tibble(
+      Model = mod,
+      n = nrow(combined),
+      r = res["estimate"],
+      `95% CI` = if (is.na(ci_lo) || is.na(ci_hi)) "—" else sprintf("[%.2f, %.2f]", ci_lo, ci_hi)
+    )
+  } else {
+    tibble(Model = mod, n = nrow(combined), r = NA_real_, `95% CI` = "—")
+  }
+})
+
+if (nrow(boot_results) > 0) {
+  boot_results <- boot_results |>
+    mutate(r = ifelse(is.na(r), "—", sprintf("%.2f", r))) |>
+    arrange(desc(as.numeric(ifelse(r == "—", "-1", r))))
+
+  knitr::kable(boot_results, align = c("l", "r", "r", "r"))
+}
+```
+
+**Interpretation**: Non-overlapping confidence intervals suggest statistically distinguishable performance. Wide intervals reflect uncertainty due to limited sample size—a common constraint in evaluation research where obtaining more human judgments is costly.
+
+<!-- END CLAUDE GENERATED -->
+
+<!-- CLAUDE GENERATED: Information-theoretic measures -->
+
+### Information-Theoretic Perspective: Mutual Information[^info-ai]
+
+[^info-ai]: Information-theoretic interpretation added with AI assistance.
+
+Beyond correlation, we can ask: **how much information do LLM ratings convey about human ratings?** We use *mutual information* (MI), a fundamental concept from information theory [@cover2006elements; @shannon1948mathematical].
+
+**What is mutual information?** MI quantifies the *reduction in uncertainty* about one variable when you learn the value of another. Formally, MI(X;Y) = H(X) - H(X|Y), where H is entropy (average surprise/uncertainty). In plain terms:
+
+- Before seeing the LLM rating, you have some uncertainty about what the human rating will be
+- After seeing the LLM rating, how much does your uncertainty decrease?
+- MI measures this decrease, in *bits* (the same unit used in data compression and communication)
+
+**Why use MI instead of (or alongside) correlation?**
+
+| Property | Correlation (r) | Mutual Information |
+|----------|----------------|-------------------|
+| Captures linear relationships | Yes | Yes |
+| Captures nonlinear relationships | No | Yes |
+| Detects threshold effects | No | Yes |
+| Scale | -1 to +1 | 0 to ∞ bits |
+| Sensitive to outliers | Yes | Less so |
+
+A practical example: suppose the LLM predicts human ratings perfectly when the paper is methodology-focused, but randomly when it's theory-focused. Correlation might show r = 0.5 (moderate), but MI would reveal this is *inconsistent* performance rather than *uniformly moderate* performance. This distinction matters for deciding when to trust LLM evaluations.
+
+**How to interpret MI values (for 5-bin discretization):**
+
+- **0 bits**: Independence—LLM ratings tell you nothing about human ratings
+- **~0.5 bits**: Weak association—knowing LLM rating slightly reduces uncertainty
+- **~1.0 bits**: Moderate association—knowing LLM rating roughly halves your uncertainty
+- **~1.5 bits**: Strong association—substantial predictive value
+- **2.32 bits** (maximum): Perfect prediction—the LLM quintile perfectly determines the human quintile
+
+We discretize ratings into quintiles (5 bins) because MI is formally defined for discrete distributions. This preserves ordinal structure while avoiding overfitting to noise in continuous ratings.
+
+```{r}
+#| label: tbl-mutual-info
+#| tbl-cap: "Mutual information between human and LLM overall ratings"
+#| code-fold: true
+
+# Discretize into quintiles
+discretize <- function(x, n_bins = 5) {
+  breaks <- quantile(x, probs = seq(0, 1, length.out = n_bins + 1), na.rm = TRUE)
+  breaks <- unique(breaks)
+  if (length(breaks) < 2) return(rep(1, length(x)))
+  cut(x, breaks = breaks, labels = FALSE, include.lowest = TRUE)
+}
+
+# Compute mutual information: MI(X;Y) = sum p(x,y) log2(p(x,y) / p(x)p(y))
+compute_mi <- function(x, y) {
+  if (length(x) < 5 || length(y) < 5) return(NA_real_)
+
+  x_disc <- discretize(x)
+  y_disc <- discretize(y)
+
+  valid <- !is.na(x_disc) & !is.na(y_disc)
+  x_disc <- x_disc[valid]
+  y_disc <- y_disc[valid]
+
+  if (length(x_disc) < 5) return(NA_real_)
+
+  # Joint distribution p(x,y)
+  joint <- table(x_disc, y_disc) / length(x_disc)
+  # Marginal distributions p(x), p(y)
+  px <- rowSums(joint)
+  py <- colSums(joint)
+
+  # MI = sum over all (x,y) of p(x,y) * log2(p(x,y) / (p(x)*p(y)))
+  mi <- 0
+  for (i in seq_along(px)) {
+    for (j in seq_along(py)) {
+      if (joint[i, j] > 0 && px[i] > 0 && py[j] > 0) {
+        mi <- mi + joint[i, j] * log2(joint[i, j] / (px[i] * py[j]))
+      }
+    }
+  }
+  mi
+}
+
+llm_models <- unique(llm_metrics$model)
+
+mi_results <- map_dfr(llm_models, function(mod) {
+  llm_overall <- llm_metrics |>
+    filter(criteria == "overall", model == mod, paper %in% matched_papers) |>
+    group_by(paper) |>
+    summarise(llm = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+  combined <- inner_join(human_overall, llm_overall, by = "paper")
+  mi_val <- compute_mi(combined$human, combined$llm)
+
+  max_mi <- log2(5)  # ≈ 2.32 bits for 5 bins
+  norm_mi <- if (!is.na(mi_val)) mi_val / max_mi else NA_real_
+
+  tibble(
+    Model = mod,
+    n = nrow(combined),
+    `MI (bits)` = ifelse(is.na(mi_val), "—", sprintf("%.2f", mi_val)),
+    `Normalized` = ifelse(is.na(norm_mi), "—", sprintf("%.0f%%", norm_mi * 100))
+  )
+})
+
+if (nrow(mi_results) > 0) {
+  knitr::kable(mi_results, align = c("l", "r", "r", "r"))
+}
+```
+
+**Interpretation**: Normalized MI above 50% indicates substantial predictive value. If MI is low despite moderate correlation, investigate which paper characteristics the LLM struggles with—this points toward targeted improvements or hybrid human-AI workflows where humans handle cases the LLM finds difficult.
+
+<!-- END CLAUDE GENERATED -->
+
+### Agreement by Evaluation Criterion
+
+```{r}
+#| label: tbl-agreement-by-criterion
+#| tbl-cap: "Pearson and Spearman correlations by evaluation criterion"
+
+# Compute correlations for each criterion and model
+criterion_agreement <- llm_metrics |>
+  filter(paper %in% matched_papers) |>
+  inner_join(
+    metrics_human |>
+      filter(paper %in% matched_papers) |>
+      group_by(paper, criteria) |>
+      summarise(human_mid = mean(mid, na.rm = TRUE), .groups = "drop"),
+    by = c("paper", "criteria")
+  ) |>
+  group_by(Model = model, Criterion = criteria) |>
+  summarise(
+    n = n(),
+    r = cor(midpoint, human_mid, use = "complete.obs"),
+    rho = cor(midpoint, human_mid, method = "spearman", use = "complete.obs"),
+    .groups = "drop"
+  ) |>
+  filter(n >= 3)  # need at least 3 papers for meaningful correlation
+
+if (nrow(criterion_agreement) > 0) {
+
+  # Pivot for display
+  criterion_labels <- c(
+    overall = "Overall", claims = "Claims", methods = "Methods",
+    adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
+    open_sci = "Open Science", gp_relevance = "Global Relevance"
+  )
+
+  corr_table <- criterion_agreement |>
+    mutate(
+      Criterion = criterion_labels[Criterion],
+      `r / ρ` = sprintf("%.2f / %.2f", r, rho)
+    ) |>
+    select(Model, Criterion, `r / ρ`) |>
+    pivot_wider(names_from = Model, values_from = `r / ρ`, values_fill = "—")
+
+  # Order criteria
+  corr_table <- corr_table |>
+    mutate(Criterion = factor(Criterion, levels = criterion_labels)) |>
+    arrange(Criterion)
+
+  knitr::kable(corr_table, align = c("l", rep("r", ncol(corr_table) - 1)))
+}
+```
+
+## Rating Distribution by Model
+
+```{r}
+#| label: fig-rating-distribution
+#| fig-cap: "Distribution of overall ratings by evaluator type"
+#| fig-width: 10
+#| fig-height: 6
+
+all_overall <- bind_rows(
+  metrics_human |> filter(criteria == "overall") |> transmute(paper, model, rating = mid),
+  llm_metrics |> filter(criteria == "overall") |> transmute(paper, model, rating = midpoint)
+) |>
+  filter(paper %in% matched_papers) |>
+  filter(model != "Claude Sonnet 4")
+
+if (nrow(all_overall) > 0) {
+  ggplot(all_overall, aes(x = rating, fill = model)) +
+    geom_density(alpha = 0.5, adjust = 1.2) +
+    scale_fill_manual(values = MODEL_COLORS) +
+    labs(x = "Overall percentile (0–100)", y = "Density", fill = "Evaluator") +
+    theme_uj() +
+    theme(legend.position = "right")
+}
+```
+
+## Criteria-Level Comparison
+
+```{r}
+#| label: fig-criteria-heatmap
+#| fig-cap: "Mean rating by model and criterion"
+#| fig-width: 11
+#| fig-height: 6
+
+metric_labels <- c(
+  overall = "Overall", claims = "Claims", methods = "Methods",
+  adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
+  open_sci = "Open Science", gp_relevance = "Global Relevance"
+)
+
+criteria_means <- bind_rows(
+  metrics_human |>
+    filter(criteria %in% names(metric_labels), paper %in% matched_papers) |>
+    group_by(criteria) |>
+    summarise(mean_rating = mean(mid, na.rm = TRUE), .groups = "drop") |>
+    mutate(model = "Human"),
+  llm_metrics |>
+    filter(criteria %in% names(metric_labels), paper %in% matched_papers) |>
+    group_by(model, criteria) |>
+    summarise(mean_rating = mean(midpoint, na.rm = TRUE), .groups = "drop")
+) |>
+  mutate(criteria_label = factor(metric_labels[criteria], levels = metric_labels))
+
+if (nrow(criteria_means) > 0) {
+  ggplot(criteria_means, aes(x = criteria_label, y = model, fill = mean_rating)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    geom_text(aes(label = round(mean_rating, 0)), size = 4, color = "white", fontface = "bold") +
+    scale_fill_gradient(low = "#f0f0f0", high = UJ_ORANGE, limits = c(40, 80), name = "Mean") +
+    labs(x = NULL, y = NULL) +
+    theme_uj() +
+    theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 10), panel.grid = element_blank())
+}
+```
+
+<!-- CLAUDE GENERATED: Tier correlation dumbbell plot -->
+
+## Evaluation Priorities: What Predicts Journal Tier Judgments?[^tier-ai]
+
+[^tier-ai]: This analysis was added with AI assistance to reveal differences in what humans vs. LLMs emphasize when predicting journal outcomes.
+
+How do evaluators translate quality assessments into journal tier predictions? By correlating each criterion with "where should this publish?" judgments, we can see which factors each evaluator type weighs most heavily. Divergence here reveals systematic differences in evaluation priorities—what we might call "taste."
+
+```{r}
+#| label: fig-tier-correlations
+#| fig-cap: "Correlation of each criterion with journal tier predictions"
+#| fig-width: 12
+#| fig-height: 7
+#| code-fold: true
+
+# Load human tier data if available
+human_tiers_file <- "data/all_jtiers.csv"
+
+if (file.exists(human_tiers_file)) {
+
+  human_tiers_raw <- read_csv(human_tiers_file, show_col_types = FALSE) |>
+    clean_names()
+
+  # Check what columns are available and find the tier prediction column
+  # Typically 'merits_journal' or similar
+  tier_col <- intersect(names(human_tiers_raw), c("merits_journal", "journal_tier", "tier_should", "mid"))
+
+  if (length(tier_col) > 0) {
+
+    # Prepare human tier data
+    human_tier_data <- human_tiers_raw |>
+      filter(!is.na(.data[[tier_col[1]]])) |>
+      rename(tier_should = !!tier_col[1])
+
+    # Get paper identifier column
+    paper_col <- intersect(names(human_tier_data), c("label_paper", "paper", "research"))
+    if (length(paper_col) > 0) {
+      human_tier_data <- human_tier_data |> rename(paper = !!paper_col[1])
+    }
+
+    metrics_to_cor <- c("overall", "claims", "methods", "adv_knowledge",
+                        "logic_comms", "open_sci", "gp_relevance")
+
+    # === Human Correlations ===
+    human_wide <- metrics_human |>
+      filter(criteria %in% metrics_to_cor, paper %in% matched_papers) |>
+      group_by(paper, criteria) |>
+      summarise(mid = mean(mid, na.rm = TRUE), .groups = "drop") |>
+      pivot_wider(names_from = criteria, values_from = mid)
+
+    # Join with human tier predictions
+    human_tier_match <- human_tier_data |>
+      group_by(paper) |>
+      summarise(tier_should = mean(tier_should, na.rm = TRUE), .groups = "drop")
+
+    human_cors_data <- human_wide |>
+      inner_join(human_tier_match, by = "paper")
+
+    if (nrow(human_cors_data) >= 5) {
+      cors_human <- tibble(
+        metric = metrics_to_cor,
+        correlation = sapply(metrics_to_cor, function(m) {
+          if (m %in% names(human_cors_data) && !all(is.na(human_cors_data[[m]]))) {
+            cor(human_cors_data[[m]], human_cors_data$tier_should, use = "pairwise.complete.obs")
+          } else NA_real_
+        }),
+        source = "Human"
+      )
+    } else {
+      cors_human <- tibble(metric = character(), correlation = numeric(), source = character())
+    }
+
+    # === LLM Correlations ===
+    llm_wide <- llm_metrics |>
+      filter(criteria %in% metrics_to_cor, model == primary_model, paper %in% matched_papers) |>
+      group_by(paper, criteria) |>
+      summarise(mid = mean(midpoint, na.rm = TRUE), .groups = "drop") |>
+      pivot_wider(names_from = criteria, values_from = mid)
+
+    llm_tier_match <- llm_tiers |>
+      filter(tier_kind == "tier_should", model == primary_model) |>
+      group_by(paper) |>
+      summarise(tier_should = mean(score, na.rm = TRUE), .groups = "drop")
+
+    llm_cors_data <- llm_wide |>
+      inner_join(llm_tier_match, by = "paper")
+
+    if (nrow(llm_cors_data) >= 5) {
+      cors_llm <- tibble(
+        metric = metrics_to_cor,
+        correlation = sapply(metrics_to_cor, function(m) {
+          if (m %in% names(llm_cors_data) && !all(is.na(llm_cors_data[[m]]))) {
+            cor(llm_cors_data[[m]], llm_cors_data$tier_should, use = "pairwise.complete.obs")
+          } else NA_real_
+        }),
+        source = "LLM"
+      )
+    } else {
+      cors_llm <- tibble(metric = character(), correlation = numeric(), source = character())
+    }
+
+    # === Combine and plot ===
+    cors_combined <- bind_rows(cors_human, cors_llm) |>
+      filter(!is.na(correlation)) |>
+      mutate(
+        metric_label = case_when(
+          metric == "overall" ~ "Overall",
+          metric == "claims" ~ "Claims & Evidence",
+          metric == "methods" ~ "Methods",
+          metric == "adv_knowledge" ~ "Advancing Knowledge",
+          metric == "logic_comms" ~ "Logic & Communication",
+          metric == "open_sci" ~ "Open Science",
+          metric == "gp_relevance" ~ "Global Relevance",
+          TRUE ~ metric
+        )
+      )
+
+    if (nrow(cors_combined) > 0) {
+      # Order by average correlation
+      metric_order_cors <- cors_combined |>
+        group_by(metric_label) |>
+        summarise(avg_cor = mean(correlation, na.rm = TRUE), .groups = "drop") |>
+        arrange(desc(avg_cor)) |>
+        pull(metric_label)
+
+      cors_wide <- cors_combined |>
+        mutate(metric_label = factor(metric_label, levels = metric_order_cors)) |>
+        pivot_wider(names_from = source, values_from = correlation)
+
+      # Dumbbell plot
+      ggplot(cors_wide, aes(y = metric_label)) +
+        geom_segment(aes(x = Human, xend = LLM, yend = metric_label),
+                     color = "gray50", linewidth = 1.2, alpha = 0.4) +
+        geom_point(aes(x = Human), color = UJ_GREEN, size = 5, alpha = 0.9) +
+        geom_point(aes(x = LLM), color = UJ_ORANGE, size = 5, alpha = 0.9) +
+        geom_vline(xintercept = 0, linetype = "dashed", color = "gray40") +
+        geom_text(aes(x = Human, label = sprintf("%.2f", Human)),
+                  hjust = 1.4, size = 3.5, color = UJ_GREEN, fontface = "bold") +
+        geom_text(aes(x = LLM, label = sprintf("%.2f", LLM)),
+                  hjust = -0.4, size = 3.5, color = UJ_ORANGE, fontface = "bold") +
+        scale_x_continuous(
+          limits = c(min(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) - 0.15,
+                     max(c(cors_wide$Human, cors_wide$LLM), na.rm = TRUE) + 0.15)
+        ) +
+        labs(
+          x = "Correlation with 'Where should this publish?'",
+          y = NULL,
+          subtitle = paste0("Green = Human, Orange = ", primary_model)
+        ) +
+        theme_uj() +
+        theme(
+          panel.grid.major.x = element_line(color = "grey90"),
+          panel.grid.major.y = element_blank(),
+          axis.text.y = element_text(size = 11)
+        )
+    } else {
+      cat("Insufficient correlation data for dumbbell plot.\n")
+    }
+  } else {
+    cat("Tier prediction column not found in human data.\n")
+  }
+} else {
+  cat("Human tier data file not found.\n")
+}
+```
+
+**Interpretation**: Large divergences indicate different evaluation philosophies. For example, if humans weight "open science" heavily but LLMs don't, this suggests the LLM may undervalue reproducibility when forming overall judgments.
+
+<!-- END CLAUDE GENERATED -->
+
+---
+
+<!-- CLAUDE GENERATED: Human-LLM gap heatmap -->
+
+## Systematic Rating Differences by Paper and Criterion[^gap-ai]
+
+[^gap-ai]: This visualization was added with AI assistance to identify patterns in human-LLM disagreement.
+
+The heatmap below shows **Human − LLM** differences for each paper and criterion. Green indicates humans rated higher than the LLM; orange indicates the LLM rated higher. Papers are ordered by their overall rating difference.
+
+```{r}
+#| label: fig-gap-heatmap
+#| fig-cap: "Human − LLM rating differences by paper and criterion"
+#| fig-width: 14
+#| fig-height: 8
+#| code-fold: true
+
+metric_order <- c("overall", "claims", "methods", "adv_knowledge",
+                  "logic_comms", "open_sci", "gp_relevance")
+metric_lab <- c(
+  overall = "Overall",
+  claims = "Claims & Evidence",
+  methods = "Methods",
+  adv_knowledge = "Adv. Knowledge",
+  logic_comms = "Logic & Comms",
+  open_sci = "Open Science",
+  gp_relevance = "Global Relevance"
+)
+
+# Use the first/primary LLM model for comparison (GPT-5 Pro if available)
+primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
+
+H_mean <- metrics_human |>
+  filter(criteria %in% metric_order, paper %in% matched_papers) |>
+  group_by(paper, criteria) |>
+  summarise(h = mean(mid, na.rm = TRUE), .groups = "drop")
+
+L_mean <- llm_metrics |>
+  filter(criteria %in% metric_order, model == primary_model, paper %in% matched_papers) |>
+  group_by(paper, criteria) |>
+  summarise(l = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+Ddiff <- inner_join(H_mean, L_mean, by = c("paper", "criteria")) |>
+  mutate(diff = h - l) |>
+  mutate(crit = factor(criteria, levels = metric_order, labels = metric_lab[metric_order]))
+
+# Order papers by overall difference (Human−LLM)
+ord_p <- Ddiff |>
+  filter(criteria == "overall") |>
+  arrange(desc(diff)) |>
+  pull(paper)
+
+if (length(ord_p) > 0 && nrow(Ddiff) > 0) {
+  ggplot(Ddiff, aes(x = factor(paper, levels = ord_p), y = crit, fill = diff)) +
+    geom_tile(color = "white", linewidth = 0.25) +
+    scale_fill_gradient2(
+      low = UJ_ORANGE, mid = "grey95", high = UJ_GREEN, midpoint = 0,
+      name = "Human − LLM",
+      limits = c(-30, 30),
+      oob = scales::squish
+    ) +
+    labs(x = NULL, y = NULL,
+         subtitle = paste0("Primary model: ", primary_model)) +
+    theme_uj() +
+    theme(
+      axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 7),
+      axis.text.y = element_text(size = 11),
+      panel.grid = element_blank()
+    )
+} else {
+  cat("Insufficient data for gap heatmap.\n")
+}
+```
+
+This visualization helps identify: (1) papers with systematic disagreement across all criteria, (2) criteria where humans and LLMs consistently diverge, and (3) potential patterns related to paper characteristics.
+
+<!-- END CLAUDE GENERATED -->
+
+<!-- CLAUDE GENERATED: Top disagreement cases -->
+
+## Papers with Largest Human-LLM Disagreement[^disagree-ai]
+
+[^disagree-ai]: This table was added with AI assistance to facilitate qualitative investigation of outliers.
+
+Understanding *why* specific papers generate disagreement can inform both LLM limitations and potential human biases. The table below shows papers where humans and LLMs diverged most.
+
+```{r}
+#| label: tbl-top-disagreement
+#| tbl-cap: "Papers with largest human vs. LLM rating differences"
+#| code-fold: true
+
+# Compute mean overall ratings and differences
+H_overall <- metrics_human |>
+  filter(criteria == "overall", paper %in% matched_papers) |>
+  group_by(paper) |>
+  summarise(human_rating = mean(mid, na.rm = TRUE), .groups = "drop")
+
+L_overall <- llm_metrics |>
+  filter(criteria == "overall", model == primary_model, paper %in% matched_papers) |>
+  group_by(paper) |>
+  summarise(llm_rating = mean(midpoint, na.rm = TRUE), .groups = "drop")
+
+rating_diffs <- H_overall |>
+  inner_join(L_overall, by = "paper") |>
+  mutate(diff = human_rating - llm_rating)
+
+# Helper: truncate long titles
+truncate_title <- function(title, max_len = 50) {
+  if (nchar(title) <= max_len) return(title)
+  paste0(substr(title, 1, max_len - 3), "...")
+}
+
+# Top 5 where humans rated higher
+top_human_pref <- rating_diffs |>
+  filter(diff > 0) |>
+  arrange(desc(diff)) |>
+  slice_head(n = 5) |>
+  mutate(
+    Paper = sapply(paper, truncate_title),
+    `Human Rating` = round(human_rating, 0),
+    `LLM Rating` = round(llm_rating, 0),
+    `Difference` = sprintf("%+.0f", diff),
+    Direction = "Human > LLM"
+  ) |>
+  select(Paper, `Human Rating`, `LLM Rating`, Difference, Direction)
+
+# Top 5 where LLM rated higher
+top_llm_pref <- rating_diffs |>
+  filter(diff < 0) |>
+  arrange(diff) |>
+  slice_head(n = 5) |>
+  mutate(
+    Paper = sapply(paper, truncate_title),
+    `Human Rating` = round(human_rating, 0),
+    `LLM Rating` = round(llm_rating, 0),
+    `Difference` = sprintf("%+.0f", diff),
+    Direction = "LLM > Human"
+  ) |>
+  select(Paper, `Human Rating`, `LLM Rating`, Difference, Direction)
+
+# Combine
+top_disagree <- bind_rows(top_human_pref, top_llm_pref)
+
+if (nrow(top_disagree) > 0) {
+  knitr::kable(top_disagree, align = c("l", "r", "r", "r", "l"))
+} else {
+  cat("Insufficient data for disagreement analysis.\n")
+}
+```
+
+These outliers merit qualitative investigation: examining the paper characteristics, human evaluator comments, and LLM rationales may reveal systematic patterns in what drives disagreement.
+
+<!-- END CLAUDE GENERATED -->
+
+---
+
+*Note: GPT-5 Pro evaluations include extended reasoning traces. See the [Appendix](appendix_llm_traces.qmd) for full assessment summaries and reasoning traces per paper.*
+
+## Prompt Comparison: Legacy vs Updated GPT-5 Pro
+
+We compare GPT-5 Pro evaluations between two prompt versions:
+
+- **Legacy (Oct 2024):** Original combined schema without assessment summary
+- **Updated (Jan 2026):** Modular prompt with explicit diagnostic assessment summary
+
+```{r}
+#| label: load-legacy-comparison
+#| code-fold: true
+#| code-summary: "Load legacy vs updated GPT-5 Pro data"
+#| message: false
+
+# Load legacy GPT-5 data
+legacy_metrics <- read_csv("data/metrics_long_gpt-5.csv", show_col_types = FALSE) |>
+  transmute(
+    paper_raw = paper,
+    paper = str_replace_all(paper, " ", "_") |> str_replace_all("\\.", ""),  # normalize
+    metric = metric,
+    legacy_mid = midpoint,
+    legacy_lo = lower_bound,
+    legacy_hi = upper_bound
+  )
+
+# Load updated GPT-5 Pro data
+updated_metrics <- read_csv("data/metrics_long_gpt5_pro_jan2026.csv", show_col_types = FALSE) |>
+  transmute(
+    paper = str_replace_all(paper, "\\.", ""),  # remove dots for matching
+    metric = metric,
+    updated_mid = midpoint,
+    updated_lo = lower_bound,
+    updated_hi = upper_bound
+  )
+
+# Join by normalized paper name and metric
+prompt_comparison <- legacy_metrics |>
+  inner_join(updated_metrics, by = c("paper", "metric")) |>
+  mutate(
+    diff = updated_mid - legacy_mid,
+    metric_label = case_when(
+      metric == "overall" ~ "Overall",
+      metric == "claims_evidence" ~ "Claims",
+      metric == "methods" ~ "Methods",
+      metric == "advancing_knowledge" ~ "Adv. Knowledge",
+      metric == "logic_communication" ~ "Logic & Comms",
+      metric == "open_science" ~ "Open Science",
+      metric == "global_relevance" ~ "Global Relevance",
+      TRUE ~ metric
+    )
+  )
+
+n_matched_papers <- n_distinct(prompt_comparison$paper)
+```
+
+We matched `r n_matched_papers` papers across both runs.
+
+```{r}
+#| label: fig-prompt-scatter
+#| fig-cap: "Legacy vs Updated GPT-5 Pro ratings (overall metric)"
+#| fig-width: 8
+#| fig-height: 7
+
+overall_comp <- prompt_comparison |> filter(metric == "overall")
+
+if (nrow(overall_comp) > 0) {
+  cor_val <- cor(overall_comp$legacy_mid, overall_comp$updated_mid, use = "complete.obs")
+
+  ggplot(overall_comp, aes(x = legacy_mid, y = updated_mid)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
+    geom_point(alpha = 0.7, size = 2.5, color = UJ_ORANGE) +
+    geom_smooth(method = "lm", se = TRUE, alpha = 0.2, color = UJ_BLUE) +
+    annotate("text", x = 55, y = 95,
+             label = paste0("r = ", round(cor_val, 2)),
+             size = 5, fontface = "bold") +
+    labs(
+      x = "Legacy Prompt (Oct 2024)",
+      y = "Updated Prompt (Jan 2026)",
+      title = "GPT-5 Pro: Overall Rating Comparison",
+      subtitle = "Dashed line = perfect agreement"
+    ) +
+    coord_fixed(xlim = c(40, 100), ylim = c(40, 100)) +
+    theme_uj()
+}
+```
+
+```{r}
+#| label: fig-prompt-diff-by-metric
+#| fig-cap: "Rating difference (Updated - Legacy) by criterion"
+#| fig-width: 10
+#| fig-height: 5
+
+if (nrow(prompt_comparison) > 0) {
+  metric_order <- prompt_comparison |>
+    group_by(metric_label) |>
+    summarise(mean_diff = mean(diff, na.rm = TRUE)) |>
+    arrange(mean_diff) |>
+    pull(metric_label)
+
+  prompt_comparison |>
+    mutate(metric_label = factor(metric_label, levels = metric_order)) |>
+    ggplot(aes(x = metric_label, y = diff)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+    geom_boxplot(fill = UJ_ORANGE, alpha = 0.6, outlier.alpha = 0.3) +
+    labs(
+      x = NULL,
+      y = "Rating Difference (Updated - Legacy)",
+      title = "Prompt Version Effect by Criterion",
+      subtitle = "Positive = updated prompt rates higher"
+    ) +
+    theme_uj() +
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+}
+```
+
+```{r}
+#| label: tbl-prompt-summary
+#| tbl-cap: "Summary statistics: Legacy vs Updated prompt"
+
+if (nrow(prompt_comparison) > 0) {
+  prompt_comparison |>
+    group_by(Criterion = metric_label) |>
+    summarise(
+      `Legacy Mean` = round(mean(legacy_mid, na.rm = TRUE), 1),
+      `Updated Mean` = round(mean(updated_mid, na.rm = TRUE), 1),
+      `Mean Diff` = round(mean(diff, na.rm = TRUE), 1),
+      `SD Diff` = round(sd(diff, na.rm = TRUE), 1),
+      .groups = "drop"
+    ) |>
+    kable() |>
+    kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+}
+```
+
+The updated prompt with explicit diagnostic assessment appears to produce systematically different ratings. The correlation between prompt versions indicates the degree of consistency across the prompt change.

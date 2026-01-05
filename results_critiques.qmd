@@ -1,0 +1,233 @@
+---
+title: "Results: Critiques & Key Issues"
+format:
+  html: default
+engine: knitr
+---
+
+```{r}
+#| label: setup-critiques
+#| code-summary: "Setup and libraries"
+#| code-fold: true
+#| message: false
+#| warning: false
+
+library("tidyverse")
+library("jsonlite")
+library("knitr")
+library("kableExtra")
+library("DT")
+
+# Theme colors (matching results_ratings.qmd)
+UJ_ORANGE <- "#f19e4b"
+UJ_GREEN  <- "#99bb66"
+UJ_BLUE   <- "#4e79a7"
+
+theme_uj <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title.position = "plot",
+      legend.position = "bottom"
+    )
+}
+```
+
+This chapter compares **qualitative critiques**: the key methodological and interpretive issues identified by GPT-5.2 Pro against human expert critiques documented by Unjournal evaluation managers in Coda.
+
+## Data Sources
+
+**GPT-5.2 Pro Key Issues**: Structured output from the focal evaluation run (January 2026), where the model was prompted to identify 5-15 key issues per paper, ordered from most to least important.
+
+**Human Expert Critiques**: Curated content from the "Key critiques & issues with paper" column in The Unjournal's internal tracking database (Coda), written by evaluation managers synthesizing evaluator feedback. These use severity labels ("Necessary", "Optional but important", "Unsure") and cite specific evaluator comments.
+
+```{r}
+#| label: load-comparison-data
+#| code-fold: true
+#| code-summary: "Load comparison data"
+
+# Load the matched comparison data
+comparison_file <- "results/key_issues_comparison.json"
+
+if (file.exists(comparison_file)) {
+  comparison_data <- fromJSON(comparison_file)
+  n_papers <- nrow(comparison_data)
+} else {
+  comparison_data <- NULL
+  n_papers <- 0
+}
+```
+
+We matched **`r n_papers` papers** with both GPT-5.2 Pro key issues and human expert critiques.
+
+## Overview Statistics
+
+```{r}
+#| label: tbl-overview-stats
+#| tbl-cap: "Summary of key issues comparison data"
+
+if (!is.null(comparison_data) && n_papers > 0) {
+  overview <- comparison_data |>
+    mutate(
+      num_gpt_issues = sapply(gpt_key_issues, length)
+    ) |>
+    summarise(
+      `Papers Compared` = n(),
+      `Avg GPT Issues per Paper` = round(mean(num_gpt_issues), 1),
+      `Min GPT Issues` = min(num_gpt_issues),
+      `Max GPT Issues` = max(num_gpt_issues),
+      `Avg Coda Critique Length (chars)` = round(mean(coda_critique_length)),
+      `Min Coda Length` = min(coda_critique_length),
+      `Max Coda Length` = max(coda_critique_length)
+    ) |>
+    pivot_longer(everything(), names_to = "Metric", values_to = "Value")
+
+  kable(overview, align = c("l", "r"))
+}
+```
+
+## Paper-by-Paper Comparison {#sec-paper-comparison}
+
+The sections below show side-by-side comparisons for each matched paper. Human critiques often use severity labels and cite specific evaluators (E1, E2, etc.), while GPT issues are concise bullet points ordered by importance.
+
+```{r}
+#| label: render-comparisons
+#| results: asis
+#| code-fold: true
+
+if (!is.null(comparison_data) && n_papers > 0) {
+
+  for (i in 1:nrow(comparison_data)) {
+    row <- comparison_data[i, ]
+
+    # Paper header
+    cat(sprintf("\n### %s\n\n", row$gpt_paper))
+    cat(sprintf("**Coda title:** %s\n\n", row$coda_title))
+
+    # Two-column layout using Quarto divs
+    cat("::: {.columns}\n")
+    cat("::: {.column width=\"48%\"}\n")
+    cat("#### GPT-5.2 Pro Key Issues\n\n")
+
+    # GPT issues
+    gpt_issues <- row$gpt_key_issues[[1]]
+    for (issue in gpt_issues) {
+      # Clean up numbering if present
+      issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
+      cat(sprintf("- %s\n", issue_clean))
+    }
+
+    cat("\n:::\n")
+    cat("::: {.column width=\"4%\"}\n")
+    cat("\n:::\n")  # spacer
+    cat("::: {.column width=\"48%\"}\n")
+    cat("#### Human Expert Critiques\n\n")
+
+    # Coda critique (preserve formatting)
+    coda_text <- row$coda_critique
+    # Convert line breaks to markdown
+    coda_text <- gsub("\n", "\n\n", coda_text)
+    cat(coda_text)
+
+    cat("\n:::\n")
+    cat(":::\n\n")
+    cat("---\n\n")
+  }
+}
+```
+
+## Summary and Observations
+
+```{r}
+#| label: summary-analysis
+#| code-fold: true
+
+if (!is.null(comparison_data) && n_papers > 0) {
+
+  # Calculate some summary statistics
+  issue_counts <- comparison_data |>
+    mutate(
+      num_gpt_issues = sapply(gpt_key_issues, length),
+      paper_short = str_trunc(gpt_paper, 30)
+    ) |>
+    select(paper_short, num_gpt_issues, coda_critique_length)
+}
+```
+
+### Issue Count Distribution
+
+```{r}
+#| label: fig-issue-counts
+#| fig-cap: "Number of key issues identified by GPT-5.2 Pro per paper"
+#| fig-width: 10
+#| fig-height: 5
+
+if (!is.null(comparison_data) && n_papers > 0) {
+
+  issue_counts |>
+    ggplot(aes(x = reorder(paper_short, num_gpt_issues), y = num_gpt_issues)) +
+    geom_col(fill = UJ_ORANGE, alpha = 0.8) +
+    geom_hline(yintercept = mean(issue_counts$num_gpt_issues),
+               linetype = "dashed", color = UJ_BLUE, linewidth = 1) +
+    coord_flip() +
+    labs(
+      x = NULL,
+      y = "Number of Key Issues",
+      subtitle = paste0("Dashed line = mean (", round(mean(issue_counts$num_gpt_issues), 1), " issues)")
+    ) +
+    theme_uj()
+}
+```
+
+### Coda Critique Length vs GPT Issue Count
+
+```{r}
+#| label: fig-length-scatter
+#| fig-cap: "Relationship between human critique detail and GPT issue count"
+#| fig-width: 8
+#| fig-height: 6
+
+if (!is.null(comparison_data) && n_papers > 0) {
+
+  ggplot(issue_counts, aes(x = coda_critique_length, y = num_gpt_issues)) +
+    geom_point(size = 3, color = UJ_ORANGE, alpha = 0.7) +
+    geom_smooth(method = "lm", se = TRUE, color = UJ_BLUE, alpha = 0.2) +
+    labs(
+      x = "Human Critique Length (characters)",
+      y = "GPT-5.2 Pro Issue Count"
+    ) +
+    theme_uj()
+}
+```
+
+### Observable Structural Differences
+
+The following are **verifiable structural differences** between the two data sources (not assessments of quality or coverage):
+
+| Aspect | GPT-5.2 Pro | Human Expert (Coda) |
+|--------|-------------|---------------------|
+| Format | Numbered bullet points (array of strings) | Free-form prose |
+| Structure | Ordered list (prompted: "most to least important") | Often uses severity labels ("Necessary", "Optional but important") |
+| Source attribution | None (single model output) | Often cites specific evaluators (E1, E2, names) |
+| Length | Constrained by prompt (~10-12 issues) | Unconstrained, highly variable |
+
+### Questions for Manual Review
+
+The side-by-side comparisons above are provided for **manual expert assessment**. Key questions to investigate:
+
+1. **Coverage**: What proportion of human-identified issues appear in the GPT output (in some form)?
+2. **Precision**: Are GPT issues substantive or does the model identify spurious/generic concerns?
+3. **Severity alignment**: Does GPT's importance ordering correlate with human severity labels?
+4. **Missed issues**: Are there critical human concerns that GPT systematically misses?
+5. **Novel issues**: Does GPT surface valid concerns that humans overlooked?
+
+::: {.callout-warning}
+## No Automated Assessment Yet
+
+This page displays raw data for manual review. The claims about coverage, precision, and alignment **have not been assessed**—they require either:
+
+- Manual expert review of each paper's comparisons
+- LLM-based comparison (run `python compare_key_issues.py --compare` when API is available)
+
+Any conclusions about "high overlap" or "systematic differences" should emerge from that analysis, not be assumed.
+:::
