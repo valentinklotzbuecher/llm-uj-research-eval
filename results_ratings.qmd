@@ -303,20 +303,20 @@ model_summary <- cost_data |>
   )
 ```
 
-We compare LLM-generated research evaluations against human expert reviews from [The Unjournal](https://unjournal.org). This analysis covers `r n_llm_papers` papers evaluated by `r n_llm_models` frontier LLMs (`r llm_model_list`), with `r n_matched` papers having both human and LLM evaluations for direct comparison. Human evaluations come from `r n_human_evaluators` expert reviewers across `r n_human_papers` papers in The Unjournal's database.
+We compare LLM-generated research evaluations against human expert reviews from [The Unjournal](https://unjournal.pubpub.org). This analysis covers `r n_llm_papers` papers evaluated by `r n_llm_models` frontier LLMs (`r llm_model_list`), with `r n_matched` papers having both human and LLM evaluations for direct comparison. Human evaluations come from `r n_human_evaluators` expert reviewers across `r n_human_papers` papers in The Unjournal's database.
 
 ## Evaluation Overview
 
-We submit each PDF through a single, schema-enforced Responses call. The system prompt mirrors the Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. We enforce well-formed intervals (lower < midpoint < upper for 0–100 metrics; ci_lower < score < ci_upper for 0–5 tiers). GPT-5 Pro runs with reasoning effort = "high", so traces are available for audit (see [Methods](methods.qmd)).
+The previous [Methods](methods.qmd)) chapter explains our process and pipeline.[^results_ratings-1] This generally mirrors The Unjournal's rubric and [guidelines](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators), requesting a range of percentile metrics and normative and predictive 'journal tiers' metrics.^[0–100 percentiles relative to a reference group of ~'all serious work you have read in this area in the last three years', overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), abd global_relevance (decision and priority usefulness).  Journal tiers: (0–5, continuous) capture where the work should publish vs. will publish.]
 
-Metrics (0–100 unless noted): overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), global_relevance (decision and priority usefulness). Journal tiers (0–5, continuous) capture where the work should publish vs. will publish.
+[^results_ratings-1]: We submit each PDF through a single, schema-enforced Responses call. The system prompt mirrors the Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a \~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. We enforce well-formed intervals (lower \< midpoint \< upper for 0–100 metrics; ci_lower \< score \< ci_upper for 0–5 tiers). GPT-5 Pro runs with reasoning effort = "high", so traces are available for audit.
 
 Each numeric field carries a midpoint (model’s 50% belief) and a 90% credible interval; wide intervals indicate acknowledged uncertainty.
 
-::: {.callout-note}
+::: callout-note
 ## Future Models
 
-We plan to extend this comparison to newer frontier models as they become available, including GPT-5.2 Pro, Claude Opus 4.5, Gemini 3, and Grok 3. 
+We are working to extend this comparison to newer frontier models as they become available and our funding permits, as well as adapting these to bespoke agent-based tools such as Refine.ink.
 :::
 
 ### Token Usage and Cost
@@ -367,7 +367,9 @@ if (nrow(cost_data) > 0) {
 }
 ```
 
----
+<!-- DR 7-1-26: Consider overlap between the content above and the methods chapter. We should have some introduction in this chapter but we don't need to talk about procedures in depth. Costs probably does belong here because it's tied to the practical implications. -->
+
+------------------------------------------------------------------------
 
 ## Interactive Forest Plot: Human vs LLM Ratings
 
@@ -551,10 +553,10 @@ if (nrow(scatter_data) > 0) {
 
 We assess agreement between LLM and human evaluators using multiple metrics:
 
-- **Pearson r**: Linear correlation between ratings
-- **Spearman ρ**: Rank-based correlation (robust to outliers)
-- **Mean bias**: Average difference (LLM − Human); positive = LLM rates higher
-- **RMSE/MAE**: Error magnitude measures
+-   **Pearson r**: Linear correlation between ratings
+-   **Spearman ρ**: Rank-based correlation (robust to outliers)
+-   **Mean bias**: Average difference (LLM − Human); positive = LLM rates higher
+-   **RMSE/MAE**: Error magnitude measures
 
 ```{r}
 #| label: tbl-agreement
@@ -581,8 +583,7 @@ if (nrow(scatter_data) > 0) {
 
 ### Inter-Rater Agreement (Krippendorff's Alpha)
 
-Krippendorff's alpha measures agreement among multiple raters, accounting for chance agreement. Values above 0.8 indicate good agreement; 0.67–0.8 is acceptable for exploratory research.
-Ceiling effects apply because human evaluators are not perfectly aligned.
+Krippendorff's alpha measures agreement among multiple raters, accounting for chance agreement. Values above 0.8 indicate good agreement; 0.67–0.8 is acceptable for exploratory research. Ceiling effects apply because human evaluators are not perfectly aligned.
 
 ```{r}
 #| label: tbl-krippendorff
@@ -656,14 +657,14 @@ if (requireNamespace("irr", quietly = TRUE)) {
 
 <!-- CLAUDE GENERATED: Human-human vs Human-LLM baseline comparison -->
 
-### Human-Human vs Human-LLM Agreement (Baseline Context)[^baseline-ai]
+### Human-Human vs Human-LLM Agreement (Baseline Context)[^results_ratings-2]
 
-[^baseline-ai]: This section was added with AI assistance to address feedback about contextualizing agreement metrics.
+[^results_ratings-2]: This section was added with AI assistance to address feedback about contextualizing agreement metrics.
 
 To interpret human-LLM agreement, we must compare against **human-human agreement** as an upper bound. If human evaluators only agree with each other at α = 0.5, then expecting LLMs to achieve α = 0.8 with humans would be unrealistic. The table below shows both:
 
-- **α~HH~**: Krippendorff's alpha among human evaluators (treating each evaluator as a separate rater)
-- **α~HL~**: Krippendorff's alpha between human mean and each LLM model
+-   **α~HH~**: Krippendorff's alpha among human evaluators (treating each evaluator as a separate rater)
+-   **α~HL~**: Krippendorff's alpha between human mean and each LLM model
 
 ```{r}
 #| label: tbl-human-baseline
@@ -756,9 +757,9 @@ if (requireNamespace("irr", quietly = TRUE)) {
 
 <!-- CLAUDE GENERATED: Calibration analysis -->
 
-### Uncertainty Interval Coverage (LLM Credible Interval Assessment)[^calib-ai]
+### Uncertainty Interval Coverage (LLM Credible Interval Assessment)[^results_ratings-3]
 
-[^calib-ai]: This analysis addresses feedback about LLM uncertainty quantification.
+[^results_ratings-3]: This analysis addresses feedback about LLM uncertainty quantification.
 
 LLMs report 90% credible intervals alongside their point estimates. If these intervals are **well-specified**, approximately 90% of human mean ratings should fall within them. Lower coverage suggests the LLM is overconfident; higher coverage suggests unnecessary uncertainty.
 
@@ -828,9 +829,9 @@ knitr::kable(coverage_display, align = c("l", rep("r", ncol(coverage_display) - 
 
 <!-- CLAUDE GENERATED: Formal statistical tests -->
 
-### Statistical Significance of Agreement Measures[^stats-ai]
+### Statistical Significance of Agreement Measures[^results_ratings-4]
 
-[^stats-ai]: Bootstrap inference was added with AI assistance to quantify uncertainty in agreement metrics.
+[^results_ratings-4]: Bootstrap inference was added with AI assistance to quantify uncertainty in agreement metrics.
 
 To assess whether observed correlations are statistically meaningful and to compare models, we compute **bootstrap 95% confidence intervals** for Pearson correlations. This nonparametric approach makes no distributional assumptions and accounts for the small sample sizes typical in evaluation studies.
 
@@ -915,37 +916,37 @@ if (nrow(boot_results) > 0) {
 
 <!-- CLAUDE GENERATED: Information-theoretic measures -->
 
-### Information-Theoretic Perspective: Mutual Information[^info-ai]
+### Information-Theoretic Perspective: Mutual Information[^results_ratings-5]
 
-[^info-ai]: Information-theoretic interpretation added with AI assistance.
+[^results_ratings-5]: Information-theoretic interpretation added with AI assistance.
 
 Beyond correlation, we can ask: **how much information do LLM ratings convey about human ratings?** We use *mutual information* (MI), a fundamental concept from information theory [@cover2006elements; @shannon1948mathematical].
 
-**What is mutual information?** MI quantifies the *reduction in uncertainty* about one variable when you learn the value of another. Formally, MI(X;Y) = H(X) - H(X|Y), where H is entropy (average surprise/uncertainty). In plain terms:
+**What is mutual information?** MI quantifies the *reduction in uncertainty* about one variable when you learn the value of another. Formally, MI(X;Y) = H(X) - H(X\|Y), where H is entropy (average surprise/uncertainty). In plain terms:
 
-- Before seeing the LLM rating, you have some uncertainty about what the human rating will be
-- After seeing the LLM rating, how much does your uncertainty decrease?
-- MI measures this decrease, in *bits* (the same unit used in data compression and communication)
+-   Before seeing the LLM rating, you have some uncertainty about what the human rating will be
+-   After seeing the LLM rating, how much does your uncertainty decrease?
+-   MI measures this decrease, in *bits* (the same unit used in data compression and communication)
 
 **Why use MI instead of (or alongside) correlation?**
 
-| Property | Correlation (r) | Mutual Information |
-|----------|----------------|-------------------|
-| Captures linear relationships | Yes | Yes |
-| Captures nonlinear relationships | No | Yes |
-| Detects threshold effects | No | Yes |
-| Scale | -1 to +1 | 0 to ∞ bits |
-| Sensitive to outliers | Yes | Less so |
+| Property                         | Correlation (r) | Mutual Information |
+|----------------------------------|-----------------|--------------------|
+| Captures linear relationships    | Yes             | Yes                |
+| Captures nonlinear relationships | No              | Yes                |
+| Detects threshold effects        | No              | Yes                |
+| Scale                            | -1 to +1        | 0 to ∞ bits        |
+| Sensitive to outliers            | Yes             | Less so            |
 
 A practical example: suppose the LLM predicts human ratings perfectly when the paper is methodology-focused, but randomly when it's theory-focused. Correlation might show r = 0.5 (moderate), but MI would reveal this is *inconsistent* performance rather than *uniformly moderate* performance. This distinction matters for deciding when to trust LLM evaluations.
 
 **How to interpret MI values (for 5-bin discretization):**
 
-- **0 bits**: Independence—LLM ratings tell you nothing about human ratings
-- **~0.5 bits**: Weak association—knowing LLM rating slightly reduces uncertainty
-- **~1.0 bits**: Moderate association—knowing LLM rating roughly halves your uncertainty
-- **~1.5 bits**: Strong association—substantial predictive value
-- **2.32 bits** (maximum): Perfect prediction—the LLM quintile perfectly determines the human quintile
+-   **0 bits**: Independence—LLM ratings tell you nothing about human ratings
+-   **\~0.5 bits**: Weak association—knowing LLM rating slightly reduces uncertainty
+-   **\~1.0 bits**: Moderate association—knowing LLM rating roughly halves your uncertainty
+-   **\~1.5 bits**: Strong association—substantial predictive value
+-   **2.32 bits** (maximum): Perfect prediction—the LLM quintile perfectly determines the human quintile
 
 We discretize ratings into quintiles (5 bins) because MI is formally defined for discrete distributions. This preserves ordinal structure while avoiding overfitting to noise in continuous ratings.
 
@@ -1140,9 +1141,9 @@ if (nrow(criteria_means) > 0) {
 
 <!-- CLAUDE GENERATED: Tier correlation dumbbell plot -->
 
-## Evaluation Priorities: What Predicts Journal Tier Judgments?[^tier-ai]
+## Evaluation Priorities: What Predicts Journal Tier Judgments?[^results_ratings-6]
 
-[^tier-ai]: This analysis was added with AI assistance to reveal differences in what humans vs. LLMs emphasize when predicting journal outcomes.
+[^results_ratings-6]: This analysis was added with AI assistance to reveal differences in what humans vs. LLMs emphasize when predicting journal outcomes.
 
 How do evaluators translate quality assessments into journal tier predictions? By correlating each criterion with "where should this publish?" judgments, we can see which factors each evaluator type weighs most heavily. Divergence here reveals systematic differences in evaluation priorities—what we might call "taste."
 
@@ -1308,13 +1309,13 @@ if (file.exists(human_tiers_file)) {
 
 <!-- END CLAUDE GENERATED -->
 
----
+------------------------------------------------------------------------
 
 <!-- CLAUDE GENERATED: Human-LLM gap heatmap -->
 
-## Systematic Rating Differences by Paper and Criterion[^gap-ai]
+## Systematic Rating Differences by Paper and Criterion[^results_ratings-7]
 
-[^gap-ai]: This visualization was added with AI assistance to identify patterns in human-LLM disagreement.
+[^results_ratings-7]: This visualization was added with AI assistance to identify patterns in human-LLM disagreement.
 
 The heatmap below shows **Human − LLM** differences for each paper and criterion. Green indicates humans rated higher than the LLM; orange indicates the LLM rated higher. Papers are ordered by their overall rating difference.
 
@@ -1388,9 +1389,9 @@ This visualization helps identify: (1) papers with systematic disagreement acros
 
 <!-- CLAUDE GENERATED: Top disagreement cases -->
 
-## Papers with Largest Human-LLM Disagreement[^disagree-ai]
+## Papers with Largest Human-LLM Disagreement[^results_ratings-8]
 
-[^disagree-ai]: This table was added with AI assistance to facilitate qualitative investigation of outliers.
+[^results_ratings-8]: This table was added with AI assistance to facilitate qualitative investigation of outliers.
 
 Understanding *why* specific papers generate disagreement can inform both LLM limitations and potential human biases. The table below shows papers where humans and LLMs diverged most.
 
@@ -1462,7 +1463,7 @@ These outliers merit qualitative investigation: examining the paper characterist
 
 <!-- END CLAUDE GENERATED -->
 
----
+------------------------------------------------------------------------
 
 *Note: GPT-5 Pro evaluations include extended reasoning traces. See the [Appendix](appendix_llm_traces.qmd) for full assessment summaries and reasoning traces per paper.*
 
@@ -1470,8 +1471,8 @@ These outliers merit qualitative investigation: examining the paper characterist
 
 We compare GPT-5 Pro evaluations between two prompt versions:
 
-- **Legacy (Oct 2024):** Original combined schema without assessment summary
-- **Updated (Jan 2026):** Modular prompt with explicit diagnostic assessment summary
+-   **Legacy (Oct 2024):** Original combined schema without assessment summary
+-   **Updated (Jan 2026):** Modular prompt with explicit diagnostic assessment summary
 
 ```{r}
 #| label: load-legacy-comparison

@@ -226,8 +226,51 @@ The side-by-side comparisons above are provided for **manual expert assessment**
 
 This page displays raw data for manual review. The claims about coverage, precision, and alignment **have not been assessed**—they require either:
 
-- Manual expert review of each paper's comparisons
+- **Manual annotation** using the Issue Annotation Tool (see below)
 - LLM-based comparison (run `python compare_key_issues.py --compare` when API is available)
 
 Any conclusions about "high overlap" or "systematic differences" should emerge from that analysis, not be assumed.
+:::
+
+## Manual Annotation Tool
+
+To systematically assess concordance between human and LLM critiques, use the **Issue Annotation Tool**:
+
+```bash
+# 1. Generate annotation data (parses human critiques into individual issues)
+python3 tools/build_issue_annotation_data.py
+
+# 2. Open the annotation UI in a browser
+open tools/issue_annotation_ui/index.html
+```
+
+**Annotation workflow:**
+
+For each human-identified issue:
+
+1. **Match score (0-1)**: How well do LLM issues capture this concern?
+   - 0 = Not addressed at all
+   - 0.5 = Partially captured or tangentially related
+   - 1 = Fully captured by one or more LLM issues
+
+2. **Confidence (0-1)**: How certain are you of this assessment?
+
+3. **Context flag**: Check if the human critique references information the LLM didn't have (e.g., author responses, evaluator discussions post-evaluation)
+
+4. **Link to LLM issues**: Select which LLM issues (L1, L2, ...) correspond to this human issue
+
+5. **Discussion**: Explain your reasoning, note partial matches, or flag ambiguities
+
+**Export** annotations as JSON/CSV for analysis. Annotations are auto-saved to browser localStorage.
+
+::: {.callout-note}
+## Annotation Data Schema
+
+The tool parses human critiques using heuristics:
+
+- **Severity labels** normalized to: `necessary`, `optional`, `unsure`
+- **Evaluator attributions** (E1, E2, DR) preserved in issue text
+- **Issue boundaries** detected via enumeration, sentence breaks, and section headers
+
+Review parsed issues in the UI and edit/add/remove as needed before annotating.
 :::
