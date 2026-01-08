@@ -81,12 +81,12 @@ The Quarto book is organized into chapters:
 
 - **index.qmd**: Introduction, motivation, related work
 - **methods.qmd**: Data sources, LLM evaluation pipeline, system prompts, JSON schema
-- **results.qmd**: Analysis and visualizations comparing LLM vs human evaluations
-- **questions_answers.qmd**: Q&A section
-- **discussion.qmd**: Discussion and implications (focused on LLM evaluation project only)
+- **results_ratings.qmd**: Quantitative analysis comparing LLM vs human ratings (correlations, agreement metrics, calibration)
+- **results_critiques.qmd**: Qualitative comparison of LLM key issues vs human expert critiques (side-by-side display)
 - **references.qmd**: Bibliography
 
 **Appendices:**
+- **appendix_llm_traces.qmd**: Full assessment summaries and reasoning traces from LLM evaluations
 - **paper_response_analysis.qmd**: Separate analysis tracking whether authors updated papers in response to Unjournal evaluations (not part of main LLM evaluation discussion)
 
 Configuration: `_quarto.yml`
@@ -303,6 +303,64 @@ The `side_projects/` directory contains separate analysis pipelines and utilitie
 - Other experimental analyses not part of the main LLM evaluation pipeline
 
 These are not part of the main evaluation or analysis pipelines.
+
+### Issue Annotation Tool (Manual Concordance Labeling)
+
+**Purpose:** Browser-based UI for manually labeling the concordance between human expert critiques and LLM-identified key issues. Enables systematic assessment of coverage, precision, and alignment.
+
+**Location:** `tools/issue_annotation_ui/`
+
+**Key files:**
+- `tools/build_issue_annotation_data.py` - Data builder that parses human critiques and LLM responses
+- `tools/issue_annotation_ui/index.html` - Main annotation interface
+- `tools/issue_annotation_ui/app.js` - Application logic with localStorage persistence
+- `tools/issue_annotation_ui/data.json` - Generated annotation dataset
+- `tools/issue_annotation_ui/README.md` - Quick reference
+
+**Workflow:**
+
+1. **Generate annotation data:**
+   ```bash
+   python3 tools/build_issue_annotation_data.py
+   ```
+   This parses `results/key_issues_comparison.json` and LLM response JSONs, extracts individual human issues with severity labels, and outputs `data.json` and `data.js`.
+
+2. **Open the UI:**
+   Open `tools/issue_annotation_ui/index.html` in a browser (no server required).
+
+3. **Annotate each human issue:**
+   - Select a paper from the dropdown
+   - For each human-identified issue:
+     - Set **match score** (0-1): How well do LLM issues capture this concern?
+     - Set **confidence** (0-1): How certain are you of this assessment?
+     - Check **"Context not shared with LLM"** if the human critique references information the LLM didn't have access to
+     - **Link to LLM issues**: Check boxes for which LLM issues correspond to this human issue
+     - Add **discussion notes** explaining your reasoning
+
+4. **Export annotations:**
+   - Download as JSON or CSV for analysis
+   - Annotations are auto-saved to browser localStorage
+
+**Data schema:**
+
+Human issues are parsed from Coda critiques with heuristic extraction:
+- Severity labels normalized to: `necessary`, `optional`, `unsure`
+- Evaluator attributions (E1, E2, DR) preserved in issue text
+- Enumerated lists and sentence boundaries used as delimiters
+
+**Export fields:**
+- `annotator`, `paper_id`, `paper_title`
+- `human_issue_id`, `human_issue_text`, `severity`
+- `match_score`, `match_confidence`, `context_not_shared`
+- `linked_llm_issue_ids` (comma-separated)
+- `discussion`
+
+**Integration with analysis:**
+
+Exported annotations can be used in `results_critiques.qmd` to compute:
+- Coverage: % of human issues with match_score > threshold
+- Precision: Via linked LLM issues analysis
+- Inter-rater reliability: If multiple annotators label the same papers
 
 ## Common Development Tasks
 
