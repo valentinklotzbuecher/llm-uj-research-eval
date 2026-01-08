@@ -35,6 +35,20 @@ theme_uj <- function(base_size = 11) {
 
 This chapter compares **qualitative critiques**: the key methodological and interpretive issues identified by GPT-5.2 Pro against human expert critiques documented by Unjournal evaluation managers in Coda.
 
+This page displays raw data for manual review. The claims about coverage, precision, and alignment require either:
+
+- Manual expert review of each paper's comparisons
+- LLM-based comparison
+
+(Jan 8 2026: We are working on both approaches)
+
+
+- **Manual annotation** using the Issue Annotation Tool (see below)
+- LLM-based comparison (run `python compare_key_issues.py --compare` when API is available)
+
+Any conclusions about "high overlap" or "systematic differences" should emerge from that analysis, not be assumed.
+:::
+
 ## Data Sources
 
 **GPT-5.2 Pro Key Issues**: Structured output from the focal evaluation run (January 2026), where the model was prompted to identify 5-15 key issues per paper, ordered from most to least important.
@@ -97,12 +111,23 @@ The sections below show side-by-side comparisons for each matched paper. Human c
 
 if (!is.null(comparison_data) && n_papers > 0) {
 
+  # Check if LLM assessment fields exist
+  has_assessment <- "coverage_pct" %in% names(comparison_data)
+
   for (i in 1:nrow(comparison_data)) {
     row <- comparison_data[i, ]
 
     # Paper header
     cat(sprintf("\n### %s\n\n", row$gpt_paper))
     cat(sprintf("**Coda title:** %s\n\n", row$coda_title))
+
+    # Show LLM assessment badge if available
+    if (has_assessment && !is.na(row$coverage_pct)) {
+      cat(sprintf("::: {.callout-note appearance=\"simple\"}\n"))
+      cat(sprintf("**LLM Assessment:** Coverage %s%% | Precision %s%% | Rating: %s\n",
+                  row$coverage_pct, row$precision_pct, row$overall_rating))
+      cat(":::\n\n")
+    }
 
     # Two-column layout using Quarto divs
     cat("::: {.columns}\n")
@@ -131,10 +156,150 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
     cat("\n:::\n")
     cat(":::\n\n")
+
+    # Show detailed LLM analysis if available
+    if (has_assessment && !is.na(row$coverage_pct)) {
+      # Key matches
+      if (!is.null(row$key_matches) && length(row$key_matches[[1]]) > 0) {
+        cat("::: {.callout-tip collapse=\"true\"}\n")
+        cat("## Key Matches Identified\n\n")
+        for (match in row$key_matches[[1]]) {
+          cat(sprintf("- %s\n", match))
+        }
+        cat(":::\n\n")
+      }
+
+      # Missed issues
+      if (!is.null(row$missed_issues) && length(row$missed_issues[[1]]) > 0) {
+        cat("::: {.callout-warning collapse=\"true\"}\n")
+        cat("## Missed Issues\n\n")
+        cat("Human concerns not captured by GPT:\n\n")
+        for (missed in row$missed_issues[[1]]) {
+          cat(sprintf("- %s\n", missed))
+        }
+        cat(":::\n\n")
+      }
+
+      # Novel issues
+      if (!is.null(row$novel_issues) && length(row$novel_issues[[1]]) > 0) {
+        cat("::: {.callout-note collapse=\"true\"}\n")
+        cat("## Novel Issues\n\n")
+        cat("GPT issues not in human critiques:\n\n")
+        for (novel in row$novel_issues[[1]]) {
+          cat(sprintf("- %s\n", novel))
+        }
+        cat(":::\n\n")
+      }
+
+      # Reasoning
+      if (!is.null(row$reasoning) && nchar(row$reasoning) > 0) {
+        cat("::: {.callout-note collapse=\"true\"}\n")
+        cat("## LLM Reasoning\n\n")
+        cat(row$reasoning)
+        cat("\n:::\n\n")
+      }
+    }
+
     cat("---\n\n")
   }
 }
 ```
+
+## LLM-Based Assessment {#sec-llm-assessment}
+
+The comparison between GPT key issues and human critiques was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and precision (whether GPT issues are substantive).
+
+```{r}
+#| label: check-llm-results
+#| code-fold: true
+
+# Check if LLM comparison results are available
+has_llm_results <- !is.null(comparison_data) &&
+                   n_papers > 0 &&
+                   "coverage_pct" %in% names(comparison_data) &&
+                   any(!is.na(comparison_data$coverage_pct))
+```
+
+```{r}
+#| label: llm-assessment-summary
+#| tbl-cap: "LLM assessment of GPT vs human critique alignment"
+#| eval: !expr has_llm_results
+
+if (has_llm_results) {
+  # Filter to papers with valid LLM results
+  llm_results <- comparison_data |>
+    filter(!is.na(coverage_pct) & !is.na(precision_pct))
+
+  summary_stats <- llm_results |>
+    summarise(
+      `Papers Assessed` = n(),
+      `Mean Coverage (%)` = round(mean(coverage_pct, na.rm = TRUE), 1),
+      `Mean Precision (%)` = round(mean(precision_pct, na.rm = TRUE), 1),
+      `Coverage Range` = paste0(min(coverage_pct, na.rm = TRUE), "-", max(coverage_pct, na.rm = TRUE)),
+      `Precision Range` = paste0(min(precision_pct, na.rm = TRUE), "-", max(precision_pct, na.rm = TRUE))
+    ) |>
+    pivot_longer(everything(), names_to = "Metric", values_to = "Value")
+
+  kable(summary_stats, align = c("l", "r"))
+}
+```
+
+```{r}
+#| label: fig-coverage-precision
+#| fig-cap: "Coverage vs Precision across papers (LLM-assessed)"
+#| fig-width: 9
+#| fig-height: 7
+#| eval: !expr has_llm_results
+
+if (has_llm_results) {
+  llm_results <- comparison_data |>
+    filter(!is.na(coverage_pct) & !is.na(precision_pct)) |>
+    mutate(paper_short = str_trunc(gpt_paper, 25))
+
+  ggplot(llm_results, aes(x = coverage_pct, y = precision_pct)) +
+    geom_point(size = 4, color = UJ_ORANGE, alpha = 0.8) +
+    geom_text(aes(label = paper_short), hjust = -0.1, vjust = 0.5, size = 2.5, check_overlap = TRUE) +
+    geom_vline(xintercept = mean(llm_results$coverage_pct), linetype = "dashed", color = UJ_BLUE) +
+    geom_hline(yintercept = mean(llm_results$precision_pct), linetype = "dashed", color = UJ_BLUE) +
+    scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+    labs(
+      x = "Coverage (%): Human issues captured by GPT",
+      y = "Precision (%): GPT issues that are substantive",
+      subtitle = "Dashed lines = means"
+    ) +
+    theme_uj()
+}
+```
+
+```{r}
+#| label: tbl-paper-ratings
+#| tbl-cap: "Per-paper LLM assessment results"
+#| eval: !expr has_llm_results
+
+if (has_llm_results) {
+  ratings_table <- comparison_data |>
+    filter(!is.na(coverage_pct)) |>
+    mutate(
+      Paper = str_trunc(gpt_paper, 35),
+      `Coverage (%)` = coverage_pct,
+      `Precision (%)` = precision_pct,
+      Rating = overall_rating
+    ) |>
+    select(Paper, `Coverage (%)`, `Precision (%)`, Rating) |>
+    arrange(desc(`Coverage (%)`))
+
+  kable(ratings_table, align = c("l", "r", "r", "l"))
+}
+```
+
+::: {.callout-note collapse="true"}
+## Interpretation Guide
+
+- **Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.
+- **Precision**: Percentage of GPT issues that are substantive rather than generic or spurious. Higher = GPT's critiques are more targeted.
+- **Overall Rating**: Qualitative assessment (Excellent/Good/Fair/Poor) based on both metrics.
+:::
 
 ## Summary and Observations
 
@@ -215,26 +380,37 @@ The following are **verifiable structural differences** between the two data sou
 
 The side-by-side comparisons above are provided for **manual expert assessment**. Key questions to investigate:
 
-1. **Coverage**: What proportion of human-identified issues appear in the GPT output (in some form)?
+1. **Coverage**: What proportion of human-identified issues appear in the GPT output (in some form, to some extent)? (This is the focal question).
 2. **Precision**: Are GPT issues substantive or does the model identify spurious/generic concerns?
 3. **Severity alignment**: Does GPT's importance ordering correlate with human severity labels?
 4. **Missed issues**: Are there critical human concerns that GPT systematically misses?
 5. **Novel issues**: Does GPT surface valid concerns that humans overlooked?
 
-::: {.callout-warning}
-## No Automated Assessment Yet
+```{r}
+#| label: assessment-status-callout
+#| results: asis
 
-This page displays raw data for manual review. The claims about coverage, precision, and alignment **have not been assessed**—they require either:
+if (has_llm_results) {
+  cat('::: {.callout-tip}\n')
+  cat('## LLM Assessment Complete\n\n')
+  cat('The comparisons above have been assessed using GPT-5.2 Pro. See the [LLM-Based Assessment](#sec-llm-assessment) section for coverage and precision metrics.\n')
+  cat(':::\n')
+} else {
+  cat('::: {.callout-warning}\n')
+  cat('## No Automated Assessment Yet\n\n')
+  cat('This page displays raw data for manual review. The claims about coverage, precision, and alignment **have not been assessed**—they require either:\n\n')
+  cat('- Manual expert review of each paper\'s comparisons\n')
+  cat('- LLM-based comparison (run the `key-issues-comparison` chunk in `methods.qmd`)\n\n')
+  cat('Any conclusions about "high overlap" or "systematic differences" should emerge from that analysis, not be assumed.\n')
+  cat(':::\n')
+}
+```
 
-- **Manual annotation** using the Issue Annotation Tool (see below)
-- LLM-based comparison (run `python compare_key_issues.py --compare` when API is available)
 
-Any conclusions about "high overlap" or "systematic differences" should emerge from that analysis, not be assumed.
-:::
 
 ## Manual Annotation Tool
 
-To systematically assess concordance between human and LLM critiques, use the **Issue Annotation Tool**:
+To systematically assess concordance between human and LLM critiques, use the **Issue Annotation Tool**. (Jan 8 2026: We are working on building a hosted tool, for now follow the instructions below.)
 
 ```bash
 # 1. Generate annotation data (parses human critiques into individual issues)
@@ -255,7 +431,7 @@ For each human-identified issue:
 
 2. **Confidence (0-1)**: How certain are you of this assessment?
 
-3. **Context flag**: Check if the human critique references information the LLM didn't have (e.g., author responses, evaluator discussions post-evaluation)
+3. **Context flag**: Check this box if the human critique references information the LLM didn't have (e.g., appendix or preregistration materials not shared with the LLM at the point this evaluation was done)
 
 4. **Link to LLM issues**: Select which LLM issues (L1, L2, ...) correspond to this human issue
 
@@ -274,3 +450,4 @@ The tool parses human critiques using heuristics:
 
 Review parsed issues in the UI and edit/add/remove as needed before annotating.
 :::
+

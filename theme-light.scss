@@ -7,6 +7,17 @@
 /* ─── Palette ──────────────────────────────────────────────────────*/
 $unjournal-green:  #99bb66;     // main brand green
 $unjournal-orange: #f19e4b;     // accent / call-to-action
+$unjournal-blue:   #4e79a7;     // secondary accent (for notes)
+
+/* ─── Typography ──────────────────────────────────────────────────*/
+$font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+$font-family-base: $font-family-sans-serif;
+$headings-font-family: $font-family-sans-serif;
+$headings-font-weight: 600;
+
+$font-size-base: 1.05rem;
+$line-height-base: 1.7;
+$paragraph-margin-bottom: 1.2rem;
 
 /* ─── Base colours ────────────────────────────────────────────────*/
 $body-bg:    #ffffff;
@@ -62,3 +73,97 @@ pre code,
 
 /* ─── Code blocks (optional background alpha tweak) ───────────────*/
 $code-block-bg-alpha: -.8;   // keep as-is; override if you change block theme
+
+/*-- scss:rules --*/
+
+/* ─── Headings ────────────────────────────────────────────────────*/
+h1, h2, h3, h4, h5, h6 {
+  color: darken($body-color, 5%);
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+}
+
+h1 { font-size: 2.2rem; }
+
+h2 {
+  font-size: 1.6rem;
+  border-bottom: 2px solid rgba($unjournal-green, 0.3);
+  padding-bottom: 0.3em;
+}
+
+h3 { font-size: 1.3rem; }
+
+/* ─── Sidebar ─────────────────────────────────────────────────────*/
+.sidebar {
+  background-color: #fafafa;
+  border-right: 1px solid #e8e8e8;
+}
+
+.sidebar-title {
+  font-weight: 600;
+  color: $unjournal-green;
+}
+
+.sidebar-item-text {
+  font-size: 0.92rem;
+}
+
+/* ─── Callouts ────────────────────────────────────────────────────*/
+.callout {
+  border-radius: 6px;
+  border-left-width: 4px;
+}
+
+.callout-warning {
+  border-color: $unjournal-orange;
+  background-color: rgba($unjournal-orange, 0.08);
+}
+
+.callout-tip {
+  border-color: $unjournal-green;
+  background-color: rgba($unjournal-green, 0.08);
+}
+
+.callout-note {
+  border-color: $unjournal-blue;
+  background-color: rgba($unjournal-blue, 0.08);
+}
+
+/* ─── Tables ──────────────────────────────────────────────────────*/
+table {
+  font-size: 0.92rem;
+  border-collapse: collapse;
+}
+
+thead th {
+  background-color: rgba($unjournal-green, 0.1);
+  border-bottom: 2px solid $unjournal-green;
+  font-weight: 600;
+}
+
+tbody tr:hover {
+  background-color: rgba($unjournal-green, 0.04);
+}
+
+/* ─── TOC (right sidebar) ─────────────────────────────────────────*/
+.toc-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+}
+
+/* ─── Abstract ────────────────────────────────────────────────────*/
+.abstract {
+  font-style: italic;
+  color: #555;
+  border-left: 3px solid $unjournal-green;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+}
+
+/* ─── Author metadata ─────────────────────────────────────────────*/
+.quarto-title-meta {
+  font-size: 0.9rem;
+}
