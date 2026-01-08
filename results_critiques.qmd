@@ -62,6 +62,11 @@ Any conclusions about "high overlap" or "systematic differences" should emerge f
 
 # Load the matched comparison data
 comparison_file <- "results/key_issues_comparison.json"
+comparison_results_file <- c(
+  "results/key_issue_comp_results.json",
+  "results/key_issues_comparison_results.json"
+)
+comparison_results_file <- comparison_results_file[file.exists(comparison_results_file)][1]
 
 if (file.exists(comparison_file)) {
   comparison_data <- fromJSON(comparison_file)
@@ -69,6 +74,27 @@ if (file.exists(comparison_file)) {
 } else {
   comparison_data <- NULL
   n_papers <- 0
+}
+
+# Load LLM-based comparison results (coverage/precision) if available
+if (!is.null(comparison_data) && !is.na(comparison_results_file)) {
+  llm_results_raw <- fromJSON(comparison_results_file)
+  llm_results <- llm_results_raw |>
+    as_tibble() |>
+    unnest_wider(comparison) |>
+    select(
+      gpt_paper,
+      coverage_pct,
+      precision_pct,
+      missed_issues,
+      extra_issues,
+      overall_rating,
+      overall_justification,
+      detailed_notes
+    )
+
+  comparison_data <- comparison_data |>
+    left_join(llm_results, by = "gpt_paper")
 }
 ```
 
@@ -159,43 +185,33 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
     # Show detailed LLM analysis if available
     if (has_assessment && !is.na(row$coverage_pct)) {
-      # Key matches
-      if (!is.null(row$key_matches) && length(row$key_matches[[1]]) > 0) {
-        cat("::: {.callout-tip collapse=\"true\"}\n")
-        cat("## Key Matches Identified\n\n")
-        for (match in row$key_matches[[1]]) {
-          cat(sprintf("- %s\n", match))
-        }
-        cat(":::\n\n")
-      }
-
       # Missed issues
       if (!is.null(row$missed_issues) && length(row$missed_issues[[1]]) > 0) {
         cat("::: {.callout-warning collapse=\"true\"}\n")
-        cat("## Missed Issues\n\n")
-        cat("Human concerns not captured by GPT:\n\n")
+        cat("## Missed Issues (LLM-identified)\n\n")
+        cat("Human concerns not captured by GPT (per GPT-5.2 Pro comparison):\n\n")
         for (missed in row$missed_issues[[1]]) {
           cat(sprintf("- %s\n", missed))
         }
         cat(":::\n\n")
       }
 
-      # Novel issues
-      if (!is.null(row$novel_issues) && length(row$novel_issues[[1]]) > 0) {
+      # Extra issues
+      if (!is.null(row$extra_issues) && length(row$extra_issues[[1]]) > 0) {
         cat("::: {.callout-note collapse=\"true\"}\n")
-        cat("## Novel Issues\n\n")
-        cat("GPT issues not in human critiques:\n\n")
-        for (novel in row$novel_issues[[1]]) {
-          cat(sprintf("- %s\n", novel))
+        cat("## Extra Issues (LLM-identified)\n\n")
+        cat("GPT issues not in human critiques (per GPT-5.2 Pro comparison):\n\n")
+        for (extra in row$extra_issues[[1]]) {
+          cat(sprintf("- %s\n", extra))
         }
         cat(":::\n\n")
       }
 
-      # Reasoning
-      if (!is.null(row$reasoning) && nchar(row$reasoning) > 0) {
+      # LLM justification
+      if (!is.null(row$overall_justification) && nchar(row$overall_justification) > 0) {
         cat("::: {.callout-note collapse=\"true\"}\n")
-        cat("## LLM Reasoning\n\n")
-        cat(row$reasoning)
+        cat("## LLM Justification\n\n")
+        cat(row$overall_justification)
         cat("\n:::\n\n")
       }
     }
@@ -208,6 +224,8 @@ if (!is.null(comparison_data) && n_papers > 0) {
 ## LLM-Based Assessment {#sec-llm-assessment}
 
 The comparison between GPT key issues and human critiques was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and precision (whether GPT issues are substantive).
+
+**Note**: Any interpretation or narrative commentary in this section is written by an LLM (Codex). The values themselves come from the GPT-5.2 Pro comparison outputs.
 
 ```{r}
 #| label: check-llm-results
@@ -450,4 +468,3 @@ The tool parses human critiques using heuristics:
 
 Review parsed issues in the UI and edit/add/remove as needed before annotating.
 :::
-
