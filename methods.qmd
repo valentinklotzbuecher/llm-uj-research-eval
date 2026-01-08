@@ -1205,3 +1205,253 @@ counts = idx["status"].value_counts().to_dict()
 print(f"\nStatus: {counts}")
 ```
 
+### Key Issues Comparison with Human Critiques
+
+To validate how well the LLM identifies substantive issues, we compare its `key_issues` output against human expert critiques from The Unjournal's Coda database. These human critiques were written by domain experts during the standard evaluation process, providing a ground-truth benchmark for issue identification.
+
+The comparison proceeds in two stages: first, we extract and align the data sources; then, optionally, we use an LLM to systematically assess the degree of alignment between machine-generated and human-identified issues.
+
+```{python}
+#| label: key-issues-comparison
+#| eval: false
+#| code-fold: true
+#| code-summary: "Key issues comparison: parse markdown and run LLM assessment"
+
+import re
+
+# =============================================================================
+# Configuration
+# =============================================================================
+KEY_ISSUES_MD_INPUT = RESULTS_DIR / "key_issues_comparison.md"
+KEY_ISSUES_OUTPUT = RESULTS_DIR / "key_issues_comparison.json"
+
+# =============================================================================
+# Markdown Parser
+# =============================================================================
+def parse_key_issues_markdown(md_path):
+    """Parse key_issues_comparison.md to extract paper data.
+
+    The markdown has this structure for each paper:
+    ## PaperName
+    **Coda title:** Title
+    ### GPT-5.2 Pro Key Issues
+    - Issue 1
+    - Issue 2
+    ### Human Expert Critiques (Coda)
+    Critique text...
+    ---
+    """
+    with open(md_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Split by paper sections (## followed by paper name)
+    # Pattern handles names like "Blimpo_and_Castaneda-Dower_2025" (with hyphens)
+    paper_sections = re.split(r'\n## ([A-Za-z_0-9-]+(?:_et_al\.)?_\d{4})\n', content)
+
+    matched_data = []
+    for i in range(1, len(paper_sections), 2):
+        if i + 1 >= len(paper_sections):
+            break
+
+        paper_name = paper_sections[i].strip()
+        section_content = paper_sections[i + 1]
+
+        # Extract Coda title
+        coda_match = re.search(r'\*\*Coda title:\*\*\s*(.+?)(?:\n|$)', section_content)
+        coda_title = coda_match.group(1).strip() if coda_match else ""
+
+        # Extract GPT key issues (bullet points after "### GPT" header)
+        gpt_section = re.search(
+            r'### GPT[^\n]*Key Issues\s*\n(.*?)(?=\n### Human|$)',
+            section_content,
+            re.DOTALL
+        )
+        gpt_issues = []
+        if gpt_section:
+            bullets = re.findall(r'^- (.+)$', gpt_section.group(1), re.MULTILINE)
+            gpt_issues = [b.strip() for b in bullets if b.strip()]
+
+        # Extract human critiques (everything after "### Human Expert Critiques")
+        human_section = re.search(
+            r'### Human Expert Critiques[^\n]*\n(.*?)(?=\n---|\Z)',
+            section_content,
+            re.DOTALL
+        )
+        human_critique = human_section.group(1).strip() if human_section else ""
+
+        if gpt_issues or human_critique:
+            matched_data.append({
+                "gpt_paper": paper_name,
+                "coda_title": coda_title,
+                "gpt_key_issues": gpt_issues,
+                "coda_critique": human_critique,
+                "num_gpt_issues": len(gpt_issues),
+                "coda_critique_length": len(human_critique),
+            })
+
+    return matched_data
+
+# =============================================================================
+# LLM Comparison Function
+# =============================================================================
+COMPARISON_PROMPT_TEMPLATE = """You are evaluating how well an LLM's identified issues align with expert human critiques of a research paper.
+
+## Task
+Compare the GPT Key Issues against the Human Expert Critiques below. Assess:
+
+1. **Coverage**: What proportion of the substantive issues raised by human experts are captured by the GPT key issues? (Give percentage estimate)
+2. **Precision**: Are the GPT issues relevant and substantive, or does it include spurious/irrelevant issues? (Give percentage of GPT issues that are genuinely relevant)
+3. **Missed Issues**: List the most important issues raised by human experts that GPT missed entirely
+4. **Extra Issues**: List any important issues GPT identified that humans didn't mention (these could be valid additions or false positives)
+5. **Overall Assessment**: Rate alignment as Excellent/Good/Moderate/Poor with 1-2 sentence justification
+
+## Human Expert Critiques
+{human_critique}
+
+## GPT Key Issues
+{gpt_issues}
+
+Respond in JSON format with these exact fields:
+- coverage_pct: number 0-100
+- precision_pct: number 0-100
+- missed_issues: array of strings
+- extra_issues: array of strings
+- overall_rating: one of "Excellent", "Good", "Moderate", "Poor"
+- overall_justification: 1-2 sentences
+- detailed_notes: any additional observations
+"""
+
+def compare_issues_with_llm(paper_name, coda_critique, gpt_issues):
+    """Use LLM to compare the critiques and assess alignment."""
+    # Input validation
+    if not gpt_issues:
+        return {"error": "No GPT issues", "coverage_pct": None, "precision_pct": None, "overall_rating": "N/A"}
+    if not coda_critique or len(coda_critique.strip()) < 20:
+        return {"error": "No human critique", "coverage_pct": None, "precision_pct": None, "overall_rating": "N/A"}
+
+    # Format inputs
+    gpt_issues_text = "\n".join("- " + issue for issue in gpt_issues)
+    prompt_text = COMPARISON_PROMPT_TEMPLATE.format(
+        human_critique=coda_critique,
+        gpt_issues=gpt_issues_text
+    )
+
+    # Call LLM using Responses API (same as main evaluation pipeline)
+    response = None
+    error_msg = None
+    try:
+        response = call_with_retries(lambda: client.responses.create(
+            model=FOCAL_MODEL,
+            text={"format": {"type": "json_object"}},
+            input=[
+                {"role": "user", "content": [
+                    {"type": "input_text", "text": prompt_text}
+                ]}
+            ],
+            reasoning={"effort": "medium", "summary": "auto"},
+            max_output_tokens=4000,
+        ))
+    except Exception as exc:
+        error_msg = str(exc)
+        print(f"  LLM error: {error_msg}")
+
+    # Parse response - extract output text from responses API format
+    if response is not None:
+        try:
+            output_text = None
+            for block in response.output:
+                if block.type == "message":
+                    for content in block.content:
+                        if content.type == "output_text":
+                            output_text = content.text
+                            break
+            if output_text:
+                return json.loads(output_text)
+            else:
+                error_msg = "No output text in response"
+                print(f"  {error_msg}")
+        except Exception as parse_exc:
+            error_msg = f"Parse error: {parse_exc}"
+            print(f"  {error_msg}")
+
+    return {"error": error_msg or "Unknown error", "coverage_pct": None, "precision_pct": None, "overall_rating": "Error"}
+
+# =============================================================================
+# Step 1: Parse markdown and save JSON
+# =============================================================================
+if not KEY_ISSUES_MD_INPUT.exists():
+    raise FileNotFoundError(f"Input markdown not found: {KEY_ISSUES_MD_INPUT}")
+
+matched_data = parse_key_issues_markdown(KEY_ISSUES_MD_INPUT)
+
+print(f"Parsed {len(matched_data)} papers from {KEY_ISSUES_MD_INPUT.name}")
+for item in matched_data:
+    print(f"  - {item['gpt_paper']}: {item['num_gpt_issues']} GPT issues, {item['coda_critique_length']} chars human critique")
+
+KEY_ISSUES_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+with open(KEY_ISSUES_OUTPUT, 'w') as f:
+    json.dump(matched_data, f, indent=2, ensure_ascii=False)
+print(f"\nJSON saved to: {KEY_ISSUES_OUTPUT}")
+
+# =============================================================================
+# Step 2: Run LLM comparison on each paper
+# =============================================================================
+print("\n" + "="*60)
+print("Running LLM comparison...")
+comparison_results = []
+
+for item in matched_data:
+    paper = item['gpt_paper']
+    print(f"\nComparing: {paper}")
+
+    comparison = compare_issues_with_llm(
+        paper, item['coda_critique'], item['gpt_key_issues']
+    )
+
+    comparison_results.append({
+        **item,
+        "comparison": comparison
+    })
+
+    if comparison.get('coverage_pct') is not None:
+        print(f"  Coverage: {comparison['coverage_pct']}%, Precision: {comparison['precision_pct']}%, Rating: {comparison['overall_rating']}")
+    else:
+        print(f"  Skipped or error: {comparison.get('error', 'unknown')}")
+
+    time.sleep(2)  # Rate limiting
+
+# Save results with comparison
+comparison_output = KEY_ISSUES_OUTPUT.with_name('key_issues_comparison_results.json')
+with open(comparison_output, 'w') as f:
+    json.dump(comparison_results, f, indent=2, ensure_ascii=False)
+print(f"\nComparison results saved to: {comparison_output}")
+
+# =============================================================================
+# Step 3: Summary statistics
+# =============================================================================
+valid_results = [r for r in comparison_results if r['comparison'].get('coverage_pct') is not None]
+if valid_results:
+    avg_coverage = sum(r['comparison']['coverage_pct'] for r in valid_results) / len(valid_results)
+    avg_precision = sum(r['comparison']['precision_pct'] for r in valid_results) / len(valid_results)
+    ratings = [r['comparison']['overall_rating'] for r in valid_results]
+
+    print(f"\n{'='*60}")
+    print(f"SUMMARY ({len(valid_results)}/{len(comparison_results)} papers with valid comparisons)")
+    print(f"Average Coverage: {avg_coverage:.1f}%")
+    print(f"Average Precision: {avg_precision:.1f}%")
+    print(f"Rating distribution: {dict((r, ratings.count(r)) for r in set(ratings))}")
+else:
+    print("\nNo valid comparison results to summarize.")
+```
+
+The comparison pipeline uses a manually curated input and produces structured outputs:
+
+**Input:**
+- **`results/key_issues_comparison.md`**: A manually curated markdown document pairing GPT-identified issues with human expert critiques for each paper.
+
+**Outputs:**
+- **`results/key_issues_comparison.json`**: Parsed data in JSON format for programmatic use.
+- **`results/key_issues_comparison_results.json`**: LLM-assessed alignment metrics including coverage, precision, missed issues, and overall ratings.
+
+The coverage metric estimates what fraction of human-identified issues the LLM captured; precision estimates what fraction of LLM issues are genuinely relevant. Together with the qualitative ratings, these provide a structured assessment of how well the LLM's issue identification aligns with expert judgment.
+
