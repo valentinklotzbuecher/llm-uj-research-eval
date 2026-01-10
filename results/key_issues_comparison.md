@@ -322,18 +322,18 @@ It is somewhat unfortunate that the forecasters and the expert were not given an
 
 ## Frech_et_al._2023
 
-**Coda title:** The wellbeing cost-effectiveness of StrongMinds and Friendship Bench: Combining a systematic review and meta-analysis with charity-related data
+**Coda title:** Pharmaceutical Pricing and R&D as a Global Public Good
 
 ### GPT-5.2 Pro Key Issues
 
-- The dependent variable (“contribution” = quasi-rents on all branded-originator sales in a single year) is not clearly the incentive-relevant object for R&D, which depends on expected global profit streams for marginal projects; life-cycle stage, risk, and therapeutic heterogeneity are ignored.
+- The dependent variable ("contribution" = quasi-rents on all branded-originator sales in a single year) is not clearly the incentive-relevant object for R&D, which depends on expected global profit streams for marginal projects; life-cycle stage, risk, and therapeutic heterogeneity are ignored.
 - The main empirical result (log contribution strongly explained by log GDP with elasticity > 1) is plausibly mechanical because the contribution measure is built from drug spending/sales, which naturally scales with GDP; this does not identify public-goods strategic behavior.
-- Marginal cost (MC) is weakly identified: using Turkey’s low price index as MC and using generic-entry price erosion (then adjusting by an average rebate) both rely on strong assumptions and can materially change levels and even signs of contributions.
-- Assuming a common MC across countries is particularly problematic because the paper’s MC includes distribution and downstream costs that vary across systems (wages, geography, pharmacy/PBM margins), confounding cross-country markups.
-- Cross-country price indices may reflect differences in drug mix, launch timing, reimbursement/coverage, and confidential discounts; interpreting them as “same products, different prices” risks mismeasurement of both prices and implied quasi-rents.
+- Marginal cost (MC) is weakly identified: using Turkey's low price index as MC and using generic-entry price erosion (then adjusting by an average rebate) both rely on strong assumptions and can materially change levels and even signs of contributions.
+- Assuming a common MC across countries is particularly problematic because the paper's MC includes distribution and downstream costs that vary across systems (wages, geography, pharmacy/PBM margins), confounding cross-country markups.
+- Cross-country price indices may reflect differences in drug mix, launch timing, reimbursement/coverage, and confidential discounts; interpreting them as "same products, different prices" risks mismeasurement of both prices and implied quasi-rents.
 - The analysis treats lower spending/markups as free-riding, but does not incorporate quantity/access differences (e.g., launch lags, reimbursement refusals), which could mean lower prices coincide with reduced consumption of newer drugs.
 - Theoretical constructs (Lindahl optimum; Nash interior/corner equilibria; bargaining) are not mapped to testable implications beyond the GDP correlation; the empirical work does not discriminate among the proposed models.
-- The “exploitation hypothesis” test (elasticity > 1) is not a clean test of Olson–Zeckhauser in this setting because it conflates general health/pharma spending elasticities with strategic under-contribution to R&D.
+- The "exploitation hypothesis" test (elasticity > 1) is not a clean test of Olson–Zeckhauser in this setting because it conflates general health/pharma spending elasticities with strategic under-contribution to R&D.
 - The construction of national branded-originator revenues from total sales × brand share assumes comparability across countries and alignment with the RAND price index basket; potential inconsistencies are not audited.
 - Outlier sensitivity and leverage are not thoroughly assessed (the US and Japan dominate totals; negative/zero contributions are dropped in logs), which can affect coefficient estimates and inference in small samples.
 - The policy conclusion that ROW countries should pay more is not supported by a welfare calculation that explicitly weighs dynamic innovation gains against static access/affordability losses and distributional concerns under differential pricing.
@@ -341,22 +341,19 @@ It is somewhat unfortunate that the forecasters and the expert were not given an
 
 ### Human Expert Critiques (Coda)
 
-Necessary 
-“Lack of Systematized/Standardized Adjustment Rules” — Both evaluators noted multiple “project-specific” and “subjective” analytical choices and ad-hoc adjustments. E2 particularly emphasized the approach to weighting and outliers.   E1 —  “I would be substantially more confident in the comparative cost-effectiveness estimates if the authors provided a clear set of rules for the adjustments they are making, along with a list of these adjustments to be applied consistently across all evaluated projects.” [Note — this is partly NotebookLM generated, but I checked it -DR]  any evaluation should at least note this lack of systemization, although it's okay to acknowledge that this might be close to current best practice given the constraints of this context.
+Optional but important
 
+1. Causal claims too strong — GDP correlated with other important determinants of outcomes
 
-Optional but import
+[E1] The primary regression analyzed in the paper is overly simplistic and may be subject to omitted variable bias. There could be other factors correlated with GDP that are not included in the model. Therefore, results derived from this model should be interpreted with caution as the estimated effect of GDP may be overstated or misattributed.
 
+[E2] The authors interpret the positive correlation between GDP and drug prices as evidence supporting their hypothesis that drug prices are affected by how much countries internalize returns from R&D (because countries with higher GDP also benefit more from future innovation). However, the relationship between GDP and drug prices could be driven by many factors, chief among them the willingness to pay for current health benefits.
 
-Unsure if correct/relevant, less important
-ant
-“Arbitrary Exclusion of Outliers and High Risk of Bias (RoB) Studies” — 
-[Evaluation summary] Evaluator 2 critiqued the removal of outliers (e.g., effect sizes >2 SDs) and high-risk bias studies, arguing it seems “arbitrary” and that it's “always better to include the full data” to transparently show the impact of such exclusions. HLI defended these decisions, stating they do provide detailed sensitivity analyses for these exclusions in the appendix, and that removing them is a “conservative option” consistent with other meta-analyses.
-The evaluation should probably at least mention this issue
-2. Clearer/visual depiction of sensitivity analysis/multiverse analysis
-[NotebookLM, confirmed] Both Evaluators Agreed. They requested a concise visual summary (such as a specification curve or analogue of Figure 2) showing how the large number of analytical choices and adjustments systematically affect the final estimates. E2 called this suggestion (a multiverse analysis) their "most significant statistical recommendation".
-3. Linear decay model
-[Eval summary] On the linear decay model used for effects over time, Evaluator 1 considered linear decay to zero a “conservative assumption”. Evaluator 2 expressed surprise at the linear choice, suggesting exponential models are more common in psychological phenomena and that linear decay might lead to "overestimation". HLI explained the linear model was chosen for simplicity and a clear stopping point, noting that quick tests with exponential decay showed “little difference”.
+Unsure if correct
+
+1. [E2] BOTECs stated too confidently, not incorporating sensitivity to key assumptions
+
+The authors, citing numbers from another one of their studies, claim that new drugs launched in the U.S. are very cost-effective—around $40,000 per Quality-Adjusted Life Year (QALY) (Frech et al. 2022). Two main criticisms of these back-of-the-envelope calculations: First, estimates of drug cost-effectiveness rely on many assumptions and are generally highly sensitive to them. Second, there is likely broad variation across indications in the cost-effectiveness of drugs.
 
 ---
 
@@ -398,18 +395,18 @@ Excluding studies with n<25 per group is 'unwarranted' because it makes publicat
 
 ## McGuire_et_al._2024
 
-**Coda title:** Ends versus Means: Kantians, Utilitarians, and Moral Decisions 
+**Coda title:** The wellbeing cost-effectiveness of StrongMinds and Friendship Bench: Combining a systematic review and meta-analysis with charity-related data
 
 ### GPT-5.2 Pro Key Issues
 
 - Total-effect-over-time relies on a linear decay assumption and triangular area-under-curve; psychotherapy effects may decay nonlinearly or have long tails, making total WELLBYs highly assumption-sensitive.
 - Handling of influential long-term follow-ups is ad hoc (exclude from core time model, then apply a 1.54 multiplicative compromise); this is a structural modeling choice without clear precedent and materially affects results.
-- The WELLBY conversion (SD-years → WELLBYs via a single “SD=2 on 0–10 ladder” mapping) and combining affective mental health (MHa) with SWB outcomes embed normative/construct assumptions that can shift cross-intervention comparisons.
-- Charity M&E pre–post effects are “corrected” using a pseudo-synthetic control from other trials’ control arms; exchangeability is not established, so residual bias (regression to mean, measurement context, incentives, selection/attrition) could be large.
+- The WELLBY conversion (SD-years → WELLBYs via a single "SD=2 on 0–10 ladder" mapping) and combining affective mental health (MHa) with SWB outcomes embed normative/construct assumptions that can shift cross-intervention comparisons.
+- Charity M&E pre–post effects are "corrected" using a pseudo-synthetic control from other trials' control arms; exchangeability is not established, so residual bias (regression to mean, measurement context, incentives, selection/attrition) could be large.
 - Subjective weights across evidence sources (general RCTs vs charity-related RCTs vs M&E) are central to the headline estimates; the procedure is transparent but remains a major source of discretion, especially for StrongMinds where the RCT conflicts with other evidence.
 - Household spillovers contribute ~30–40% of total benefits but are estimated from very sparse and heterogeneous evidence (few interventions, one dominant study) and acknowledged as very low-quality; the spillover prior strongly affects totals.
 - Dosage adjustment for Friendship Bench is driven by extremely low reported attendance (1.12 sessions) and a chosen log(+1) dose-response form; empirical support for this functional form and parameterization is limited.
-- The “Iran study” adjustment treats larger effects as likely biased based on contextual suspicion; while potentially prudent, it risks discarding true contextual heterogeneity and is not validated against independent indicators of study quality.
+- The "Iran study" adjustment treats larger effects as likely biased based on contextual suspicion; while potentially prudent, it risks discarding true contextual heterogeneity and is not validated against independent indicators of study quality.
 - Publication-bias adjustment uses an average of multiple correction methods (some known to perform poorly under heterogeneity); the resulting discount is not clearly tied to the estimand under multilevel dependence and time moderation.
 - The replication (0.51) and response-bias (0.85) discounts for M&E data are generic and not estimated in the charity context; they may double-count some biases or miss others, and materially alter the M&E contribution.
 - StrongMinds RCT relevance assessment is plausible but partly speculative (pilot/partner/adolescents/COVID); the decision to downweight rather than treat as a serious negative update is consequential and could be contested.
@@ -417,13 +414,17 @@ Excluding studies with n<25 per group is 'unwarranted' because it makes publicat
 
 ### Human Expert Critiques (Coda)
 
-Optional but important
-Some of the games seem particularly unlikely to reflect be understood as involving ethical issues or be interpreted in terms of moral norms 
-In particular, I’m uncertain about the “bribe” game. Here, subjects were confronted with another person who had chosen to trigger a €20 donation to charity (rather than €2 for themselves) only if the subject chose to send them €2 (rather than send €15 to the charity). This wasn’t described as a bribe and it’s not totally clear that subjects would see it that way. It’s less moral to give someone €2 than to give a charity €15, but is it a rule violation like bribing a public official? Might decisions here be motivated by dislike of the greedy other?
-Similarly, the “statement choice” involved subjects pressing a button with an ethically unattractive statement written on it, but no consequences except for a donation to charity. Does doing so really violate a deontological rule? This dilemma seems more likely to engage moral emotions (à la Haidt 2001)[1] than true moral reasoning.
+Necessary
 
-Probably correct/important
-Capraro —  The ‘instability of deontological preferences’ may not generalize —  “There are many deontological rules and the fact that preferences over one or some of these rules are not stable does not imply that preferences over each of these rules are unstable.” This is undoubtedly true but I'm not completely sure whether the authors are really overclaiming here, nor whether there are big gaps here relative to what they could be expected to do
+1. "Lack of Systematized/Standardized Adjustment Rules" — Both evaluators noted multiple "project-specific" and "subjective" analytical choices and ad-hoc adjustments. E2 particularly emphasized the approach to weighting and outliers. E1 — "I would be substantially more confident in the comparative cost-effectiveness estimates if the authors provided a clear set of rules for the adjustments they are making, along with a list of these adjustments to be applied consistently across all evaluated projects."
+
+Optional but important
+
+1. "Arbitrary Exclusion of Outliers and High Risk of Bias (RoB) Studies" — Evaluator 2 critiqued the removal of outliers (e.g., effect sizes >2 SDs) and high-risk bias studies, arguing it seems "arbitrary" and that it's "always better to include the full data" to transparently show the impact of such exclusions.
+
+2. Clearer/visual depiction of sensitivity analysis/multiverse analysis — Both evaluators requested a concise visual summary (such as a specification curve or analogue of Figure 2) showing how the large number of analytical choices and adjustments systematically affect the final estimates. E2 called this their "most significant statistical recommendation".
+
+3. Linear decay model — Evaluator 2 expressed surprise at the linear choice, suggesting exponential models are more common in psychological phenomena and that linear decay might lead to "overestimation"
 
 ---
 
@@ -467,103 +468,89 @@ Limitations for LLM benchmarking: David Reinstein is not an expert on this. Only
 
 ## Weaver_et_al._2025
 
-**Coda title:** Global potential for natural regeneration in deforested tropical regions
+**Coda title:** Cash Transfers for Child Development: Experimental Evidence from India
 
 ### GPT-5.2 Pro Key Issues
 
-- . Clarify that the estimated effects are for a bundled intervention (cash delivered to women + nutrition framing/IVR), not a generic income shock; claims about “unconditional cash” should be qualified accordingly.
+- . Clarify that the estimated effects are for a bundled intervention (cash delivered to women + nutrition framing/IVR), not a generic income shock; claims about "unconditional cash" should be qualified accordingly.
 - . Sanitation heterogeneity relies on non-random, post-treatment sanitation measurement; interaction estimates should be presented as suggestive and vulnerable to confounding by correlated area characteristics (health access, markets, disease ecology), despite balance on treatment and residualization checks.
-- . Year-2 calorie/nutrient outcomes are based on a COVID-truncated in-person subsample; comparisons across years (e.g., “empowerment grows over time”) may be partly driven by sample composition and survey mode changes.
+- . Year-2 calorie/nutrient outcomes are based on a COVID-truncated in-person subsample; comparisons across years (e.g., "empowerment grows over time") may be partly driven by sample composition and survey mode changes.
 - . Child functional development is measured via parent-reported ASQ items; differential reporting/experimenter-demand effects cannot be fully ruled out without more objective assessor-based measures or validation subsamples.
 - . Dietary intake measurement, while unusually detailed, still depends on 24-hour recall and complex allocation/portion measurement; the paper could better assess robustness to measurement error and potential differential misreporting.
 - . Evidence that IVR messaging had little effect is indirect (based on having registered a mobile number); stronger tests using call delivery/connection data or instruments for actual exposure would improve interpretability.
 - . The manuscript analyzes many outcomes and heterogeneities; it should more explicitly define primary families, address multiple-hypothesis testing (beyond indices), and distinguish confirmatory vs exploratory findings.
 - . Post-treatment sanitation index includes respondent perceptions of neighbors and enumerator observations; reliability and potential measurement error (including enumerator subjectivity) deserve more discussion and sensitivity analyses using alternative sanitation proxies.
-- . The paper infers that intermediate-channel changes (knowledge, empowerment, AWC services) explain little via cross-sectional correlations; this “explained share” approach is not causal and may be misleading if interpreted too literally.
+- . The paper infers that intermediate-channel changes (knowledge, empowerment, AWC services) explain little via cross-sectional correlations; this "explained share" approach is not causal and may be misleading if interpreted too literally.
 - . Non-food spending was not measured in year 1 due to a survey form error; this limits the welfare/accounting interpretation (budget shares, non-food mechanisms) during the key period of transfer receipt.
 - . External validity beyond Jharkhand and beyond ICDS-linked registrants is good but not complete; the sample is slightly wealthier than the state average and depends on engagement with AWCs, which may differ in other states/settings.
 - . Replication readiness is unclear from the manuscript text excerpt: despite registry/PAPs, the paper should state whether code/data (or restricted-access procedures) are available and provide full construction scripts for complex nutrition and sanitation indices.
 
 ### Human Expert Critiques (Coda)
 
-"Necessary"
-Data leakage/contemporaneous predictors [mentioned: both evaluators and UJ field specialists]
-The ML model seems to be fitted on data/variables that includes post-regeneration outcomes, or that could be influenced by these outcomes; or “using future information to predict past events, or accidentally including validation data in the training data.”
-[this] can lead to overly optimistic estimates of model performance and poor generalization to new data. ... see, e.g., Kuhn & Johnson, 2019, Feature Engineering and Selection; Kaggle Wiki on Leakage
+Optional but important
 
-Here, the issue is the inclusion of
-“Net primary production, burned area, road density, and soil characteristics were recorded over the same time period as the outcome, and these predictors incorporate information that is influenced by regeneration itself.”
-Variables potentially derived using outcome data: The SoilGrids predictor variable appears to be from 2014 or 2016, potentially created using land cover classification data from 2010 that includes forest classifications (related to the outcome variable, albeit from a different source than the primary Hansen GFC data).
-Variables potentially incorporating post-2000 outcome data: Predictor variables averaged or derived from periods overlapping or extending beyond the 2000 start date of the regeneration outcome (e.g., NPP 2000-2015, burned area 2001–2017) may incorporate information influenced by the regeneration itself, creating temporal leakage
-This inflates the estimates of the prediction power of the model, makes the model less likely to be reliable or useful and can also contaminate the suggestive causal inference/insights about "what seems to be predictive." 
+1. Subgroup analysis risks overstating statistical significance without adjustments for MHT. Particular signs of this: Tsai notes "'nutrition only helped for the high-sanitation subgroup' claim, noting that 'other studies in LMICs have compared joint nutrition and sanitation interventions to only nutrition interventions directly, and effects on stunting, wasting, and underweight are not consistently better.'"
 
-[E1] The outcome variable indicates patches of natural forest regeneration which occurred between 2000–2012 and persisted to 2016. At least three of the predictor variables seen by the training algorithm are also recorded during this period rather than prior to it: net primary production, burned area, and road density [...  In addition, the authors use variables from the ESA CCI land cover dataset as recorded in the year 2000, overlapping with the outcome.
+DR: Although the authors couch their language about this as "suggestive evidence" of mediation, they emphasize it quite a lot in the abstract, intro, etc — a reasonable reader is likely to have the takeaway that the treatment had positive impacts on anthropometric outcomes in areas with better sanitation (and that these differences were 'statistically significant')
 
-"Optional but important"
-Reliance on Older GFC Gain Data: [mentioned: Cloud] The study relies on an older version of the Global Forest Change (GFC) gain data (v1.5, covering 2000-2012/2016). Since the initial analysis for Fagan et al. (2022), improved GFC datasets have been released (e.g., GMD 2022 update using GEDI lidar,
+2. Need more detail on the intervention context: E1 asked for more details on the messaging: "How were participants 'encouraged' to use the funds for nutritious foods?" Tsai particularly wanted more information on concurrent conditional cash transfers (CCTs) and health services targeting early childhood, noting that there might be interaction effects.
 
-2. “Confounding by Socioeconomic Factors and Predictor Choice:” [Both evaluators agreed]
-While the authors train models with biophysical and socioeconomic predictors, their spatial predictions are derived from a model that includes only biophysical variables...., inferring purely biophysical potential from observational data is not feasible with the proposed method. The difficulty lies in the fact that biophysical and socioeconomic conditions are deeply interconnected and affect one another. .... In practice, the model will predict high regeneration probability in locations where both factors are favorable. 
-... it will tend to predict more regrowth when an area has biophysical factors that tend to correlate with socioeconomic conditions that favor regrowth.   Thus, contrary to what the authors argue, dropping socioeconomic predictors diminishes the model’s ability to identify biophysical potential in isolation. Furthermore, retained biophysical predictors such as ‘distance to forest’ and local forest density are partially anthropogenically determined. In sum, the proposed method cannot support the interpretation of the estimates as ‘purely biophysical potential for natural forest regrowth’.
+Unsure/maybe less important
 
-3. Neglect of Intensive Margin Regrowth: [Cloud]
-The study focuses exclusively on the extensive margin (new forest area gain). It completely overlooks the intensive margin – canopy regeneration and forest recovery within existing, potentially degraded, forest pixels (e.g., areas increasing from <30% to >60% canopy cover as an arbitrary threshold). 
+1. MHT issue for multiple indices: E1 "The authors present results for an overall child development index, domain-specific indices, as well as individual ASQ items. They do this without accounting for multiple comparisons or presenting this as a pre-specified plan." [NotebookLM] — But "The PaPs prioritize specifications and randomization inference for the primary hypotheses, which focus on anthropometric measures"
 
-4. “Validation” uses  past data [Both evaluators/consensus]
-(i) The confusion matrix in Table A1.2 appears to validate the model by comparing its predictions for 2030 against the Fagan et al. (2022) regrowth data for 2000-2016. However, the 215 Mha estimate is derived from a prediction based on forest cover, forest density, and distance to forest updated to reflect conditions in 2015 and 2018. This raises the concern that validating a model designed to predict future potential against past outcomes is not a true test of its predictive power for the future. 
+2. "Exclusion of breastmilk from child food consumption" accounting. NotebookLM suggests that the authors recognize this limitation.
 
-
-"Unsure if correct/relevant" [Seem likely correct]
-
-Definition of Natural Regrowth (Inherited from Fagan et al.) [Cloud]: The model relies on Fagan et al.'s definition, which treats all non-plantation gain as "natural regrowth," which appears to conflate truly natural processes with human-assisted regeneration or diverse tree plantings not classified as monoculture plantations. Fagan et al. acknowledged this limitation: “Our product was also not designed to distinguish rarer land uses intermediate between tree plantations and natural regrowth, such as assisted natural regeneration.” 
-
-Overestimation due to Omission Error (Inherited from Fagan et al.): Fagan et al. [2]
-reported very high omission errors for regrowth (low area-based Producer's Accuracy of ~18.7%). This means the Fagan map used for exclusion missed a large area (~26 Mha) of actual regrowth (estimated at 31.6 Mha). Consequently, the Williams et al. [1] potential area (215 Mha) includes these already-regrown areas, substantially overestimating the area truly available for future regeneration.
-
-(a) Underestimation of Uncertainty: [Both evaluators seem to agree] The necessary correction for the omission error (subtracting the ~26 Mha of omitted-but-actual regrowth, see Point 2c) carries significant uncertainty derived from the Fagan et al. [2] accuracy assessment (31.6 ± 11.9 Mha for total regrowth). Propagating this uncertainty would result in a much wider confidence interval for the corrected potential regeneration estimate (~189 Mha) than implied by the analysis of the 215 Mha figure. The current approach (reporting just minimal uncertainty from the RF model)  ignores this driving source of uncertainty.
-
- Discrepancy in Estimated Magnitude and Lack of Historical Validation: [Both evaluators]
-Because the model, as argued above, effectively estimates a combined biophysical and socioeconomic potential due to highly correlated predictors, its aggregate prediction should conceptually align with the historical total observed under similar mixed influences. However, the authors' estimate of 215 Mha of expected natural regeneration is strikingly larger than the benchmark from the training data by Fagan et al. (2022) [undefined] of 31.6 Mha ± 11.9 Mha (for 2000-2016), even when accounting for increases in land availability due to deforestation or uncaptured historical socioeconomic constraints. Williams et al. (2024) do not report their own model's prediction for the 2000-2016 historical period (a "hindcast"), a crucial missing validation against this benchmark.
-
-(b) Stratification for Uncertainty Reduction [Cloud]: The paper does not appear to leverage stratification techniques known to mitigate the impact of omission errors on area estimates, particularly for rare classes like forest gain (as demonstrated in Olofsson et al. 2020 [5] for mitigating omission error impacts). While Fagan et al. [2] suggested this is impossible for regrowth, Olofsson (2020)[5] does not support that conclusion (from my reading). Williams et al.'s [1] own finding that most potential regrowth occurs near forest edges (within 300m: “For example, out of a random sample of 62,493 grid cells (of all 30 × 30 m grid cells) across the study region, 98.1% of cells with a potential of >0.5 (for illustrative purposes) occur within 300 m of a forest edge.”) suggests a buffer-based stratification strategy could be feasible and potentially significantly reduce the uncertainty associated with omission errors by isolating them within smaller-area strata. Implementing such a stratification is recommended to improve the reliability of the underlying area estimates which compromise the bulk of the uncertainty (as compared to the minimal uncertainty from the RF model).
-
-(c) Confidence Interval Construction for Rare Classes [Cloud]: Additionally, while perhaps a secondary concern compared to the points above, the standard practice of constructing confidence intervals using the design-based SE and the Wald method (assuming normality) may be unreliable for rare land-use classes or metrics with low accuracy (like the Producer's Accuracy for regrowth). The underlying sampling distributions for these estimates are often skewed. Using bootstrap percentile confidence intervals, which empirically derive the interval from the data's distribution without assuming normality, can provide more realistic uncertainty bounds and likely achieve better coverage probability (i.e., capture the true value closer to the nominal 95% level). This is particularly important when estimates serve as baselines for monitoring, where reliable CIs are needed to detect future changes (example code demonstrating this comparison is provided).
+3. Both evaluators mentioned including flow charts: a consort diagram (evaluator 1) and a DAG (evaluator 2). DR: I'm not sure whether this is an important standard?
 
 ---
 
 ## Williams_et_al._2024
 
-**Coda title:** Cash Transfers for Child Development: Experimental Evidence from India
+**Coda title:** Global potential for natural regeneration in deforested tropical regions
 
 ### GPT-5.2 Pro Key Issues
 
-- . The target variable (“natural regrowth” as >5 m vegetation gain from 2000–2016) is a partial proxy for restoration success and likely misses early regeneration and slow-growing systems; it also does not ensure persistence beyond 2016.
-- . The upstream regrowth map used for labels has acknowledged humid-biome omission and low producer’s accuracy for area-adjusted estimates, creating systematic false negatives that can bias model training and geographic patterns.
-- . “Non-regeneration” points are sampled from a broad domain that likely includes lands under active management or repeated clearing; thus the model mixes biophysical capacity, human land-use decisions, and detectability rather than isolating biophysical potential.
+- . The target variable ("natural regrowth" as >5 m vegetation gain from 2000–2016) is a partial proxy for restoration success and likely misses early regeneration and slow-growing systems; it also does not ensure persistence beyond 2016.
+- . The upstream regrowth map used for labels has acknowledged humid-biome omission and low producer's accuracy for area-adjusted estimates, creating systematic false negatives that can bias model training and geographic patterns.
+- . "Non-regeneration" points are sampled from a broad domain that likely includes lands under active management or repeated clearing; thus the model mixes biophysical capacity, human land-use decisions, and detectability rather than isolating biophysical potential.
 - . The paper reports high balanced-class accuracy but provides limited information on calibration and threshold-dependent tradeoffs (precision/recall), which are central when aggregating probabilities into expected areas and when using binary maps for targeting.
 - . Validation uses random splits with a post hoc autocorrelation-distance diagnostic but not fully spatially blocked cross-validation; performance may be optimistic and appears regionally variable (notably weaker in parts of Southeast Asia).
 - . The extremely narrow confidence intervals on the headline area estimates are not credible as full uncertainty bounds because they omit major sources of uncertainty (label noise, transfer/non-stationarity, predictor error/resolution mismatch, and model specification uncertainty).
 - . Predictor rasters have mixed spatial/temporal resolutions (30 m to ~1 km; climate normals 1970–2000; NPP 2000–2015; burn area 2001–2017), yet outputs are presented at 30 m; this can create visually fine-scale artifacts and overconfidence in local precision.
 - . Updating key forest covariates to 2018 while training on 2000–2016 outcomes introduces temporal inconsistency; combined with known version differences in GFW products, this may yield local incoherence and affect transfer to 2015/2030 predictions.
-- . Dropping socioeconomic covariates for prediction stability may increase omitted-variable bias, with biophysical variables acting as proxies for land-use intensity/governance; this complicates the “biophysical conditions can support” interpretation.
+- . Dropping socioeconomic covariates for prediction stability may increase omitted-variable bias, with biophysical variables acting as proxies for land-use intensity/governance; this complicates the "biophysical conditions can support" interpretation.
 - . Carbon accumulation estimates rely on resampling a 1 km carbon potential layer to 30 m with implicit within-km homogeneity and without propagating uncertainty or accounting for covariance between regeneration probability and carbon potential.
 - . The map is framed as a first-stage input, but discussion of offsets/targeting could be misread as identifying realizable, additional, and permanent sequestration opportunities; clearer operational guidance on use and limits would reduce misuse.
-- . Code is only available “on request,” limiting reproducibility and independent auditing of modelling choices (variable selection, sampling, preprocessing, and aggregation).
+- . Code is only available "on request," limiting reproducibility and independent auditing of modelling choices (variable selection, sampling, preprocessing, and aggregation).
 
 ### Human Expert Critiques (Coda)
 
-Optional but important 
-Subgroup analysis risks overstating statistical significance without adjustments for MHT. Particular signs of this:  — Tsai notes “‘nutrition only helped for the high-sanitation subgroup’ claim, noting that “other studies in LMICs have compared joint nutrition and sanitation interventions to only nutrition interventions directly, and effects on stunting, wasting, and underweight are not consistently better.”
-DR: Although the authors couch their language about this as “suggestive evidence” of mediation, they emphasize it quite a lot in the abstract, intro, etc — a reasonable reader is likely to have the takeaway that the treatment had positive impacts on anthropometric outcomes in areas with better sanitation (and that these differences were ‘statistically significant’)
-Need more detail on the intervention context: E1 asked for more details on the messaging: “How were participants ‘encouraged’ to use the funds for nutritious foods?” Tsai particularly wanted more information on concurrent conditional cash transfers (CCTs) and health services targeting early childhood, noting that there might be interaction effects.  
+Necessary
 
-Unsure/maybe less important
-MHT issue for multiple indices: E1 “The authors present results for an overall child development index, domain-specific indices, as well as individual ASQ items. They do this without accounting for multiple comparisons or presenting this as a pre-specified plan.” 
-[NotebookLM] — But “The PaPs prioritize specifications and randomization inference for the primary hypotheses, which focus on anthropometric measures”
-“exclusion of breastmilk from child food consumption” accounting. 
-NotebookLM suggests that the authors recognize this limitation and 
-Both evaluators mentioned including flow charts: a consort diagram (evaluator 1) and a DAG (evaluator 2)
- DR: I'm not sure whether this is an important standard?
+1. Data leakage/contemporaneous predictors [mentioned: both evaluators and UJ field specialists] — The ML model seems to be fitted on data/variables that includes post-regeneration outcomes, or that could be influenced by these outcomes; or "using future information to predict past events, or accidentally including validation data in the training data." This can lead to overly optimistic estimates of model performance and poor generalization to new data.
+
+Here, the issue is the inclusion of "Net primary production, burned area, road density, and soil characteristics were recorded over the same time period as the outcome, and these predictors incorporate information that is influenced by regeneration itself."
+
+[E1] The outcome variable indicates patches of natural forest regeneration which occurred between 2000–2012 and persisted to 2016. At least three of the predictor variables seen by the training algorithm are also recorded during this period rather than prior to it: net primary production, burned area, and road density. In addition, the authors use variables from the ESA CCI land cover dataset as recorded in the year 2000, overlapping with the outcome.
+
+Optional but important
+
+1. Reliance on Older GFC Gain Data: [Cloud] The study relies on an older version of the Global Forest Change (GFC) gain data (v1.5, covering 2000-2012/2016). Since the initial analysis for Fagan et al. (2022), improved GFC datasets have been released (e.g., GMD 2022 update using GEDI lidar).
+
+2. "Confounding by Socioeconomic Factors and Predictor Choice:" [Both evaluators agreed] While the authors train models with biophysical and socioeconomic predictors, their spatial predictions are derived from a model that includes only biophysical variables. Inferring purely biophysical potential from observational data is not feasible with the proposed method. The difficulty lies in the fact that biophysical and socioeconomic conditions are deeply interconnected. In practice, the model will predict high regeneration probability in locations where both factors are favorable. The proposed method cannot support the interpretation of the estimates as 'purely biophysical potential for natural forest regrowth'.
+
+3. Neglect of Intensive Margin Regrowth: [Cloud] The study focuses exclusively on the extensive margin (new forest area gain). It completely overlooks the intensive margin – canopy regeneration and forest recovery within existing, potentially degraded, forest pixels.
+
+4. "Validation" uses past data [Both evaluators/consensus] — The confusion matrix appears to validate the model by comparing its predictions for 2030 against the Fagan et al. (2022) regrowth data for 2000-2016. Validating a model designed to predict future potential against past outcomes is not a true test of its predictive power for the future.
+
+Unsure if correct/relevant
+
+1. Definition of Natural Regrowth (Inherited from Fagan et al.) [Cloud]: The model relies on Fagan et al.'s definition, which treats all non-plantation gain as "natural regrowth," conflating truly natural processes with human-assisted regeneration.
+
+2. Overestimation due to Omission Error (Inherited from Fagan et al.): Fagan et al. reported very high omission errors for regrowth (low area-based Producer's Accuracy of ~18.7%). The Williams et al. potential area (215 Mha) includes already-regrown areas, substantially overestimating the area truly available for future regeneration.
+
+3. Discrepancy in Estimated Magnitude and Lack of Historical Validation: [Both evaluators] The authors' estimate of 215 Mha of expected natural regeneration is strikingly larger than the benchmark from Fagan et al. (2022) of 31.6 Mha ± 11.9 Mha (for 2000-2016). Williams et al. do not report their own model's prediction for the 2000-2016 historical period (a "hindcast"), a crucial missing validation against this benchmark.
 
 ---
 

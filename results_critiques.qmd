@@ -17,11 +17,17 @@ library("jsonlite")
 library("knitr")
 library("kableExtra")
 library("DT")
+library("reticulate")
 
 # Theme colors (matching results_ratings.qmd)
 UJ_ORANGE <- "#f19e4b"
 UJ_GREEN  <- "#99bb66"
 UJ_BLUE   <- "#4e79a7"
+
+# Severity colors for badges
+SEV_NECESSARY <- "#e74c3c"   # Red
+SEV_OPTIONAL  <- "#f39c12"   # Orange
+SEV_UNSURE    <- "#95a5a6"   # Gray
 
 theme_uj <- function(base_size = 11) {
   theme_minimal(base_size = base_size) +
@@ -31,23 +37,38 @@ theme_uj <- function(base_size = 11) {
       legend.position = "bottom"
     )
 }
+
+# Function to create severity badge HTML
+severity_badge <- function(severity) {
+  sev <- tolower(trimws(severity))
+  if (grepl("necessary", sev)) {
+    return('<span style="background-color:#e74c3c;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">🔴 Necessary</span>')
+  } else if (grepl("optional", sev)) {
+    return('<span style="background-color:#f39c12;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">🟠 Optional</span>')
+  } else if (sev != "") {
+    return('<span style="background-color:#95a5a6;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">⚪ Unsure</span>')
+  }
+  return('<span style="background-color:#bdc3c7;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">—</span>')
+}
+
+# Function to truncate text for table display
+truncate_text <- function(text, max_chars = 80) {
+  if (nchar(text) > max_chars) {
+    paste0(substr(text, 1, max_chars), "...")
+  } else {
+    text
+  }
+}
 ```
 
 This chapter compares **qualitative critiques**: the key methodological and interpretive issues identified by GPT-5.2 Pro against human expert critiques documented by Unjournal evaluation managers in Coda.
 
-This page displays raw data for manual review. The claims about coverage, precision, and alignment require either:
+We assess alignment using two approaches:[^approaches-note]
 
-- Manual expert review of each paper's comparisons
-- LLM-based comparison
+1. **LLM-based comparison**: GPT-5.2 Pro evaluates coverage and precision (see [LLM-Based Assessment](#sec-llm-assessment))
+2. **Manual annotation**: Human labeling using the Issue Annotation Tool (see [Manual Annotation Tool](#manual-annotation-tool))
 
-(Jan 8 2026: We are working on both approaches)
-
-
-- **Manual annotation** using the Issue Annotation Tool (see below)
-- LLM-based comparison (run `python compare_key_issues.py --compare` when API is available)
-
-Any conclusions about "high overlap" or "systematic differences" should emerge from that analysis, not be assumed.
-:::
+[^approaches-note]: Jan 8 2026: We are actively working on both approaches. Results shown here are preliminary.
 
 ## Data Sources
 
@@ -98,6 +119,339 @@ if (!is.null(comparison_data) && !is.na(comparison_results_file)) {
 }
 ```
 
+```{python}
+#| label: parse-human-issues
+#| code-fold: true
+#| code-summary: "Parse human critiques into individual issues"
+
+import json
+import re
+from pathlib import Path
+
+# Severity parsing regex patterns
+SEVERITY_HEADER_RE = re.compile(
+    r"^(necessary|optional|optional but important|unsure|less important|possibly relevant|"
+    r"probably important|probably correct|probably|note|notes|optional/desirable|"
+    r"probably useful|maybe|possibly|unsure if correct|limitations)(\s|:|$)",
+    re.IGNORECASE,
+)
+ENUM_RE = re.compile(r"^\s*(\d+)[\.\)]\s+")
+EVALUATOR_RE = re.compile(r"^\[?(E\d+|Evaluator|DR|NotebookLM)\]?[\s:\[]", re.IGNORECASE)
+
+def normalize_severity(header):
+    h = header.lower()
+    if "necessary" in h:
+        return "necessary"
+    if "optional" in h:
+        return "optional"
+    if any(word in h for word in ["unsure", "possibly", "probably", "less important", "maybe", "limitations"]):
+        return "unsure"
+    return ""
+
+def extract_short_label(text, max_words=12):
+    """Extract a descriptive short label from issue text."""
+    original = text.strip()
+
+    # Meta-commentary patterns to skip
+    META_SKIP_PATTERNS = [
+        r'^I chose',
+        r'^I selected',
+        r'^I think',
+        r'^I would',
+        r'^I believe',
+        r'^These are',
+        r'^This is (a|the|my)',
+        r'^Note[s]?\s*[:)]',
+        r'^DR\s*[:)]',
+        r'^NotebookLM\s*[:)]',
+        r'^The following',
+        r'^Summary\s*[:)]',
+        r'^Quote from',
+        r'^See also',
+        r'^As noted',
+        r'^and that',  # Fragments starting with conjunctions
+        r'^and it',
+        r"^and that it's",
+        r'^or that',
+        r'^but that',
+        r'^but it',
+        r'^which ',
+        r'^that ',
+        r'^to be ',
+        r'^it is ',
+        r'^it would ',
+    ]
+
+    # First clean: Remove leading evaluator tags (DR —, [E1], etc.)
+    cleaned_for_meta_check = re.sub(
+        r'^[\s\[]*(?:E\d+|Evaluator\s*\d*|DR|NotebookLM|Treich|Triech|Capitan|Reiley|Manheim|Espinosa|Seinkmane|Cloud|Tsai)[\]:\s—\-]+',
+        '', original, flags=re.IGNORECASE
+    ).strip()
+
+    # Check for meta-commentary patterns AFTER removing evaluator prefix
+    for pattern in META_SKIP_PATTERNS:
+        if re.match(pattern, cleaned_for_meta_check, re.IGNORECASE):
+            # Try to find actual content after the meta-commentary
+            # Look for a quoted phrase or substantive content after colon/period
+            quote_in_meta = re.search(r'["""\']([^"""\'\n]{15,80})["""\']', cleaned_for_meta_check)
+            if quote_in_meta:
+                quoted = quote_in_meta.group(1).strip()
+                if not re.match(r'^(the |a |an |this )', quoted.lower()):
+                    return quoted
+            # Look for content after a colon
+            after_meta = re.split(r'[:\n]', cleaned_for_meta_check, maxsplit=1)
+            if len(after_meta) > 1 and len(after_meta[1].strip()) > 20:
+                original = after_meta[1].strip()
+                break
+            else:
+                # Return a generic placeholder if no content found
+                return "[Meta-commentary - see full text]"
+
+    # FIRST: Check if text starts with "Label [Evaluator] more text" pattern
+    # Extract just the label part before the evaluator tag
+    # Match common evaluator patterns: [E1], [Treich], [Triech], [Reiley], [Capitan], etc.
+    label_before_eval = re.match(r'^([A-Z][^[\n]{10,80}?)\s*\[(?:E\d+|[A-Z][a-z]+)\]', original)
+    if label_before_eval:
+        label = label_before_eval.group(1).strip()
+        label = re.sub(r'[\s:,;—\-]+$', '', label)
+        if 3 <= len(label.split()) <= max_words:
+            return label
+
+    # Also check for "Label E2: more text" pattern (evaluator without brackets)
+    label_before_eval2 = re.match(r'^([A-Z][^\n]{10,80}?)\s+(?:E\d+|DR)\s*:', original)
+    if label_before_eval2:
+        label = label_before_eval2.group(1).strip()
+        label = re.sub(r'[\s:,;—\-]+$', '', label)
+        if 3 <= len(label.split()) <= max_words:
+            return label
+
+    # Remove evaluator tags, names, and quotes at start
+    clean = re.sub(r'^\[?(?:E\d+|Evaluator\s*\d*|DR|NotebookLM|Treich|Triech|Capitan|Reiley|Manheim|Espinosa|Seinkmane|Cloud|Tsai)\]?[\s:\[]*', '', original, flags=re.IGNORECASE)
+    clean = re.sub(r'^[""\'\[\(]', '', clean)
+    clean = re.sub(r'^Author[\'s]*\s*response:?\s*', '', clean, flags=re.IGNORECASE)
+
+    # Skip if remaining text starts with a name (single capitalized word followed by colon)
+    name_check = re.match(r'^([A-Z][a-z]+)\s*:', clean)
+    if name_check and len(name_check.group(1)) < 15:
+        clean = clean[name_check.end():].strip()
+
+    # Look for quoted phrases that are key terms (handle both straight and curly quotes)
+    quote_match = re.search(r'["""\']([^"""\'\n]{15,80})["""\']', clean[:250])
+    if quote_match:
+        quoted = quote_match.group(1).strip()
+        if not re.match(r'^(the |a |an |this )', quoted.lower()):
+            return quoted
+
+    # Look for "Label: description" or "Label — description" patterns
+    # Use (?<!\w) to avoid matching hyphens in compound words like "pre-registered"
+    label_match = re.match(r'^([^:\n]{10,80}?)(?:\s*[:\—]\s*|\s+—\s+)', clean)
+    if label_match:
+        label = label_match.group(1).strip()
+        label = re.sub(r'[""\']+$', '', label)
+        # Skip if it ends with a preposition or conjunction (incomplete phrase)
+        if not re.search(r'\s+(or|and|of|for|to|in|on|by|with|the|a|an)$', label.lower()):
+            if not re.match(r'^[A-Z][a-z]+$', label) and len(label.split()) <= max_words:
+                return label
+
+    # Look for descriptive noun phrases (allow hyphens in words)
+    patterns = [
+        r'((?:Lack of |Missing |Unclear |Weak |Strong |Potential )?[A-Z][a-z]+(?:[-\s]+[a-z-]+){1,5}(?:\s+(?:effects?|bias|issues?|concerns?|limitations?|assumptions?|analysis|validity|problems?|risks?|errors?|size|needs?|checking)))',
+        r'((?:Small |Large |Limited |Significant )[a-z-]+(?:\s+[a-z-]+){0,5})',
+        r'([A-Z][a-z]+\s+(?:sample|data|model|method|approach|design|analysis|claims?|effects?)(?:\s+[a-z-]+){0,3})',
+        r'(Consider\s+[a-z-]+(?:[-\s]+[a-z-]+){0,5})',
+        r'(Deviations?\s+from\s+(?:the\s+)?[a-z-]+(?:[-\s]+[a-z-]+){0,5})',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, clean[:250])
+        if match:
+            label = match.group(1).strip()
+            # Remove trailing preposition phrases like "or degrees of", "and more", etc.
+            while True:
+                new_label = re.sub(r'\s+(or|and|with|for|to|of|in|on|by|including)(\s+\w+)*\s*$', '', label)
+                if new_label == label:
+                    break
+                label = new_label
+            if 10 < len(label) < 120 and len(label.split()) <= max_words:
+                return label
+
+    # Take first sentence or clause
+    first_clause = re.split(r'(?<=[.!?])\s+|\n', clean)[0].strip()
+    first_clause = re.sub(r'^(The |A |An )', '', first_clause)
+    first_clause = re.sub(r'\s+(including|or|and|with|for|to|of|in|on|by)\s*$', '', first_clause)
+
+    # Remove evaluator tags from middle/end of text
+    first_clause = re.sub(r'\s*\[(?:E\d+|[A-Z][a-z]+)\]\s*', ' ', first_clause)
+    first_clause = re.sub(r'\s+(?:E\d+|DR)\s*:.*$', '', first_clause)
+    first_clause = re.sub(r'\s+', ' ', first_clause).strip()
+
+    words = first_clause.split()
+    if 3 <= len(words) <= max_words:
+        return first_clause
+    elif len(words) > max_words:
+        text = ' '.join(words[:max_words])
+        last_break = max(text.rfind(' or '), text.rfind(' and '), text.rfind(', '), text.rfind(' — '))
+        if last_break > len(text) // 2:
+            return text[:last_break].strip(' ,—')
+        return text + '...'
+
+    # Fallback
+    key_terms = re.findall(r'[A-Z][a-z]+(?:\s+[a-z]+){0,2}', clean[:150])
+    if key_terms:
+        return ' / '.join(key_terms[:3])
+
+    words = clean.split()[:max_words]
+    return ' '.join(words) + ('...' if len(clean.split()) > max_words else '')
+
+def extract_llm_label(text, max_words=10):
+    """Extract a short label from LLM issue text."""
+    # Clean up numbering
+    clean = re.sub(r'^[\d\.\)]+\s*', '', text.strip())
+
+    # LLM issues often have format "Topic: detailed explanation"
+    colon_match = re.match(r'^([^:]{8,60}):\s*', clean)
+    if colon_match:
+        label = colon_match.group(1).strip()
+        # Make sure it's descriptive enough
+        if len(label.split()) >= 2:
+            return label
+
+    # Take first clause
+    first_part = re.split(r'[;.]', clean)[0].strip()
+    words = first_part.split()
+    if len(words) <= max_words:
+        return first_part
+    return ' '.join(words[:max_words]) + '...'
+
+def split_human_issues(text):
+    """Parse human critique text into individual issues with severity labels."""
+    if not text:
+        return []
+
+    issues = []
+    current_severity = ""
+    current_issue_lines = []
+
+    def flush_issue():
+        nonlocal current_issue_lines
+        if not current_issue_lines:
+            return
+        full_text = "\n".join(current_issue_lines).strip()
+        # Clean leading punctuation/numbering
+        cleaned = re.sub(r"^[\-\*\d\.\)\s]+", "", full_text).strip()
+        if not cleaned or len(cleaned) < 10:
+            current_issue_lines = []
+            return
+        # Skip if it's just a severity label
+        if SEVERITY_HEADER_RE.match(cleaned):
+            current_issue_lines = []
+            return
+
+        short_label = extract_short_label(cleaned)
+        # Skip if this is meta-commentary (the label extraction will return placeholder)
+        if short_label == "[Meta-commentary - see full text]":
+            current_issue_lines = []
+            return
+
+        issues.append({
+            "text": cleaned,
+            "severity": current_severity,
+            "short_label": short_label
+        })
+        current_issue_lines = []
+
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        raw = line.strip()
+
+        # Check for severity header
+        if raw and SEVERITY_HEADER_RE.match(raw):
+            flush_issue()
+            current_severity = normalize_severity(raw.split(':')[0].split()[0])
+            i += 1
+            continue
+
+        # Check for numbered issue start
+        if ENUM_RE.match(raw):
+            flush_issue()
+            # Remove the number prefix
+            issue_text = re.sub(r"^\s*\d+[\.\)]\s*", "", raw)
+            current_issue_lines = [issue_text] if issue_text else []
+            i += 1
+            continue
+
+        # Check for issue label line (short line followed by longer explanation)
+        # e.g., "Ceiling effects with Likert scale measures"
+        if raw and not EVALUATOR_RE.match(raw) and len(raw) < 80:
+            # Look ahead - if next non-empty line starts with [E or is indented, this is a label
+            next_idx = i + 1
+            while next_idx < len(lines) and not lines[next_idx].strip():
+                next_idx += 1
+            if next_idx < len(lines):
+                next_line = lines[next_idx].strip()
+                if (EVALUATOR_RE.match(next_line) or
+                    lines[next_idx].startswith(' ') or
+                    next_line.startswith('"') or
+                    next_line.startswith("'")):
+                    # This short line is likely a label for a new issue
+                    flush_issue()
+                    current_issue_lines = [raw]
+                    i += 1
+                    continue
+
+        # Empty line - might signal new issue in some formats
+        if not raw:
+            # Don't flush on every empty line - only if we have significant content
+            if current_issue_lines and len("\n".join(current_issue_lines)) > 100:
+                # Check if next content looks like new issue
+                next_idx = i + 1
+                while next_idx < len(lines) and not lines[next_idx].strip():
+                    next_idx += 1
+                if next_idx < len(lines):
+                    next_line = lines[next_idx].strip()
+                    if ENUM_RE.match(next_line) or (len(next_line) < 80 and not EVALUATOR_RE.match(next_line)):
+                        flush_issue()
+            i += 1
+            continue
+
+        # Regular content line - add to current issue
+        if current_issue_lines:
+            current_issue_lines.append(raw)
+        else:
+            current_issue_lines = [raw]
+        i += 1
+
+    flush_issue()
+    return issues
+
+# Load comparison data and results
+comparison_file = Path("results/key_issues_comparison.json")
+results_file = Path("results/key_issues_comparison_results.json")
+matched_file = Path("results/key_issues_matched.json")
+
+parsed_issues = {}
+comparison_results = {}
+matched_data = {}
+
+if comparison_file.exists():
+    comparison = json.loads(comparison_file.read_text())
+    for item in comparison:
+        paper_id = item.get("gpt_paper", "")
+        coda_critique = item.get("coda_critique", "")
+        parsed_issues[paper_id] = split_human_issues(coda_critique)
+
+if results_file.exists():
+    results = json.loads(results_file.read_text())
+    for r in results:
+        paper_id = r.get("gpt_paper", "")
+        comparison_results[paper_id] = r.get("comparison", {})
+
+# Load embedding-matched pairs
+if matched_file.exists():
+    matched_data = json.loads(matched_file.read_text())
+```
+
 We matched **`r n_papers` papers** with both GPT-5.2 Pro key issues and human expert critiques.
 
 ## Overview Statistics
@@ -128,12 +482,21 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
 ## Paper-by-Paper Comparison {#sec-paper-comparison}
 
-The sections below show side-by-side comparisons for each matched paper. Human critiques often use severity labels and cite specific evaluators (E1, E2, etc.), while GPT issues are concise bullet points ordered by importance.
+Each paper section shows:
+
+- **Assessment badge**: Coverage and precision metrics (from LLM-based comparison)
+- **Human Issues table**: Parsed individual issues with severity labels (🔴 Necessary, 🟠 Optional, ⚪ Unsure)
+- **LLM Issues table**: GPT-5.2 Pro key issues (ordered by importance)
+- **Full critique text**: Expandable section with complete human critique
 
 ```{r}
 #| label: render-comparisons
 #| results: asis
 #| code-fold: true
+#| code-summary: "Render paper comparisons"
+
+# Access parsed issues from Python
+parsed_issues_list <- py$parsed_issues
 
 if (!is.null(comparison_data) && n_papers > 0) {
 
@@ -142,75 +505,261 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
   for (i in 1:nrow(comparison_data)) {
     row <- comparison_data[i, ]
+    paper_id <- row$gpt_paper
 
     # Paper header
-    cat(sprintf("\n### %s\n\n", row$gpt_paper))
+    cat(sprintf("\n### %s\n\n", paper_id))
     cat(sprintf("**Coda title:** %s\n\n", row$coda_title))
 
     # Show LLM assessment badge if available
     if (has_assessment && !is.na(row$coverage_pct)) {
-      cat(sprintf("::: {.callout-note appearance=\"simple\"}\n"))
-      cat(sprintf("**LLM Assessment:** Coverage %s%% | Precision %s%% | Rating: %s\n",
-                  row$coverage_pct, row$precision_pct, row$overall_rating))
+      # Determine badge color based on coverage/precision
+      coverage_val <- as.numeric(row$coverage_pct)
+      precision_val <- as.numeric(row$precision_pct)
+      avg_score <- (coverage_val + precision_val) / 2
+      if (avg_score >= 70) {
+        badge_class <- "callout-tip"
+      } else if (avg_score >= 40) {
+        badge_class <- "callout-note"
+      } else {
+        badge_class <- "callout-warning"
+      }
+      cat(sprintf("::: {.%s appearance=\"simple\"}\n", badge_class))
+      cat(sprintf("**Coverage:** %s%% | **Precision:** %s%%\n",
+                  row$coverage_pct, row$precision_pct))
       cat(":::\n\n")
     }
 
-    # Two-column layout using Quarto divs
-    cat("::: {.columns}\n")
-    cat("::: {.column width=\"48%\"}\n")
-    cat("#### GPT-5.2 Pro Key Issues\n\n")
-
-    # GPT issues
+    # Get parsed issues and comparison results for this paper
+    human_issues <- parsed_issues_list[[paper_id]]
+    paper_comparison <- py$comparison_results[[paper_id]]
     gpt_issues <- row$gpt_key_issues[[1]]
-    for (issue in gpt_issues) {
-      # Clean up numbering if present
-      issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
-      cat(sprintf("- %s\n", issue_clean))
+    coverage <- if (!is.null(paper_comparison$coverage_pct)) paper_comparison$coverage_pct else NA
+    missed_issues <- if (!is.null(paper_comparison$missed_issues)) paper_comparison$missed_issues else list()
+
+    # ---- MATCHED ISSUE COMPARISON ----
+    cat("#### Issue Comparison\n\n")
+
+    # Get matched data for this paper
+    paper_matched <- py$matched_data[[paper_id]]
+
+    if (!is.null(paper_matched) && length(paper_matched$matched_pairs) > 0) {
+      matched_pairs <- paper_matched$matched_pairs
+      human_issues_data <- paper_matched$human_issues
+      llm_issues_data <- paper_matched$llm_issues
+      unmatched_human <- paper_matched$unmatched_human
+      unmatched_llm <- paper_matched$unmatched_llm
+
+      # Helper: get LLM label from text
+      get_llm_label <- function(text) {
+        text_clean <- gsub("^[0-9]+[)\\.]\\s*", "", text)
+        first_colon <- regexpr(":", text_clean)[1]
+        if (first_colon > 0 && first_colon < 60) {
+          return(substr(text_clean, 1, first_colon - 1))
+        }
+        return(truncate_text(text_clean, 50))
+      }
+
+      # ---- MATCHED ISSUES ----
+      cat('<div style="margin-bottom:1.5em;">\n')
+      cat('<h5 style="color:#2e7d32;">Matched Issues</h5>\n')
+      cat('<p style="font-size:0.85em;color:#888;margin-bottom:1em;font-style:italic;"><strong>Note:</strong> Match quality is based on cosine similarity of sentence embeddings—a rough heuristic that may miss semantic matches or flag false positives. Use LLM-based comparison for more accurate matching.</p>\n')
+
+      for (pair in matched_pairs) {
+        h_idx <- pair$human_issue_index
+        llm_indices <- pair$llm_issue_indices
+        match_quality <- pair$match_quality
+
+        if (length(llm_indices) > 0 && h_idx <= length(human_issues_data)) {
+          h_issue <- human_issues_data[[h_idx]]
+          h_text <- h_issue$text
+          h_severity <- h_issue$severity
+          badge <- severity_badge(h_severity)
+
+          # Get human label
+          h_label <- if (!is.null(human_issues) && h_idx <= length(human_issues)) {
+            human_issues[[h_idx]]$short_label
+          } else {
+            truncate_text(h_text, 50)
+          }
+          h_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_label))
+          h_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_text))
+          border_color <- if (grepl("necessary", tolower(h_severity))) "#e74c3c" else if (grepl("optional", tolower(h_severity))) "#f39c12" else "#95a5a6"
+
+          # Match quality badge color
+          quality_color <- if (match_quality >= 70) "#2e7d32" else if (match_quality >= 50) "#f9a825" else "#c62828"
+
+          cat('<div style="margin:0.75em 0;padding:0.75em;background:#f8fdf8;border:1px solid #c8e6c9;border-radius:5px;">\n')
+
+          # Header with match quality
+          cat(sprintf('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5em;">\n'))
+          cat(sprintf('<span><strong>H%d</strong> %s <strong>%s</strong></span>\n', h_idx, badge, h_label_escaped))
+          cat(sprintf('<span style="background:%s;color:white;padding:2px 8px;border-radius:10px;font-size:0.8em;">Match: %d%%</span>\n', quality_color, match_quality))
+          cat('</div>\n')
+
+          # Human text (expandable)
+          cat('<details style="margin:0.5em 0;">\n')
+          cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">📋 Human expert text</summary>\n')
+          cat(sprintf('<div style="margin-top:0.5em;padding:0.5em;background:#fffbf0;border-left:3px solid %s;font-size:0.9em;">%s</div>\n', border_color, h_text_escaped))
+          cat('</details>\n')
+
+          # Matched LLM issues
+          cat('<details style="margin:0.5em 0;">\n')
+          llm_ids_str <- paste0("L", llm_indices, collapse=", ")
+          cat(sprintf('<summary style="font-size:0.85em;color:#666;cursor:pointer;">🤖 LLM coverage (%s)</summary>\n', llm_ids_str))
+          cat('<div style="margin-top:0.5em;">\n')
+          for (l_idx in llm_indices) {
+            if (l_idx <= length(llm_issues_data)) {
+              l_text <- llm_issues_data[[l_idx]]
+              l_label <- get_llm_label(l_text)
+              l_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_label))
+              l_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_text))
+              cat(sprintf('<div style="padding:0.5em;background:#f0f7ff;border-left:3px solid #4e79a7;margin-bottom:0.3em;font-size:0.9em;"><strong>L%d:</strong> %s</div>\n', l_idx, l_text_escaped))
+            }
+          }
+          cat('</div>\n')
+          cat('</details>\n')
+
+          cat('</div>\n')
+        }
+      }
+      cat('</div>\n\n')
+
+      # ---- UNMATCHED HUMAN ISSUES ----
+      if (length(unmatched_human) > 0) {
+        cat('<details style="margin-bottom:1.5em;">\n')
+        cat(sprintf('<summary style="color:#c62828;font-weight:bold;cursor:pointer;">⚠️ Unmatched Human Issues (%d missed by LLM)</summary>\n', length(unmatched_human)))
+        cat('<div style="margin-top:0.5em;">\n')
+        for (h_idx in unmatched_human) {
+          if (h_idx <= length(human_issues_data)) {
+            h_issue <- human_issues_data[[h_idx]]
+            h_text <- h_issue$text
+            h_severity <- h_issue$severity
+            badge <- severity_badge(h_severity)
+            h_label <- if (!is.null(human_issues) && h_idx <= length(human_issues)) {
+              human_issues[[h_idx]]$short_label
+            } else {
+              truncate_text(h_text, 50)
+            }
+            h_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_label))
+            h_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_text))
+            border_color <- if (grepl("necessary", tolower(h_severity))) "#e74c3c" else if (grepl("optional", tolower(h_severity))) "#f39c12" else "#95a5a6"
+
+            cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#ffebee;border-left:4px solid #c62828;">\n'))
+            cat(sprintf('<strong>H%d</strong> %s <strong>%s</strong>\n', h_idx, badge, h_label_escaped))
+            cat('<details style="margin-top:0.3em;">\n')
+            cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
+            cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', h_text_escaped))
+            cat('</details>\n')
+            cat('</div>\n')
+          }
+        }
+        cat('</div>\n')
+        cat('</details>\n\n')
+      }
+
+      # ---- UNMATCHED LLM ISSUES ----
+      if (length(unmatched_llm) > 0) {
+        cat('<details style="margin-bottom:1.5em;">\n')
+        cat(sprintf('<summary style="color:#1565c0;font-weight:bold;cursor:pointer;">📋 Extra LLM Issues (%d not in human critique)</summary>\n', length(unmatched_llm)))
+        cat('<div style="margin-top:0.5em;">\n')
+        for (l_idx in unmatched_llm) {
+          if (l_idx <= length(llm_issues_data)) {
+            l_text <- llm_issues_data[[l_idx]]
+            l_label <- get_llm_label(l_text)
+            l_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_label))
+            l_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_text))
+
+            cat('<div style="margin:0.5em 0;padding:0.5em;background:#e3f2fd;border-left:4px solid #1565c0;">\n')
+            cat(sprintf('<strong>L%d</strong> <strong>%s</strong>\n', l_idx, l_label_escaped))
+            cat('<details style="margin-top:0.3em;">\n')
+            cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
+            cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', l_text_escaped))
+            cat('</details>\n')
+            cat('</div>\n')
+          }
+        }
+        cat('</div>\n')
+        cat('</details>\n\n')
+      }
+
+      # ---- SUMMARY STATS ----
+      n_matched <- sum(sapply(matched_pairs, function(p) length(p$llm_issue_indices) > 0))
+      n_human <- length(human_issues_data)
+      n_llm <- length(llm_issues_data)
+      cat('<div style="background:#f5f5f5;padding:0.75em;border-radius:5px;font-size:0.9em;">\n')
+      cat(sprintf('<strong>Summary:</strong> %d/%d human issues matched | %d/%d LLM issues matched | %d LLM extras\n',
+                  n_matched, n_human, n_llm - length(unmatched_llm), n_llm, length(unmatched_llm)))
+      cat('</div>\n\n')
+
+    } else if (!is.null(human_issues) && length(human_issues) > 0) {
+      # Fallback: no matched data, show separate lists
+      cat('<p style="color:#666;font-style:italic;">Embedding-based matching not available for this paper.</p>\n\n')
+
+      # Show human issues
+      cat('<h5 style="color:#e65100;">Human Expert Issues</h5>\n')
+      for (j in seq_along(human_issues)) {
+        issue <- human_issues[[j]]
+        badge <- severity_badge(issue$severity)
+        label <- if (!is.null(issue$short_label)) issue$short_label else truncate_text(issue$text, 60)
+        label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", label))
+        text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue$text))
+        border_color <- if (grepl("necessary", tolower(issue$severity))) "#e74c3c" else if (grepl("optional", tolower(issue$severity))) "#f39c12" else "#95a5a6"
+
+        cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#fffbf0;border-left:4px solid %s;">\n', border_color))
+        cat(sprintf('<strong>H%d</strong> %s <strong>%s</strong>\n', j, badge, label_escaped))
+        cat('<details style="margin-top:0.3em;">\n')
+        cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
+        cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', text_escaped))
+        cat('</details>\n')
+        cat('</div>\n')
+      }
+
+      # Show LLM issues
+      cat('\n<h5 style="color:#1565c0;">LLM Issues</h5>\n')
+      for (j in seq_along(gpt_issues)) {
+        issue <- gpt_issues[j]
+        issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
+        first_colon <- regexpr(":", issue_clean)[1]
+        label <- if (first_colon > 0 && first_colon < 50) substr(issue_clean, 1, first_colon - 1) else truncate_text(issue_clean, 50)
+        label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", label))
+        text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue_clean))
+
+        cat('<div style="margin:0.5em 0;padding:0.5em;background:#f0f7ff;border-left:4px solid #4e79a7;">\n')
+        cat(sprintf('<strong>L%d</strong> <strong>%s</strong>\n', j, label_escaped))
+        cat('<details style="margin-top:0.3em;">\n')
+        cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
+        cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', text_escaped))
+        cat('</details>\n')
+        cat('</div>\n')
+      }
+      cat('\n')
+
+    } else {
+      # No parsed human issues - show raw
+      cat("*Human critique not parsed into individual issues.*\n\n")
+      cat('<details><summary>View full human critique</summary>\n\n')
+      cat(gsub("<", "&lt;", gsub(">", "&gt;", row$coda_critique)))
+      cat('\n</details>\n\n')
+
+      # Still show LLM issues
+      if (length(gpt_issues) > 0) {
+        cat("**LLM Issues:**\n\n")
+        for (j in seq_along(gpt_issues)) {
+          issue <- gpt_issues[j]
+          issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
+          issue_clean <- gsub("^\\. ", "", issue_clean)
+          cat(sprintf("- **L%d:** %s\n", j, truncate_text(issue_clean, 100)))
+        }
+        cat("\n")
+      }
     }
 
-    cat("\n:::\n")
-    cat("::: {.column width=\"4%\"}\n")
-    cat("\n:::\n")  # spacer
-    cat("::: {.column width=\"48%\"}\n")
-    cat("#### Human Expert Critiques\n\n")
-
-    # Coda critique (preserve formatting)
-    coda_text <- row$coda_critique
-    # Convert line breaks to markdown
-    coda_text <- gsub("\n", "\n\n", coda_text)
-    cat(coda_text)
-
-    cat("\n:::\n")
-    cat(":::\n\n")
-
-    # Show detailed LLM analysis if available
+    # Show LLM justification if available
     if (has_assessment && !is.na(row$coverage_pct)) {
-      # Missed issues
-      if (!is.null(row$missed_issues) && length(row$missed_issues[[1]]) > 0) {
-        cat("::: {.callout-warning collapse=\"true\"}\n")
-        cat("## Missed Issues (LLM-identified)\n\n")
-        cat("Human concerns not captured by GPT (per GPT-5.2 Pro comparison):\n\n")
-        for (missed in row$missed_issues[[1]]) {
-          cat(sprintf("- %s\n", missed))
-        }
-        cat(":::\n\n")
-      }
-
-      # Extra issues
-      if (!is.null(row$extra_issues) && length(row$extra_issues[[1]]) > 0) {
-        cat("::: {.callout-note collapse=\"true\"}\n")
-        cat("## Extra Issues (LLM-identified)\n\n")
-        cat("GPT issues not in human critiques (per GPT-5.2 Pro comparison):\n\n")
-        for (extra in row$extra_issues[[1]]) {
-          cat(sprintf("- %s\n", extra))
-        }
-        cat(":::\n\n")
-      }
-
-      # LLM justification
       if (!is.null(row$overall_justification) && nchar(row$overall_justification) > 0) {
-        cat("::: {.callout-note collapse=\"true\"}\n")
-        cat("## LLM Justification\n\n")
+        cat("::: {.callout-note collapse='true'}\n")
+        cat("## LLM Comparison Notes\n\n")
         cat(row$overall_justification)
         cat("\n:::\n\n")
       }
@@ -256,6 +805,7 @@ if (has_llm_results) {
       `Coverage Range` = paste0(min(coverage_pct, na.rm = TRUE), "-", max(coverage_pct, na.rm = TRUE)),
       `Precision Range` = paste0(min(precision_pct, na.rm = TRUE), "-", max(precision_pct, na.rm = TRUE))
     ) |>
+    mutate(across(everything(), as.character)) |>
     pivot_longer(everything(), names_to = "Metric", values_to = "Value")
 
   kable(summary_stats, align = c("l", "r"))
@@ -311,12 +861,43 @@ if (has_llm_results) {
 }
 ```
 
+```{r}
+#| label: fig-rating-distribution
+#| fig-cap: "Distribution of overall ratings across papers"
+#| fig-width: 8
+#| fig-height: 4
+#| eval: !expr has_llm_results
+
+if (has_llm_results) {
+  rating_counts <- comparison_data |>
+    filter(!is.na(overall_rating)) |>
+    mutate(
+      Rating = factor(overall_rating, levels = c("Poor", "Fair", "Good", "Excellent"))
+    ) |>
+    count(Rating, .drop = FALSE)
+
+  # Define colors for ratings
+  rating_colors <- c("Poor" = "#e74c3c", "Fair" = "#f39c12", "Good" = "#27ae60", "Excellent" = "#2ecc71")
+
+  ggplot(rating_counts, aes(x = Rating, y = n, fill = Rating)) +
+    geom_col(alpha = 0.9) +
+    geom_text(aes(label = n), vjust = -0.3, size = 5) +
+    scale_fill_manual(values = rating_colors, drop = FALSE) +
+    labs(
+      x = "Overall Rating",
+      y = "Number of Papers"
+    ) +
+    theme_uj() +
+    theme(legend.position = "none")
+}
+```
+
 ::: {.callout-note collapse="true"}
 ## Interpretation Guide
 
-- **Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.
-- **Precision**: Percentage of GPT issues that are substantive rather than generic or spurious. Higher = GPT's critiques are more targeted.
-- **Overall Rating**: Qualitative assessment (Excellent/Good/Fair/Poor) based on both metrics.
+-   **Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.
+-   **Precision**: Percentage of GPT issues that are substantive rather than generic or spurious. Higher = GPT's critiques are more targeted.
+-   **Overall Rating**: Qualitative assessment (Excellent/Good/Fair/Poor) based on both metrics.
 :::
 
 ## Summary and Observations
@@ -334,6 +915,96 @@ if (!is.null(comparison_data) && n_papers > 0) {
       paper_short = str_trunc(gpt_paper, 30)
     ) |>
     select(paper_short, num_gpt_issues, coda_critique_length)
+
+  # Calculate severity distribution from parsed issues
+  all_human_issues <- do.call(rbind, lapply(names(parsed_issues_list), function(paper_id) {
+    issues <- parsed_issues_list[[paper_id]]
+    if (is.null(issues) || length(issues) == 0) return(NULL)
+    data.frame(
+      paper_id = paper_id,
+      severity = sapply(issues, function(x) x$severity),
+      stringsAsFactors = FALSE
+    )
+  }))
+
+  if (!is.null(all_human_issues) && nrow(all_human_issues) > 0) {
+    severity_dist <- all_human_issues |>
+      mutate(
+        severity = case_when(
+          grepl("necessary", tolower(severity)) ~ "Necessary",
+          grepl("optional", tolower(severity)) ~ "Optional",
+          severity != "" ~ "Unsure",
+          TRUE ~ "Unclassified"
+        ),
+        severity = factor(severity, levels = c("Necessary", "Optional", "Unsure", "Unclassified"))
+      ) |>
+      count(severity, .drop = FALSE)
+  }
+}
+```
+
+### Aggregate Statistics
+
+```{r}
+#| label: tbl-aggregate-stats
+#| tbl-cap: "Aggregate statistics across all papers"
+#| results: asis
+
+if (!is.null(comparison_data) && n_papers > 0) {
+  # Count human issues by severity
+  total_human_issues <- if (!is.null(all_human_issues)) nrow(all_human_issues) else 0
+  total_gpt_issues <- sum(issue_counts$num_gpt_issues)
+
+  necessary_count <- if (!is.null(all_human_issues)) sum(grepl("necessary", tolower(all_human_issues$severity))) else 0
+  optional_count <- if (!is.null(all_human_issues)) sum(grepl("optional", tolower(all_human_issues$severity))) else 0
+
+  aggregate_stats <- data.frame(
+    Metric = c(
+      "Papers Compared",
+      "Total Human Issues Parsed",
+      "  - Necessary",
+      "  - Optional",
+      "  - Unsure/Other",
+      "Total LLM Issues",
+      "Avg Human Issues per Paper",
+      "Avg LLM Issues per Paper"
+    ),
+    Value = c(
+      n_papers,
+      total_human_issues,
+      necessary_count,
+      optional_count,
+      total_human_issues - necessary_count - optional_count,
+      total_gpt_issues,
+      round(total_human_issues / n_papers, 1),
+      round(total_gpt_issues / n_papers, 1)
+    )
+  )
+
+  kable(aggregate_stats, align = c("l", "r"))
+}
+```
+
+```{r}
+#| label: fig-severity-distribution
+#| fig-cap: "Distribution of human issue severity labels"
+#| fig-width: 8
+#| fig-height: 4
+
+if (!is.null(all_human_issues) && nrow(all_human_issues) > 0) {
+  # Define severity colors
+  sev_colors <- c("Necessary" = "#e74c3c", "Optional" = "#f39c12", "Unsure" = "#95a5a6", "Unclassified" = "#bdc3c7")
+
+  ggplot(severity_dist, aes(x = severity, y = n, fill = severity)) +
+    geom_col(alpha = 0.9) +
+    geom_text(aes(label = n), vjust = -0.3, size = 5) +
+    scale_fill_manual(values = sev_colors, drop = FALSE) +
+    labs(
+      x = "Severity Label",
+      y = "Number of Issues"
+    ) +
+    theme_uj() +
+    theme(legend.position = "none")
 }
 ```
 
@@ -388,21 +1059,21 @@ if (!is.null(comparison_data) && n_papers > 0) {
 The following are **verifiable structural differences** between the two data sources (not assessments of quality or coverage):
 
 | Aspect | GPT-5.2 Pro | Human Expert (Coda) |
-|--------|-------------|---------------------|
+|-----------------|---------------------|----------------------------------|
 | Format | Numbered bullet points (array of strings) | Free-form prose |
 | Structure | Ordered list (prompted: "most to least important") | Often uses severity labels ("Necessary", "Optional but important") |
 | Source attribution | None (single model output) | Often cites specific evaluators (E1, E2, names) |
-| Length | Constrained by prompt (~10-12 issues) | Unconstrained, highly variable |
+| Length | Constrained by prompt (\~10-12 issues) | Unconstrained, highly variable |
 
 ### Questions for Manual Review
 
 The side-by-side comparisons above are provided for **manual expert assessment**. Key questions to investigate:
 
-1. **Coverage**: What proportion of human-identified issues appear in the GPT output (in some form, to some extent)? (This is the focal question).
-2. **Precision**: Are GPT issues substantive or does the model identify spurious/generic concerns?
-3. **Severity alignment**: Does GPT's importance ordering correlate with human severity labels?
-4. **Missed issues**: Are there critical human concerns that GPT systematically misses?
-5. **Novel issues**: Does GPT surface valid concerns that humans overlooked?
+1.  **Coverage**: What proportion of human-identified issues appear in the GPT output (in some form, to some extent)? (This is the focal question).
+2.  **Precision**: Are GPT issues substantive or does the model identify spurious/generic concerns?
+3.  **Severity alignment**: Does GPT's importance ordering correlate with human severity labels?
+4.  **Missed issues**: Are there critical human concerns that GPT systematically misses?
+5.  **Novel issues**: Does GPT surface valid concerns that humans overlooked?
 
 ```{r}
 #| label: assessment-status-callout
@@ -424,13 +1095,11 @@ if (has_llm_results) {
 }
 ```
 
-
-
 ## Manual Annotation Tool
 
 To systematically assess concordance between human and LLM critiques, use the **Issue Annotation Tool**. (Jan 8 2026: We are working on building a hosted tool, for now follow the instructions below.)
 
-```bash
+``` bash
 # 1. Generate annotation data (parses human critiques into individual issues)
 python3 tools/build_issue_annotation_data.py
 
@@ -442,29 +1111,30 @@ open tools/issue_annotation_ui/index.html
 
 For each human-identified issue:
 
-1. **Match score (0-1)**: How well do LLM issues capture this concern?
-   - 0 = Not addressed at all
-   - 0.5 = Partially captured or tangentially related
-   - 1 = Fully captured by one or more LLM issues
+1.  **Match score (0-1)**: How well do LLM issues capture this concern?
 
-2. **Confidence (0-1)**: How certain are you of this assessment?
+    -   0 = Not addressed at all
+    -   0.5 = Partially captured or tangentially related
+    -   1 = Fully captured by one or more LLM issues
 
-3. **Context flag**: Check this box if the human critique references information the LLM didn't have (e.g., appendix or preregistration materials not shared with the LLM at the point this evaluation was done)
+2.  **Confidence (0-1)**: How certain are you of this assessment?
 
-4. **Link to LLM issues**: Select which LLM issues (L1, L2, ...) correspond to this human issue
+3.  **Context flag**: Check this box if the human critique references information the LLM didn't have (e.g., appendix or preregistration materials not shared with the LLM at the point this evaluation was done)
 
-5. **Discussion**: Explain your reasoning, note partial matches, or flag ambiguities
+4.  **Link to LLM issues**: Select which LLM issues (L1, L2, ...) correspond to this human issue
+
+5.  **Discussion**: Explain your reasoning, note partial matches, or flag ambiguities
 
 **Export** annotations as JSON/CSV for analysis. Annotations are auto-saved to browser localStorage.
 
-::: {.callout-note}
+::: callout-note
 ## Annotation Data Schema
 
 The tool parses human critiques using heuristics:
 
-- **Severity labels** normalized to: `necessary`, `optional`, `unsure`
-- **Evaluator attributions** (E1, E2, DR) preserved in issue text
-- **Issue boundaries** detected via enumeration, sentence breaks, and section headers
+-   **Severity labels** normalized to: `necessary`, `optional`, `unsure`
+-   **Evaluator attributions** (E1, E2, DR) preserved in issue text
+-   **Issue boundaries** detected via enumeration, sentence breaks, and section headers
 
 Review parsed issues in the UI and edit/add/remove as needed before annotating.
 :::
