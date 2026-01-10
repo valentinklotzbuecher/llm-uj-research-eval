@@ -199,7 +199,7 @@ This benchmarking project is a collaboration with [The Unjournal](https://unjour
 
 <!-- DR: cut for now **Casey Wimsatt (Engineering)**: Developer/entrepreneur, Black Spatula Project. Leads automated error-detection tooling. -->
 
-We plan to leverage additional support from Unjournal's management team, operations staff, and evaluator pool (200+ credentialed researchers).
+We plan to leverage additional support from Unjournal's management team, operations staff, and [evaluator pool](https://coda.io/d/The-Unjournal-Hub-internal_d0KBG3dSZCs/Statistics-Evaluator-pool_suXopY_6) (200+ credentialed researchers).
 
 ### Funding and budget
 
@@ -348,6 +348,10 @@ html`<table style="width: 100%; font-size: 0.9em;">
 <tr><td>Co-lead FTE</td><td>${params.klotz_fte[0]}</td><td>${params.klotz_fte[1]}</td><td>${params.klotz_fte[2]}</td><td>Klotzbucher effort allocation</td></tr>
 <tr><td>Eval packages</td><td>${params.num_eval_packages[0]}</td><td>${params.num_eval_packages[1]}</td><td>${params.num_eval_packages[2]}</td><td>New Unjournal evaluation packages</td></tr>
 <tr><td>Focal papers</td><td>${params.num_focal_papers_llm[0]}</td><td>${params.num_focal_papers_llm[1]}</td><td>${params.num_focal_papers_llm[2]}</td><td>Papers for detailed LLM comparison</td></tr>
+<tr style="background: #f9f9f9;"><td colspan="5"><em>Enumerator costs</em></td></tr>
+<tr><td>Enumerator rate</td><td>$${params.enumerator_hourly_rate[0]}/hr</td><td>$${params.enumerator_hourly_rate[1]}/hr</td><td>$${params.enumerator_hourly_rate[2]}/hr</td><td>Hourly rate for labeling work</td></tr>
+<tr><td>Senior expert rate</td><td>$${params.senior_hourly_rate[0]}/hr</td><td>$${params.senior_hourly_rate[1]}/hr</td><td>$${params.senior_hourly_rate[2]}/hr</td><td>Rate for expert review checks</td></tr>
+<tr><td>Hours per eval unit</td><td>${params.hours_per_eval_unit[0]}</td><td>${params.hours_per_eval_unit[1]}</td><td>${params.hours_per_eval_unit[2]}</td><td>Time to label each LLM evaluation</td></tr>
 </table>`
 ```
 :::
@@ -363,6 +367,45 @@ html`<table style="width: 100%; font-size: 0.9em;">
 5.  **"Taste/alignment" analysis**: Quantitative comparison of human vs. AI research preferences
 6.  **Academic paper(s)**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals
 7.  **Practical guidance**: Playbook for when AI peer review helps and where it fails
+
+::: {.callout-note collapse="true"}
+## Success metrics
+
+**Benchmark quality:**
+
+- 80+ papers with complete paired human/LLM evaluations
+- 3+ model families systematically compared
+- Dataset and code publicly released with documentation
+
+**Informative results:**
+
+- Pre-registered quantitative metrics with adequate statistical power
+- At least one publishable paper or equivalent preprint
+- Clear evidence of specific failure modes (or their absence)
+
+**Practical uptake:**
+
+- Unjournal team finds tools useful for triage and evaluation
+- 2+ external organizations (GCR funders, journals, research users) engage with outputs
+- If tools prove not useful, we report this explicitly as a negative result
+:::
+
+::: {.callout-note collapse="true"}
+## Risks and mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| LLMs perform poorly | Negative results are valuable; focus on taxonomy and practical guidance |
+| Human evaluations are noisy | Use adjudication, curated subsets, pre-registration |
+| Engineering bottlenecks | Modular pipelines, flexible staffing, leverage existing tools |
+| Low external uptake | Build relationships with GCR organizations early; design for usability |
+:::
+
+::: {.callout-note collapse="true"}
+## Why now?
+
+LLMs are only now sophisticated enough to plausibly conduct research evaluation--but the window to understand their failure modes *before* widespread adoption is closing. The Unjournal's structured evaluations provide a unique "ground truth" for benchmarking AI reasoning in economics and policy research; no comparable dataset exists. If AI research evaluation becomes reliable, it could reduce costs and accelerate evidence synthesis for time-sensitive decisions. If it remains unreliable, decision-makers need to know.
+:::
 
 ### Project timeline
 
@@ -427,7 +470,7 @@ html`<div style="font-size: 0.9em; overflow-x: auto;">
 ```{ojs}
 //| echo: false
 // Predictive modeling note (only shown for Medium/Large)
-predictiveNote = idx >= 1 ? `- **Predictive modeling** (Medium/Large): In months ${idx === 1 ? '8-15' : '10-20'}, we train models on accumulated human evaluations to predict ratings for papers entering The Unjournal pipeline, enabling out-of-time validation in the final phase.` : ''
+predictiveNote = idx >= 1 ? `<p style="margin-top: 0.5em;"><strong>Predictive modeling</strong> (Medium/Large): In months ${idx === 1 ? '8-15' : '10-20'}, we train models on accumulated human evaluations to predict ratings for papers entering The Unjournal pipeline, enabling out-of-time validation in the final phase.</p>` : ''
 html`${predictiveNote}`
 ```
 
