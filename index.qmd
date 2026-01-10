@@ -203,38 +203,235 @@ We plan to leverage additional support from Unjournal's management team, operati
 
 ### Funding and budget
 
-We are actively seeking funding, in conjunction with The Unjournal, to expand this work beyond the pilot scale to a more robust and rigorous scientific benchmark. Example budget scenarios (need refinement and detail):
+We are actively seeking funding, in conjunction with The Unjournal, to expand this work beyond the pilot scale to a more robust and rigorous scientific benchmark. The interactive budget model below is linked to [this Google Sheet](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).
 
-| Level | Amount | Scope |
-|----|----|----|
-| Minimum | \~\$120k | Analysis of existing evaluations, limited experiments |
-| Target | \~\$320k | Full 100-paper benchmark, multiple models, dashboard, publication |
-| Maximum | \~\$450k | Expanded experiments, more human evaluations, richer comparisons |
+```{ojs}
+//| echo: false
 
-*Key cost categories include*: Core team time (PI + co-lead), engineering and development, payments for human research evaluators (extending The Unjournal's pipeline), payments for enumerators/experts to label and provide human feedback on LLM evaluator claims and critiques, and compute/API costs. ThNo model training or large-compute capabilities work—all spending focuses on evaluation, tooling, and human experimentation.
+// Parameters by scenario: [Small, Medium, Large]
+params = ({
+  duration_months: [12, 18, 24],
+  reinstein_fte: [0.3, 0.5, 0.7],
+  reinstein_annual_salary: [120000, 120000, 120000],
+  klotz_fte: [0.15, 0.2, 0.3],
+  klotz_annual_salary: [120000, 120000, 120000],
+  num_eval_packages: [30, 50, 80],
+  cost_per_eval_package: [1750, 1750, 1750],
+  enumerator_hourly_rate: [50, 50, 50],
+  senior_hourly_rate: [100, 100, 100],
+  num_papers_consensus: [30, 40, 60],
+  hours_per_paper_consensus: [6, 6, 6],
+  num_focal_papers_llm: [30, 40, 60],
+  num_models_per_paper: [3, 3, 3],
+  num_enumerators: [2, 2, 2],
+  hours_per_eval_unit: [1.33, 1.33, 1.33],
+  fraction_evals_senior_check: [0.33, 0.33, 0.33],
+  author_response_incentives: [8000, 10000, 15000],
+  crowd_incentives: [10000, 15000, 20000],
+  travel_support: [5000, 10000, 15000],
+  computing_costs: [15000, 20000, 30000],
+  additional_engineering: [20000, 30000, 40000],
+  software_server_costs: [5000, 5000, 7000]
+})
+
+// Scenario labels
+scenarioLabels = ["Small", "Medium", "Large"]
+```
+
+```{ojs}
+//| echo: false
+viewof scenario = Inputs.radio(scenarioLabels, {value: "Medium", label: "Budget scenario"})
+```
+
+```{ojs}
+//| echo: false
+
+// Get scenario index
+idx = scenarioLabels.indexOf(scenario)
+
+// Helper to get param value for current scenario
+p = (name) => params[name][idx]
+
+// Computed costs (matching Google Sheet formulas)
+costs = ({
+  // People
+  reinstein_cost: p("duration_months") * p("reinstein_fte") * p("reinstein_annual_salary") / 12,
+  klotz_cost: p("duration_months") * p("klotz_fte") * p("klotz_annual_salary") / 12,
+
+  // Evaluations
+  eval_packages: p("num_eval_packages") * p("cost_per_eval_package"),
+
+  // Enumerators
+  consensus_critiques: p("num_papers_consensus") * p("hours_per_paper_consensus") * p("enumerator_hourly_rate"),
+  llm_eval_enumerators: p("num_focal_papers_llm") * p("num_models_per_paper") * p("num_enumerators") * p("hours_per_eval_unit") * p("enumerator_hourly_rate"),
+  senior_checks: p("num_focal_papers_llm") * p("num_models_per_paper") * p("fraction_evals_senior_check") * p("senior_hourly_rate"),
+
+  // Incentives
+  author_incentives: p("author_response_incentives"),
+  crowd_incentives: p("crowd_incentives"),
+
+  // Other
+  travel: p("travel_support"),
+  computing: p("computing_costs"),
+  engineering: p("additional_engineering"),
+  software: p("software_server_costs")
+})
+
+// Subtotals
+subtotals = ({
+  people: costs.reinstein_cost + costs.klotz_cost,
+  evaluations: costs.eval_packages,
+  enumerators: costs.consensus_critiques + costs.llm_eval_enumerators + costs.senior_checks,
+  incentives: costs.author_incentives + costs.crowd_incentives,
+  other: costs.travel + costs.computing + costs.engineering + costs.software
+})
+
+grandTotal = subtotals.people + subtotals.evaluations + subtotals.enumerators + subtotals.incentives + subtotals.other
+
+// Currency formatter
+fmt = d3.format("$,.0f")
+```
+
+```{ojs}
+//| echo: false
+
+html`<div style="font-size: 0.95em;">
+<p><strong>Scenario: ${scenario}</strong> - Duration: ${p("duration_months")} months, ${p("num_eval_packages")} evaluation packages, ${p("num_focal_papers_llm")} focal papers for LLM comparison</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+<thead>
+<tr style="background: #f0f0f0; border-bottom: 2px solid #333;">
+  <th style="text-align: left; padding: 8px;">Section</th>
+  <th style="text-align: left; padding: 8px;">Item</th>
+  <th style="text-align: right; padding: 8px;">Cost</th>
+  <th style="text-align: right; padding: 8px;">Subtotal</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding: 6px;"><strong>People</strong></td><td>Reinstein (PI) @ ${(p("reinstein_fte")*100).toFixed(0)}% FTE</td><td style="text-align: right;">${fmt(costs.reinstein_cost)}</td><td></td></tr>
+<tr><td></td><td>Klotzbucher (Co-lead) @ ${(p("klotz_fte")*100).toFixed(0)}% FTE</td><td style="text-align: right;">${fmt(costs.klotz_cost)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td></tr>
+
+<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Evaluations</strong></td><td>${p("num_eval_packages")} packages @ ${fmt(p("cost_per_eval_package"))}</td><td style="text-align: right;">${fmt(costs.eval_packages)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.evaluations)}</td></tr>
+
+<tr><td style="padding: 6px;"><strong>Enumerators</strong></td><td>Consensus critiques (${p("num_papers_consensus")} papers x ${p("hours_per_paper_consensus")}h)</td><td style="text-align: right;">${fmt(costs.consensus_critiques)}</td><td></td></tr>
+<tr><td></td><td>LLM eval labeling (${p("num_focal_papers_llm")} papers x ${p("num_models_per_paper")} models x ${p("num_enumerators")} raters)</td><td style="text-align: right;">${fmt(costs.llm_eval_enumerators)}</td><td></td></tr>
+<tr><td></td><td>Senior expert checks (${(p("fraction_evals_senior_check")*100).toFixed(0)}% sample)</td><td style="text-align: right;">${fmt(costs.senior_checks)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.enumerators)}</td></tr>
+
+<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Incentives</strong></td><td>Author response incentives</td><td style="text-align: right;">${fmt(costs.author_incentives)}</td><td></td></tr>
+<tr style="background: #fafafa;"><td></td><td>Crowd/prediction market incentives</td><td style="text-align: right;">${fmt(costs.crowd_incentives)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.incentives)}</td></tr>
+
+<tr><td style="padding: 6px;"><strong>Other</strong></td><td>Travel & conferences</td><td style="text-align: right;">${fmt(costs.travel)}</td><td></td></tr>
+<tr><td></td><td>LLM/compute costs</td><td style="text-align: right;">${fmt(costs.computing)}</td><td></td></tr>
+<tr><td></td><td>Additional engineering</td><td style="text-align: right;">${fmt(costs.engineering)}</td><td></td></tr>
+<tr><td></td><td>Software/server overhead</td><td style="text-align: right;">${fmt(costs.software)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.other)}</td></tr>
+
+<tr style="border-top: 2px solid #333; background: #e8f4e8;">
+  <td style="padding: 8px;"><strong>TOTAL</strong></td>
+  <td></td>
+  <td></td>
+  <td style="text-align: right; font-weight: bold; font-size: 1.1em;">${fmt(grandTotal)}</td>
+</tr>
+</tbody>
+</table>
+</div>`
+```
+
+::: {.callout-note collapse="true"}
+## Key parameters driving this budget
+
+```{ojs}
+//| echo: false
+html`<table style="width: 100%; font-size: 0.9em;">
+<tr><th style="text-align: left;">Parameter</th><th>Small</th><th>Medium</th><th>Large</th><th style="text-align: left;">Description</th></tr>
+<tr><td>Duration</td><td>${params.duration_months[0]} mo</td><td>${params.duration_months[1]} mo</td><td>${params.duration_months[2]} mo</td><td>Project duration</td></tr>
+<tr><td>PI FTE</td><td>${params.reinstein_fte[0]}</td><td>${params.reinstein_fte[1]}</td><td>${params.reinstein_fte[2]}</td><td>Reinstein effort allocation</td></tr>
+<tr><td>Co-lead FTE</td><td>${params.klotz_fte[0]}</td><td>${params.klotz_fte[1]}</td><td>${params.klotz_fte[2]}</td><td>Klotzbucher effort allocation</td></tr>
+<tr><td>Eval packages</td><td>${params.num_eval_packages[0]}</td><td>${params.num_eval_packages[1]}</td><td>${params.num_eval_packages[2]}</td><td>New Unjournal evaluation packages</td></tr>
+<tr><td>Focal papers</td><td>${params.num_focal_papers_llm[0]}</td><td>${params.num_focal_papers_llm[1]}</td><td>${params.num_focal_papers_llm[2]}</td><td>Papers for detailed LLM comparison</td></tr>
+</table>`
+```
+:::
+
+*Key cost categories include*: Core team time (PI + co-lead), engineering and development, payments for human research evaluators (extending The Unjournal's pipeline), payments for enumerators/experts to label and provide human feedback on LLM evaluator claims and critiques, and compute/API costs. No model training or large-compute capabilities work—all spending focuses on evaluation, tooling, and human experimentation.
 
 ### Deliverables
 
-1.  **Open benchmark dataset**: Papers + human evaluations + LLM outputs + adjudication scores
-2.  **Public dashboard**: Updatable website where new models can be compared
+1.  **Living benchmark dataset**: Continuously updated papers + human evaluations + LLM outputs + adjudication scores, openly available throughout the project
+2.  **Public dashboard**: Updatable website where new models can be compared against evolving benchmarks
 3.  **Open-source codebase**: Pipelines for running AI evaluations and computing metrics
 4.  **Failure-mode taxonomy**: Documented patterns of AI reasoning failures
 5.  **"Taste/alignment" analysis**: Quantitative comparison of human vs. AI research preferences
-6.  **Academic paper**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals
+6.  **Academic paper(s)**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals
 7.  **Practical guidance**: Playbook for when AI peer review helps and where it fails
 
-### Project timeline (target version, very approximate)
+### Project timeline
 
-<!-- DR: This merits a lot more detail. We can move some of the content we did not have room for in the main proposal here, or to other subsections in this section -->
+The project follows an iterative, overlapping structure rather than sequential phases. Human evaluations flow continuously from The Unjournal's pipeline, analysis proceeds alongside data collection, and outputs are shared as living documents throughout.
 
-| Phase | Months | Activities |
-|----|----|----|
-| Setup | 1–3 | Pipeline integration, evaluation design, baseline LLM runs |
-| Core benchmarking | 4–9 | Full LLM evaluations, human adjudication, new human evaluations |
-| Analysis | 10–15 | Agreement, bias, and failure-mode analyses |
-| Dissemination | 16–18 | Publications, dashboard, outreach, final dataset release |
+```{ojs}
+//| echo: false
 
-For more details, see [The Unjournal](https://unjournal.org) and out [project repository](https://github.com/daaronr/llm-uj-research-eval).
+// Timeline visualization showing overlapping activities
+timelineData = [
+  {activity: "Pre-analysis plan & registration", start: 1, end: 3, row: 0, color: "#6b7280"},
+  {activity: "Pipeline & tooling development", start: 1, end: 6, row: 1, color: "#3b82f6"},
+  {activity: "Baseline LLM runs (existing evals)", start: 2, end: 5, row: 2, color: "#8b5cf6"},
+  {activity: "Human evaluations (ongoing intake)", start: 1, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 3, color: "#10b981"},
+  {activity: "LLM evaluation of new papers", start: 4, end: idx === 0 ? 10 : idx === 1 ? 15 : 21, row: 4, color: "#8b5cf6"},
+  {activity: "Enumerator labeling & adjudication", start: 5, end: idx === 0 ? 11 : idx === 1 ? 16 : 22, row: 5, color: "#f59e0b"},
+  {activity: "Analysis & model refinement", start: 3, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 6, color: "#ef4444"},
+  {activity: "Training predictive models", start: idx === 0 ? 6 : idx === 1 ? 8 : 10, end: idx === 0 ? 10 : idx === 1 ? 15 : 20, row: 7, color: "#ec4899", show: idx >= 1},
+  {activity: "Out-of-time validation (pipeline)", start: idx === 0 ? 9 : idx === 1 ? 13 : 17, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 8, color: "#06b6d4", show: idx >= 1},
+  {activity: "Dashboard & data releases", start: 4, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 9, color: "#84cc16"},
+  {activity: "Publications & dissemination", start: idx === 0 ? 8 : idx === 1 ? 12 : 16, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 10, color: "#6b7280"}
+]
+
+maxMonth = idx === 0 ? 12 : idx === 1 ? 18 : 24
+filteredTimeline = timelineData.filter(d => d.show !== false)
+```
+
+```{ojs}
+//| echo: false
+
+html`<div style="font-size: 0.9em; overflow-x: auto;">
+<p><strong>${scenario} scenario timeline (${maxMonth} months)</strong></p>
+<svg width="${Math.max(700, maxMonth * 35 + 250)}" height="${filteredTimeline.length * 28 + 40}">
+  <!-- Month labels -->
+  ${Array.from({length: maxMonth}, (_, i) => i + 1).map(m =>
+    `<text x="${250 + (m - 0.5) * 35}" y="15" text-anchor="middle" font-size="11" fill="#666">${m}</text>`
+  ).join('')}
+
+  <!-- Grid lines -->
+  ${Array.from({length: maxMonth + 1}, (_, i) => i).map(m =>
+    `<line x1="${250 + m * 35}" y1="20" x2="${250 + m * 35}" y2="${filteredTimeline.length * 28 + 30}" stroke="#e5e7eb" stroke-width="1"/>`
+  ).join('')}
+
+  <!-- Activity bars -->
+  ${filteredTimeline.map((d, i) => `
+    <g transform="translate(0, ${25 + i * 28})">
+      <text x="245" y="14" text-anchor="end" font-size="11" fill="#333">${d.activity}</text>
+      <rect x="${250 + (d.start - 1) * 35}" y="2" width="${(d.end - d.start + 1) * 35 - 4}" height="18" rx="3" fill="${d.color}" opacity="0.8"/>
+    </g>
+  `).join('')}
+</svg>
+</div>`
+```
+
+**Key timeline principles:**
+
+- **Pre-registration early**: We specify and register a general pre-analysis plan in months 1–3 to constrain researcher degrees of freedom, with amendments documented as the project evolves.
+- **Continuous human evaluations**: New Unjournal evaluation packages arrive throughout the project, feeding both the benchmark dataset and (in larger scenarios) model training.
+- **Analysis throughout**: Statistical analysis and model refinement proceed iteratively as data accumulates—we don't wait for "all data" before analyzing.
+- **Living research**: Data and results are openly available and updated continuously; there is no "final dataset," only versioned releases with clear provenance.
+
+```{ojs}
+//| echo: false
+// Predictive modeling note (only shown for Medium/Large)
+predictiveNote = idx >= 1 ? `- **Predictive modeling** (Medium/Large): In months ${idx === 1 ? '8-15' : '10-20'}, we train models on accumulated human evaluations to predict ratings for papers entering The Unjournal pipeline, enabling out-of-time validation in the final phase.` : ''
+html`${predictiveNote}`
+```
+
+For more details, see [The Unjournal](https://unjournal.org) and our [project repository](https://github.com/daaronr/llm-uj-research-eval).
 
 <!-- END CLAUDE GENERATED -->
 
