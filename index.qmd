@@ -308,8 +308,7 @@ html`<div style="font-size: 0.95em;">
 </tr>
 </thead>
 <tbody>
-<tr><td style="padding: 6px;"><strong>People</strong></td><td>Reinstein (PI) @ ${(p("reinstein_fte")*100).toFixed(0)}% FTE</td><td style="text-align: right;">${fmt(costs.reinstein_cost)}</td><td></td></tr>
-<tr><td></td><td>Klotzbucher (Co-lead) @ ${(p("klotz_fte")*100).toFixed(0)}% FTE</td><td style="text-align: right;">${fmt(costs.klotz_cost)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td></tr>
+<tr><td style="padding: 6px;"><strong>People</strong></td><td>Research team (co-PIs) @ ${((p("reinstein_fte")+p("klotz_fte"))*100).toFixed(0)}% FTE combined</td><td style="text-align: right;">${fmt(subtotals.people)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td></tr>
 
 <tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Evaluations</strong></td><td>${p("num_eval_packages")} packages @ ${fmt(p("cost_per_eval_package"))}</td><td style="text-align: right;">${fmt(costs.eval_packages)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.evaluations)}</td></tr>
 
@@ -344,8 +343,7 @@ html`<div style="font-size: 0.95em;">
 html`<table style="width: 100%; font-size: 0.9em;">
 <tr><th style="text-align: left;">Parameter</th><th>Small</th><th>Medium</th><th>Large</th><th style="text-align: left;">Description</th></tr>
 <tr><td>Duration</td><td>${params.duration_months[0]} mo</td><td>${params.duration_months[1]} mo</td><td>${params.duration_months[2]} mo</td><td>Project duration</td></tr>
-<tr><td>PI FTE</td><td>${params.reinstein_fte[0]}</td><td>${params.reinstein_fte[1]}</td><td>${params.reinstein_fte[2]}</td><td>Reinstein effort allocation</td></tr>
-<tr><td>Co-lead FTE</td><td>${params.klotz_fte[0]}</td><td>${params.klotz_fte[1]}</td><td>${params.klotz_fte[2]}</td><td>Klotzbucher effort allocation</td></tr>
+<tr><td>Research team FTE</td><td>${(params.reinstein_fte[0]+params.klotz_fte[0]).toFixed(2)}</td><td>${(params.reinstein_fte[1]+params.klotz_fte[1]).toFixed(2)}</td><td>${(params.reinstein_fte[2]+params.klotz_fte[2]).toFixed(2)}</td><td>Combined co-PI effort allocation</td></tr>
 <tr><td>Eval packages</td><td>${params.num_eval_packages[0]}</td><td>${params.num_eval_packages[1]}</td><td>${params.num_eval_packages[2]}</td><td>New Unjournal evaluation packages</td></tr>
 <tr><td>Focal papers</td><td>${params.num_focal_papers_llm[0]}</td><td>${params.num_focal_papers_llm[1]}</td><td>${params.num_focal_papers_llm[2]}</td><td>Papers for detailed LLM comparison</td></tr>
 <tr style="background: #f9f9f9;"><td colspan="5"><em>Enumerator costs</em></td></tr>
