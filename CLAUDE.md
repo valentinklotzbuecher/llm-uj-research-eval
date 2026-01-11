@@ -362,6 +362,49 @@ Exported annotations can be used in `results_critiques.qmd` to compute:
 - Precision: Via linked LLM issues analysis
 - Inter-rater reliability: If multiple annotators label the same papers
 
+### LLM Critique Comparison Tool
+
+**Purpose:** Use GPT 5.2 Pro to perform detailed issue-by-issue matching between human expert critiques and LLM-identified key issues. This provides more accurate semantic matching than embedding-based cosine similarity.
+
+**Location:** `tools/compare_issues_llm.py`
+
+**Input/Output:**
+- **Input:** `results/key_issues_comparison.json` (paper mappings with human critiques and LLM issues)
+- **Output:** `results/key_issues_comparison_results.json` (detailed comparison results)
+
+**Commands:**
+
+```bash
+# Run the full comparison (requires OpenAI API key with credits)
+python tools/compare_issues_llm.py
+
+# Process a single paper (useful for testing)
+python tools/compare_issues_llm.py --paper Benabou_et_al._2023
+
+# Dry run - parse and format without calling API
+python tools/compare_issues_llm.py --dry-run
+
+# Use a different model
+python tools/compare_issues_llm.py --model gpt-4o
+```
+
+**Output format:**
+
+The script produces detailed JSON with:
+- `matched_pairs`: Each human issue with matching LLM issue(s), including:
+  - `label`: Short description of the shared concern (5-10 words)
+  - `match_quality`: 0-100% score
+  - `match_explanation`: Brief explanation of the match
+  - `detailed_discussion`: Longer analysis comparing how human and LLM framed the issue
+- `unmatched_human`: Human issues not captured by LLM, with explanation
+- `unmatched_llm`: LLM issues that don't match human concerns, with explanation
+- `coverage_pct`: % of human issues with any LLM match (match_quality >= 30%)
+- `precision_pct`: % of LLM issues that match something substantive
+
+**Requirements:**
+- OpenAI API key in `key/openai_key.txt` with sufficient credits
+- Default model: `gpt-5.2-pro` (configurable via `--model` flag)
+
 ## Common Development Tasks
 
 ### To evaluate new papers

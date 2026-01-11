@@ -40,13 +40,13 @@ SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 KEY_FILE = PROJECT_ROOT / "key" / "openai_key.txt"
 COMPARISON_JSON = PROJECT_ROOT / "results" / "key_issues_comparison.json"
-OUTPUT_JSON = PROJECT_ROOT / "results" / "key_issues_llm_matched.json"
+OUTPUT_JSON = PROJECT_ROOT / "results" / "key_issues_comparison_results.json"
 
-# Updated prompt requesting explicit issue-to-issue matching
+# Enhanced prompt requesting detailed issue-to-issue matching
 COMPARISON_PROMPT_TEMPLATE = """You are comparing human expert critiques with LLM-identified issues for a research paper evaluation.
 
 ## Task
-For each numbered human issue below, identify which LLM issue(s) cover it (if any), and rate the match quality.
+Create a detailed issue-by-issue comparison between human expert critiques and LLM-identified issues.
 
 ## Human Expert Issues
 {human_issues}
@@ -55,33 +55,53 @@ For each numbered human issue below, identify which LLM issue(s) cover it (if an
 {llm_issues}
 
 ## Instructions
-1. For each human issue (H1, H2, ...), identify which LLM issue(s) address the same concern
-2. Rate match quality: 0-100% where 100% = exact same concern, 0% = no overlap
-3. A human issue can match multiple LLM issues (partial coverage across several)
-4. An LLM issue can match multiple human issues
-5. Note issues that have no matches on either side
+1. For each human issue (H1, H2, ...), identify which LLM issue(s) address the same or related concern
+2. Create a DETAILED matched_pairs entry for each human issue that has any LLM coverage
+3. For each match, provide:
+   - A short descriptive LABEL for the shared concern (5-10 words)
+   - match_quality: 0-100% where 100% = exact same concern, 0% = no overlap
+   - match_explanation: Brief 1-2 sentence explanation of WHY this is a match
+   - detailed_discussion: Longer analysis (3-5 sentences) comparing HOW the human and LLM framed the issue, noting differences in emphasis, specificity, or scope
+4. Note issues that have no matches on either side
+5. Provide overall coverage_pct (% of human issues with match_quality >= 30) and precision_pct (% of LLM issues that match something)
 
-Respond in JSON format with these exact fields:
+Respond in JSON format with this structure (values shown are examples - generate actual content based on your analysis):
 {{
     "matched_pairs": [
         {{
             "human_issue_index": 1,
             "llm_issue_indices": [3, 5],
             "match_quality": 75,
-            "match_notes": "LLM issues L3 and L5 together cover this concern, though less specifically"
+            "label": "Sample size limitations",
+            "match_explanation": "Both human H1 and LLM L3/L5 identify concerns about the small sample affecting statistical power.",
+            "detailed_discussion": "The human expert critique focuses on how the small sample (n=6) 'severely limits conclusions' and notes overstated claims. LLM issues L3 and L5 cover similar ground but frame it more technically in terms of aggregation sensitivity and multiple comparisons. The human provides more concrete examples of problematic claims, while the LLM offers broader methodological critique. Overall, the core concern is well-matched though framed differently."
         }},
         ...
     ],
-    "unmatched_human": [2, 4],
-    "unmatched_llm": [1, 6, 7],
+    "unmatched_human": [
+        {{
+            "index": 2,
+            "brief_description": "Units error in FGF2 cost table",
+            "why_missed": "LLM did not identify this specific data error, possibly because it requires domain knowledge about biochemistry costs"
+        }},
+        ...
+    ],
+    "unmatched_llm": [
+        {{
+            "index": 6,
+            "brief_description": "Resolution protocol concerns",
+            "why_extra": "LLM raised this valid methodological point that human evaluators did not emphasize"
+        }},
+        ...
+    ],
     "coverage_pct": 70,
-    "precision_pct": 60,
+    "precision_pct": 80,
     "overall_rating": "Good",
-    "overall_justification": "Most key concerns are captured but with less specificity",
-    "detailed_notes": "Additional observations about the comparison"
+    "overall_justification": "Most key concerns are captured. The LLM identifies X of Y human issues with reasonable fidelity, though it misses [specific gaps].",
+    "detailed_notes": "Additional observations about patterns in what the LLM captures well vs misses."
 }}
 
-Be precise about which issues match. If a human issue discusses "sample size" and an LLM issue discusses "statistical power", those are related but distinct - rate accordingly."""
+Be precise about which issues match. Related but distinct concerns (e.g., "sample size" vs "statistical power") should have lower match_quality scores (40-60%) with explanation of the distinction."""
 
 
 def load_api_key():
@@ -246,6 +266,8 @@ def compare_with_llm(client, paper_name, human_issues, llm_issues):
 
 
 def main():
+    global MODEL
+
     parser = argparse.ArgumentParser(description="Compare issues using LLM")
     parser.add_argument("--dry-run", action="store_true",
                         help="Parse and format without calling API")
@@ -255,7 +277,6 @@ def main():
                         help=f"Model to use (default: {MODEL})")
     args = parser.parse_args()
 
-    global MODEL
     MODEL = args.model
 
     print(f"Loading data from {COMPARISON_JSON}...")
@@ -275,23 +296,35 @@ def main():
         print("DRY RUN - will not call API")
         client = None
 
-    results = {}
+    results = []
 
     for item in data:
         paper_id = item.get("gpt_paper", "")
+        coda_title = item.get("coda_title", "")
+        coda_critique = item.get("coda_critique", "")
+        llm_issues = item.get("gpt_key_issues", [])
 
         if args.paper and paper_id != args.paper:
             continue
 
         print(f"\nProcessing: {paper_id}")
+        print(f"  Coda title: {coda_title[:60]}...")
 
         # Parse human issues
-        coda_critique = item.get("coda_critique", "")
         human_issues = parse_human_issues(coda_critique)
-        llm_issues = item.get("gpt_key_issues", [])
 
         print(f"  Human issues: {len(human_issues)}")
         print(f"  LLM issues: {len(llm_issues)}")
+
+        # Build result entry (matching original format)
+        result_entry = {
+            "gpt_paper": paper_id,
+            "coda_title": coda_title,
+            "gpt_key_issues": llm_issues,
+            "coda_critique": coda_critique,
+            "num_gpt_issues": len(llm_issues),
+            "coda_critique_length": len(coda_critique),
+        }
 
         if args.dry_run:
             # Show formatted prompt
@@ -301,22 +334,19 @@ def main():
             print("\n--- LLM Issues (formatted) ---")
             print(llm_text[:500] + "..." if len(llm_text) > 500 else llm_text)
 
-            results[paper_id] = {
+            result_entry["comparison"] = {
                 "dry_run": True,
                 "n_human": len(human_issues),
                 "n_llm": len(llm_issues),
-                "human_issues": human_issues,
-                "llm_issues": llm_issues
             }
         else:
             # Call LLM
             comparison = compare_with_llm(client, paper_id, human_issues, llm_issues)
 
-            # Add issue texts to result for display
-            comparison["human_issues"] = human_issues
-            comparison["llm_issues"] = llm_issues
+            # Add parsed human issues to comparison for reference
+            comparison["human_issues_parsed"] = human_issues
 
-            results[paper_id] = comparison
+            result_entry["comparison"] = comparison
 
             if "error" in comparison:
                 print(f"  Error: {comparison['error']}")
@@ -328,6 +358,8 @@ def main():
                 print(f"  Precision: {comparison.get('precision_pct')}%")
                 print(f"  Rating: {comparison.get('overall_rating')}")
 
+        results.append(result_entry)
+
     # Save results
     print(f"\nSaving results to {OUTPUT_JSON}...")
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
@@ -338,7 +370,12 @@ def main():
 
     if not args.dry_run and results:
         # Summary statistics
-        papers_with_results = [r for r in results.values() if "coverage_pct" in r and r.get("coverage_pct") is not None]
+        papers_with_results = [
+            r["comparison"] for r in results
+            if "comparison" in r
+            and "coverage_pct" in r["comparison"]
+            and r["comparison"].get("coverage_pct") is not None
+        ]
         if papers_with_results:
             avg_coverage = sum(r["coverage_pct"] for r in papers_with_results) / len(papers_with_results)
             avg_precision = sum(r.get("precision_pct", 0) or 0 for r in papers_with_results) / len(papers_with_results)

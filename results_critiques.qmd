@@ -63,12 +63,7 @@ truncate_text <- function(text, max_chars = 80) {
 
 This chapter compares **qualitative critiques**: the key methodological and interpretive issues identified by GPT-5.2 Pro against human expert critiques documented by Unjournal evaluation managers in Coda.
 
-We assess alignment using two approaches:[^approaches-note]
-
-1. **LLM-based comparison**: GPT-5.2 Pro evaluates coverage and precision (see [LLM-Based Assessment](#sec-llm-assessment))
-2. **Manual annotation**: Human labeling using the Issue Annotation Tool (see [Manual Annotation Tool](#manual-annotation-tool))
-
-[^approaches-note]: Jan 8 2026: We are actively working on both approaches. Results shown here are preliminary.
+We assess alignment using **LLM-based comparison**: GPT-5.2 Pro evaluates coverage (what proportion of human concerns GPT identified) and precision (whether GPT issues are substantive). See [LLM-Based Assessment](#sec-llm-assessment) for aggregate metrics.
 
 ## Data Sources
 
@@ -116,6 +111,11 @@ if (!is.null(comparison_data) && !is.na(comparison_results_file)) {
 
   comparison_data <- comparison_data |>
     left_join(llm_results, by = "gpt_paper")
+}
+
+# Update paper count after loading
+if (!is.null(comparison_data)) {
+  n_papers <- nrow(comparison_data)
 }
 ```
 
@@ -428,11 +428,9 @@ def split_human_issues(text):
 # Load comparison data and results
 comparison_file = Path("results/key_issues_comparison.json")
 results_file = Path("results/key_issues_comparison_results.json")
-matched_file = Path("results/key_issues_matched.json")
 
 parsed_issues = {}
 comparison_results = {}
-matched_data = {}
 
 if comparison_file.exists():
     comparison = json.loads(comparison_file.read_text())
@@ -446,10 +444,6 @@ if results_file.exists():
     for r in results:
         paper_id = r.get("gpt_paper", "")
         comparison_results[paper_id] = r.get("comparison", {})
-
-# Load embedding-matched pairs
-if matched_file.exists():
-    matched_data = json.loads(matched_file.read_text())
 ```
 
 We matched **`r n_papers` papers** with both GPT-5.2 Pro key issues and human expert critiques.
@@ -484,10 +478,11 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
 Each paper section shows:
 
-- **Assessment badge**: Coverage and precision metrics (from LLM-based comparison)
-- **Human Issues table**: Parsed individual issues with severity labels (🔴 Necessary, 🟠 Optional, ⚪ Unsure)
-- **LLM Issues table**: GPT-5.2 Pro key issues (ordered by importance)
-- **Full critique text**: Expandable section with complete human critique
+- **Assessment badge**: Coverage and precision metrics with overall rating
+- **LLM Assessment Summary**: GPT-5.2 Pro's justification of the comparison
+- **Missed Issues**: Human expert issues that GPT failed to capture
+- **Extra Issues**: GPT issues not present in human critique
+- **Full texts**: Expandable sections with complete human critique and GPT issues
 
 ```{r}
 #| label: render-comparisons
@@ -495,13 +490,11 @@ Each paper section shows:
 #| code-fold: true
 #| code-summary: "Render paper comparisons"
 
-# Access parsed issues from Python
+# Access parsed issues and comparison results from Python
 parsed_issues_list <- py$parsed_issues
+comparison_results_list <- py$comparison_results
 
 if (!is.null(comparison_data) && n_papers > 0) {
-
-  # Check if LLM assessment fields exist
-  has_assessment <- "coverage_pct" %in% names(comparison_data)
 
   for (i in 1:nrow(comparison_data)) {
     row <- comparison_data[i, ]
@@ -511,258 +504,211 @@ if (!is.null(comparison_data) && n_papers > 0) {
     cat(sprintf("\n### %s\n\n", paper_id))
     cat(sprintf("**Coda title:** %s\n\n", row$coda_title))
 
-    # Show LLM assessment badge if available
-    if (has_assessment && !is.na(row$coverage_pct)) {
-      # Determine badge color based on coverage/precision
+    # Get comparison results for this paper
+    paper_comparison <- comparison_results_list[[paper_id]]
+    gpt_issues <- row$gpt_key_issues[[1]]
+
+    # Show LLM assessment badge
+    if (!is.na(row$coverage_pct)) {
       coverage_val <- as.numeric(row$coverage_pct)
       precision_val <- as.numeric(row$precision_pct)
       avg_score <- (coverage_val + precision_val) / 2
-      if (avg_score >= 70) {
+      rating <- if (!is.null(row$overall_rating)) row$overall_rating else "Unknown"
+
+      # Determine badge color based on rating
+      if (rating %in% c("Good", "Excellent")) {
         badge_class <- "callout-tip"
-      } else if (avg_score >= 40) {
+      } else if (rating == "Moderate") {
         badge_class <- "callout-note"
       } else {
         badge_class <- "callout-warning"
       }
+
       cat(sprintf("::: {.%s appearance=\"simple\"}\n", badge_class))
-      cat(sprintf("**Coverage:** %s%% | **Precision:** %s%%\n",
-                  row$coverage_pct, row$precision_pct))
+      cat(sprintf("**Coverage:** %s%% | **Precision:** %s%% | **Rating:** %s\n",
+                  row$coverage_pct, row$precision_pct, rating))
       cat(":::\n\n")
     }
 
-    # Get parsed issues and comparison results for this paper
-    human_issues <- parsed_issues_list[[paper_id]]
-    paper_comparison <- py$comparison_results[[paper_id]]
-    gpt_issues <- row$gpt_key_issues[[1]]
-    coverage <- if (!is.null(paper_comparison$coverage_pct)) paper_comparison$coverage_pct else NA
-    missed_issues <- if (!is.null(paper_comparison$missed_issues)) paper_comparison$missed_issues else list()
+    # ---- LLM ASSESSMENT SUMMARY ----
+    if (!is.null(row$overall_justification) && nchar(row$overall_justification) > 0) {
+      cat("#### LLM Assessment Summary\n\n")
+      cat(row$overall_justification)
+      cat("\n\n")
+    }
 
-    # ---- MATCHED ISSUE COMPARISON ----
-    cat("#### Issue Comparison\n\n")
+    # ---- DETAILED NOTES (expandable) ----
+    if (!is.null(row$detailed_notes) && nchar(row$detailed_notes) > 0) {
+      cat("::: {.callout-note collapse='true'}\n")
+      cat("## Detailed Comparison Notes\n\n")
+      cat(row$detailed_notes)
+      cat("\n:::\n\n")
+    }
 
-    # Get matched data for this paper
-    paper_matched <- py$matched_data[[paper_id]]
+    # ---- MATCHED PAIRS (New format from enhanced LLM comparison) ----
+    matched_pairs <- if (!is.null(paper_comparison$matched_pairs)) paper_comparison$matched_pairs else list()
 
-    if (!is.null(paper_matched) && length(paper_matched$matched_pairs) > 0) {
-      matched_pairs <- paper_matched$matched_pairs
-      human_issues_data <- paper_matched$human_issues
-      llm_issues_data <- paper_matched$llm_issues
-      unmatched_human <- paper_matched$unmatched_human
-      unmatched_llm <- paper_matched$unmatched_llm
+    if (length(matched_pairs) > 0) {
+      cat(sprintf("#### ✅ Matched Issues (%d human issues with LLM coverage)\n\n", length(matched_pairs)))
 
-      # Helper: get LLM label from text
-      get_llm_label <- function(text) {
-        text_clean <- gsub("^[0-9]+[)\\.]\\s*", "", text)
-        first_colon <- regexpr(":", text_clean)[1]
-        if (first_colon > 0 && first_colon < 60) {
-          return(substr(text_clean, 1, first_colon - 1))
-        }
-        return(truncate_text(text_clean, 50))
-      }
+      for (j in seq_along(matched_pairs)) {
+        pair <- matched_pairs[[j]]
+        label <- if (!is.null(pair$label)) pair$label else "Unnamed issue"
+        match_quality <- if (!is.null(pair$match_quality)) pair$match_quality else "?"
+        match_explanation <- if (!is.null(pair$match_explanation)) pair$match_explanation else ""
+        detailed_discussion <- if (!is.null(pair$detailed_discussion)) pair$detailed_discussion else ""
+        human_idx <- if (!is.null(pair$human_issue_index)) pair$human_issue_index else j
+        llm_indices <- if (!is.null(pair$llm_issue_indices)) pair$llm_issue_indices else c()
 
-      # ---- MATCHED ISSUES ----
-      cat('<div style="margin-bottom:1.5em;">\n')
-      cat('<h5 style="color:#2e7d32;">Matched Issues</h5>\n')
-      cat('<p style="font-size:0.85em;color:#888;margin-bottom:1em;font-style:italic;"><strong>Note:</strong> Match quality is based on cosine similarity of sentence embeddings—a rough heuristic that may miss semantic matches or flag false positives. Use LLM-based comparison for more accurate matching.</p>\n')
-
-      for (pair in matched_pairs) {
-        h_idx <- pair$human_issue_index
-        llm_indices <- pair$llm_issue_indices
-        match_quality <- pair$match_quality
-
-        if (length(llm_indices) > 0 && h_idx <= length(human_issues_data)) {
-          h_issue <- human_issues_data[[h_idx]]
-          h_text <- h_issue$text
-          h_severity <- h_issue$severity
-          badge <- severity_badge(h_severity)
-
-          # Get human label
-          h_label <- if (!is.null(human_issues) && h_idx <= length(human_issues)) {
-            human_issues[[h_idx]]$short_label
+        # Match quality color
+        if (is.numeric(match_quality)) {
+          if (match_quality >= 70) {
+            quality_color <- "#27ae60"  # Green
+          } else if (match_quality >= 40) {
+            quality_color <- "#f39c12"  # Orange
           } else {
-            truncate_text(h_text, 50)
+            quality_color <- "#e74c3c"  # Red
           }
-          h_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_label))
-          h_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_text))
-          border_color <- if (grepl("necessary", tolower(h_severity))) "#e74c3c" else if (grepl("optional", tolower(h_severity))) "#f39c12" else "#95a5a6"
+        } else {
+          quality_color <- "#95a5a6"  # Gray
+        }
 
-          # Match quality badge color
-          quality_color <- if (match_quality >= 70) "#2e7d32" else if (match_quality >= 50) "#f9a825" else "#c62828"
+        cat(sprintf('<div style="margin:0.75em 0;padding:0.75em;background:#f0fff0;border-left:4px solid %s;border-radius:4px;">\n', quality_color))
+        cat(sprintf('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5em;">\n'))
+        cat(sprintf('<strong style="font-size:1.05em;">H%d: %s</strong>\n', human_idx, gsub("<", "&lt;", gsub(">", "&gt;", label))))
+        cat(sprintf('<span style="background-color:%s;color:white;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:0.9em;">%s%%</span>\n', quality_color, match_quality))
+        cat('</div>\n')
 
-          cat('<div style="margin:0.75em 0;padding:0.75em;background:#f8fdf8;border:1px solid #c8e6c9;border-radius:5px;">\n')
+        if (length(llm_indices) > 0) {
+          llm_tags <- paste(sapply(llm_indices, function(x) sprintf("L%d", x)), collapse = ", ")
+          cat(sprintf('<div style="font-size:0.85em;color:#666;margin-bottom:0.5em;">Matched with: %s</div>\n', llm_tags))
+        }
 
-          # Header with match quality
-          cat(sprintf('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5em;">\n'))
-          cat(sprintf('<span><strong>H%d</strong> %s <strong>%s</strong></span>\n', h_idx, badge, h_label_escaped))
-          cat(sprintf('<span style="background:%s;color:white;padding:2px 8px;border-radius:10px;font-size:0.8em;">Match: %d%%</span>\n', quality_color, match_quality))
-          cat('</div>\n')
+        if (nchar(match_explanation) > 0) {
+          cat(sprintf('<div style="font-size:0.9em;margin-top:0.5em;">%s</div>\n', gsub("<", "&lt;", gsub(">", "&gt;", match_explanation))))
+        }
 
-          # Human text (expandable)
-          cat('<details style="margin:0.5em 0;">\n')
-          cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">📋 Human expert text</summary>\n')
-          cat(sprintf('<div style="margin-top:0.5em;padding:0.5em;background:#fffbf0;border-left:3px solid %s;font-size:0.9em;">%s</div>\n', border_color, h_text_escaped))
+        if (nchar(detailed_discussion) > 0) {
+          cat('<details style="margin-top:0.5em;">\n')
+          cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show detailed discussion</summary>\n')
+          cat(sprintf('<div style="margin-top:0.5em;padding:0.5em;background:#fafafa;font-size:0.85em;border-radius:4px;">%s</div>\n',
+                      gsub("<", "&lt;", gsub(">", "&gt;", detailed_discussion))))
           cat('</details>\n')
-
-          # Matched LLM issues
-          cat('<details style="margin:0.5em 0;">\n')
-          llm_ids_str <- paste0("L", llm_indices, collapse=", ")
-          cat(sprintf('<summary style="font-size:0.85em;color:#666;cursor:pointer;">🤖 LLM coverage (%s)</summary>\n', llm_ids_str))
-          cat('<div style="margin-top:0.5em;">\n')
-          for (l_idx in llm_indices) {
-            if (l_idx <= length(llm_issues_data)) {
-              l_text <- llm_issues_data[[l_idx]]
-              l_label <- get_llm_label(l_text)
-              l_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_label))
-              l_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_text))
-              cat(sprintf('<div style="padding:0.5em;background:#f0f7ff;border-left:3px solid #4e79a7;margin-bottom:0.3em;font-size:0.9em;"><strong>L%d:</strong> %s</div>\n', l_idx, l_text_escaped))
-            }
-          }
-          cat('</div>\n')
-          cat('</details>\n')
-
-          cat('</div>\n')
         }
-      }
-      cat('</div>\n\n')
 
-      # ---- UNMATCHED HUMAN ISSUES ----
-      if (length(unmatched_human) > 0) {
-        cat('<details style="margin-bottom:1.5em;">\n')
-        cat(sprintf('<summary style="color:#c62828;font-weight:bold;cursor:pointer;">⚠️ Unmatched Human Issues (%d missed by LLM)</summary>\n', length(unmatched_human)))
-        cat('<div style="margin-top:0.5em;">\n')
-        for (h_idx in unmatched_human) {
-          if (h_idx <= length(human_issues_data)) {
-            h_issue <- human_issues_data[[h_idx]]
-            h_text <- h_issue$text
-            h_severity <- h_issue$severity
-            badge <- severity_badge(h_severity)
-            h_label <- if (!is.null(human_issues) && h_idx <= length(human_issues)) {
-              human_issues[[h_idx]]$short_label
-            } else {
-              truncate_text(h_text, 50)
-            }
-            h_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_label))
-            h_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", h_text))
-            border_color <- if (grepl("necessary", tolower(h_severity))) "#e74c3c" else if (grepl("optional", tolower(h_severity))) "#f39c12" else "#95a5a6"
-
-            cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#ffebee;border-left:4px solid #c62828;">\n'))
-            cat(sprintf('<strong>H%d</strong> %s <strong>%s</strong>\n', h_idx, badge, h_label_escaped))
-            cat('<details style="margin-top:0.3em;">\n')
-            cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
-            cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', h_text_escaped))
-            cat('</details>\n')
-            cat('</div>\n')
-          }
-        }
-        cat('</div>\n')
-        cat('</details>\n\n')
-      }
-
-      # ---- UNMATCHED LLM ISSUES ----
-      if (length(unmatched_llm) > 0) {
-        cat('<details style="margin-bottom:1.5em;">\n')
-        cat(sprintf('<summary style="color:#1565c0;font-weight:bold;cursor:pointer;">📋 Extra LLM Issues (%d not in human critique)</summary>\n', length(unmatched_llm)))
-        cat('<div style="margin-top:0.5em;">\n')
-        for (l_idx in unmatched_llm) {
-          if (l_idx <= length(llm_issues_data)) {
-            l_text <- llm_issues_data[[l_idx]]
-            l_label <- get_llm_label(l_text)
-            l_label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_label))
-            l_text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", l_text))
-
-            cat('<div style="margin:0.5em 0;padding:0.5em;background:#e3f2fd;border-left:4px solid #1565c0;">\n')
-            cat(sprintf('<strong>L%d</strong> <strong>%s</strong>\n', l_idx, l_label_escaped))
-            cat('<details style="margin-top:0.3em;">\n')
-            cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
-            cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', l_text_escaped))
-            cat('</details>\n')
-            cat('</div>\n')
-          }
-        }
-        cat('</div>\n')
-        cat('</details>\n\n')
-      }
-
-      # ---- SUMMARY STATS ----
-      n_matched <- sum(sapply(matched_pairs, function(p) length(p$llm_issue_indices) > 0))
-      n_human <- length(human_issues_data)
-      n_llm <- length(llm_issues_data)
-      cat('<div style="background:#f5f5f5;padding:0.75em;border-radius:5px;font-size:0.9em;">\n')
-      cat(sprintf('<strong>Summary:</strong> %d/%d human issues matched | %d/%d LLM issues matched | %d LLM extras\n',
-                  n_matched, n_human, n_llm - length(unmatched_llm), n_llm, length(unmatched_llm)))
-      cat('</div>\n\n')
-
-    } else if (!is.null(human_issues) && length(human_issues) > 0) {
-      # Fallback: no matched data, show separate lists
-      cat('<p style="color:#666;font-style:italic;">Embedding-based matching not available for this paper.</p>\n\n')
-
-      # Show human issues
-      cat('<h5 style="color:#e65100;">Human Expert Issues</h5>\n')
-      for (j in seq_along(human_issues)) {
-        issue <- human_issues[[j]]
-        badge <- severity_badge(issue$severity)
-        label <- if (!is.null(issue$short_label)) issue$short_label else truncate_text(issue$text, 60)
-        label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", label))
-        text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue$text))
-        border_color <- if (grepl("necessary", tolower(issue$severity))) "#e74c3c" else if (grepl("optional", tolower(issue$severity))) "#f39c12" else "#95a5a6"
-
-        cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#fffbf0;border-left:4px solid %s;">\n', border_color))
-        cat(sprintf('<strong>H%d</strong> %s <strong>%s</strong>\n', j, badge, label_escaped))
-        cat('<details style="margin-top:0.3em;">\n')
-        cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
-        cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', text_escaped))
-        cat('</details>\n')
-        cat('</div>\n')
-      }
-
-      # Show LLM issues
-      cat('\n<h5 style="color:#1565c0;">LLM Issues</h5>\n')
-      for (j in seq_along(gpt_issues)) {
-        issue <- gpt_issues[j]
-        issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
-        first_colon <- regexpr(":", issue_clean)[1]
-        label <- if (first_colon > 0 && first_colon < 50) substr(issue_clean, 1, first_colon - 1) else truncate_text(issue_clean, 50)
-        label_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", label))
-        text_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue_clean))
-
-        cat('<div style="margin:0.5em 0;padding:0.5em;background:#f0f7ff;border-left:4px solid #4e79a7;">\n')
-        cat(sprintf('<strong>L%d</strong> <strong>%s</strong>\n', j, label_escaped))
-        cat('<details style="margin-top:0.3em;">\n')
-        cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show full text</summary>\n')
-        cat(sprintf('<div style="margin-top:0.5em;font-size:0.9em;color:#444;">%s</div>\n', text_escaped))
-        cat('</details>\n')
         cat('</div>\n')
       }
       cat('\n')
+    }
 
-    } else {
-      # No parsed human issues - show raw
-      cat("*Human critique not parsed into individual issues.*\n\n")
-      cat('<details><summary>View full human critique</summary>\n\n')
-      cat(gsub("<", "&lt;", gsub(">", "&gt;", row$coda_critique)))
-      cat('\n</details>\n\n')
+    # ---- UNMATCHED HUMAN ISSUES (New format) ----
+    unmatched_human <- if (!is.null(paper_comparison$unmatched_human)) paper_comparison$unmatched_human else list()
 
-      # Still show LLM issues
-      if (length(gpt_issues) > 0) {
-        cat("**LLM Issues:**\n\n")
-        for (j in seq_along(gpt_issues)) {
-          issue <- gpt_issues[j]
-          issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
-          issue_clean <- gsub("^\\. ", "", issue_clean)
-          cat(sprintf("- **L%d:** %s\n", j, truncate_text(issue_clean, 100)))
+    if (length(unmatched_human) > 0) {
+      cat(sprintf("#### ⚠️ Unmatched Human Issues (%d not captured by LLM)\n\n", length(unmatched_human)))
+
+      for (j in seq_along(unmatched_human)) {
+        item <- unmatched_human[[j]]
+        idx <- if (!is.null(item$index)) item$index else j
+        brief <- if (!is.null(item$brief_description)) item$brief_description else "No description"
+        why_missed <- if (!is.null(item$why_missed)) item$why_missed else ""
+
+        cat(sprintf('<div style="margin:0.5em 0;padding:0.75em;background:#ffebee;border-left:4px solid #c62828;font-size:0.9em;">\n'))
+        cat(sprintf('<strong>H%d:</strong> %s\n', idx, gsub("<", "&lt;", gsub(">", "&gt;", brief))))
+        if (nchar(why_missed) > 0) {
+          cat(sprintf('<div style="margin-top:0.5em;font-size:0.85em;color:#666;"><em>Why missed:</em> %s</div>\n',
+                      gsub("<", "&lt;", gsub(">", "&gt;", why_missed))))
         }
-        cat("\n")
+        cat('</div>\n')
+      }
+      cat('\n')
+    }
+
+    # ---- UNMATCHED LLM ISSUES (New format) ----
+    unmatched_llm <- if (!is.null(paper_comparison$unmatched_llm)) paper_comparison$unmatched_llm else list()
+
+    if (length(unmatched_llm) > 0) {
+      cat('<details style="margin-bottom:1.5em;">\n')
+      cat(sprintf('<summary style="color:#1565c0;font-weight:bold;cursor:pointer;">📋 Unmatched LLM Issues (%d not in human critique)</summary>\n', length(unmatched_llm)))
+      cat('<div style="margin-top:0.5em;">\n')
+
+      for (j in seq_along(unmatched_llm)) {
+        item <- unmatched_llm[[j]]
+        idx <- if (!is.null(item$index)) item$index else j
+        brief <- if (!is.null(item$brief_description)) item$brief_description else "No description"
+        why_extra <- if (!is.null(item$why_extra)) item$why_extra else ""
+
+        cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#e3f2fd;border-left:4px solid #1565c0;font-size:0.9em;">\n'))
+        cat(sprintf('<strong>L%d:</strong> %s\n', idx, gsub("<", "&lt;", gsub(">", "&gt;", brief))))
+        if (nchar(why_extra) > 0) {
+          cat(sprintf('<div style="margin-top:0.5em;font-size:0.85em;color:#666;"><em>Why extra:</em> %s</div>\n',
+                      gsub("<", "&lt;", gsub(">", "&gt;", why_extra))))
+        }
+        cat('</div>\n')
+      }
+      cat('</div>\n')
+      cat('</details>\n\n')
+    }
+
+    # ---- FALLBACK: Old format missed/extra issues (if new format not available) ----
+    if (length(matched_pairs) == 0 && length(unmatched_human) == 0) {
+      # Use old format
+      missed_issues <- if (!is.null(paper_comparison$missed_issues)) paper_comparison$missed_issues else character(0)
+
+      if (length(missed_issues) > 0) {
+        cat(sprintf("#### ⚠️ Issues Human Experts Raised That GPT Missed (%d)\n\n", length(missed_issues)))
+        for (j in seq_along(missed_issues)) {
+          issue_text <- missed_issues[[j]]
+          issue_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue_text))
+          cat(sprintf('<div style="margin:0.5em 0;padding:0.75em;background:#ffebee;border-left:4px solid #c62828;font-size:0.9em;">\n'))
+          cat(sprintf('%s\n', issue_escaped))
+          cat('</div>\n')
+        }
+        cat('\n')
+      }
+
+      extra_issues <- if (!is.null(paper_comparison$extra_issues)) paper_comparison$extra_issues else character(0)
+
+      if (length(extra_issues) > 0) {
+        cat('<details style="margin-bottom:1.5em;">\n')
+        cat(sprintf('<summary style="color:#1565c0;font-weight:bold;cursor:pointer;">📋 Extra Issues GPT Identified (%d not in human critique)</summary>\n', length(extra_issues)))
+        cat('<div style="margin-top:0.5em;">\n')
+        for (j in seq_along(extra_issues)) {
+          issue_text <- extra_issues[[j]]
+          issue_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue_text))
+          cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#e3f2fd;border-left:4px solid #1565c0;font-size:0.9em;">\n'))
+          cat(sprintf('%s\n', issue_escaped))
+          cat('</div>\n')
+        }
+        cat('</div>\n')
+        cat('</details>\n\n')
       }
     }
 
-    # Show LLM justification if available
-    if (has_assessment && !is.na(row$coverage_pct)) {
-      if (!is.null(row$overall_justification) && nchar(row$overall_justification) > 0) {
-        cat("::: {.callout-note collapse='true'}\n")
-        cat("## LLM Comparison Notes\n\n")
-        cat(row$overall_justification)
-        cat("\n:::\n\n")
+    # ---- FULL HUMAN CRITIQUE (expandable) ----
+    cat('<details style="margin-bottom:1em;">\n')
+    cat('<summary style="color:#e65100;cursor:pointer;">📄 View full human critique</summary>\n')
+    cat('<div style="margin-top:0.5em;padding:0.75em;background:#fffbf0;border:1px solid #ffe0b2;border-radius:4px;font-size:0.9em;white-space:pre-wrap;">\n')
+    cat(gsub("<", "&lt;", gsub(">", "&gt;", row$coda_critique)))
+    cat('\n</div>\n')
+    cat('</details>\n\n')
+
+    # ---- FULL GPT ISSUES (expandable) ----
+    if (length(gpt_issues) > 0) {
+      cat('<details style="margin-bottom:1em;">\n')
+      cat(sprintf('<summary style="color:#1565c0;cursor:pointer;">🤖 View all GPT key issues (%d)</summary>\n', length(gpt_issues)))
+      cat('<div style="margin-top:0.5em;">\n')
+      for (j in seq_along(gpt_issues)) {
+        issue <- gpt_issues[j]
+        issue_clean <- gsub("^[0-9]+[)\\.]\\s*", "", issue)
+        issue_clean <- gsub("^\\. ", "", issue_clean)
+        issue_escaped <- gsub("<", "&lt;", gsub(">", "&gt;", issue_clean))
+        cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:#f0f7ff;border-left:4px solid #4e79a7;font-size:0.9em;">\n'))
+        cat(sprintf('<strong>%d.</strong> %s\n', j, issue_escaped))
+        cat('</div>\n')
       }
+      cat('</div>\n')
+      cat('</details>\n\n')
     }
 
     cat("---\n\n")
@@ -872,12 +818,12 @@ if (has_llm_results) {
   rating_counts <- comparison_data |>
     filter(!is.na(overall_rating)) |>
     mutate(
-      Rating = factor(overall_rating, levels = c("Poor", "Fair", "Good", "Excellent"))
+      Rating = factor(overall_rating, levels = c("Poor", "Moderate", "Good", "Excellent"))
     ) |>
     count(Rating, .drop = FALSE)
 
   # Define colors for ratings
-  rating_colors <- c("Poor" = "#e74c3c", "Fair" = "#f39c12", "Good" = "#27ae60", "Excellent" = "#2ecc71")
+  rating_colors <- c("Poor" = "#e74c3c", "Moderate" = "#f39c12", "Good" = "#27ae60", "Excellent" = "#2ecc71")
 
   ggplot(rating_counts, aes(x = Rating, y = n, fill = Rating)) +
     geom_col(alpha = 0.9) +
@@ -897,7 +843,7 @@ if (has_llm_results) {
 
 -   **Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.
 -   **Precision**: Percentage of GPT issues that are substantive rather than generic or spurious. Higher = GPT's critiques are more targeted.
--   **Overall Rating**: Qualitative assessment (Excellent/Good/Fair/Poor) based on both metrics.
+-   **Overall Rating**: Qualitative assessment (Excellent/Good/Moderate/Poor) based on both coverage and precision metrics.
 :::
 
 ## Summary and Observations
