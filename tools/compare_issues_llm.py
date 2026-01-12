@@ -35,6 +35,72 @@ MODEL = "gpt-5.2-pro"  # or "gpt-4o" for cheaper/faster option
 MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds
 
+# JSON Schema to ENFORCE the matched_pairs output structure
+COMPARISON_SCHEMA = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "issue_comparison",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "matched_pairs": {
+                    "type": "array",
+                    "description": "Each human issue that has LLM coverage",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "human_issue_index": {"type": "integer", "description": "Index of human issue (1-based)"},
+                            "llm_issue_indices": {"type": "array", "items": {"type": "integer"}, "description": "Indices of matching LLM issues"},
+                            "match_quality": {"type": "integer", "description": "0-100 percent match quality"},
+                            "label": {"type": "string", "description": "Short 5-10 word label for the shared concern"},
+                            "match_explanation": {"type": "string", "description": "1-2 sentence explanation of WHY this is a match"},
+                            "detailed_discussion": {"type": "string", "description": "3-5 sentence analysis comparing how human vs LLM framed the issue"}
+                        },
+                        "required": ["human_issue_index", "llm_issue_indices", "match_quality", "label", "match_explanation", "detailed_discussion"],
+                        "additionalProperties": False
+                    }
+                },
+                "unmatched_human": {
+                    "type": "array",
+                    "description": "Human issues not captured by LLM",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "index": {"type": "integer"},
+                            "brief_description": {"type": "string"},
+                            "why_missed": {"type": "string"}
+                        },
+                        "required": ["index", "brief_description", "why_missed"],
+                        "additionalProperties": False
+                    }
+                },
+                "unmatched_llm": {
+                    "type": "array",
+                    "description": "LLM issues not in human critique",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "index": {"type": "integer"},
+                            "brief_description": {"type": "string"},
+                            "why_extra": {"type": "string"}
+                        },
+                        "required": ["index", "brief_description", "why_extra"],
+                        "additionalProperties": False
+                    }
+                },
+                "coverage_pct": {"type": "integer", "description": "Percent of human issues with match_quality >= 30"},
+                "precision_pct": {"type": "integer", "description": "Percent of LLM issues that match something"},
+                "overall_rating": {"type": "string", "enum": ["Excellent", "Good", "Moderate", "Poor"]},
+                "overall_justification": {"type": "string", "description": "1-2 sentence summary"},
+                "detailed_notes": {"type": "string", "description": "Additional observations"}
+            },
+            "required": ["matched_pairs", "unmatched_human", "unmatched_llm", "coverage_pct", "precision_pct", "overall_rating", "overall_justification", "detailed_notes"],
+            "additionalProperties": False
+        }
+    }
+}
+
 # Paths
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -221,14 +287,14 @@ def compare_with_llm(client, paper_name, human_issues, llm_issues):
         try:
             response = client.responses.create(
                 model=MODEL,
-                text={"format": {"type": "json_object"}},
+                text={"format": COMPARISON_SCHEMA},  # Use schema to ENFORCE structure
                 input=[
                     {"role": "user", "content": [
                         {"type": "input_text", "text": prompt}
                     ]}
                 ],
                 reasoning={"effort": "medium", "summary": "auto"},
-                max_output_tokens=4000,
+                max_output_tokens=6000,  # Increased for detailed responses
             )
 
             # Extract output text
