@@ -1292,64 +1292,132 @@ def parse_key_issues_markdown(md_path):
     return matched_data
 
 # =============================================================================
-# LLM Comparison Function
+# LLM Comparison Function - with EXPLICIT issue-to-issue matching
 # =============================================================================
-COMPARISON_PROMPT_TEMPLATE = """You are evaluating how well an LLM's identified issues align with expert human critiques of a research paper.
+
+# JSON Schema to ENFORCE the matched_pairs output structure
+COMPARISON_SCHEMA = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "issue_comparison",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "matched_pairs": {
+                    "type": "array",
+                    "description": "Each human issue that has LLM coverage",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "human_issue_index": {"type": "integer", "description": "Index of human issue (1-based)"},
+                            "llm_issue_indices": {"type": "array", "items": {"type": "integer"}, "description": "Indices of matching LLM issues"},
+                            "match_quality": {"type": "integer", "description": "0-100 percent match quality"},
+                            "label": {"type": "string", "description": "Short 5-10 word label for the shared concern"},
+                            "match_explanation": {"type": "string", "description": "1-2 sentence explanation of WHY this is a match"},
+                            "detailed_discussion": {"type": "string", "description": "3-5 sentence analysis comparing how human vs LLM framed the issue"}
+                        },
+                        "required": ["human_issue_index", "llm_issue_indices", "match_quality", "label", "match_explanation", "detailed_discussion"],
+                        "additionalProperties": False
+                    }
+                },
+                "unmatched_human": {
+                    "type": "array",
+                    "description": "Human issues not captured by LLM",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "index": {"type": "integer"},
+                            "brief_description": {"type": "string"},
+                            "why_missed": {"type": "string"}
+                        },
+                        "required": ["index", "brief_description", "why_missed"],
+                        "additionalProperties": False
+                    }
+                },
+                "unmatched_llm": {
+                    "type": "array",
+                    "description": "LLM issues not in human critique",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "index": {"type": "integer"},
+                            "brief_description": {"type": "string"},
+                            "why_extra": {"type": "string"}
+                        },
+                        "required": ["index", "brief_description", "why_extra"],
+                        "additionalProperties": False
+                    }
+                },
+                "coverage_pct": {"type": "integer", "description": "Percent of human issues with match_quality >= 30"},
+                "precision_pct": {"type": "integer", "description": "Percent of LLM issues that match something"},
+                "overall_rating": {"type": "string", "enum": ["Excellent", "Good", "Moderate", "Poor"]},
+                "overall_justification": {"type": "string", "description": "1-2 sentence summary"},
+                "detailed_notes": {"type": "string", "description": "Additional observations"}
+            },
+            "required": ["matched_pairs", "unmatched_human", "unmatched_llm", "coverage_pct", "precision_pct", "overall_rating", "overall_justification", "detailed_notes"],
+            "additionalProperties": False
+        }
+    }
+}
+
+COMPARISON_PROMPT_TEMPLATE = """You are comparing human expert critiques with LLM-identified issues for a research paper evaluation.
 
 ## Task
-Compare the GPT Key Issues against the Human Expert Critiques below. Assess:
+Create a detailed issue-by-issue comparison. For each human issue, identify which LLM issue(s) cover it.
 
-1. **Coverage**: What proportion of the substantive issues raised by human experts are captured by the GPT key issues? (Give percentage estimate)
-2. **Precision**: Are the GPT issues relevant and substantive, or does it include spurious/irrelevant issues? (Give percentage of GPT issues that are genuinely relevant)
-3. **Missed Issues**: List the most important issues raised by human experts that GPT missed entirely
-4. **Extra Issues**: List any important issues GPT identified that humans didn't mention (these could be valid additions or false positives)
-5. **Overall Assessment**: Rate alignment as Excellent/Good/Moderate/Poor with 1-2 sentence justification
-
-## Human Expert Critiques
+## Human Expert Issues (numbered H1, H2, ...)
 {human_critique}
 
-## GPT Key Issues
+## LLM Issues (numbered L1, L2, ...)
 {gpt_issues}
 
-Respond in JSON format with these exact fields:
-- coverage_pct: number 0-100
-- precision_pct: number 0-100
-- missed_issues: array of strings
-- extra_issues: array of strings
-- overall_rating: one of "Excellent", "Good", "Moderate", "Poor"
-- overall_justification: 1-2 sentences
-- detailed_notes: any additional observations
-"""
+## Instructions
+1. For each human issue, identify which LLM issue(s) address the same or related concern
+2. Create a matched_pairs entry for each human issue that has any LLM coverage, with:
+   - A short descriptive LABEL for the shared concern (5-10 words)
+   - match_quality: 0-100% where 100% = exact same concern
+   - match_explanation: 1-2 sentence explanation of WHY this is a match
+   - detailed_discussion: 3-5 sentences comparing how human vs LLM framed the issue
+3. List unmatched_human issues (not captured by LLM) with brief_description and why_missed
+4. List unmatched_llm issues (not in human critique) with brief_description and why_extra
+5. Calculate coverage_pct (% of human issues with match_quality >= 30) and precision_pct (% of LLM issues that match)
+
+Be precise about which issues match. Related but distinct concerns should have lower match_quality scores (40-60%) with explanation of the distinction."""
 
 def compare_issues_with_llm(paper_name, coda_critique, gpt_issues):
-    """Use LLM to compare the critiques and assess alignment."""
+    """Use LLM to compare the critiques with explicit issue-to-issue matching."""
     # Input validation
     if not gpt_issues:
-        return {"error": "No GPT issues", "coverage_pct": None, "precision_pct": None, "overall_rating": "N/A"}
+        return {"error": "No GPT issues", "matched_pairs": [], "unmatched_human": [], "unmatched_llm": [],
+                "coverage_pct": None, "precision_pct": None, "overall_rating": "N/A",
+                "overall_justification": "", "detailed_notes": ""}
     if not coda_critique or len(coda_critique.strip()) < 20:
-        return {"error": "No human critique", "coverage_pct": None, "precision_pct": None, "overall_rating": "N/A"}
+        return {"error": "No human critique", "matched_pairs": [], "unmatched_human": [], "unmatched_llm": [],
+                "coverage_pct": None, "precision_pct": None, "overall_rating": "N/A",
+                "overall_justification": "", "detailed_notes": ""}
 
-    # Format inputs
-    gpt_issues_text = "\n".join("- " + issue for issue in gpt_issues)
+    # Format inputs with numbered labels
+    gpt_issues_text = "\n".join(f"L{i+1}: {issue}" for i, issue in enumerate(gpt_issues))
     prompt_text = COMPARISON_PROMPT_TEMPLATE.format(
         human_critique=coda_critique,
         gpt_issues=gpt_issues_text
     )
 
-    # Call LLM using Responses API (same as main evaluation pipeline)
+    # Call LLM using Responses API with SCHEMA ENFORCEMENT
     response = None
     error_msg = None
     try:
         response = call_with_retries(lambda: client.responses.create(
             model=FOCAL_MODEL,
-            text={"format": {"type": "json_object"}},
+            text={"format": COMPARISON_SCHEMA},  # Schema enforces matched_pairs structure
             input=[
                 {"role": "user", "content": [
                     {"type": "input_text", "text": prompt_text}
                 ]}
             ],
             reasoning={"effort": "medium", "summary": "auto"},
-            max_output_tokens=4000,
+            max_output_tokens=6000,  # Increased for detailed responses
         ))
     except Exception as exc:
         error_msg = str(exc)
@@ -1374,7 +1442,9 @@ def compare_issues_with_llm(paper_name, coda_critique, gpt_issues):
             error_msg = f"Parse error: {parse_exc}"
             print(f"  {error_msg}")
 
-    return {"error": error_msg or "Unknown error", "coverage_pct": None, "precision_pct": None, "overall_rating": "Error"}
+    return {"error": error_msg or "Unknown error", "matched_pairs": [], "unmatched_human": [], "unmatched_llm": [],
+            "coverage_pct": None, "precision_pct": None, "overall_rating": "Error",
+            "overall_justification": "", "detailed_notes": ""}
 
 # =============================================================================
 # Step 1: Parse markdown and save JSON
@@ -1414,7 +1484,11 @@ for item in matched_data:
     })
 
     if comparison.get('coverage_pct') is not None:
+        n_matched = len(comparison.get('matched_pairs', []))
+        n_unmatched_h = len(comparison.get('unmatched_human', []))
+        n_unmatched_l = len(comparison.get('unmatched_llm', []))
         print(f"  Coverage: {comparison['coverage_pct']}%, Precision: {comparison['precision_pct']}%, Rating: {comparison['overall_rating']}")
+        print(f"  Matched pairs: {n_matched}, Unmatched human: {n_unmatched_h}, Unmatched LLM: {n_unmatched_l}")
     else:
         print(f"  Skipped or error: {comparison.get('error', 'unknown')}")
 

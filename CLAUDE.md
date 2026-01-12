@@ -476,6 +476,11 @@ This analyzes changes between paper versions and matches them to evaluations. Re
 
 ## Important Notes
 
+- **PREFER QUARTO CHUNKS OVER STANDALONE SCRIPTS**: When adding new Python/R analysis code, put it in a Quarto chunk inside the relevant `.qmd` file (usually `methods.qmd`) rather than creating standalone scripts in `tools/` or elsewhere. This ensures:
+  1. Code is visible and documented in the rendered website
+  2. Results can be executed by running `quarto render`
+  3. The workflow stays consistent (Valentin runs chunks, not scripts)
+  Only create standalone scripts for truly reusable utilities that don't need to appear in the book.
 - **Caching**: Quarto uses aggressive caching (`freeze: auto` in `_quarto.yml`). Delete `_freeze/` if you need fresh execution.
 - **Code execution**: Python and R chunks have `eval: true/false` flags. Check these if code isn't running.
 - **PDF handling**: The pipeline sends PDFs directly to the API (native multimodal input), preserving figures and tables. No text extraction step.
