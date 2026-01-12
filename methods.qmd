@@ -1218,6 +1218,7 @@ The comparison proceeds in two stages: first, we extract and align the data sour
 #| code-summary: "Key issues comparison: parse markdown and run LLM assessment"
 
 import re
+import time
 
 # =============================================================================
 # Configuration
@@ -1296,70 +1297,70 @@ def parse_key_issues_markdown(md_path):
 # =============================================================================
 
 # JSON Schema to ENFORCE the matched_pairs output structure
-# Note: OpenAI Responses API expects name/strict/schema nested inside "json_schema" key
-COMPARISON_SCHEMA = {
-    "type": "json_schema",
-    "json_schema": {
-        "name": "issue_comparison",
-        "strict": True,
-        "schema": {
-            "type": "object",
-            "properties": {
-                "matched_pairs": {
-                    "type": "array",
-                    "description": "Each human issue that has LLM coverage",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "human_issue_index": {"type": "integer", "description": "Index of human issue (1-based)"},
-                            "llm_issue_indices": {"type": "array", "items": {"type": "integer"}, "description": "Indices of matching LLM issues"},
-                            "match_quality": {"type": "integer", "description": "0-100 percent match quality"},
-                            "label": {"type": "string", "description": "Short 5-10 word label for the shared concern"},
-                            "match_explanation": {"type": "string", "description": "1-2 sentence explanation of WHY this is a match"},
-                            "detailed_discussion": {"type": "string", "description": "3-5 sentence analysis comparing how human vs LLM framed the issue"}
-                        },
-                        "required": ["human_issue_index", "llm_issue_indices", "match_quality", "label", "match_explanation", "detailed_discussion"],
-                        "additionalProperties": False
-                    }
+# Per OpenAI Responses API: text.format needs type/name/strict/schema at TOP LEVEL
+
+# 1) Inner JSON Schema (the actual schema definition)
+ISSUE_COMPARISON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "matched_pairs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "human_issue_index": {"type": "integer", "minimum": 1},
+                    "llm_issue_indices": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+                    "match_quality": {"type": "integer", "minimum": 0, "maximum": 100},
+                    "label": {"type": "string"},
+                    "match_explanation": {"type": "string"},
+                    "detailed_discussion": {"type": "string"},
                 },
-                "unmatched_human": {
-                    "type": "array",
-                    "description": "Human issues not captured by LLM",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "index": {"type": "integer"},
-                            "brief_description": {"type": "string"},
-                            "why_missed": {"type": "string"}
-                        },
-                        "required": ["index", "brief_description", "why_missed"],
-                        "additionalProperties": False
-                    }
-                },
-                "unmatched_llm": {
-                    "type": "array",
-                    "description": "LLM issues not in human critique",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "index": {"type": "integer"},
-                            "brief_description": {"type": "string"},
-                            "why_extra": {"type": "string"}
-                        },
-                        "required": ["index", "brief_description", "why_extra"],
-                        "additionalProperties": False
-                    }
-                },
-                "coverage_pct": {"type": "integer", "description": "Percent of human issues with match_quality >= 30"},
-                "precision_pct": {"type": "integer", "description": "Percent of LLM issues that match something"},
-                "overall_rating": {"type": "string", "enum": ["Excellent", "Good", "Moderate", "Poor"]},
-                "overall_justification": {"type": "string", "description": "1-2 sentence summary"},
-                "detailed_notes": {"type": "string", "description": "Additional observations"}
+                "required": ["human_issue_index", "llm_issue_indices", "match_quality", "label", "match_explanation", "detailed_discussion"],
+                "additionalProperties": False,
             },
-            "required": ["matched_pairs", "unmatched_human", "unmatched_llm", "coverage_pct", "precision_pct", "overall_rating", "overall_justification", "detailed_notes"],
-            "additionalProperties": False
-        }
-    }
+        },
+        "unmatched_human": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "index": {"type": "integer", "minimum": 1},
+                    "brief_description": {"type": "string"},
+                    "why_missed": {"type": "string"},
+                },
+                "required": ["index", "brief_description", "why_missed"],
+                "additionalProperties": False,
+            },
+        },
+        "unmatched_llm": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "index": {"type": "integer", "minimum": 1},
+                    "brief_description": {"type": "string"},
+                    "why_extra": {"type": "string"},
+                },
+                "required": ["index", "brief_description", "why_extra"],
+                "additionalProperties": False,
+            },
+        },
+        "coverage_pct": {"type": "integer", "minimum": 0, "maximum": 100},
+        "precision_pct": {"type": "integer", "minimum": 0, "maximum": 100},
+        "overall_rating": {"type": "string", "enum": ["Excellent", "Good", "Moderate", "Poor"]},
+        "overall_justification": {"type": "string"},
+        "detailed_notes": {"type": "string"},
+    },
+    "required": ["matched_pairs", "unmatched_human", "unmatched_llm", "coverage_pct", "precision_pct", "overall_rating", "overall_justification", "detailed_notes"],
+    "additionalProperties": False,
+}
+
+# 2) Responses API text.format wrapper (THIS is what goes into text={"format": ...})
+COMPARISON_TEXT_FORMAT = {
+    "type": "json_schema",
+    "name": "issue_comparison",
+    "strict": True,
+    "schema": ISSUE_COMPARISON_SCHEMA,
 }
 
 COMPARISON_PROMPT_TEMPLATE = """You are comparing human expert critiques with LLM-identified issues for a research paper evaluation.
@@ -1411,7 +1412,7 @@ def compare_issues_with_llm(paper_name, coda_critique, gpt_issues):
     try:
         response = call_with_retries(lambda: client.responses.create(
             model=FOCAL_MODEL,
-            text={"format": COMPARISON_SCHEMA},  # Schema enforces matched_pairs structure
+            text={"format": COMPARISON_TEXT_FORMAT},  # Schema enforces matched_pairs structure
             input=[
                 {"role": "user", "content": [
                     {"type": "input_text", "text": prompt_text}
