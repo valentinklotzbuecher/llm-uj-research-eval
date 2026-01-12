@@ -20,26 +20,26 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1603,
     "comparison": {
-      "coverage_pct": 55,
+      "coverage_pct": 60,
       "precision_pct": 90,
       "missed_issues": [
-        "Sensitivity of the field experiment’s statistical significance/power to including the prior election result as a control (Table 2 cols 1–2 SE halves with the control; without it, ITT is too noisy).",
-        "Lab-experiment analysis choice: experts suggest using a pre–post change (difference score / ANCOVA-style leveraging pre-treatment values) rather than only post-treatment outcomes."
+        "Sensitivity to controls/power: the field ITT estimate’s standard error and statistical significance depend heavily on including the prior election result as a covariate (Table 2 cols 1–2). This dependence should be highlighted and discussed as a key robustness/power concern.",
+        "Lab experiment specification: experts ask why the authors do not use pre–post (change-score) outcomes (difference between post- and pre-treatment) rather than only post-treatment values."
       ],
       "extra_issues": [
-        "Epistemic/measurement concern: treating V-Dem expert-coded indices as ground truth for labeling citizen beliefs as “misperceptions.”",
-        "Messaging validity: scripts present strong causal claims (democracy → fewer disaster deaths; media freedom → less corruption) that may exceed the causal strength of the cited evidence, confounding “information correction” with persuasion/valence appeals.",
-        "Partisanship/implementation confound: collaboration/branding with opposition actors complicates interpretation as nonpartisan information effects.",
-        "Identification concern for 2SLS (assignment → completed conversations): exclusion restriction threats via other channels (pamphlet exposure, canvasser presence/intensity).",
-        "Data integrity/definition issue: administrative turnout values exceeding 1 and documentation inconsistencies around the online turnout variable.",
-        "Placebo not clean: placebo messages contain substantive propositions, potentially blurring contrasts and complicating demand-effect interpretation.",
-        "Multiple comparisons/heterogeneity: reliance on median splits and many subgroup tests without clear preregistration or multiple-testing adjustments.",
-        "Persistence interpretation: 2024 municipal-election persistence claims may have alternative explanations (intervening campaigns, mapping stability, compositional change).",
-        "Clarity of estimands/claims: occasional slippage from ITT vs LATE/per-contact effects to broad claims about “accurate information campaigns.”"
+        "Epistemic/measurement critique of labeling beliefs as “misperceptions” using V-Dem as ground truth",
+        "Concern that treatments communicate strong causal claims (democracy → fewer disaster deaths; media independence → less corruption) based on largely observational evidence, potentially conflating persuasion/valence with information correction",
+        "Partisan entanglement of field implementation (opposition involvement/branding) undermining a ‘non-partisan information’ interpretation",
+        "2SLS/LATE identification and exclusion restriction concerns (assignment affects multiple channels beyond ‘completed conversations’)",
+        "Data integrity/measurement concerns about administrative turnout values exceeding 1 and documentation inconsistencies",
+        "Placebo arm not “clean” because it still contains substantive propositions, complicating interpretation",
+        "Multiple comparisons/median splits in heterogeneity analyses and need for adjustment or clearer confirmatory vs exploratory framing",
+        "Persistence interpretation using the 2024 municipal election needing stronger discussion of alternative explanations (later campaigns, mapping stability, administrative changes)",
+        "Clarity issues distinguishing ITT vs compliance-adjusted effects and avoiding over-claiming about ‘accurate information campaigns’"
       ],
       "overall_rating": "Moderate",
-      "overall_justification": "GPT captures the spillover concern and partially overlaps with the experts’ worries about interpretation/external generalizability, but it misses two core expert points: the strong sensitivity of inference to including a key control and the recommended pre–post (change-score) analysis in the lab.",
-      "detailed_notes": "On the ‘demand for democracy’/normative-commitment critique, GPT’s points about valence/persuasion and observationally-supported causal claims are directionally aligned, and its external-validity point overlaps with the experts’ context-salience/generalizability concern; however, GPT does not explicitly flag the over-claiming of “support for democracy/media freedom as normative commitments” as such. Conversely, GPT adds several substantive design/identification and measurement/data-quality critiques not raised in the provided human comments."
+      "overall_justification": "GPT captures two central human concerns—spillovers and over-interpretation/external-validity limits of the ‘demand for democracy’ framing—but misses the experts’ most technical points about sensitivity to a key control and the preferred pre–post specification in the lab.",
+      "detailed_notes": "The largest gap is that the human critiques emphasize a specific, high-leverage robustness/power issue (SE halves when controlling for prior election results), whereas GPT focuses more on identification/interpretation threats (SUTVA, exclusion restrictions, partisanship) and reporting/analysis hygiene (placebo content, multiple testing). Those extra GPT points are mostly plausible and substantive but are not the same priorities raised by the experts."
     }
   },
   {
@@ -63,26 +63,28 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 2526,
     "comparison": {
-      "coverage_pct": 72,
-      "precision_pct": 88,
+      "coverage_pct": 68,
+      "precision_pct": 92,
       "missed_issues": [
-        "Deviations from the pre-registered analysis plan / researcher degrees of freedom as a core critique (beyond just winsorization), including whether key choices were pre-specified versus post hoc",
-        "Population normalization choice (donations normalized by population of each zip code) as a specific potentially non-preregistered or influential transformation",
-        "Preregistered heterogeneity method not executed: the plan to use causal trees to search for meaningful heterogeneity using all pre-treatment covariates",
-        "Main-results interpretation critique focused specifically on missing/insufficient reporting and discussion of confidence intervals/uncertainty bounds (not just 'borderline p-values')",
-        "HTE inference gaps: lack of omnibus/F-tests to determine which heterogeneity effects are statistically significant",
-        "HTE interpretation issue: large high-low differences arising from one subgroup being positive and the other negative, with skepticism that negative treatment effects are real (theory/interpretation critique, not just multiplicity)",
-        "Covariate balance tables: interpreting balance-table hypothesis tests as tests of randomization is conceptually incorrect; suggestion to use standardized differences rather than significance tests"
+        "Pre-registration deviations / researcher degrees of freedom beyond winsorization (explicitly flagging departures from the pre-registered analysis plan)",
+        "Outcome normalization choice: donations normalized by ZIP-code population and how that affects interpretation/inference",
+        "Pre-registered heterogeneity method not implemented: planned causal trees approach for structured heterogeneity search",
+        "Main-results interpretation: failure to emphasize uncertainty bounds / confidence intervals (experts explicitly criticize point-estimate-centric discussion)",
+        "HTE statistical inference gaps: missing joint tests (e.g., F-tests) to establish which HTEs are significant",
+        "HTE interpretability: large positive/negative split effects likely noise without theory for negative effects; overselling of HTE patterns",
+        "Spillover modeling arbitrariness details: sensitivity to assumed spillover radius/distance cutoff and functional form; the striking claim that indirect effect is ~10x direct effect",
+        "Conceptual critique of using covariate-balance hypothesis tests as a ‘test of randomization’; preference for standardized differences"
       ],
       "extra_issues": [
-        "Treatment intensity vs assignment: endogenous ad delivery intensity/composition within treated areas due to platform algorithms complicating interpretation",
-        "Mechanism claims ('power of asking') exceeding direct tests (salience/trust/news shocks as alternatives)",
-        "Factorial design interpretation/power: framing 'no matter the content' as potentially low power rather than equivalence",
-        "Replication constraints due to proprietary/aggregated data and unclear code availability"
+        "Treatment intensity vs. assignment driven by Facebook’s delivery algorithm potentially inducing endogenous exposure differences within treated ZIP codes",
+        "Mechanism claim (“power of asking”) not directly tested against alternative mechanisms (salience/trust/news shocks)",
+        "Factorial design/power: content and impression-allocation comparisons not statistically distinguishable and should be framed as low power rather than equivalence",
+        "Replication/reproducibility constraints due to proprietary/aggregated data and unclear code availability",
+        "Pre-treatment imbalance concerns for the 23-charity alliance outcomes framed as potential residual confounding/seasonality issues"
       ],
       "overall_rating": "Good",
-      "overall_justification": "GPT captures most of the core substantive concerns (spillovers/interference, winsorization and heavy tails affecting ROI, window/seasonality, competitor effects, and multiplicity in heterogeneity). It misses several expert-emphasized points about preregistration deviations, explicit CI/uncertainty communication, and specific HTE testing/interpretation shortcomings.",
-      "detailed_notes": "Spillovers are covered conceptually (SUTVA/interference and arbitrariness of spillover modeling), but the human critique also stresses the striking magnitude (indirect effect ~10x direct) and sensitivity to arbitrary distance/functional-form assumptions; GPT mentions arbitrariness/uncertainty but not the magnitude-based red flag. On ROI/profitability, GPT aligns well with the trimming/winsorization sensitivity concern and adds reasonable uncertainty-propagation points. HTE: GPT nails multiplicity risk but not the experts' specific complaints about missing F-tests and implausible negative subgroup effects. Preregistration: GPT references documentation/reproducibility but does not directly address key 'not preregistered vs preregistered but not done' critiques (causal trees, population normalization, degrees of freedom)."
+      "overall_justification": "GPT captures most of the core substantive concerns (winsorization/ROI sensitivity, spillovers/interference, window choice, competitor effects limits, and multiplicity in HTEs), but it misses several expert-emphasized points about pre-registration deviations, confidence intervals/uncertainty communication, and specific shortcomings in HTE and spillover inference.",
+      "detailed_notes": "The biggest gap is that human critiques focus heavily on (i) adherence to the pre-analysis plan (including the unimplemented causal-trees HTE plan), and (ii) inference/communication issues (confidence intervals, joint tests for HTEs, and interpretability of negative subgroup effects). GPT’s spillover critique matches the theme (interference) but not the experts’ emphasis on arbitrariness/sensitivity and the unusually large indirect-effect magnitude. GPT’s additional points (platform delivery endogeneity, mechanism, factorial-design power, reproducibility) are plausible and largely non-spurious, even if not raised by the cited experts."
     }
   },
   {
@@ -104,30 +106,29 @@
     "num_gpt_issues": 10,
     "coda_critique_length": 2001,
     "comparison": {
-      "coverage_pct": 0,
-      "precision_pct": 0,
+      "coverage_pct": 5,
+      "precision_pct": 10,
       "missed_issues": [
-        "Ceiling effects in Likert-scale belief measures (most responses at the maximum), which can attenuate/underestimate treatment differences",
-        "Recommendation to use an appropriate censored-outcome model (e.g., Tobit) to account for ceiling effects (potentially alongside inverse probability weighting)",
-        "Misinterpretation risk: treating a non-significant difference in belief updating as evidence of no difference (“absence of evidence is not evidence of absence”)",
-        "Concern that tests of belief-updating differences may be underpowered specifically because of the ceiling effect",
-        "Asymmetry in ‘room to update’ across groups (information seekers vs avoiders) due to differing proximity to the scale ceiling"
+        "Ceiling effects in Likert-scale belief measures (most responses at the maximum), which can attenuate estimated treatment effects and differences between groups",
+        "Suggestion to use an appropriate censored/outcome model (e.g., Tobit) to account for the ceiling effect (and consider how it interacts with inverse probability weighting)",
+        "Misinterpretation of non-significant differences in belief updating as evidence of no difference (“absence of evidence” vs “evidence of absence”), especially under potential low power driven by ceiling effects",
+        "Group differences in available ‘room to update’ (information seekers vs avoiders) induced by the ceiling, affecting comparability of belief-updating magnitudes"
       ],
       "extra_issues": [
-        "Construct validity concerns about a cross-task ‘deontological’ option and multidimensional moral domains",
-        "Claim that low correlations cannot support “no stable individual preference types,” suggesting latent-variable/IRT/mixture models",
-        "Concerns about Pearson correlations on dichotomous outcomes and attenuation from measurement error/base rates",
-        "Task-specific confounds in a ‘trolley/SAL’ paradigm (default effects, omission/commission, fairness, indirect harm)",
-        "Interpretation concerns about probabilistic implementation of ‘real stakes’",
-        "Shared framing across tasks potentially driving results (charity vs direct transfers; experimenter-demand)",
-        "External validity limits from an online/mostly-student sample",
-        "Possibility that some tasks measure compliance/norm sensitivity rather than moral preferences",
-        "Multiple-hypothesis testing / narrative overweighting of small significant associations",
-        "Open-science/replication concerns about data/code/materials availability"
+        "Construct validity concerns about pooling ‘deontological’ choices across heterogeneous moral domains/tasks",
+        "Overstated conclusion about absence of stable preference types; suggestion of latent variable / IRT / mixture models",
+        "Problems using Pearson correlations on dichotomous measures; attenuation and alternative estimators",
+        "Confounds in the trolley-style task interpretation (default/omission/commission/fairness/indirectness)",
+        "Caution about probabilistic ‘real stakes’ manipulation and interpretation of null effects",
+        "Shared framing across tasks potentially driving common behavior (charity vs direct transfer; demand effects)",
+        "Limited external validity due to online/student sample",
+        "Some tasks may measure compliance/experimenter-demand rather than moral constructs",
+        "Multiple-hypothesis/testing and narrative over-weighting small significant links",
+        "Open-science/replication clarity: permanent links to data/code/materials"
       ],
       "overall_rating": "Poor",
-      "overall_justification": "The GPT key issues do not overlap with the human critiques at all; they appear to address a different paper/topic (moral preference tasks) rather than Likert-scale belief updating with ceiling effects and inference from non-significance.",
-      "detailed_notes": "Human experts focus narrowly on measurement (ceiling effects), appropriate modeling (Tobit with IPW), and statistical interpretation/power. GPT issues are largely substantive in another context but are entirely non-responsive to the provided human critiques, yielding essentially zero coverage and zero relevance to the target critique set."
+      "overall_justification": "The human critiques focus narrowly on ceiling effects in Likert belief measures and on improper inference from non-significance; GPT’s issues do not address these points and instead critique construct validity and modeling in an apparently different part of the paper.",
+      "detailed_notes": "There is essentially no direct overlap: GPT does not mention Likert ceiling/censoring, Tobit/censored models, power concerns due to ceiling effects, or the logical error of treating non-significance as evidence of no effect. Most GPT points may be substantively reasonable in another context, but they do not align with the specific expert concerns provided."
     }
   },
   {
@@ -150,27 +151,26 @@
     "num_gpt_issues": 11,
     "coda_critique_length": 2827,
     "comparison": {
-      "coverage_pct": 78,
-      "precision_pct": 88,
+      "coverage_pct": 85,
+      "precision_pct": 90,
       "missed_issues": [
-        "Request for explicit simulation/Monte Carlo evidence to validate frequentist confidence regions in the paper’s small-sample, many-parameters, time-series setting (beyond generic robustness/bootstrapping discussion).",
-        "Explicit recommendation to report impacts beyond 10 years (extend the horizon), rather than only noting that 10-year LP inference can be fragile.",
-        "Specific critique that the lag structure should be expanded to reflect longer geophysical/climate cycles (i.e., a direct ‘use more lags’ concern tied to geoscience).",
-        "Specific comparability request: allow local temperature models to include non-linear or permanent growth effects to align more directly with prior literature’s specifications (GPT discusses nonlinearity generally but not this comparability point)."
+        "Explicit recommendation to validate finite-sample confidence intervals with simulation evidence tailored to “time series + few observations + many parameters” (GPT notes finite-sample inference concerns but not the concrete simulation-based diagnostic).",
+        "Specific suggestion to increase the number of lags to reflect longer geoscience/climate cycles (GPT discusses persistence/shock-construction choices, but not the targeted ‘add more lags’ robustness request in the local temperature model).",
+        "Targeted request to report impacts beyond 10 years / provide an SCC robustness calculation that explicitly allows longer-run effects (GPT flags 10-year-horizon issues and SCC model-dependence, but not the concrete ‘show >10 years out’ deliverable as clearly)."
       ],
       "extra_issues": [
-        "Confounding/identification concern that global temperature innovations may correlate with other unobserved global macro shocks (policy/finance/technology/geopolitics).",
-        "External-validity concern that natural-variability temperature shocks may not represent damages from sustained anthropogenic warming (different spatial/seasonal patterns and joint climate dynamics).",
-        "Detailed critique of temperature-shock construction choices (Hamilton multi-step forecast error; choice of forecast horizon/order) as embedding persistence assumptions that affect damages.",
-        "Critique of causal interpretation of ‘extreme events’ mediation and its measurement/aggregation assumptions.",
-        "Concern about residual common-factor confounding in panel-country evidence (e.g., missing global time fixed effects).",
-        "Model-dependence of SCC/welfare translation (TFP-only channel, omitted adaptation/heterogeneity, functional-form restrictions).",
-        "Incomplete propagation of deep uncertainties (climate impulse response, measurement error, extrapolation) into reported intervals.",
-        "Replicability/code-and-pipeline release as a distinct issue."
+        "Confounding from unobserved global shocks correlated with temperature innovations (policy/finance/technology/geopolitics) affecting GDP.",
+        "External validity concern: natural-variability shocks (ENSO/volcano/internal variability) may not map to anthropogenic warming damages.",
+        "Detailed critique of temperature-shock construction choices (Hamilton multi-step forecast error; sensitivity to h and p) and how embedded persistence assumptions affect damages.",
+        "Causal skepticism about the extreme-events mediation / bottom-up aggregation channel (measurement and separability assumptions).",
+        "Panel design concern about residual common-factor confounding and missing time fixed effects for global shocks.",
+        "Broader welfare/SCC mapping limitations (representative-agent TFP-only damages; omitted adaptation/heterogeneity/endogenous mitigation; functional-form extrapolation).",
+        "Uncertainty propagation critique (deep uncertainties not integrated beyond reduced-form CI).",
+        "Replicability/code-release and pipeline versioning concerns."
       ],
       "overall_rating": "Good",
-      "overall_justification": "GPT captures the core human concerns about small-sample/finite-sample inference and extrapolation/nonlinearity limitations, but misses several concrete expert requests (notably simulation-based CI validation, explicit horizon extension beyond 10 years, and the geoscience-motivated lag critique). Most GPT issues are substantive, with several additional (plausible) concerns not raised by the experts.",
-      "detailed_notes": "The strongest overlap is on inference reliability in short annual samples with persistent regressors and multi-year horizons. GPT’s nonlinearity/extrapolation point partially overlaps the experts’ ‘1°C is out-of-sample’ concern but is broader/less specific. Several GPT items (SCC model dependence, external validity of natural shocks, mediation via extremes, replicability) appear as additive critiques rather than misfires, so they raise breadth more than they reduce precision."
+      "overall_justification": "GPT captures the core human critiques around small-sample/finite-sample inference, extrapolation/linearity, and horizon limitations, but it misses some of the most concrete methodological asks (notably simulation validation and the explicit ‘more lags’ request). It also adds several plausible but broader concerns not highlighted by the experts.",
+      "detailed_notes": "Human critiques are relatively focused (sample size/inference validity; longer horizons/lags; nonlinearity/comparability; out-of-sample scaling). GPT covers these themes but expands into identification/external-validity and SCC-modeling critiques, which are substantively relevant yet not directly reflected in the provided expert comments."
     }
   },
   {
@@ -194,26 +194,29 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1981,
     "comparison": {
-      "coverage_pct": 88,
-      "precision_pct": 87,
+      "coverage_pct": 80,
+      "precision_pct": 90,
       "missed_issues": [
-        "Specific recommendation to test/measure whether enumerator familiarity/trust changed (e.g., proxies for trust in the enumerator team) to diagnose reporting bias and the implied IV exclusion-restriction violation",
-        "Concrete suggestion to potentially drop the 2SLS and instead present correlational (non-IV) analysis between knowledge and tax payments, given the likely exclusion restriction failure",
-        "Specific robustness idea to construct an alternative outcome using survey data to approximate tax liabilities paid (an indirect payment measure) rather than relying on receipt-based amounts with heavy missingness",
-        "Explicit request to test whether the treatment directly affected the likelihood of a tax official visit (as a first-stage/behavioral outcome), rather than treating visit patterns as only “instructive”"
+        "Specific concern that the *same people* served as both enumerators and intervention deliverers, potentially increasing respondent trust/familiarity and biasing *self-reported* endline outcomes (especially economic activity) even absent real effects.",
+        "Human-suggested diagnostic: test in the data for changes in (or proxies for) respondent familiarity/trust in enumerators that could drive differential reporting.",
+        "Human-suggested remedy: consider dropping the 2SLS strategy entirely (given exclusion restriction concerns) and instead present correlational associations between knowledge and outcomes.",
+        "Explicit recommendation to test whether the treatment directly affected the *probability of receiving a tax official visit* (not just how to interpret results conditional on visits).",
+        "Suggestion to use survey data to construct an alternative/indirect measure of tax liabilities paid (as a robustness outcome) rather than relying primarily on receipt-validated payments with heavy missingness."
       ],
       "extra_issues": [
-        "Need for clustering/appropriate inference given clustered sampling/enforcement environments (potentially understated SEs)",
-        "Sensitivity of significance to specifications and suggestion of robustness tools (e.g., randomization inference, pre-specified primary model)",
-        "Multiple-testing/false-discovery concerns in heterogeneity and interaction analyses",
-        "Timeline/baseline clarity concerns (ensuring covariates/outcomes used in ANCOVA are strictly pre-treatment)",
-        "Replicability/open-science transparency (data/code availability, preregistration) not evident",
-        "Attention/Hawthorne effects from differential contact intensity beyond information content (training + consultations)",
-        "Seasonality/noise in economic activity measures and risk of survey-timing/reporting artifacts"
+        "Potential lack of appropriate clustering of standard errors given clustered sampling/enforcement environments.",
+        "Specification sensitivity (large changes in significance across models) and the need for robustness approaches (e.g., randomization inference, pre-specified primary model).",
+        "Multiple-testing concerns in heterogeneity analyses and the need for adjustments or clearer reporting of the search space.",
+        "Post-treatment conditioning/collider bias warning when splitting/conditioning on visits (related to, but distinct from, the human request to test direct effects on visits).",
+        "Attention/Hawthorne effects from differential contact intensity (training + consultations) as an alternative channel beyond knowledge.",
+        "Concerns about noise/seasonality and survey-timing effects for economic activity measures.",
+        "Mechanism not directly testable without administrative enforcement data (humans noted admin-data limitations mainly for outcome measurement rather than mechanism testing).",
+        "Timeline/baseline definition clarity (ensuring covariates/outcomes are strictly pre-treatment).",
+        "Open-science/replicability gaps (data/code/preregistration not evident)."
       ],
       "overall_rating": "Good",
-      "overall_justification": "GPT captures the core human critiques about receipt-based missing data/imputation, self-reporting concerns tied to enumerator involvement, post-treatment ‘visit’ issues, and 2SLS exclusion restriction worries. The main gaps are that GPT doesn’t echo several concrete diagnostic/robustness recommendations (trust proxies, direct test of visit effects, alternative survey-based liability measure, and possibly dropping 2SLS).",
-      "detailed_notes": "The GPT list is broader than the human critiques: most additions are plausible methodological concerns rather than spurious points, so precision remains fairly high. On the ‘visit’ point, GPT flags post-treatment conditioning/collider bias, which is adjacent to (but not the same as) the expert’s request to test whether treatment changes visit probability."
+      "overall_justification": "GPT captures the core human concerns about missing receipt-based verification, self-reporting threats, and (especially) exclusion restriction problems for the 2SLS, but it misses the most specific enumerator/intervention overlap critique and the explicit suggestion to test direct treatment effects on visits and enumerator-trust proxies.",
+      "detailed_notes": "The human critique about enumerators delivering the intervention is only indirectly reflected in GPT’s broader ‘attention/differential engagement’ points; GPT does explicitly flag IV exclusion issues, aligning well with the expert’s main econometric concern. GPT also goes beyond the experts with several generally valid econometric/reporting issues (clustering, multiple testing, robustness), which boosts breadth but reduces strict alignment."
     }
   },
   {
@@ -237,30 +240,29 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1707,
     "comparison": {
-      "coverage_pct": 10,
+      "coverage_pct": 45,
       "precision_pct": 90,
       "missed_issues": [
-        "Key construct-validity concern that using WTP for replacing conventional meat with cultured meat is a highly confounded proxy for marginal altruistic WTP to reduce animal suffering (quality expectations, food neophobia, 'naturalness'/food-tech aversion, etc.).",
-        "Potential ethical/preference channel where respondents may value (or disvalue) cultured meat because it could prevent the birth of animals (population ethics), which is distinct from valuing reduced suffering conditional on animals existing.",
-        "Meta-critique that several limitations flagged as 'issues' may already be acknowledged in the paper and thus are not true omissions/mistakes (humans emphasize this framing point)."
+        "Key construct-validity concern specific to the paper’s proxy: using WTP for replacing conventional meat with cultured/cultivated meat may not identify altruistic animal-welfare preferences because it is confounded by expected product quality differences, food neophobia, and “naturalness/anti-food-tech” attitudes.",
+        "Cultured-meat substitution may change beliefs about animal population dynamics (e.g., preventing animal births), which can affect welfare judgments independently of “reducing suffering,” so the implied marginal altruistic WTP may be conceptually mis-specified.",
+        "The expert critique’s broader point that many stated limitations may already be acknowledged in the paper (i.e., not true omissions) is not addressed by GPT."
       ],
       "extra_issues": [
-        "Strong assumptions embedded in the pill-scenario mapping from WTP/WTA to 'external animal welfare costs' (separability, interpretation, interpersonal/species comparability, zero-point anchoring).",
-        "Evidence the 'welfare-neutral animal' anchor may not function as intended (respondents valuing it positively), suggesting contamination by general aversion to the scenario.",
-        "Severe attrition/selection effects due to exclusions and confidence-based filtering, potentially biasing estimates upward.",
-        "Ad hoc outlier handling materially affecting mean WTA estimates without a preregistered/robust estimation strategy.",
-        "Lack of justification for privileging WTA over WTP and instability/ambiguity in using mean vs median for headline claims.",
-        "Broad construct-validity worries (social desirability, misunderstanding) and instability/noise indicated by weak correlations with other measures (e.g., cruelty-free meat MWTP).",
-        "Limited statistical inference (low power, multiple testing, limited heterogeneity modeling).",
-        "Sensitivity of per-kg conversions (animal valuation divided by meat yields) not fully stress-tested.",
-        "External validity limitations (Belgian panel) vs broad generalizations/comparisons.",
-        "Policy backfire calculation mixing contexts (Belgian welfare costs with US parameters) and not propagating uncertainty.",
-        "Reproducibility/reporting gaps (question wording, cleaning scripts, data/code availability).",
-        "Overstated interpretation given sensitivity and acknowledged unreliability."
+        "Pill-scenario identification assumptions and anchoring/zero-point problems (welfare-neutral animal, interpersonal/species comparability, additive separability).",
+        "Evidence respondents value the “neutral” animal positively, suggesting contamination by non-welfare factors (identity loss, disgust/fear).",
+        "Severe attrition/selection effects due to exclusions and confidence-based filtering, with potentially upward-biased estimates.",
+        "Ad hoc outlier handling for mean WTA and sensitivity of headline results to trimming/cutoffs.",
+        "Large WTA–WTP gap and lack of justification for privileging WTA or switching between mean/median and WTA/WTP for conclusions.",
+        "Limited statistical inference: low effective N, multiple testing, limited modeling of heterogeneity and comprehension.",
+        "Sensitivity of per-kg conversions to assumed edible yields driving species comparisons (chicken vs beef).",
+        "External validity limits of a Flemish Belgian online panel despite broader/global interpretation.",
+        "Policy-calculation concerns (carbon-tax backfire) from mixing contexts and not propagating uncertainty.",
+        "Reproducibility/reporting gaps (questionnaire wording, cleaning scripts, data/code availability).",
+        "Overstated interpretation relative to acknowledged uncertainty/sensitivity."
       ],
-      "overall_rating": "Poor",
-      "overall_justification": "Human critique centers on a specific, substantive confounding problem with cultured-meat WTP as a proxy for altruistic MWTP; GPT largely misses this and instead raises many other (often valid) methodological concerns. Thus alignment with expert critiques is low despite high relevance of GPT’s points to the paper more broadly.",
-      "detailed_notes": "There is only one concrete technical issue in the human critiques; GPT does not directly address it. GPT’s closest thematic overlap is general construct-validity concern, but it targets different instruments (pill vignette/neutral animal anchor) rather than the cultured-meat proxy and its specific confounds."
+      "overall_rating": "Moderate",
+      "overall_justification": "GPT captures the general idea of construct-validity/confounding but does not directly flag the expert’s central criticism about cultured-meat WTP being an invalid proxy for altruistic animal-welfare WTP and the specific confounds involved. Most GPT issues are substantive and plausible, but they largely go beyond the human critique rather than matching it.",
+      "detailed_notes": "The human critique is narrowly focused on one proxy-measurement problem (cultured meat as a confounded measure of altruistic WTP), whereas GPT provides a broad methodological audit of the paper (identification, attrition, outliers, inference, external validity, policy extrapolation). Hence precision is high (issues are relevant to paper quality) but alignment/coverage relative to the specific expert critique is only partial."
     }
   },
   {
@@ -284,29 +286,28 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 2884,
     "comparison": {
-      "coverage_pct": 40,
-      "precision_pct": 90,
+      "coverage_pct": 45,
+      "precision_pct": 95,
       "missed_issues": [
-        "Major omission/bias: the analysis focuses on biotech risk while counting broad ‘all of science’ benefits, and does not seriously include/compare AI risk (despite AI risk estimates often being substantially higher than bio risk in cited forecasting exercises).",
-        "Unexplained/unsupported framing choices about other existential risks (e.g., treating nuclear/climate as largely ‘sunk costs of technological progress’)—this rationale was not in the original paper and should be flagged as an important omission.",
-        "Specific critique of the 2% discount rate: it is not consistently justified and implicitly extrapolates a short-horizon TAI forecast over very long horizons (and the paper’s results are sensitive to this choice)."
+        "Core omission/“stacking the deck”: the paper compares historical benefits of science against biotech risk while largely ignoring AI risk (and does not justify treating AI progress as outside ‘science’/academic funding); also insufficiently explained why other major risks (nukes, climate) are treated as effectively sunk costs.",
+        "Specific critique of the 2% discount rate: inconsistent/insufficient justification, including implicitly extrapolating a short-horizon TAI forecast (meant to resolve in ~20 years) over millennia, and high sensitivity of results to this choice.",
+        "Reviewer concern that the paper’s scope framing is unfair in a way that biases against concluding in favor of a science slowdown (beyond technical model critiques)—i.e., a “question framing”/comparative-baseline critique rather than a parameter/structure critique."
       ],
       "extra_issues": [
-        "Conflation of average returns to science, a one-year global pause, and marginal metascience acceleration (non-equivalence under diminishing returns/general equilibrium).",
-        "Concerns about the ‘epistemic regime’ discounting construct (bundling multiple hazards, policy-invariance assumptions).",
-        "Modeling of ‘time of perils’ as a discrete step with constant hazards and the assumption that marginal shifts in science meaningfully shift peril timing.",
-        "Complex/fragile pipeline mapping XPT forecasts into annual hazards and lack of uncertainty propagation.",
-        "Normative-welfare-function choices and shifting population-ethics assumptions across model variants affecting headline ROI comparability.",
-        "Population/health mechanism assumptions (e.g., permanent growth effects from a one-year pause; specific survival curve/age cap functional forms).",
-        "Calibration of long science→invention and diffusion lags via indirect proxies and sensitivity of results to these lags.",
-        "Policy-counterfactual critique of the ROI benchmark (vs giving $1 to a $50k earner) and linearity assumptions converting a global pause into marginal per-dollar effects.",
-        "Weak identification of attribution fractions for historical benefits (e.g., share of life expectancy gains attributable to ‘science’).",
-        "Reduced-form extinction-risk extension (λW) potentially giving misleadingly precise break-even numbers due to inconsistent cross-regime dynamics.",
-        "Replicability/reproducibility concerns (code/data/packaging, need for probabilistic sensitivity analysis)."
+        "Conflation of average returns to science, effect of a one-year global pause, and marginal metascience/philanthropic acceleration (non-equivalence under diminishing returns/general equilibrium).",
+        "Detailed concerns about the hazard/“epistemic regime” construction and sensitivity to that modeling choice (beyond the human critique’s focus on a particular discount rate).",
+        "Critiques of the XPT-to-hazard transformation pipeline and lack of uncertainty propagation/sensitivity analysis.",
+        "Normative assumptions in the welfare function and population ethics shifts across model versions affecting headline ROI.",
+        "Potential overstatement in health/population mechanisms (permanent growth effects from a one-year pause) and hardcoded demographic assumptions.",
+        "Questioning calibration of long lags from science to invention/diffusion and dependence of results on these lag choices.",
+        "Policy-relevance critique of the ROI comparator/counterfactual and linear conversion from a global pause to per-dollar marginal effects.",
+        "Weak identification of attribution fractions (e.g., science share of life expectancy gains) underlying key conclusions.",
+        "Reduced-form extinction-risk extension (λW) potentially yielding misleadingly precise break-even results.",
+        "Replicability concerns (lack of clearly provided code/data artifacts; need for reproducible workflow)."
       ],
       "overall_rating": "Moderate",
-      "overall_justification": "GPT captures the human critique about over-weighting superforecasters vs domain experts, but it largely misses the central human complaint that the paper ‘stacks the deck’ by ignoring AI risk while counting broad science benefits, and it does not clearly flag the specific 2% discount-rate justification problem.",
-      "detailed_notes": "Some GPT points gesture at AI indirectly (e.g., ‘especially if AI/engineering dominate capabilities’) and at discounting via its ‘epistemic regime’ hazard, but neither matches the humans’ specific, emphasized critiques (explicit AI omission and the 2% rate’s inconsistent justification/extrapolation). Most GPT issues are nevertheless on-topic methodological/modeling critiques and appear non-spurious, just broader than what the human experts highlighted."
+      "overall_justification": "GPT captures one of the three main expert concerns well (the fragility of preferring superforecasters over domain experts) and only tangentially relates to the discounting critique, but it largely misses the experts’ central scope/framing complaint about ignoring AI risk. Most GPT issues are substantive, but they are mostly additional technical/modeling critiques not raised by the human experts.",
+      "detailed_notes": "The closest GPT comes to the experts’ AI-omission point is a brief mention that risks may not be shifted by marginal science pace ‘especially if AI/engineering dominate capabilities,’ but it does not flag the evaluators’ main complaint: that AI risk levels are plausibly much higher than bio risk and should be included in the benefit–risk comparison. Likewise, GPT’s general critique of the discounting/hazard construct does not specifically address the evaluators’ objection to the 2% rate being derived from a short-horizon TAI forecast and extrapolated over very long horizons."
     }
   },
   {
@@ -329,79 +330,75 @@
     "num_gpt_issues": 11,
     "coda_critique_length": 4998,
     "comparison": {
-      "coverage_pct": 60,
-      "precision_pct": 90,
+      "coverage_pct": 45,
+      "precision_pct": 85,
       "missed_issues": [
-        "Specific magnitude/units error in the forecaster-facing table (Delft FGF2 cost per gram vs per kg) potentially overstating costs by ~1000x and biasing elicitation",
-        "Overstated or mis-stated claims from small samples, especially that aggregate summaries can hide strong forecaster disagreement (e.g., tail probabilities) and should be reported more carefully",
-        "Mischaracterization of *conditional* findings as evidence about real-world constraints (e.g., treating conditional-on-production consumer acceptance/protest probabilities as indicating consumer approval is not a major barrier)",
-        "Insufficient clarity that TEAs are conditional scenario analyses (based on present-day costs) rather than predictions of future costs, and that this distinction was not clearly conveyed to participants",
-        "Domain-knowledge/definition errors in the background materials (e.g., incorrect definition of “growth factors”), indicating need for more cell biology/bioprocessing expert input",
-        "Need to diversify and update literature sources used to construct the background (beyond primarily relying on Humbird plus a couple other papers, and incorporating additional peer-reviewed work, patents, regulatory dossiers, and industry reports)",
-        "Lack of facilitated discussion and updating among forecasters/experts during elicitation (structured collaboration/cross-examination), which is often important in superforecasting methods",
-        "Need to define the biological target more precisely (species and tissue/cell type), since it materially affects media requirements and cost"
+        "Specific magnitude/unit error in the Delft FGF2 cost table (gram vs kg; ~1000x misstatement) and the possibility that this materially anchored forecasts",
+        "Mischaracterization of conditional claims (treating conditional probabilities about protests/willingness-to-try as unconditional evidence that consumer approval is not a major constraint)",
+        "Need to clearly communicate that the TEAs are conditional/scenario estimates (often using present-day input costs) rather than predictions of future costs, and that this framing may have misled forecasters",
+        "Need for deeper cell-biology/bioprocessing expert input to avoid definitional/technical mistakes (e.g., incorrect definition of “growth factors” including vitamins/cytokines)",
+        "Diversifying and updating the background literature provided to forecasters beyond heavy reliance on Humbird (e.g., more recent sources, patents, regulatory dossiers, GFI reports)",
+        "Elicitation design: lack of opportunity for discussion/structured collaboration and updating among forecasters (which Tetlock-style forecasting suggests improves performance)",
+        "Insufficient specification of the cell type/tissue type (beyond 'cow cells') despite its strong influence on media needs and cost"
       ],
       "extra_issues": [
-        "Ambiguity in the key outcome definition (“>51% from animal cells” not specified as weight/volume/calories/value), especially relevant for hybrid products",
-        "Endpoint resolution/measurement risk for global volumes due to proprietary/inconsistent reporting and lack of a fully pre-committed resolution protocol",
-        "Amino-acids input-cost question wording/reference error (mixing recombinant proteins and other examples) as a potential bias in a key variable (not raised by humans, who focused on the FGF2 unit error instead)",
-        "Lack of justification/stress-testing of the specific aggregation method (geometric mean of odds) against alternatives",
-        "Use of correlation/p-value significance claims despite n=6 and multiple comparisons (humans emphasized small-sample limits but not this specific statistical-inference critique)",
-        "Mismatch between forecasting results and actionable recommendations (no modeling of intervention leverage/counterfactual impact)",
-        "Insufficient analysis of welfare-impact mechanisms (displacement/rebound/market expansion) despite relevance to animal-welfare use",
-        "Underspecified “conditional on no transformative AI” assumption and limited scenario sensitivity analysis to broader macro shocks"
+        "Ambiguity in the core definition “>51% from animal cells” (weight vs calories vs value), especially relevant for hybrid products",
+        "Insufficiently pre-committed resolution protocol / authoritative data sources for global production and sales endpoints given proprietary/inconsistent reporting",
+        "Potential wording/reference error in an amino-acids input-cost question (mixing recombinant proteins and non-amino-acid examples) as a biasing anchor",
+        "Unjustified aggregation rule (geometric mean of odds) and lack of robustness checks to alternative pooling/extremizing/leave-one-out approaches",
+        "Use of correlation and p<0.05 significance claims with n=6 without multiple-comparisons control or credible statistical assumptions",
+        "Conflation of descriptive forecasts with strategic recommendations without modeling counterfactual philanthropic leverage",
+        "Overly compound/cognitively demanding question designs increasing interpretation variance",
+        "Insufficient analysis of displacement/rebound/market-expansion mechanisms relevant to animal-welfare impact",
+        "Underspecified “conditional on no transformative AI” assumption and lack of sensitivity to broader macro scenarios"
       ],
       "overall_rating": "Moderate",
-      "overall_justification": "GPT captures several core methodological concerns the humans raised (especially small-sample limitations and over-reliance on TEA anchors), but it misses multiple paper-specific critique points (notably the FGF2 units error and misinterpretation of conditional claims) and several domain-expertise/content-accuracy issues.",
-      "detailed_notes": "The strongest overlap is on small-n elicitation limitations and potential anchoring on TEAs. However, the human critiques include several concrete, high-leverage factual/communication errors (FGF2 unit typo; TEA conditionality; growth-factor definition) that GPT does not explicitly identify. Conversely, GPT adds several broadly plausible forecasting-study critiques (resolution protocols, aggregation sensitivity, multiple comparisons) that appear relevant but were not emphasized by the expert reviewers."
+      "overall_justification": "GPT captures the major meta-critique about the tiny sample and partially overlaps with concerns about TEA anchoring, but it misses several central, concrete expert points (notably the FGF2 unit error and the conditional-claim misinterpretation) and several domain-specific framing/definition problems. Many GPT-added points are still plausible and substantive, but they go beyond what the human experts emphasized.",
+      "detailed_notes": "On TEAs, GPT’s “heavy reliance on a few techno-economic analyses as anchors” aligns with the experts’ concern about over-reliance on Humbird and insufficient source diversity, but GPT does not explicitly flag the experts’ key nuance that TEAs are conditional scenarios using present-day costs (not forecasts of future costs). The most consequential expert-identified issue—the 1000x FGF2 unit typo—is not reflected in GPT’s list, even though it is a concrete, potentially high-impact error."
     }
   },
   {
     "gpt_paper": "Frech_et_al._2023",
-    "coda_title": "The wellbeing cost-effectiveness of StrongMinds and Friendship Bench: Combining a systematic review and meta-analysis with charity-related data",
+    "coda_title": "Pharmaceutical Pricing and R&D as a Global Public Good",
     "gpt_key_issues": [
-      "The dependent variable (“contribution” = quasi-rents on all branded-originator sales in a single year) is not clearly the incentive-relevant object for R&D, which depends on expected global profit streams for marginal projects; life-cycle stage, risk, and therapeutic heterogeneity are ignored.",
+      "The dependent variable (\"contribution\" = quasi-rents on all branded-originator sales in a single year) is not clearly the incentive-relevant object for R&D, which depends on expected global profit streams for marginal projects; life-cycle stage, risk, and therapeutic heterogeneity are ignored.",
       "The main empirical result (log contribution strongly explained by log GDP with elasticity > 1) is plausibly mechanical because the contribution measure is built from drug spending/sales, which naturally scales with GDP; this does not identify public-goods strategic behavior.",
-      "Marginal cost (MC) is weakly identified: using Turkey’s low price index as MC and using generic-entry price erosion (then adjusting by an average rebate) both rely on strong assumptions and can materially change levels and even signs of contributions.",
-      "Assuming a common MC across countries is particularly problematic because the paper’s MC includes distribution and downstream costs that vary across systems (wages, geography, pharmacy/PBM margins), confounding cross-country markups.",
-      "Cross-country price indices may reflect differences in drug mix, launch timing, reimbursement/coverage, and confidential discounts; interpreting them as “same products, different prices” risks mismeasurement of both prices and implied quasi-rents.",
+      "Marginal cost (MC) is weakly identified: using Turkey's low price index as MC and using generic-entry price erosion (then adjusting by an average rebate) both rely on strong assumptions and can materially change levels and even signs of contributions.",
+      "Assuming a common MC across countries is particularly problematic because the paper's MC includes distribution and downstream costs that vary across systems (wages, geography, pharmacy/PBM margins), confounding cross-country markups.",
+      "Cross-country price indices may reflect differences in drug mix, launch timing, reimbursement/coverage, and confidential discounts; interpreting them as \"same products, different prices\" risks mismeasurement of both prices and implied quasi-rents.",
       "The analysis treats lower spending/markups as free-riding, but does not incorporate quantity/access differences (e.g., launch lags, reimbursement refusals), which could mean lower prices coincide with reduced consumption of newer drugs.",
       "Theoretical constructs (Lindahl optimum; Nash interior/corner equilibria; bargaining) are not mapped to testable implications beyond the GDP correlation; the empirical work does not discriminate among the proposed models.",
-      "The “exploitation hypothesis” test (elasticity > 1) is not a clean test of Olson–Zeckhauser in this setting because it conflates general health/pharma spending elasticities with strategic under-contribution to R&D.",
+      "The \"exploitation hypothesis\" test (elasticity > 1) is not a clean test of Olson–Zeckhauser in this setting because it conflates general health/pharma spending elasticities with strategic under-contribution to R&D.",
       "The construction of national branded-originator revenues from total sales × brand share assumes comparability across countries and alignment with the RAND price index basket; potential inconsistencies are not audited.",
       "Outlier sensitivity and leverage are not thoroughly assessed (the US and Japan dominate totals; negative/zero contributions are dropped in logs), which can affect coefficient estimates and inference in small samples.",
       "The policy conclusion that ROW countries should pay more is not supported by a welfare calculation that explicitly weighs dynamic innovation gains against static access/affordability losses and distributional concerns under differential pricing.",
       "Replication barriers remain: no shared code, limited detail on data wrangling/transformations from the RAND tables, and no uncertainty propagation for MC assumptions or index measurement error."
     ],
-    "coda_critique": "Necessary \n“Lack of Systematized/Standardized Adjustment Rules” — Both evaluators noted multiple “project-specific” and “subjective” analytical choices and ad-hoc adjustments. E2 particularly emphasized the approach to weighting and outliers.   E1 —  “I would be substantially more confident in the comparative cost-effectiveness estimates if the authors provided a clear set of rules for the adjustments they are making, along with a list of these adjustments to be applied consistently across all evaluated projects.” [Note — this is partly NotebookLM generated, but I checked it -DR]  any evaluation should at least note this lack of systemization, although it's okay to acknowledge that this might be close to current best practice given the constraints of this context.\n\n\nOptional but import\n\n\nUnsure if correct/relevant, less important\nant\n“Arbitrary Exclusion of Outliers and High Risk of Bias (RoB) Studies” — \n[Evaluation summary] Evaluator 2 critiqued the removal of outliers (e.g., effect sizes >2 SDs) and high-risk bias studies, arguing it seems “arbitrary” and that it's “always better to include the full data” to transparently show the impact of such exclusions. HLI defended these decisions, stating they do provide detailed sensitivity analyses for these exclusions in the appendix, and that removing them is a “conservative option” consistent with other meta-analyses.\nThe evaluation should probably at least mention this issue\n2. Clearer/visual depiction of sensitivity analysis/multiverse analysis\n[NotebookLM, confirmed] Both Evaluators Agreed. They requested a concise visual summary (such as a specification curve or analogue of Figure 2) showing how the large number of analytical choices and adjustments systematically affect the final estimates. E2 called this suggestion (a multiverse analysis) their \"most significant statistical recommendation\".\n3. Linear decay model\n[Eval summary] On the linear decay model used for effects over time, Evaluator 1 considered linear decay to zero a “conservative assumption”. Evaluator 2 expressed surprise at the linear choice, suggesting exponential models are more common in psychological phenomena and that linear decay might lead to \"overestimation\". HLI explained the linear model was chosen for simplicity and a clear stopping point, noting that quick tests with exponential decay showed “little difference”.",
+    "coda_critique": "Optional but important\n\n1. Causal claims too strong — GDP correlated with other important determinants of outcomes\n\n[E1] The primary regression analyzed in the paper is overly simplistic and may be subject to omitted variable bias. There could be other factors correlated with GDP that are not included in the model. Therefore, results derived from this model should be interpreted with caution as the estimated effect of GDP may be overstated or misattributed.\n\n[E2] The authors interpret the positive correlation between GDP and drug prices as evidence supporting their hypothesis that drug prices are affected by how much countries internalize returns from R&D (because countries with higher GDP also benefit more from future innovation). However, the relationship between GDP and drug prices could be driven by many factors, chief among them the willingness to pay for current health benefits.\n\nUnsure if correct\n\n1. [E2] BOTECs stated too confidently, not incorporating sensitivity to key assumptions\n\nThe authors, citing numbers from another one of their studies, claim that new drugs launched in the U.S. are very cost-effective—around $40,000 per Quality-Adjusted Life Year (QALY) (Frech et al. 2022). Two main criticisms of these back-of-the-envelope calculations: First, estimates of drug cost-effectiveness rely on many assumptions and are generally highly sensitive to them. Second, there is likely broad variation across indications in the cost-effectiveness of drugs.",
     "num_gpt_issues": 12,
-    "coda_critique_length": 2379,
+    "coda_critique_length": 1481,
     "comparison": {
-      "coverage_pct": 20,
-      "precision_pct": 15,
+      "coverage_pct": 70,
+      "precision_pct": 90,
       "missed_issues": [
-        "Lack of systematized/standardized rules for adjustments (many project-specific, subjective, ad-hoc choices; need a clear, consistently applied adjustment rulebook and a comprehensive list of adjustments)",
-        "Concern that exclusion of outliers and/or high risk-of-bias studies is arbitrary; preference to include full data and transparently show impact (even if sensitivity analyses exist)",
-        "Need for a clearer/visual depiction of sensitivity analysis or multiverse/specification-curve-style summary to show how analytic choices affect final estimates",
-        "Questioning the linear decay model for effects over time (linear-to-zero vs exponential or other functional forms) and the implications for bias/overestimation"
+        "Overconfidence in back-of-the-envelope cost-effectiveness (e.g., ~$40k/QALY) claims without clear sensitivity analysis to key assumptions",
+        "Failure to acknowledge/handle heterogeneity in cost-effectiveness across drugs/indications (variation around the average BOTEC)"
       ],
       "extra_issues": [
-        "Dependent variable not incentive-relevant for R&D (single-year quasi-rents vs expected global profit streams; heterogeneity across therapies/projects)",
-        "GDP elasticity result potentially mechanical because the contribution measure is constructed from spending/sales that scale with GDP",
-        "Marginal cost identification is weak and highly assumption-driven (Turkey price index proxy; generic-entry erosion; rebate adjustments)",
-        "Assuming common marginal cost across countries despite system-specific downstream costs (distribution, wages, pharmacy/PBM margins)",
-        "Cross-country price indices may be confounded by mix, launch timing, coverage, confidential discounts; risk of mismeasurement",
-        "Interpreting lower spending/markups as free-riding without incorporating quantity/access differences (launch lags, reimbursement refusals)",
-        "Theoretical models (Lindahl/Nash/bargaining) not mapped to discriminating, testable implications beyond GDP correlation",
-        "Elasticity>1 not a clean test of Olson–Zeckhauser; conflates general spending elasticities with strategic under-contribution",
-        "Potential inconsistencies in constructing national branded-originator revenues (total sales × brand share; alignment with price-index basket)",
-        "Outlier/leverage concerns framed around country influence and log-dropping negatives/zeros (only partially overlapping with humans’ outlier-exclusion critique)",
-        "Policy conclusion lacks explicit welfare accounting (dynamic innovation gains vs static access/affordability losses; distributional concerns)",
-        "Replication barriers (no code, limited data-wrangling detail, missing uncertainty propagation for key assumptions)"
+        "Questioning whether the dependent variable (single-year quasi-rents) is the incentive-relevant object for R&D decisions (lifecycle/global expected profits)",
+        "Mechanical/logical dependence of the constructed ‘contribution’ measure on GDP via spending/sales scaling, undermining identification of strategic free-riding",
+        "Weak/assumption-heavy marginal cost identification (Turkey price index proxy; generic-entry erosion; rebate adjustments) and the problematic assumption of common MC across countries",
+        "Potential mismeasurement in cross-country price indices due to mix, launch timing, coverage, and confidential discounts",
+        "Not accounting for quantity/access differences (launch lags, reimbursement/coverage) that could confound interpretations of low prices as free-riding",
+        "Theory-to-empirics mismatch: models are not translated into discriminating, testable implications beyond the GDP correlation",
+        "Elasticity>1 is not a clean test of Olson–Zeckhauser/public-goods logic; could reflect standard income elasticity of health/pharma spending",
+        "Data construction/auditing concerns (brand-share assumptions; alignment with price-index basket) and limited leverage/outlier diagnostics in small samples",
+        "Policy recommendations lack explicit welfare analysis balancing innovation incentives vs static access/affordability and distributional impacts",
+        "Replication/transparency gaps (code/data wrangling detail; uncertainty propagation for key assumptions)"
       ],
-      "overall_rating": "Poor",
-      "overall_justification": "There is minimal overlap: GPT only partially touches the outlier/sensitivity theme, while it misses the core human critiques about standardized adjustment rules, multiverse visualization, and the decay-model choice. Most GPT issues are substantive but appear to target a different set of concerns than the experts raised.",
-      "detailed_notes": "The only meaningful intersection is that GPT flags outlier/leverage sensitivity, which is adjacent to the experts’ criticism of excluding outliers/high-RoB studies; however GPT’s emphasis (country leverage, log-handling of nonpositive values) does not directly address the experts’ arbitrariness/transparency point. GPT does not address the experts’ central meta-critique: the need to systematize adjustment decisions and present a clear multiverse/specification-curve summary, nor does it engage with the linear vs exponential decay modeling issue."
+      "overall_rating": "Good",
+      "overall_justification": "GPT captures the experts’ central critique that the GDP–price relationship is not causally identified and may reflect omitted factors like willingness to pay, but it misses the experts’ specific concern about overconfident cost-effectiveness BOTECs and heterogeneity across indications. Most additional GPT issues are relevant methodological weaknesses rather than spurious points.",
+      "detailed_notes": "The human critiques are narrow (mainly causal/OVB and BOTEC confidence), while GPT provides a broader methods-and-measurement audit. GPT’s points about mechanical scaling and conflation with general spending elasticities substantially overlap with the experts’ ‘GDP correlated with other determinants’ and ‘willingness to pay’ concerns, even if not phrased as classic omitted-variable bias. The only clear gap is the paper’s cost-effectiveness BOTEC claims and their sensitivity/heterogeneity."
     }
   },
   {
@@ -428,74 +425,68 @@
       "coverage_pct": 75,
       "precision_pct": 92,
       "missed_issues": [
-        "Failure to follow standard systematic-review methods in the specific sense highlighted by experts: lack of a fully reproducible search strategy (databases, full Boolean strings, dates, limits) and incomplete documentation/justification of screening decisions",
-        "Clearly articulated inclusion and exclusion criteria and their application are not comprehensively documented (beyond GPT’s more general concerns about post hoc refinements/single-coder work)",
-        "Excluding studies with n<25 per group as potentially unwarranted because it can hinder publication-bias detection by restricting the range of standard errors",
-        "The specific critique that the SMD=0.01 approach ignores imputation variance (GPT flags arbitrariness/impact but not the variance/bias mechanism as explicitly as the human critique)",
-        "Lack of explicit discussion of attrition bias in RCTs as a narrative/interpretive deficiency (GPT notes RoB domains omitted, including attrition, but not that the manuscript fails to discuss attrition bias)"
+        "Failure to follow standard systematic-review reporting/methods specifically: lack of a fully reproducible search strategy (full queries, databases, dates, etc.)",
+        "Lack of clearly articulated inclusion/exclusion criteria and explicit justification/documentation for screening decisions (beyond the single-coder concern)",
+        "Questionable exclusion rule of omitting studies with n<25 per group (and the implication that this can impede publication-bias detection by restricting the SE range)"
       ],
       "extra_issues": [
-        "Heterogeneous outcome constructs pooled together (non-comparability across measurement types and conversion pathways)",
-        "Single-coder screening/extraction and lack of inter-rater reliability reporting",
-        "Post hoc eligibility refinements creating researcher degrees of freedom (preregistration/robustness expectations)",
-        "Sparse evidence for certain intervention categories (e.g., choice architecture) and risk of over-interpreting category comparisons with very low k",
-        "Concerns about publication-bias modeling assumptions (selection on p-values/sign vs outcome/analysis-level selection; gray literature incentives)",
-        "Dependence/weighting sensitivity beyond basic RVE (representation of multiple interventions per study)",
-        "Limited translation from SMDs to decision-relevant absolute units (practitioner interpretability)",
-        "RPM vs MAP inference gap regarding substitution effects being unmeasured/speculative",
-        "Generalizability limits from restrictive eligibility criteria (pure controls, voluntary choice) excluding policy-relevant interventions"
+        "Heterogeneous outcome constructs and conversions being pooled (non-comparability across very different measures)",
+        "Single-coder screening/extraction and missing inter-rater reliability reporting",
+        "Post hoc eligibility refinements creating researcher degrees of freedom absent preregistration/robustness checks",
+        "Extremely sparse evidence for choice architecture under the stated criteria (very low k leading to over-interpretation risk)",
+        "Concerns about publication-bias model assumptions (selection on p-values/sign vs outcome/analysis-level selective reporting, differing incentives in gray literature)",
+        "Dependence/weighting sensitivity beyond RVE (how multiple interventions per study are represented; need alternative aggregations)",
+        "Limited translation of SMDs into decision-relevant absolute units or cost-effectiveness",
+        "RPM vs MAP inference gap: substitution to other MAP largely unmeasured, so conclusions should be framed as an evidence gap",
+        "External validity/generalizability limitations due to restrictive eligibility (pure controls, voluntary choice), potentially excluding policy-relevant interventions"
       ],
       "overall_rating": "Good",
-      "overall_justification": "GPT captures the core expert concerns about single-outcome extraction, problematic null-effect imputation, and inadequacy of risk-of-bias assessment (including attrition as a missing domain). It misses the experts’ most direct systematic-review-process critique (reproducible search/inclusion-exclusion documentation) and the n<25 exclusion/publication-bias-detection point, but otherwise aligns well and adds mostly relevant methodological concerns.",
-      "detailed_notes": "The biggest gap is that GPT critiques procedural rigor (single-coder, post hoc refinements) but does not squarely name the hallmark systematic-review requirements the human experts emphasize (reproducible search strings and transparent screening justifications). Conversely, many GPT “extra” points are plausible extensions that a reviewer might raise even if not in the provided human list, so they count more as valid additions than false positives."
+      "overall_justification": "GPT captures most core human critiques (improper null imputation, single-outcome selection, and inadequate risk-of-bias coverage including attrition) but misses the explicitly highlighted systematic-review transparency/reproducibility deficits and the n<25 exclusion concern.",
+      "detailed_notes": "The strongest overlap is on (i) the SMD=0.01 handling of missing/non-significant results and (ii) the wasted-data problem from selecting only one effect per study, plus (iii) risk-of-bias gaps (GPT explicitly lists attrition and selective reporting). The main shortfall is that GPT reframes the systematic-review-methods critique into coder/researcher-degrees-of-freedom issues without directly calling out missing reproducible search strings and incomplete inclusion/exclusion documentation, which are central to the human assessment."
     }
   },
   {
     "gpt_paper": "McGuire_et_al._2024",
-    "coda_title": "Ends versus Means: Kantians, Utilitarians, and Moral Decisions",
+    "coda_title": "The wellbeing cost-effectiveness of StrongMinds and Friendship Bench: Combining a systematic review and meta-analysis with charity-related data",
     "gpt_key_issues": [
       "Total-effect-over-time relies on a linear decay assumption and triangular area-under-curve; psychotherapy effects may decay nonlinearly or have long tails, making total WELLBYs highly assumption-sensitive.",
       "Handling of influential long-term follow-ups is ad hoc (exclude from core time model, then apply a 1.54 multiplicative compromise); this is a structural modeling choice without clear precedent and materially affects results.",
-      "The WELLBY conversion (SD-years → WELLBYs via a single “SD=2 on 0–10 ladder” mapping) and combining affective mental health (MHa) with SWB outcomes embed normative/construct assumptions that can shift cross-intervention comparisons.",
-      "Charity M&E pre–post effects are “corrected” using a pseudo-synthetic control from other trials’ control arms; exchangeability is not established, so residual bias (regression to mean, measurement context, incentives, selection/attrition) could be large.",
+      "The WELLBY conversion (SD-years → WELLBYs via a single \"SD=2 on 0–10 ladder\" mapping) and combining affective mental health (MHa) with SWB outcomes embed normative/construct assumptions that can shift cross-intervention comparisons.",
+      "Charity M&E pre–post effects are \"corrected\" using a pseudo-synthetic control from other trials' control arms; exchangeability is not established, so residual bias (regression to mean, measurement context, incentives, selection/attrition) could be large.",
       "Subjective weights across evidence sources (general RCTs vs charity-related RCTs vs M&E) are central to the headline estimates; the procedure is transparent but remains a major source of discretion, especially for StrongMinds where the RCT conflicts with other evidence.",
       "Household spillovers contribute ~30–40% of total benefits but are estimated from very sparse and heterogeneous evidence (few interventions, one dominant study) and acknowledged as very low-quality; the spillover prior strongly affects totals.",
       "Dosage adjustment for Friendship Bench is driven by extremely low reported attendance (1.12 sessions) and a chosen log(+1) dose-response form; empirical support for this functional form and parameterization is limited.",
-      "The “Iran study” adjustment treats larger effects as likely biased based on contextual suspicion; while potentially prudent, it risks discarding true contextual heterogeneity and is not validated against independent indicators of study quality.",
+      "The \"Iran study\" adjustment treats larger effects as likely biased based on contextual suspicion; while potentially prudent, it risks discarding true contextual heterogeneity and is not validated against independent indicators of study quality.",
       "Publication-bias adjustment uses an average of multiple correction methods (some known to perform poorly under heterogeneity); the resulting discount is not clearly tied to the estimand under multilevel dependence and time moderation.",
       "The replication (0.51) and response-bias (0.85) discounts for M&E data are generic and not estimated in the charity context; they may double-count some biases or miss others, and materially alter the M&E contribution.",
       "StrongMinds RCT relevance assessment is plausible but partly speculative (pilot/partner/adolescents/COVID); the decision to downweight rather than treat as a serious negative update is consequential and could be contested.",
       "Cost modeling includes counterfactual partner adjustments for StrongMinds; these assumptions are important to $/WELLBY and would benefit from clearer empirical grounding and uncertainty propagation."
     ],
-    "coda_critique": "Optional but important\nSome of the games seem particularly unlikely to reflect be understood as involving ethical issues or be interpreted in terms of moral norms \nIn particular, I’m uncertain about the “bribe” game. Here, subjects were confronted with another person who had chosen to trigger a €20 donation to charity (rather than €2 for themselves) only if the subject chose to send them €2 (rather than send €15 to the charity). This wasn’t described as a bribe and it’s not totally clear that subjects would see it that way. It’s less moral to give someone €2 than to give a charity €15, but is it a rule violation like bribing a public official? Might decisions here be motivated by dislike of the greedy other?\nSimilarly, the “statement choice” involved subjects pressing a button with an ethically unattractive statement written on it, but no consequences except for a donation to charity. Does doing so really violate a deontological rule? This dilemma seems more likely to engage moral emotions (à la Haidt 2001)[1] than true moral reasoning.\n\nProbably correct/important\nCapraro —  The ‘instability of deontological preferences’ may not generalize —  “There are many deontological rules and the fact that preferences over one or some of these rules are not stable does not imply that preferences over each of these rules are unstable.” This is undoubtedly true but I'm not completely sure whether the authors are really overclaiming here, nor whether there are big gaps here relative to what they could be expected to do",
+    "coda_critique": "Necessary\n\n1. \"Lack of Systematized/Standardized Adjustment Rules\" — Both evaluators noted multiple \"project-specific\" and \"subjective\" analytical choices and ad-hoc adjustments. E2 particularly emphasized the approach to weighting and outliers. E1 — \"I would be substantially more confident in the comparative cost-effectiveness estimates if the authors provided a clear set of rules for the adjustments they are making, along with a list of these adjustments to be applied consistently across all evaluated projects.\"\n\nOptional but important\n\n1. \"Arbitrary Exclusion of Outliers and High Risk of Bias (RoB) Studies\" — Evaluator 2 critiqued the removal of outliers (e.g., effect sizes >2 SDs) and high-risk bias studies, arguing it seems \"arbitrary\" and that it's \"always better to include the full data\" to transparently show the impact of such exclusions.\n\n2. Clearer/visual depiction of sensitivity analysis/multiverse analysis — Both evaluators requested a concise visual summary (such as a specification curve or analogue of Figure 2) showing how the large number of analytical choices and adjustments systematically affect the final estimates. E2 called this their \"most significant statistical recommendation\".\n\n3. Linear decay model — Evaluator 2 expressed surprise at the linear choice, suggesting exponential models are more common in psychological phenomena and that linear decay might lead to \"overestimation\"",
     "num_gpt_issues": 12,
-    "coda_critique_length": 1530,
+    "coda_critique_length": 1422,
     "comparison": {
-      "coverage_pct": 0,
-      "precision_pct": 0,
+      "coverage_pct": 55,
+      "precision_pct": 95,
       "missed_issues": [
-        "Concern that some experimental games may not genuinely involve ethical issues or be interpreted through moral norms by participants.",
-        "Specific validity concern about the so-called “bribe” game: it is not described as bribery; unclear participants perceive it as a rule-violation akin to bribing an official; choices may reflect dislike of the other player’s greed rather than moral rule-following.",
-        "Specific validity concern about the “statement choice” task: pressing a button with an unethical statement has no real consequences beyond a charity donation; may not constitute a deontological rule violation and may instead primarily elicit moral emotions rather than moral reasoning.",
-        "External validity/generalization concern (Capraro): instability in preferences for some deontological rules does not imply instability for all deontological rules; possible overgeneralization in the paper’s conclusions."
+        "Arbitrary exclusion of outliers and high risk-of-bias (RoB) studies (experts explicitly objected to removing these and preferred showing full-data impacts transparently).",
+        "Request for a clear, visual multiverse/sensitivity-analysis summary (e.g., specification curve / analogue of Figure 2) to show how many analytic choices move the final estimates—called the most significant statistical recommendation."
       ],
       "extra_issues": [
-        "Linear decay/triangular area-under-curve assumption for long-run psychotherapy effects and sensitivity of total WELLBYs to that assumption.",
-        "Ad hoc handling of influential long-term follow-ups via a multiplicative compromise factor.",
-        "Normative/construct assumptions in WELLBY conversion (SD-years to WELLBYs) and combining affective mental health with SWB outcomes.",
-        "Use of a pseudo-synthetic control for charity M&E pre–post effects without established exchangeability.",
-        "Subjective weighting across evidence sources driving headline estimates.",
-        "Large household spillover component based on sparse/heterogeneous evidence.",
-        "Dosage adjustment functional form/parameterization (e.g., log(+1) dose-response) with limited empirical support.",
-        "Discounting a large-effect “Iran study” based on contextual suspicion, risking misclassifying heterogeneity as bias.",
-        "Publication-bias adjustment averaging multiple methods with questionable performance under heterogeneity.",
-        "Generic replication/response-bias discounts applied to M&E data that may double-count or misestimate biases.",
-        "Speculative downweighting of StrongMinds RCT relevance rather than treating it as a strong negative update.",
-        "Cost modeling assumptions (e.g., counterfactual partner adjustments) lacking clear empirical grounding."
+        "WELLBY conversion and construct/normative assumptions (mapping SD-years to 0–10 life satisfaction; combining different outcome constructs).",
+        "Use of a pseudo-synthetic control for charity M&E pre–post effects without established exchangeability (risk of regression to mean, selection/attrition, measurement/incentive artifacts).",
+        "Household spillover benefits comprising a large share of total effects despite very sparse/heterogeneous evidence; spillover prior strongly driving totals.",
+        "Dose-response functional form choice for Friendship Bench (log(+1) transformation) and limited empirical grounding for parameterization.",
+        "Specific ad hoc adjustment decisions (e.g., 'Iran study' contextual suspicion) potentially conflating bias with true heterogeneity.",
+        "Publication-bias correction approach (averaging multiple methods; concerns under heterogeneity/dependence/time moderation).",
+        "Generic replication/response-bias discounts applied to M&E data that may double-count or miss biases and materially affect results.",
+        "Treatment of StrongMinds RCT relevance and the consequential decision to downweight rather than treat as strong negative evidence.",
+        "Cost-model counterfactual/partner adjustments for StrongMinds and need for better empirical grounding and uncertainty propagation.",
+        "Handling of long-term follow-ups via a structural compromise (exclude from core time model then apply a multiplicative factor) as a major discretionary modeling choice."
       ],
-      "overall_rating": "Poor",
-      "overall_justification": "The GPT key issues do not address any of the human experts’ core critiques (construct validity and interpretation of the moral tasks, and overgeneralization about deontological instability). Instead, the GPT issues focus on an unrelated cost-effectiveness/WELLBY modeling framework, indicating a near-complete mismatch.",
-      "detailed_notes": "This looks like the GPT key issues were generated for a different paper/topic (psychotherapy impact evaluation using WELLBYs) than the one the human experts reviewed (moral norms/deontological preferences in experimental games). As a result, both coverage and precision relative to the provided human critiques are effectively zero."
+      "overall_rating": "Moderate",
+      "overall_justification": "GPT captures the core concern about the linear decay model and broadly echoes the experts’ theme of ad hoc/subjective adjustments, but it misses the experts’ key recommendation for a visual multiverse/sensitivity summary and does not directly flag the specific outlier/RoB exclusion critique.",
+      "detailed_notes": "The GPT list is largely methodologically substantive and overlaps conceptually with the experts’ main ‘standardized rules’ complaint via multiple points about discretionary weighting/adjustments. However, the human critiques focus on transparency and principled standardization (including explicit inclusion/exclusion rules and a compact sensitivity visualization), whereas GPT expands into additional domains (outcome metric mapping, spillovers, M&E design validity, publication-bias tooling, and cost modeling) that are plausible but not raised by the experts."
     }
   },
   {
@@ -518,138 +509,125 @@
     "num_gpt_issues": 11,
     "coda_critique_length": 1940,
     "comparison": {
-      "coverage_pct": 10,
+      "coverage_pct": 15,
       "precision_pct": 20,
       "missed_issues": [
-        "Need for regional/India-specific validation evidence for ASQ-3 (instrument validity in the study context)",
-        "Multiple-comparisons problem for many ASQ domains/items and lack of clear correction or a clearly pre-specified analysis plan for these outcomes",
-        "Potential deviation from the pre-analysis plan (PAP) regarding the detailed breakdown into component indices and individual ASQ items",
-        "ASQ-3 is primarily a screening tool; analysis should consider standard cutoffs and report impacts on the proportion of children 'at risk' of developmental delay (not only continuous/index scores)",
-        "Risk of bias from parent-reported ASQ outcomes in an unblinded trial (demand effects/measurement bias) and the need to foreground this as a key limitation",
-        "Suggestion to include a CONSORT flow diagram (reporting transparency about enrollment/attrition/exclusions)"
+        "Need to establish/mention ASQ-3 regional (India-specific) validation and implications if not validated",
+        "Multiple-comparisons problem from reporting many outcomes (overall index, domain indices, individual ASQ items) without correction or clear pre-specification",
+        "Departure from the pre-analysis plan (PAP): detailed disaggregation into component indices/items not clearly pre-specified",
+        "ASQ-3 is a screening tool typically interpreted via risk cutoffs; paper should report effects on the proportion of children 'at risk' of developmental delay (not just mean index scores)",
+        "Risk of bias from parent-reported ASQ outcomes in an unblinded trial (demand/expectancy effects) should be highlighted as a key limitation",
+        "Recommendation (optional) to include a CONSORT flow diagram for transparency on enrollment/attrition"
       ],
       "extra_issues": [
-        "High meta-analytic heterogeneity (I²/τ²) and the need for prediction intervals and stronger limits-to-generalization framing",
-        "Internal inconsistencies/typos in pooled effects and confidence intervals requiring reconciliation and traceability to code",
-        "Outcome harmonization across disparate constructs via standardized effects potentially conflating mechanisms/construct validity concerns",
-        "Lack of transparency/sensitivity analysis details for robust variance estimation (RVE), including assumed within-study correlation",
-        "Multiple-testing risk in moderator/meta-regression analyses and need for pre-specification/corrections",
-        "Confounding in modality comparisons due to correlated program design features (targeting, enforcement, complementary programming, context)",
-        "Restriction to RCTs reducing representativeness relative to quasi-experimental evidence on large-scale programs",
-        "Regional/modality concentration of the evidence base limiting claims for underrepresented regions or program types",
-        "Noisy/context-dependent agency measurement potentially attenuating or distorting pooled results",
-        "Sparse/non-harmonized cost-benefit evidence (especially women-specific benefits)",
-        "Incomplete open-science/reproducibility posture (data/extraction forms not yet public)"
+        "Meta-analysis heterogeneity (I²/τ²) and need for prediction intervals/limits to generalization",
+        "Internal inconsistencies/typos in pooled effects and confidence intervals requiring reconciliation with code outputs",
+        "Questionable harmonization/construct validity when standardizing across very different outcome constructs",
+        "Lack of transparency/sensitivity analysis for robust variance estimation (RVE) parameters (e.g., within-study rho, small-sample corrections)",
+        "Underpowered moderator/meta-regressions and multiple-testing risk in subgroup analyses; need correction or pre-specified hierarchy",
+        "Confounding in modality comparisons (UCT vs CCT vs in-kind) due to correlated design features; causal interpretation should be more cautious",
+        "Restriction to RCTs may reduce representativeness for real-world national programs often evaluated quasi-experimentally",
+        "Regional/modality concentration of the evidence base limiting external validity for underrepresented regions/modalities",
+        "Measurement heterogeneity/noise in 'agency' outcomes and its effect on pooled estimates",
+        "Sparse/non-harmonized cost-benefit evidence and missing women-specific benefits limiting value-for-money conclusions",
+        "Incomplete open-science/reproducibility posture (delayed repository, nonpublic extraction forms)"
       ],
       "overall_rating": "Poor",
-      "overall_justification": "There is very little overlap between the GPT issues and the expert critiques, which focus on ASQ-3 validity, pre-specification, multiple comparisons, and bias from unblinded parent reporting. The GPT list largely targets meta-analysis methodology and evidence-base composition, suggesting it is evaluating a different set of concerns (and possibly a different paper).",
-      "detailed_notes": "The only partial conceptual overlap is that both mention multiple-testing risk, but the humans emphasize multiple outcomes/items in a single trial and deviation from the PAP, whereas GPT emphasizes moderator/meta-regression multiplicity in a meta-analysis. If the target paper is indeed the ASQ-3 India trial, most GPT points are not well-aligned; if the target paper is a meta-analysis on social safety nets/agency, then the human critiques appear to be for a different paper."
+      "overall_justification": "The human critiques focus on ASQ-3 measurement validity, pre-specification, multiple comparisons, and bias from unblinded parent reports, while the GPT issues largely address meta-analysis/RVE/heterogeneity and evidence-base composition—suggesting it is critiquing a different kind of paper. As a result, overlap is minimal and most GPT points do not align with the expert concerns.",
+      "detailed_notes": "There is slight conceptual overlap only in the general notion of measurement validity/noise and multiple-testing risk, but GPT frames these in terms of meta-regression/moderators rather than the core human concern: many ASQ outcomes/items analyzed without adjustment and without clear PAP pre-specification. The mismatch strongly suggests the GPT key issues were generated for a different manuscript (systematic review/meta-analysis) than the one the human critiques target (an RCT using ASQ-3 in India)."
     }
   },
   {
     "gpt_paper": "Weaver_et_al._2025",
-    "coda_title": "Global potential for natural regeneration in deforested tropical regions",
+    "coda_title": "Cash Transfers for Child Development: Experimental Evidence from India",
     "gpt_key_issues": [
-      ". Clarify that the estimated effects are for a bundled intervention (cash delivered to women + nutrition framing/IVR), not a generic income shock; claims about “unconditional cash” should be qualified accordingly.",
+      ". Clarify that the estimated effects are for a bundled intervention (cash delivered to women + nutrition framing/IVR), not a generic income shock; claims about \"unconditional cash\" should be qualified accordingly.",
       ". Sanitation heterogeneity relies on non-random, post-treatment sanitation measurement; interaction estimates should be presented as suggestive and vulnerable to confounding by correlated area characteristics (health access, markets, disease ecology), despite balance on treatment and residualization checks.",
-      ". Year-2 calorie/nutrient outcomes are based on a COVID-truncated in-person subsample; comparisons across years (e.g., “empowerment grows over time”) may be partly driven by sample composition and survey mode changes.",
+      ". Year-2 calorie/nutrient outcomes are based on a COVID-truncated in-person subsample; comparisons across years (e.g., \"empowerment grows over time\") may be partly driven by sample composition and survey mode changes.",
       ". Child functional development is measured via parent-reported ASQ items; differential reporting/experimenter-demand effects cannot be fully ruled out without more objective assessor-based measures or validation subsamples.",
       ". Dietary intake measurement, while unusually detailed, still depends on 24-hour recall and complex allocation/portion measurement; the paper could better assess robustness to measurement error and potential differential misreporting.",
       ". Evidence that IVR messaging had little effect is indirect (based on having registered a mobile number); stronger tests using call delivery/connection data or instruments for actual exposure would improve interpretability.",
       ". The manuscript analyzes many outcomes and heterogeneities; it should more explicitly define primary families, address multiple-hypothesis testing (beyond indices), and distinguish confirmatory vs exploratory findings.",
       ". Post-treatment sanitation index includes respondent perceptions of neighbors and enumerator observations; reliability and potential measurement error (including enumerator subjectivity) deserve more discussion and sensitivity analyses using alternative sanitation proxies.",
-      ". The paper infers that intermediate-channel changes (knowledge, empowerment, AWC services) explain little via cross-sectional correlations; this “explained share” approach is not causal and may be misleading if interpreted too literally.",
+      ". The paper infers that intermediate-channel changes (knowledge, empowerment, AWC services) explain little via cross-sectional correlations; this \"explained share\" approach is not causal and may be misleading if interpreted too literally.",
       ". Non-food spending was not measured in year 1 due to a survey form error; this limits the welfare/accounting interpretation (budget shares, non-food mechanisms) during the key period of transfer receipt.",
       ". External validity beyond Jharkhand and beyond ICDS-linked registrants is good but not complete; the sample is slightly wealthier than the state average and depends on engagement with AWCs, which may differ in other states/settings.",
       ". Replication readiness is unclear from the manuscript text excerpt: despite registry/PAPs, the paper should state whether code/data (or restricted-access procedures) are available and provide full construction scripts for complex nutrition and sanitation indices."
     ],
-    "coda_critique": "\"Necessary\"\nData leakage/contemporaneous predictors [mentioned: both evaluators and UJ field specialists]\nThe ML model seems to be fitted on data/variables that includes post-regeneration outcomes, or that could be influenced by these outcomes; or “using future information to predict past events, or accidentally including validation data in the training data.”\n[this] can lead to overly optimistic estimates of model performance and poor generalization to new data. ... see, e.g., Kuhn & Johnson, 2019, Feature Engineering and Selection; Kaggle Wiki on Leakage\n\nHere, the issue is the inclusion of\n“Net primary production, burned area, road density, and soil characteristics were recorded over the same time period as the outcome, and these predictors incorporate information that is influenced by regeneration itself.”\nVariables potentially derived using outcome data: The SoilGrids predictor variable appears to be from 2014 or 2016, potentially created using land cover classification data from 2010 that includes forest classifications (related to the outcome variable, albeit from a different source than the primary Hansen GFC data).\nVariables potentially incorporating post-2000 outcome data: Predictor variables averaged or derived from periods overlapping or extending beyond the 2000 start date of the regeneration outcome (e.g., NPP 2000-2015, burned area 2001–2017) may incorporate information influenced by the regeneration itself, creating temporal leakage\nThis inflates the estimates of the prediction power of the model, makes the model less likely to be reliable or useful and can also contaminate the suggestive causal inference/insights about \"what seems to be predictive.\" \n\n[E1] The outcome variable indicates patches of natural forest regeneration which occurred between 2000–2012 and persisted to 2016. At least three of the predictor variables seen by the training algorithm are also recorded during this period rather than prior to it: net primary production, burned area, and road density [...  In addition, the authors use variables from the ESA CCI land cover dataset as recorded in the year 2000, overlapping with the outcome.\n\n\"Optional but important\"\nReliance on Older GFC Gain Data: [mentioned: Cloud] The study relies on an older version of the Global Forest Change (GFC) gain data (v1.5, covering 2000-2012/2016). Since the initial analysis for Fagan et al. (2022), improved GFC datasets have been released (e.g., GMD 2022 update using GEDI lidar,\n\n2. “Confounding by Socioeconomic Factors and Predictor Choice:” [Both evaluators agreed]\nWhile the authors train models with biophysical and socioeconomic predictors, their spatial predictions are derived from a model that includes only biophysical variables...., inferring purely biophysical potential from observational data is not feasible with the proposed method. The difficulty lies in the fact that biophysical and socioeconomic conditions are deeply interconnected and affect one another. .... In practice, the model will predict high regeneration probability in locations where both factors are favorable. \n... it will tend to predict more regrowth when an area has biophysical factors that tend to correlate with socioeconomic conditions that favor regrowth.   Thus, contrary to what the authors argue, dropping socioeconomic predictors diminishes the model’s ability to identify biophysical potential in isolation. Furthermore, retained biophysical predictors such as ‘distance to forest’ and local forest density are partially anthropogenically determined. In sum, the proposed method cannot support the interpretation of the estimates as ‘purely biophysical potential for natural forest regrowth’.\n\n3. Neglect of Intensive Margin Regrowth: [Cloud]\nThe study focuses exclusively on the extensive margin (new forest area gain). It completely overlooks the intensive margin – canopy regeneration and forest recovery within existing, potentially degraded, forest pixels (e.g., areas increasing from <30% to >60% canopy cover as an arbitrary threshold). \n\n4. “Validation” uses  past data [Both evaluators/consensus]\n(i) The confusion matrix in Table A1.2 appears to validate the model by comparing its predictions for 2030 against the Fagan et al. (2022) regrowth data for 2000-2016. However, the 215 Mha estimate is derived from a prediction based on forest cover, forest density, and distance to forest updated to reflect conditions in 2015 and 2018. This raises the concern that validating a model designed to predict future potential against past outcomes is not a true test of its predictive power for the future. \n\n\n\"Unsure if correct/relevant\" [Seem likely correct]\n\nDefinition of Natural Regrowth (Inherited from Fagan et al.) [Cloud]: The model relies on Fagan et al.'s definition, which treats all non-plantation gain as \"natural regrowth,\" which appears to conflate truly natural processes with human-assisted regeneration or diverse tree plantings not classified as monoculture plantations. Fagan et al. acknowledged this limitation: “Our product was also not designed to distinguish rarer land uses intermediate between tree plantations and natural regrowth, such as assisted natural regeneration.” \n\nOverestimation due to Omission Error (Inherited from Fagan et al.): Fagan et al. [2]\nreported very high omission errors for regrowth (low area-based Producer's Accuracy of ~18.7%). This means the Fagan map used for exclusion missed a large area (~26 Mha) of actual regrowth (estimated at 31.6 Mha). Consequently, the Williams et al. [1] potential area (215 Mha) includes these already-regrown areas, substantially overestimating the area truly available for future regeneration.\n\n(a) Underestimation of Uncertainty: [Both evaluators seem to agree] The necessary correction for the omission error (subtracting the ~26 Mha of omitted-but-actual regrowth, see Point 2c) carries significant uncertainty derived from the Fagan et al. [2] accuracy assessment (31.6 ± 11.9 Mha for total regrowth). Propagating this uncertainty would result in a much wider confidence interval for the corrected potential regeneration estimate (~189 Mha) than implied by the analysis of the 215 Mha figure. The current approach (reporting just minimal uncertainty from the RF model)  ignores this driving source of uncertainty.\n\n Discrepancy in Estimated Magnitude and Lack of Historical Validation: [Both evaluators]\nBecause the model, as argued above, effectively estimates a combined biophysical and socioeconomic potential due to highly correlated predictors, its aggregate prediction should conceptually align with the historical total observed under similar mixed influences. However, the authors' estimate of 215 Mha of expected natural regeneration is strikingly larger than the benchmark from the training data by Fagan et al. (2022) [undefined] of 31.6 Mha ± 11.9 Mha (for 2000-2016), even when accounting for increases in land availability due to deforestation or uncaptured historical socioeconomic constraints. Williams et al. (2024) do not report their own model's prediction for the 2000-2016 historical period (a \"hindcast\"), a crucial missing validation against this benchmark.\n\n(b) Stratification for Uncertainty Reduction [Cloud]: The paper does not appear to leverage stratification techniques known to mitigate the impact of omission errors on area estimates, particularly for rare classes like forest gain (as demonstrated in Olofsson et al. 2020 [5] for mitigating omission error impacts). While Fagan et al. [2] suggested this is impossible for regrowth, Olofsson (2020)[5] does not support that conclusion (from my reading). Williams et al.'s [1] own finding that most potential regrowth occurs near forest edges (within 300m: “For example, out of a random sample of 62,493 grid cells (of all 30 × 30 m grid cells) across the study region, 98.1% of cells with a potential of >0.5 (for illustrative purposes) occur within 300 m of a forest edge.”) suggests a buffer-based stratification strategy could be feasible and potentially significantly reduce the uncertainty associated with omission errors by isolating them within smaller-area strata. Implementing such a stratification is recommended to improve the reliability of the underlying area estimates which compromise the bulk of the uncertainty (as compared to the minimal uncertainty from the RF model).\n\n(c) Confidence Interval Construction for Rare Classes [Cloud]: Additionally, while perhaps a secondary concern compared to the points above, the standard practice of constructing confidence intervals using the design-based SE and the Wald method (assuming normality) may be unreliable for rare land-use classes or metrics with low accuracy (like the Producer's Accuracy for regrowth). The underlying sampling distributions for these estimates are often skewed. Using bootstrap percentile confidence intervals, which empirically derive the interval from the data's distribution without assuming normality, can provide more realistic uncertainty bounds and likely achieve better coverage probability (i.e., capture the true value closer to the nominal 95% level). This is particularly important when estimates serve as baselines for monitoring, where reliable CIs are needed to detect future changes (example code demonstrating this comparison is provided).",
+    "coda_critique": "Optional but important\n\n1. Subgroup analysis risks overstating statistical significance without adjustments for MHT. Particular signs of this: Tsai notes \"'nutrition only helped for the high-sanitation subgroup' claim, noting that 'other studies in LMICs have compared joint nutrition and sanitation interventions to only nutrition interventions directly, and effects on stunting, wasting, and underweight are not consistently better.'\"\n\nDR: Although the authors couch their language about this as \"suggestive evidence\" of mediation, they emphasize it quite a lot in the abstract, intro, etc — a reasonable reader is likely to have the takeaway that the treatment had positive impacts on anthropometric outcomes in areas with better sanitation (and that these differences were 'statistically significant')\n\n2. Need more detail on the intervention context: E1 asked for more details on the messaging: \"How were participants 'encouraged' to use the funds for nutritious foods?\" Tsai particularly wanted more information on concurrent conditional cash transfers (CCTs) and health services targeting early childhood, noting that there might be interaction effects.\n\nUnsure/maybe less important\n\n1. MHT issue for multiple indices: E1 \"The authors present results for an overall child development index, domain-specific indices, as well as individual ASQ items. They do this without accounting for multiple comparisons or presenting this as a pre-specified plan.\" [NotebookLM] — But \"The PaPs prioritize specifications and randomization inference for the primary hypotheses, which focus on anthropometric measures\"\n\n2. \"Exclusion of breastmilk from child food consumption\" accounting. NotebookLM suggests that the authors recognize this limitation.\n\n3. Both evaluators mentioned including flow charts: a consort diagram (evaluator 1) and a DAG (evaluator 2). DR: I'm not sure whether this is an important standard?",
     "num_gpt_issues": 12,
-    "coda_critique_length": 9322,
+    "coda_critique_length": 1908,
     "comparison": {
-      "coverage_pct": 0,
-      "precision_pct": 0,
+      "coverage_pct": 70,
+      "precision_pct": 90,
       "missed_issues": [
-        "Temporal/data leakage: predictors measured contemporaneously with or after the regrowth outcome window (e.g., NPP 2000–2015, burned area 2001–2017, road density, ESA CCI land cover in 2000) inflating performance and contaminating interpretation",
-        "Potential outcome-derived predictors (e.g., SoilGrids timing/inputs potentially using land cover/forest classification information related to the outcome)",
-        "Use of outdated Global Forest Change (GFC) gain/regrowth product (older v1.5) despite newer improved datasets (e.g., GEDI-informed updates)",
-        "Confounding/interpretation problem: dropping socioeconomic predictors does not isolate “pure biophysical potential”; biophysical variables (distance to forest, forest density) are partially anthropogenic and correlated with socioeconomic conditions",
-        "Neglect of intensive-margin regrowth (within-pixel canopy recovery), focusing only on extensive-margin gain",
-        "Questionable validation: comparing 2030 predictions to 2000–2016 outcomes while using predictors updated to 2015/2018 is not a true future predictive validation",
-        "Definition problem inherited from Fagan et al.: “natural regrowth” may conflate truly natural regeneration with assisted regrowth or diverse plantings not labeled plantations",
-        "Overestimation due to omission error in the Fagan regrowth map (very low producer’s accuracy), causing already-regrown areas to be counted as future potential",
-        "Underestimation/poor propagation of uncertainty: ignoring dominant uncertainty from omission-error correction and relying mainly on RF model uncertainty",
-        "Magnitude discrepancy and lack of hindcast: predicted potential (215 Mha) far exceeds observed historical regrowth (~31.6 ± 11.9 Mha) without reporting model hindcast to 2000–2016",
-        "Missed methodological improvements: lack of stratification approaches to mitigate omission error impacts for rare classes (e.g., buffer/edge-based stratification)",
-        "Confidence interval construction concerns for rare classes/low-accuracy estimates (normal/Wald intervals may be unreliable; bootstrap percentile CIs suggested)"
+        "Need more detail on intervention context beyond the IVR/cash bundle—especially how participants were actually encouraged to spend on nutritious foods (implementation fidelity and messaging content/delivery).",
+        "Potential confounding/interaction with concurrent programs (e.g., conditional cash transfers and other early-childhood health services) that could affect interpretation of impacts and heterogeneity.",
+        "Concern that the paper’s framing/abstract language may overemphasize ‘statistically significant’ sanitation-subgroup anthropometric results even while caveating them in-text (i.e., reader takeaway risk).",
+        "Exclusion of breastmilk from child food consumption measurement/accounting (not central, but raised).",
+        "Requests for clearer study schematics (CONSORT-style flow chart; DAG) to improve transparency (lower priority, but mentioned)."
       ],
       "extra_issues": [
-        "Clarify bundled intervention vs generic income shock; qualify claims about “unconditional cash”",
-        "Sanitation heterogeneity relies on non-random post-treatment sanitation measurement; interaction estimates vulnerable to confounding",
-        "Year-2 outcomes affected by COVID-truncated subsample and survey mode changes",
-        "Child development measured via parent-reported ASQ; potential differential reporting/demand effects",
-        "Dietary intake measurement error concerns (24-hour recall, allocation/portion measurement) and robustness to misreporting",
-        "IVR messaging effect evidence is indirect; need call delivery/connection data or stronger exposure measurement",
-        "Multiple outcomes/heterogeneities require clearer primary families and multiple-testing adjustments",
-        "Sanitation index reliability issues (perceptions, enumerator subjectivity) and alternative proxies/sensitivity checks",
-        "Non-causal “explained share” channel decomposition via cross-sectional correlations",
-        "Missing non-food spending in year 1 due to survey form error limiting welfare/accounting interpretation",
-        "External validity limits tied to Jharkhand/ICDS-linked registrants and sample wealth differences",
-        "Replication readiness/data-code availability and full construction scripts unclear"
+        "Clarification that impacts are for a bundled intervention (cash to women + nutrition framing/IVR), not a generic income shock/unconditional cash effect.",
+        "COVID-truncated subsample and mode/composition differences across years potentially affecting comparisons over time.",
+        "Parent-reported ASQ outcomes: risk of differential reporting/experimenter-demand effects and need for more objective validation.",
+        "Dietary measurement limitations (24-hour recall, portion allocation) and robustness to measurement error/differential misreporting.",
+        "IVR exposure measurement is indirect; suggestion to use call delivery/connection data or stronger exposure measures.",
+        "Sanitation index reliability concerns (perceptions of neighbors, enumerator subjectivity) and sensitivity to alternative proxies.",
+        "‘Explained share’/channel decomposition based on cross-sectional correlations is non-causal and could mislead if interpreted mechanistically.",
+        "Non-food spending missing in year 1 (form error) limits welfare/budget share interpretation during transfer receipt.",
+        "External validity limits (Jharkhand/ICDS-linked registrants; sample slightly wealthier than state average).",
+        "Replication readiness/data-and-code availability and index construction scripts not clearly stated."
       ],
-      "overall_rating": "Poor",
-      "overall_justification": "The GPT key issues do not overlap with the human critiques at all; they appear to target a different paper/topic (cash transfer RCT) rather than the ML-based forest regrowth study. Consequently, coverage is effectively zero and none of the GPT issues are relevant to the expert-identified concerns.",
-      "detailed_notes": "There is a complete domain mismatch: human critiques focus on temporal leakage, confounding/interpretation of biophysical potential, dataset/version limitations, validation strategy, and uncertainty/area-estimation methodology for remote-sensing-derived regrowth. The GPT list instead discusses intervention bundling, sanitation heterogeneity, COVID survey disruptions, and measurement issues in household outcomes—indicating the model evaluated the wrong manuscript or was provided the wrong context."
+      "overall_rating": "Good",
+      "overall_justification": "GPT captures the central expert concern about sanitation subgroup claims and multiple testing/over-interpretation, and partially overlaps on messaging/implementation (via IVR exposure). It misses the key context concern about concurrent programs and the critique about narrative emphasis, but adds several plausible, substantive methodological issues.",
+      "detailed_notes": "On the most important human point (subgroup/heterogeneity and MHT), GPT aligns strongly: it flags both multiple comparisons and the non-random/post-treatment nature of sanitation measurement. The second human point (intervention context and concurrent services) is only partially addressed: GPT focuses on IVR exposure measurement and bundling, but not on other contemporaneous programs (CCTs/health services) that could drive or modify effects."
     }
   },
   {
     "gpt_paper": "Williams_et_al._2024",
-    "coda_title": "Cash Transfers for Child Development: Experimental Evidence from India",
+    "coda_title": "Global potential for natural regeneration in deforested tropical regions",
     "gpt_key_issues": [
-      ". The target variable (“natural regrowth” as >5 m vegetation gain from 2000–2016) is a partial proxy for restoration success and likely misses early regeneration and slow-growing systems; it also does not ensure persistence beyond 2016.",
-      ". The upstream regrowth map used for labels has acknowledged humid-biome omission and low producer’s accuracy for area-adjusted estimates, creating systematic false negatives that can bias model training and geographic patterns.",
-      ". “Non-regeneration” points are sampled from a broad domain that likely includes lands under active management or repeated clearing; thus the model mixes biophysical capacity, human land-use decisions, and detectability rather than isolating biophysical potential.",
+      ". The target variable (\"natural regrowth\" as >5 m vegetation gain from 2000–2016) is a partial proxy for restoration success and likely misses early regeneration and slow-growing systems; it also does not ensure persistence beyond 2016.",
+      ". The upstream regrowth map used for labels has acknowledged humid-biome omission and low producer's accuracy for area-adjusted estimates, creating systematic false negatives that can bias model training and geographic patterns.",
+      ". \"Non-regeneration\" points are sampled from a broad domain that likely includes lands under active management or repeated clearing; thus the model mixes biophysical capacity, human land-use decisions, and detectability rather than isolating biophysical potential.",
       ". The paper reports high balanced-class accuracy but provides limited information on calibration and threshold-dependent tradeoffs (precision/recall), which are central when aggregating probabilities into expected areas and when using binary maps for targeting.",
       ". Validation uses random splits with a post hoc autocorrelation-distance diagnostic but not fully spatially blocked cross-validation; performance may be optimistic and appears regionally variable (notably weaker in parts of Southeast Asia).",
       ". The extremely narrow confidence intervals on the headline area estimates are not credible as full uncertainty bounds because they omit major sources of uncertainty (label noise, transfer/non-stationarity, predictor error/resolution mismatch, and model specification uncertainty).",
       ". Predictor rasters have mixed spatial/temporal resolutions (30 m to ~1 km; climate normals 1970–2000; NPP 2000–2015; burn area 2001–2017), yet outputs are presented at 30 m; this can create visually fine-scale artifacts and overconfidence in local precision.",
       ". Updating key forest covariates to 2018 while training on 2000–2016 outcomes introduces temporal inconsistency; combined with known version differences in GFW products, this may yield local incoherence and affect transfer to 2015/2030 predictions.",
-      ". Dropping socioeconomic covariates for prediction stability may increase omitted-variable bias, with biophysical variables acting as proxies for land-use intensity/governance; this complicates the “biophysical conditions can support” interpretation.",
+      ". Dropping socioeconomic covariates for prediction stability may increase omitted-variable bias, with biophysical variables acting as proxies for land-use intensity/governance; this complicates the \"biophysical conditions can support\" interpretation.",
       ". Carbon accumulation estimates rely on resampling a 1 km carbon potential layer to 30 m with implicit within-km homogeneity and without propagating uncertainty or accounting for covariance between regeneration probability and carbon potential.",
       ". The map is framed as a first-stage input, but discussion of offsets/targeting could be misread as identifying realizable, additional, and permanent sequestration opportunities; clearer operational guidance on use and limits would reduce misuse.",
-      ". Code is only available “on request,” limiting reproducibility and independent auditing of modelling choices (variable selection, sampling, preprocessing, and aggregation)."
+      ". Code is only available \"on request,\" limiting reproducibility and independent auditing of modelling choices (variable selection, sampling, preprocessing, and aggregation)."
     ],
-    "coda_critique": "Optional but important \nSubgroup analysis risks overstating statistical significance without adjustments for MHT. Particular signs of this:  — Tsai notes “‘nutrition only helped for the high-sanitation subgroup’ claim, noting that “other studies in LMICs have compared joint nutrition and sanitation interventions to only nutrition interventions directly, and effects on stunting, wasting, and underweight are not consistently better.”\nDR: Although the authors couch their language about this as “suggestive evidence” of mediation, they emphasize it quite a lot in the abstract, intro, etc — a reasonable reader is likely to have the takeaway that the treatment had positive impacts on anthropometric outcomes in areas with better sanitation (and that these differences were ‘statistically significant’)\nNeed more detail on the intervention context: E1 asked for more details on the messaging: “How were participants ‘encouraged’ to use the funds for nutritious foods?” Tsai particularly wanted more information on concurrent conditional cash transfers (CCTs) and health services targeting early childhood, noting that there might be interaction effects.  \n\nUnsure/maybe less important\nMHT issue for multiple indices: E1 “The authors present results for an overall child development index, domain-specific indices, as well as individual ASQ items. They do this without accounting for multiple comparisons or presenting this as a pre-specified plan.” \n[NotebookLM] — But “The PaPs prioritize specifications and randomization inference for the primary hypotheses, which focus on anthropometric measures”\n“exclusion of breastmilk from child food consumption” accounting. \nNotebookLM suggests that the authors recognize this limitation and \nBoth evaluators mentioned including flow charts: a consort diagram (evaluator 1) and a DAG (evaluator 2)\n DR: I'm not sure whether this is an important standard?",
+    "coda_critique": "Necessary\n\n1. Data leakage/contemporaneous predictors [mentioned: both evaluators and UJ field specialists] — The ML model seems to be fitted on data/variables that includes post-regeneration outcomes, or that could be influenced by these outcomes; or \"using future information to predict past events, or accidentally including validation data in the training data.\" This can lead to overly optimistic estimates of model performance and poor generalization to new data.\n\nHere, the issue is the inclusion of \"Net primary production, burned area, road density, and soil characteristics were recorded over the same time period as the outcome, and these predictors incorporate information that is influenced by regeneration itself.\"\n\n[E1] The outcome variable indicates patches of natural forest regeneration which occurred between 2000–2012 and persisted to 2016. At least three of the predictor variables seen by the training algorithm are also recorded during this period rather than prior to it: net primary production, burned area, and road density. In addition, the authors use variables from the ESA CCI land cover dataset as recorded in the year 2000, overlapping with the outcome.\n\nOptional but important\n\n1. Reliance on Older GFC Gain Data: [Cloud] The study relies on an older version of the Global Forest Change (GFC) gain data (v1.5, covering 2000-2012/2016). Since the initial analysis for Fagan et al. (2022), improved GFC datasets have been released (e.g., GMD 2022 update using GEDI lidar).\n\n2. \"Confounding by Socioeconomic Factors and Predictor Choice:\" [Both evaluators agreed] While the authors train models with biophysical and socioeconomic predictors, their spatial predictions are derived from a model that includes only biophysical variables. Inferring purely biophysical potential from observational data is not feasible with the proposed method. The difficulty lies in the fact that biophysical and socioeconomic conditions are deeply interconnected. In practice, the model will predict high regeneration probability in locations where both factors are favorable. The proposed method cannot support the interpretation of the estimates as 'purely biophysical potential for natural forest regrowth'.\n\n3. Neglect of Intensive Margin Regrowth: [Cloud] The study focuses exclusively on the extensive margin (new forest area gain). It completely overlooks the intensive margin – canopy regeneration and forest recovery within existing, potentially degraded, forest pixels.\n\n4. \"Validation\" uses past data [Both evaluators/consensus] — The confusion matrix appears to validate the model by comparing its predictions for 2030 against the Fagan et al. (2022) regrowth data for 2000-2016. Validating a model designed to predict future potential against past outcomes is not a true test of its predictive power for the future.\n\nUnsure if correct/relevant\n\n1. Definition of Natural Regrowth (Inherited from Fagan et al.) [Cloud]: The model relies on Fagan et al.'s definition, which treats all non-plantation gain as \"natural regrowth,\" conflating truly natural processes with human-assisted regeneration.\n\n2. Overestimation due to Omission Error (Inherited from Fagan et al.): Fagan et al. reported very high omission errors for regrowth (low area-based Producer's Accuracy of ~18.7%). The Williams et al. potential area (215 Mha) includes already-regrown areas, substantially overestimating the area truly available for future regeneration.\n\n3. Discrepancy in Estimated Magnitude and Lack of Historical Validation: [Both evaluators] The authors' estimate of 215 Mha of expected natural regeneration is strikingly larger than the benchmark from Fagan et al. (2022) of 31.6 Mha ± 11.9 Mha (for 2000-2016). Williams et al. do not report their own model's prediction for the 2000-2016 historical period (a \"hindcast\"), a crucial missing validation against this benchmark.",
     "num_gpt_issues": 12,
-    "coda_critique_length": 1898,
+    "coda_critique_length": 3881,
     "comparison": {
-      "coverage_pct": 0,
-      "precision_pct": 0,
+      "coverage_pct": 35,
+      "precision_pct": 92,
       "missed_issues": [
-        "Risk of overstating subgroup effects (e.g., “nutrition only helped for high-sanitation subgroup”) without multiple-hypothesis testing (MHT) adjustments; misleading emphasis in abstract/intro that could lead readers to believe anthropometric impacts are robust in better-sanitation areas",
-        "Need for substantially more detail on intervention context and implementation (especially how participants were encouraged to spend on nutritious foods)",
-        "Potential confounding/interaction with concurrent programs (e.g., conditional cash transfers and health services targeting early childhood) that should be described and considered",
-        "MHT concerns from reporting many outcomes/indices (overall child development index, domain indices, individual ASQ items) without correction or clear pre-specification",
-        "Clarification/handling of exclusion of breastmilk from child food consumption measures",
-        "Presentation improvements requested by experts: include a CONSORT flow diagram and a DAG (even if partly stylistic/standardization)"
+        "Primary concern: data leakage / contemporaneous predictors — key predictors (e.g., NPP, burned area, road density, some land cover) are measured over the same period as (or overlapping with) the 2000–2012/2016 regrowth outcome, potentially encoding post-outcome information and inflating performance.",
+        "“Validation” problem: comparing a 2030-oriented prediction/claim against historical regrowth observations (2000–2016) is not a true validation of future predictive ability.",
+        "Neglect of the intensive margin of regrowth (canopy recovery / biomass increases within existing forest pixels), focusing only on extensive-margin new forest gain.",
+        "Reliance on an older GFC gain product (v1.5) when newer improved datasets (e.g., incorporating GEDI) exist, potentially affecting label quality and conclusions.",
+        "Need for a hindcast and reconciliation of magnitude: the paper does not report model-predicted regrowth for 2000–2016 to benchmark against Fagan et al. (2022), despite a large discrepancy (e.g., 215 Mha vs ~31.6 Mha ± 11.9 Mha).",
+        "Definition issue: “natural regrowth” inherits Fagan et al.’s definition that may conflate natural regeneration with human-assisted regeneration (beyond just plantations)."
       ],
       "extra_issues": [
-        "Definition/target label validity for ‘natural regrowth’ and lack of persistence beyond observation window",
-        "Label map limitations (biome omissions, low producer’s accuracy) and resulting bias in training/geo patterns",
-        "Sampling of ‘non-regeneration’ points conflating biophysical potential with human land-use/management decisions",
-        "Insufficient reporting of calibration/threshold tradeoffs despite reporting high balanced accuracy",
-        "Lack of spatially blocked cross-validation; potentially optimistic/regionally variable performance",
-        "Unrealistically narrow confidence intervals that omit key uncertainty sources (label noise, non-stationarity, predictor error, model uncertainty)",
-        "Mixed spatial/temporal resolution covariates presented as 30m outputs causing artifacts/overconfidence in local precision",
-        "Temporal inconsistency between covariate years (e.g., updating to 2018) and outcome window (2000–2016)",
-        "Omitted-variable bias concerns from dropping socioeconomic covariates; interpretability issues for “biophysical conditions can support” claims",
-        "Carbon accumulation estimation issues from resampling coarse carbon layers without uncertainty propagation/covariance",
-        "Risk of over-claiming realizable/additional/permanent sequestration from suitability maps; need clearer guidance to prevent misuse",
-        "Reproducibility limitations due to code only being available ‘on request’"
+        "Lack of calibration/threshold tradeoff reporting (precision–recall, calibration curves), important when converting probabilities to areas and decisions.",
+        "Insufficient spatially blocked cross-validation (beyond random splits), with risk of spatial autocorrelation inflating performance estimates.",
+        "Unrealistically narrow confidence intervals / incomplete uncertainty propagation (label noise, non-stationarity, predictor error, model specification).",
+        "Mixed spatial/temporal resolution predictors presented at 30 m outputs, risking fine-scale artifacts and overconfidence in local precision.",
+        "Temporal inconsistency from updating covariates to later years (e.g., 2018) while training on 2000–2016 outcomes.",
+        "Carbon accumulation methodology concerns (resampling 1 km carbon layers to 30 m without uncertainty/covariance handling).",
+        "Reproducibility limitation: code only available “on request.”",
+        "Risk of policy/operational misinterpretation (map could be read as identifying realizable/additional/permanent sequestration opportunities without sufficient caveats)."
       ],
-      "overall_rating": "Poor",
-      "overall_justification": "The GPT key issues do not match the domain or content of the human expert critiques (forest-regrowth ML mapping vs. nutrition/sanitation RCT with subgroup/MHT concerns), resulting in essentially zero overlap.",
-      "detailed_notes": "This appears to be a paper-mismatch: the human critiques focus on causal inference/reporting issues in a development/health intervention study (subgroup inference, MHT, intervention context, reporting diagrams), while the GPT issues focus on geospatial ML labeling, validation, uncertainty quantification, and map interpretation. Consequently, both coverage and precision relative to the human critiques are effectively nil."
+      "overall_rating": "Moderate",
+      "overall_justification": "GPT captures the socioeconomic–biophysical confounding concern and label/omission-error problems, but misses the central expert-flagged threats to validity: contemporaneous-predictor leakage and the flawed future-oriented “validation,” plus several other major human critiques (intensive margin, outdated GFC gain reliance, and missing hindcast/benchmark reconciliation).",
+      "detailed_notes": "Several GPT points are high-quality, paper-relevant methodological critiques (spatial CV, uncertainty propagation, resolution mismatch), but they do not substitute for directly identifying leakage from predictors recorded during/after the regrowth window, which the human experts treat as necessary and potentially fatal to causal/predictive interpretation. GPT’s discussion of temporal inconsistency (e.g., covariates updated to 2018) is related to time-mismatch but is not the same as the experts’ leakage concern about predictors observed contemporaneously with the outcome."
     }
   }
 ]
