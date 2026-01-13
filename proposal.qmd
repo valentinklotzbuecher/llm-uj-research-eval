@@ -89,20 +89,20 @@ As noted in the [related literature reviewed in our Introduction](index.qmd#our-
 
 ### What We Measure (examples)
 
--   Agreement: How closely do LLM ratings correlate with human expert ratings across dimensions?
--   Calibration: Are stated confidence intervals plausible and well-calibrated against outcomes?
--   Coverage: Does the LLM identify the methodological issues flagged by human evaluators?
--   Precision: How many LLM-identified issues are valid vs. false positives?
--   Bias: Do ratings vary based on author names, institutions, or other non-content features?
--   Taste: Where do AI and human evaluators systematically diverge?
+-   **Agreement:** How closely do LLM ratings correlate with human expert ratings across dimensions? [See preliminary results →](results_ratings.qmd)
+-   **Calibration:** Are stated confidence intervals plausible and well-calibrated against outcomes?
+-   **Coverage:** Does the LLM identify the methodological issues flagged by human evaluators? [See critique comparison →](results_critiques.qmd)
+-   **Precision:** How many LLM-identified issues are valid vs. false positives?
+-   **Bias:** Do ratings vary based on author names, institutions, or other non-content features?
+-   **Taste:** Where do AI and human evaluators systematically diverge?
     -   What types of critiques do each tend to identify and emphasize?
     -   How do the critiques, text content, and multi-dimensional ratings differently predict overall assessments?
     -   What features do each prioritize in considering global-priorities relevance and impact potential?
--   Relative performance across models, prompts, and contexts
+-   Relative performance across models, prompts, and contexts [See multi-model comparison →](results_ratings.qmd#multi-model-comparison)
 
 ### Limited scale, no general capabilities development
 
-This project focuses on measurement, diagnosis, and insight, and providing a useful resource for benchmarking and understanding AI reasoning about research. The scale is modest and specific. We are not providing general model fine-tuning as a deliverable—we use existing models and standard prompting, and (in stage 2) only minimal training on and tuning on previous human evaluations. Our spending focuses on evaluation, tooling, and human experimentation rather than capabilities R&D.
+This project focuses on measurement, diagnosis, and insight, and providing a useful resource for benchmarking and understanding AI reasoning about research. The scale is modest and specific. We are not providing general model fine-tuning as a deliverable—we use existing models and standard prompting ([see pipeline documentation →](methods.qmd)), and (in stage 2) only minimal training on and tuning on previous human evaluations. Our spending focuses on evaluation, tooling, and human experimentation rather than capabilities R&D.
 
 ## Preliminary/Pilot Results
 
@@ -122,7 +122,15 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 **Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues. Initial comparison shows coverage varies by issue type—methodological concerns captured better than domain-specific errors. [See critique comparison →](results_critiques.qmd)
 
-**Illustrative case—Williams et al. 2024:** Human experts rated this forest regeneration paper at 50th percentile overall (methods: 25th), while GPT-5 Pro rated it at 87th percentile (methods: 75th)—a gap of +37 and +50 percentile points respectively. The key divergence: human evaluators identified *data leakage*—the ML model used predictors (NPP, burned area, road density) recorded during 2000-2012, the same period as the outcome variable. Notably, the LLM's reasoning trace *does* mention calibration issues and omission errors, but weights them far less severely than human experts. This illustrates both the magnitude of potential disagreement and the nuanced failure modes we aim to characterize.
+**Illustrative cases from critique analysis** ([full comparison →](results_critiques.qmd)):
+
+-   *Good alignment (Bilal & Känzig 2024):* On a climate-macro paper, the LLM achieved 100% coverage—identifying all human concerns about finite-sample inference, long-run effects, and dynamic specification. This suggests LLMs can match human critique quality for well-established econometric issues.
+
+-   *Poor alignment (Peterman et al. 2025):* On a child development meta-analysis, the LLM achieved only 40% coverage. Human experts focused on domain-specific issues (ASQ-3 measurement validity in India, CONSORT reporting, clinical cutoffs), while the LLM critiqued general meta-analysis methodology (heterogeneity statistics, RVE implementation). The LLM identified *different* issues rather than *wrong* ones—a systematic "taste" divergence.
+
+-   *Rating divergence despite partial critique overlap (Williams et al. 2024):* Human experts rated this forest regeneration paper at 50th percentile overall while GPT-5 Pro rated it at 87th—a 37-point gap. Interestingly, the LLM's reasoning *does* mention calibration issues and omission errors flagged by humans, but weights them less severely. The LLM achieved 88% critique coverage but the ratings diverged substantially, suggesting the issue is weighting rather than detection.
+
+These patterns—domain expertise gaps, different methodological emphasis, and severity weighting differences—are precisely what this project aims to characterize systematically.
 
 **Calibration:** Non-trivial credible intervals. (More detailed analysis needed)
 
