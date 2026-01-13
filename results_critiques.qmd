@@ -527,8 +527,8 @@ if (!is.null(comparison_data) && n_papers > 0) {
       }
 
       cat(sprintf("::: {.%s appearance=\"simple\"}\n", badge_class))
-      cat(sprintf("**Coverage:** %s%% | **Precision:** %s%% | **Rating:** %s\n",
-                  row$coverage_pct, row$precision_pct, rating))
+      cat(sprintf("**Coverage:** %s%% | **Precision:** %s%%\n",
+                  row$coverage_pct, row$precision_pct))
       cat(":::\n\n")
     }
 
@@ -575,19 +575,18 @@ if (!is.null(comparison_data) && n_papers > 0) {
           quality_color <- "#95a5a6"  # Gray
         }
 
-        cat(sprintf('<div style="margin:0.75em 0;padding:0.75em;background:#f0fff0;border-left:4px solid %s;border-radius:4px;">\n', quality_color))
-        cat(sprintf('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5em;">\n'))
-        cat(sprintf('<strong style="font-size:1.05em;">H%d: %s</strong>\n', human_idx, gsub("<", "&lt;", gsub(">", "&gt;", label))))
+        # Each matched issue is collapsible to reduce clutter
+        cat(sprintf('<details style="margin:0.75em 0;padding:0;background:#f0fff0;border-left:4px solid %s;border-radius:4px;">\n', quality_color))
+        llm_tags <- if (length(llm_indices) > 0) paste(sapply(llm_indices, function(x) sprintf("L%d", x)), collapse = ", ") else ""
+        cat(sprintf('<summary style="padding:0.75em;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">\n'))
+        cat(sprintf('<span><strong style="font-size:1.05em;">H%d: %s</strong> <span style="font-size:0.85em;color:#666;">↔ %s</span></span>\n',
+                    human_idx, gsub("<", "&lt;", gsub(">", "&gt;", label)), llm_tags))
         cat(sprintf('<span style="background-color:%s;color:white;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:0.9em;">%s%%</span>\n', quality_color, match_quality))
-        cat('</div>\n')
-
-        if (length(llm_indices) > 0) {
-          llm_tags <- paste(sapply(llm_indices, function(x) sprintf("L%d", x)), collapse = ", ")
-          cat(sprintf('<div style="font-size:0.85em;color:#666;margin-bottom:0.5em;">Matched with: %s</div>\n', llm_tags))
-        }
+        cat('</summary>\n')
+        cat('<div style="padding:0 0.75em 0.75em 0.75em;">\n')
 
         if (nchar(match_explanation) > 0) {
-          cat(sprintf('<div style="font-size:0.9em;margin-top:0.5em;">%s</div>\n', gsub("<", "&lt;", gsub(">", "&gt;", match_explanation))))
+          cat(sprintf('<div style="font-size:0.9em;margin-bottom:0.5em;">%s</div>\n', gsub("<", "&lt;", gsub(">", "&gt;", match_explanation))))
         }
 
         # ---- SHOW ACTUAL HUMAN ISSUE TEXT ----
@@ -645,7 +644,8 @@ if (!is.null(comparison_data) && n_papers > 0) {
           cat('</details>\n')
         }
 
-        cat('</div>\n')
+        cat('</div>\n')  # Close content wrapper
+        cat('</details>\n')  # Close collapsible matched issue
       }
       cat('\n')
     }
