@@ -121,10 +121,36 @@ if (!is.null(comparison_data)) {
 }
 
 # Load human and LLM ratings for context tables
+# Criterion name mapping: human -> standardized
+criterion_map_human <- c(
+  "overall" = "overall",
+  "claims" = "claims_evidence",
+  "methods" = "methods",
+  "adv_knowledge" = "advancing_knowledge",
+  "logic_comms" = "logic_communication",
+  "open_sci" = "open_science",
+  "gp_relevance" = "global_relevance",
+  "real_world" = "real_world"
+)
+
+# Display names for nice labels
+criterion_display <- c(
+  "overall" = "Overall assessment",
+  "claims_evidence" = "Claims & evidence",
+  "methods" = "Methods",
+  "advancing_knowledge" = "Advancing knowledge",
+  "logic_communication" = "Logic & communication",
+  "open_science" = "Open science",
+  "global_relevance" = "Global relevance",
+  "real_world" = "Real-world relevance"
+)
+
 human_ratings <- if (file.exists("data/all_ratings.rds")) {
   readRDS("data/all_ratings.rds") |>
-    filter(criteria != "merits_journal", criteria != "journal_predict") |>  # Keep only 0-100 scale
-    group_by(paper = label_paper, criterion = criteria) |>
+    filter(criteria != "merits_journal", criteria != "journal_predict") |>
+    mutate(criterion_std = criterion_map_human[as.character(criteria)]) |>
+    filter(!is.na(criterion_std)) |>
+    group_by(paper = label_paper, criterion = criterion_std) |>
     summarise(human_mean = round(mean(middle_rating, na.rm = TRUE), 0), .groups = "drop")
 } else {
   NULL
@@ -143,7 +169,8 @@ llm_ratings <- if (file.exists("data/metrics_long_gpt5_pro_jan2026.csv")) {
 # Combine ratings if both available
 if (!is.null(human_ratings) && !is.null(llm_ratings)) {
   combined_ratings <- human_ratings |>
-    full_join(llm_ratings, by = c("paper", "criterion"))
+    full_join(llm_ratings, by = c("paper", "criterion")) |>
+    mutate(display_name = criterion_display[criterion])
 } else {
   combined_ratings <- NULL
 }
@@ -585,14 +612,16 @@ if (!is.null(comparison_data) && n_papers > 0) {
       # Match paper name - try exact match first, then partial
       paper_ratings <- combined_ratings |>
         filter(grepl(gsub("_", ".*", paper_id), paper, ignore.case = TRUE) |
-               grepl(paper_id, paper, ignore.case = TRUE))
+               grepl(paper_id, paper, ignore.case = TRUE)) |>
+        filter(!is.na(display_name)) |>  # Only rows with valid display names
+        arrange(criterion != "overall", display_name)  # Overall first, then alphabetical
 
       if (nrow(paper_ratings) > 0) {
         cat('<details style="margin-bottom:1em;">\n')
         cat('<summary style="font-size:0.9em;color:#666;cursor:pointer;">📊 Human vs LLM ratings for this paper</summary>\n')
         cat('<div style="margin-top:0.5em;overflow-x:auto;">\n')
         cat('<table style="font-size:0.85em;border-collapse:collapse;width:100%;">\n')
-        cat('<tr style="background:#f5f5f5;"><th style="padding:4px 8px;text-align:left;">Criterion</th><th style="padding:4px 8px;text-align:center;">Human</th><th style="padding:4px 8px;text-align:center;">LLM</th><th style="padding:4px 8px;text-align:center;">Diff</th></tr>\n')
+        cat('<tr style="background:#f5f5f5;"><th style="padding:4px 8px;text-align:left;">Criterion</th><th style="padding:4px 8px;text-align:center;">Human (avg)</th><th style="padding:4px 8px;text-align:center;">LLM (mid)</th><th style="padding:4px 8px;text-align:center;">Diff</th></tr>\n')
 
         for (j in 1:nrow(paper_ratings)) {
           r <- paper_ratings[j, ]
@@ -604,12 +633,12 @@ if (!is.null(comparison_data) && n_papers > 0) {
             else if (d < 0) sprintf('<span style="color:#e74c3c;">%d</span>', d)
             else "0"
           } else "—"
-          crit_name <- gsub("_", " ", r$criterion)
-          crit_name <- paste0(toupper(substr(crit_name, 1, 1)), substr(crit_name, 2, nchar(crit_name)))
+          crit_name <- r$display_name
           cat(sprintf('<tr><td style="padding:4px 8px;">%s</td><td style="padding:4px 8px;text-align:center;">%s</td><td style="padding:4px 8px;text-align:center;">%s</td><td style="padding:4px 8px;text-align:center;">%s</td></tr>\n',
                       crit_name, h_val, l_val, diff_val))
         }
         cat('</table>\n')
+        cat('<div style="font-size:0.75em;color:#888;margin-top:0.25em;">Human = avg of evaluator midpoints; LLM = model midpoint rating</div>\n')
         cat('</div>\n')
         cat('</details>\n\n')
       }
