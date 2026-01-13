@@ -120,7 +120,9 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 **Rating agreement:** Moderate correlation between LLM and human ratings (r ≈ 0.4-0.6 depending on dimension), with substantial variation across papers and metrics. [See detailed analysis →](results_ratings.qmd)
 
-**Critique coverage (very preliminary):** LLM identifies some but but not all human-flagged issues. Initial comparison shows coverage varies by issue type—methodological concerns captured better than domain-specific errors. [See critique comparison →](results_critiques.qmd)
+**Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues. Initial comparison shows coverage varies by issue type—methodological concerns captured better than domain-specific errors. [See critique comparison →](results_critiques.qmd)
+
+**Illustrative case—Williams et al. 2024:** Human experts rated this forest regeneration paper at 50th percentile overall (methods: 25th), while GPT-5 rated it at 88th percentile (methods: 78th). The key divergence: human evaluators identified *data leakage*—the ML model used predictors (NPP, burned area, road density) recorded during 2000-2012, the same period as the outcome variable. This fundamental methodological flaw, requiring domain expertise in ML validation, was missed by the LLM. This illustrates both the magnitude of potential disagreement and the types of errors we aim to characterize
 
 **Calibration:** Non-trivial credible intervals. (More detailed analysis needed)
 
@@ -380,6 +382,16 @@ html`${predictiveNote}`
 -   **Continuous human evaluations**: New Unjournal evaluation packages arrive throughout the project, feeding both the benchmark dataset and predictive modeling
 -   **Living research**: Data and results are openly available and updated continuously; there is no "final dataset," only versioned releases
 
+## Who Will Use This
+
+**GCR funders and research-informing organizations:** Program officers at Open Philanthropy, GiveWell, and Founders Pledge regularly evaluate research quality when making funding decisions. Our calibration data helps them understand when AI-assisted triage is reliable and where human expertise remains essential.
+
+**Journal and preprint review initiatives:** Editors facing reviewer shortages need to know which aspects of evaluation AI can assist with. Our failure-mode taxonomy helps them deploy AI appropriately—perhaps for methodological checklists but not domain-specific validity.
+
+**The Unjournal's own pipeline:** We are a test case. If AI evaluation proves useful, we integrate it into our workflow. If not, we document why. Either outcome is valuable.
+
+**AI safety researchers:** Our curated benchmark provides ground-truth data for evaluating AI reasoning about complex, real-world domains—complementing existing datasets that skew toward CS/NLP.
+
 ## Deliverables
 
 1.  **Living benchmark dataset**: Continuously updated paper prioritization + human evaluations + LLM outputs + adjudication scores, openly available
@@ -426,6 +438,10 @@ html`${predictiveNote}`
 +--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Low external uptake                              | We are in contact with researchers/leaders at organizations including GiveWell, Open Philanthropy, and Founders Pledge, who have expressed interest in evaluation quality. We are engaging with research evaluation initiatives (e.g., DORA signatories, preprint review projects) and academic journal editors. |
 +--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+## Cost Context
+
+Human research evaluation is expensive. The Unjournal's current cost is approximately $1,700 per evaluation package (2 evaluators at $350-450 each, plus evaluation management, author incentives, and overhead). If LLM evaluation proved reliable enough to replace some human effort while keeping human prioritization and oversight, costs might drop to ~$400-500 per package—a potential 70% reduction. The key question this project addresses is *whether and when* such replacement is appropriate, and what quality gaps persist.
 
 ## Why Now?
 
