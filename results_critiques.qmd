@@ -590,6 +590,53 @@ if (!is.null(comparison_data) && n_papers > 0) {
           cat(sprintf('<div style="font-size:0.9em;margin-top:0.5em;">%s</div>\n', gsub("<", "&lt;", gsub(">", "&gt;", match_explanation))))
         }
 
+        # ---- SHOW ACTUAL HUMAN ISSUE TEXT ----
+        # First check if human_issue_text is directly available in data
+        human_text <- if (!is.null(pair$human_issue_text)) pair$human_issue_text else NULL
+
+        # If not, try to extract from coda_critique using label keywords
+        if (is.null(human_text) || nchar(human_text) == 0) {
+          # Extract keywords from label (split on / and space, take significant words)
+          keywords <- unlist(strsplit(tolower(label), "[/ ]+"))
+          keywords <- keywords[nchar(keywords) > 4]  # Only words > 4 chars
+
+          # Search coda_critique for lines containing these keywords
+          coda_lines <- unlist(strsplit(row$coda_critique, "\n"))
+          for (kw in keywords[1:min(3, length(keywords))]) {
+            # Use fixed matching to avoid regex issues with special chars
+            matches <- coda_lines[grepl(kw, tolower(coda_lines), fixed = TRUE)]
+            if (length(matches) > 0) {
+              human_text <- paste(matches[1:min(2, length(matches))], collapse = " ")
+              break
+            }
+          }
+        }
+
+        if (!is.null(human_text) && nchar(human_text) > 10) {
+          cat('<details style="margin-top:0.75em;background:#fff3e0;padding:0.5em;border-radius:4px;" open>\n')
+          cat('<summary style="font-size:0.9em;color:#e65100;cursor:pointer;font-weight:500;">👤 Human expert critique text</summary>\n')
+          cat(sprintf('<div style="margin-top:0.5em;padding:0.5em;background:white;border-left:3px solid #e65100;font-size:0.85em;">%s</div>\n',
+                      gsub("<", "&lt;", gsub(">", "&gt;", human_text))))
+          cat('</details>\n')
+        }
+
+        # ---- SHOW ACTUAL LLM ISSUE TEXT(S) ----
+        if (length(llm_indices) > 0 && length(gpt_issues) > 0) {
+          cat('<details style="margin-top:0.75em;background:#e8f4fd;padding:0.5em;border-radius:4px;" open>\n')
+          cat('<summary style="font-size:0.9em;color:#1565c0;cursor:pointer;font-weight:500;">🤖 Matched LLM issue text</summary>\n')
+          cat('<div style="margin-top:0.5em;">\n')
+          for (idx in llm_indices) {
+            if (idx <= length(gpt_issues)) {
+              llm_text <- gpt_issues[idx]
+              cat(sprintf('<div style="margin:0.5em 0;padding:0.5em;background:white;border-left:3px solid #1565c0;font-size:0.85em;">\n'))
+              cat(sprintf('<strong style="color:#1565c0;">L%d:</strong> %s\n', idx, gsub("<", "&lt;", gsub(">", "&gt;", llm_text))))
+              cat('</div>\n')
+            }
+          }
+          cat('</div>\n')
+          cat('</details>\n')
+        }
+
         if (nchar(detailed_discussion) > 0) {
           cat('<details style="margin-top:0.5em;">\n')
           cat('<summary style="font-size:0.85em;color:#666;cursor:pointer;">Show detailed discussion</summary>\n')
