@@ -122,7 +122,7 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 **Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues. Initial comparison shows coverage varies by issue type—methodological concerns captured better than domain-specific errors. [See critique comparison →](results_critiques.qmd)
 
-**Illustrative case—Williams et al. 2024:** Human experts rated this forest regeneration paper at 50th percentile overall (methods: 25th), while GPT-5 rated it at 88th percentile (methods: 78th). The key divergence: human evaluators identified *data leakage*—the ML model used predictors (NPP, burned area, road density) recorded during 2000-2012, the same period as the outcome variable. This fundamental methodological flaw, requiring domain expertise in ML validation, was missed by the LLM. This illustrates both the magnitude of potential disagreement and the types of errors we aim to characterize
+**Illustrative case—Williams et al. 2024:** Human experts rated this forest regeneration paper at 50th percentile overall (methods: 25th), while GPT-5 Pro rated it at 87th percentile (methods: 75th)—a gap of +37 and +50 percentile points respectively. The key divergence: human evaluators identified *data leakage*—the ML model used predictors (NPP, burned area, road density) recorded during 2000-2012, the same period as the outcome variable. Notably, the LLM's reasoning trace *does* mention calibration issues and omission errors, but weights them far less severely than human experts. This illustrates both the magnitude of potential disagreement and the nuanced failure modes we aim to characterize.
 
 **Calibration:** Non-trivial credible intervals. (More detailed analysis needed)
 
@@ -384,7 +384,7 @@ html`${predictiveNote}`
 
 ## Who Will Use This
 
-**GCR funders and research-informing organizations:** Program officers at Open Philanthropy, GiveWell, and Founders Pledge regularly evaluate research quality when making funding decisions. Our calibration data helps them understand when AI-assisted triage is reliable and where human expertise remains essential.
+**Research-informing organizations:** Program officers at philanthropic foundations and research evaluation organizations regularly assess research quality when making funding and prioritization decisions. Open Philanthropy (which funds work on global catastrophic risks, AI safety, and other cause areas), GiveWell (global health and development), and similar organizations could use our calibration data to understand when AI-assisted research triage is reliable and where human expertise remains essential.
 
 **Journal and preprint review initiatives:** Editors facing reviewer shortages need to know which aspects of evaluation AI can assist with. Our failure-mode taxonomy helps them deploy AI appropriately—perhaps for methodological checklists but not domain-specific validity.
 
