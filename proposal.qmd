@@ -1,0 +1,439 @@
+# Grant Proposal: Benchmarking AI Research Evaluation
+
+```{r}
+#| label: setup
+#| include: false
+source("setup_params.R")
+```
+
+::: callout-note
+## Coefficient Giving: AI for Forecasting and Sound Reasoning
+
+This proposal is prepared for Coefficient Giving's RFP on "AI for Forecasting and Sound Reasoning". We have linked this in our application form.
+
+For detailed analysis, project discussion, and very-preliminary results, see the [Introduction](index.qmd) and subsequent chapters of this public workspace.
+:::
+
+## Summary
+
+We consider how frontier LLMs critique, rate, and prioritize global-priorities-relevant economics and policy research, benchmarking and comparing these against human work.[^proposal-1]
+
+[^proposal-1]: We believe the economics/social science context provides a particularly nuanced setting to measure and understand AI tendencies and capabilities; with a lack of methodological consensus, and a connection to fundamental questions of human values and welfare. We focus on and global priorities and policy– high-stakes domains where AI-assisted evaluation could accelerate evidence synthesis for time-sensitive decisions on issues likeAI governance.
+
+We will leverage [The Unjournal's](https://unjournal.org) unique assets and curate these as a resource for benchmarking AI research evaluation and reasoning.[^proposal-2]
+
+[^proposal-2]: This can also be applied to bespoke agent-driven research evaluation and feedback tools like [QED science](https://connect.biorxiv.org/news/2025/11/04/qed_review_tool) , <https://scholarsreview.com/>, and <https://www.refine.ink/>. We are in conversation with Ben Golub on benchmarking the latter.
+
+This includes
+
+-   100+ individual expert evaluations with structured quantitative ratings, uncertainty intervals, and identified consensus critiques
+
+-   250+ research papers prioritized for impact-potential by internal Field Specialists
+
+-   An ongoing/future pipeline of prioritization and evaluation, enabling out-of-time validation, hybrid human-AI trials, and a natural source of human enumerators.
+
+This work informs the increasingly proposed [and actual](https://www.nature.com/articles/d41586-025-04066-5) use of AI to evaluate human-led research,[^proposal-3] as well as for AI's potentially transformative role in scientific discovery.[^proposal-4] We are seeking evidence on AI's reasoning about research: where does it excel, what are its limitations, and what drives the differences from humans?
+
+[^proposal-3]: ,As noted in our introduction, "if AI research-evaluation works it could free up a lot of scientific resources – perhaps \$1.5 billion/year in the US alone ([Aczel, Szaszi, and Holcombe 2021](references.html#ref-aczel2021billion)) – and offer more continual and detailed review, helping improve research and address the '[peer-review crisis](https://www.nature.com/articles/d41586-025-02457-2)'. Numerous accounts report a system under strain, with widespread difficulty finding human peer reviewers with appropriate expertise willing to put in careful effort. An influx of AI-generated or AI-human hybrid research seems likely to exacerbate this problem.
+
+[^proposal-4]: [The leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis” – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Recent EU Union recent guidelines argue that "AI has great potential for accelerating scientific discovery and improving the effectiveness and pace of research and verification processes" (@eger2025).
+
+*Core outputs:*
+
+-   Public database and curated resources for benchmarking and testing[^proposal-5]
+
+-   Quantitative measures of AI calibration, consistency, and alignment with human expert judgment
+
+-   Taxonomy of reasoning failure modes and success patterns
+
+-   Analysis of systematic "research taste" differences between AI and human evaluators
+
+-   Practical guidance on the uses and limitations of AI for peer review and research prioritization
+
+[^proposal-5]: This will include Unjournal evaluation and rating content paired with LLM evaluations, and enumerator evaluations of these evaluations. We also build sets of human-validated 'consensus critiques'. We will also set up processes for the future Unjournal pipeline to be similarly publicly curated for external users.
+
+## Relevance and fit with RFP criteria
+
+### Principles Relevant to Sound Reasoning
+
++------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| RFP Criterion          | Our Approaches                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
++========================+==============================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
+| **Truthfulness**       | *Detection:*Measure LLM detection of \~confirmed misleading research claims identified by human evaluators                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                        | *Informativeness:* Human ratings of AI critiques, performance of human-AI hybrid evaluators                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
++------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Meta-reasoning**     | *Calibration:* Consider plausibility of stated confidence intervals (90% credible bounds) for percentile ranking measures, compare to actual outcomes where available (e.g., publication journal-tiers, predicted human ratings)                                                                                                                                                                                                                                                                                                                             |
+|                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                        | *Explanation:* (E.g.), compare rating justifications across different framings/extraneous features (e.g., author/institution prestige)                                                                                                                                                                                                                                                                                                                                                                                                                       |
++------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Consistency**        | *Framing:* Test sensitivity of ratings to prompt wording, framing, and non-content features.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                        | *Sycophancy:* Compare ratings across framings, e.g., evaluating "my paper" vs. "generate a report and ratings that will be similar to a human peer reviewer of this paper"                                                                                                                                                                                                                                                                                                                                                                                   |
++------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Navigating debates** | Indirectly: our [evaluation guidelines](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#logic-and-communication) ask for ratings of "reasoning transparency" and [claim characterization](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#claims-strength-and-characterization-of-evidence), indirectly engaging with argument analysis.   |
++------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+### How Our Approach Differs from Related Work
+
+As noted in the [related literature reviewed in our Introduction](index.qmd#our-work-in-context), our approach has several distinctive features:
+
+1.  Real high-quality human expert evaluations (The Unjournal's managed and incentivized process)
+2.  Prospective pipeline: The Unjournal's ongoing intake enables out-of-time validation with clean test sets, A/B trials of hybrid human-AI evaluation, and direct validation where the same evaluators and authors can assess LLM outputs
+3.  Economics/policy domain: Most existing benchmarks focus on CS/NLP venues; we cover high-stakes policy research directly relevant to global priorities[^proposal-6]
+4.  Structured quantitative ratings context: Multi-dimensional percentile ratings with credible intervals, not binary accept/reject
+5.  Ground-truth outcomes: Journal tier predictions have verifiable outcomes enabling calibration analysis
+6.  Research prioritization: We also measure LLM ability and taste in identifying and prioritize high-impact research, comparing AI recommendations to our internal team's prioritization decisions
+
+[^proposal-6]: See @eger2025 and @dycke2023 for discussion of how existing peer-review datasets skew toward computer science.
+
+### What We Measure (examples)
+
+-   Agreement: How closely do LLM ratings correlate with human expert ratings across dimensions?
+-   Calibration: Are stated confidence intervals plausible and well-calibrated against outcomes?
+-   Coverage: Does the LLM identify the methodological issues flagged by human evaluators?
+-   Precision: How many LLM-identified issues are valid vs. false positives?
+-   Bias: Do ratings vary based on author names, institutions, or other non-content features?
+-   Taste: Where do AI and human evaluators systematically diverge?
+    -   What types of critiques do each tend to identify and emphasize?
+    -   How do the critiques, text content, and multi-dimensional ratings differently predict overall assessments?
+    -   What features do each prioritize in considering global-priorities relevance and impact potential?
+-   Relative performance across models, prompts, and contexts
+
+### Limited scale, no general capabilities development 
+
+This project focuses on measurement, diagnosis, and insight, and providing a useful resource for benchmarking and understanding AI reasoning about research. The scale is modest and specific. We are not providing general model fine-tuning as a deliverable—we use existing models and standard prompting, and (in stage 2) only minimal training on and tuning on previous human evaluations. Our spending focuses on evaluation, tooling, and human experimentation rather than capabilities R&D.
+
+## Preliminary/Pilot Results
+
+::: callout-warning
+## Preliminary and illustrative
+
+The results below are from early pilot work and have not yet been carefully vetted. They are meant to illustrate our approach, show viability, and illustrate the types of comparisons we will make. Our methods, prompts, and analysis will improve substantially throughout the project.[^proposal-7]
+:::
+
+[^proposal-7]: As noted, subject to pre-registration.
+
+We have completed initial benchmarking with 55 papers (each with 2+ human evaluations) using GPT-5.2 Pro.
+
+### Early indicative findings
+
+**Rating agreement:** Moderate correlation between LLM and human ratings (r ≈ 0.4-0.6 depending on dimension), with substantial variation across papers and metrics. [See detailed analysis →](results_ratings.qmd)
+
+**Critique coverage (very preliminary):** LLM identifies some but but not all human-flagged issues. Initial comparison shows coverage varies by issue type—methodological concerns captured better than domain-specific errors. [See critique comparison →](results_critiques.qmd)
+
+**Calibration:** Non-trivial credible intervals. (More detailed analysis needed)
+
+**Methods documentation:** Full pipeline, prompts, and schema documented for reproducibility. [See methods →](methods.qmd)
+
+### Dataset
+
++--------------------------------------------+------------------------+-----------------+----------------+
+| Component                                  | Current                | Medium Scenario | Large Scenario |
++============================================+========================+=================+================+
+| Evaluation packages                        | 55+                    | 105+            | 135+           |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Individual expert evaluations              | 100+                   | 200+            | 270+           |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Papers with consensus critiques identified | 14 (single enumerator) | 50+             | 80+            |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Models compared                            | 2                      | 3+              | 5+             |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Papers with enumerator adjudication        | 0                      | 40              | 60             |
++--------------------------------------------+------------------------+-----------------+----------------+
+
+## Team
+
+**Core team:**
+
+-   **David Reinstein (PI)**: Economist, founder/director of The Unjournal. 25+ years research experience (UC Berkeley, Essex, Exeter, Rethink Priorities). Track record of building evaluation infrastructure.
+-   **Valentin Klotzbücher (co-PI)**: Economist and statistician (University of Basel). Applied econometrics, causal inference, and reproducible pipelines.
+-   **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs."
+-   **Lorenzo Pacchiardi (Advisor)**: Research Associate, Leverhulme Centre for the Future of Intelligence, Cambridge. Leads Open Philanthropy–funded project on benchmarking LLM data science tasks.
+
+**Additional resources**: Unjournal's management team, operations staff, and [evaluator pool](https://coda.io/d/The-Unjournal-Hub-internal_d0KBG3dSZCs/Statistics-Evaluator-pool_suXopY_6) (200+ credentialed researchers).
+
+## Budget
+
+The interactive budget model below reflects our [detailed cost breakdown](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).
+
+```{ojs}
+//| echo: false
+
+// Parameters by scenario: [Small, Medium, Large]
+params = ({
+  duration_months: [12, 18, 24],
+  reinstein_fte: [0.3, 0.5, 0.7],
+  reinstein_annual_salary: [120000, 120000, 120000],
+  klotz_fte: [0.15, 0.2, 0.3],
+  klotz_annual_salary: [120000, 120000, 120000],
+  num_eval_packages: [30, 50, 80],
+  cost_per_eval_package: [1750, 1750, 1750],
+  enumerator_hourly_rate: [50, 50, 50],
+  senior_hourly_rate: [100, 100, 100],
+  num_papers_consensus: [30, 40, 60],
+  hours_per_paper_consensus: [6, 6, 6],
+  num_focal_papers_llm: [30, 40, 60],
+  num_models_per_paper: [3, 3, 3],
+  num_enumerators: [2, 2, 2],
+  hours_per_eval_unit: [1.33, 1.33, 1.33],
+  fraction_evals_senior_check: [0.33, 0.33, 0.33],
+  author_response_incentives: [8000, 10000, 15000],
+  crowd_incentives: [10000, 15000, 20000],
+  travel_support: [5000, 10000, 15000],
+  computing_costs: [15000, 20000, 30000],
+  additional_engineering: [20000, 30000, 40000],
+  software_server_costs: [5000, 5000, 7000]
+})
+
+// Scenario labels
+scenarioLabels = ["Small", "Medium", "Large"]
+```
+
+```{ojs}
+//| echo: false
+viewof scenario = Inputs.radio(scenarioLabels, {value: "Medium", label: "Budget scenario"})
+```
+
+```{ojs}
+//| echo: false
+
+// Get scenario index
+idx = scenarioLabels.indexOf(scenario)
+
+// Helper to get param value for current scenario
+p = (name) => params[name][idx]
+
+// Computed costs (matching Google Sheet formulas)
+costs = ({
+  // People
+  reinstein_cost: p("duration_months") * p("reinstein_fte") * p("reinstein_annual_salary") / 12,
+  klotz_cost: p("duration_months") * p("klotz_fte") * p("klotz_annual_salary") / 12,
+
+  // Evaluations
+  eval_packages: p("num_eval_packages") * p("cost_per_eval_package"),
+
+  // Enumerators
+  consensus_critiques: p("num_papers_consensus") * p("hours_per_paper_consensus") * p("enumerator_hourly_rate"),
+  llm_eval_enumerators: p("num_focal_papers_llm") * p("num_models_per_paper") * p("num_enumerators") * p("hours_per_eval_unit") * p("enumerator_hourly_rate"),
+  senior_checks: p("num_focal_papers_llm") * p("num_models_per_paper") * p("fraction_evals_senior_check") * p("senior_hourly_rate"),
+
+  // Incentives
+  author_incentives: p("author_response_incentives"),
+  crowd_incentives: p("crowd_incentives"),
+
+  // Other
+  travel: p("travel_support"),
+  computing: p("computing_costs"),
+  engineering: p("additional_engineering"),
+  software: p("software_server_costs")
+})
+
+// Subtotals
+subtotals = ({
+  people: costs.reinstein_cost + costs.klotz_cost,
+  evaluations: costs.eval_packages,
+  enumerators: costs.consensus_critiques + costs.llm_eval_enumerators + costs.senior_checks,
+  incentives: costs.author_incentives + costs.crowd_incentives,
+  other: costs.travel + costs.computing + costs.engineering + costs.software
+})
+
+grandTotal = subtotals.people + subtotals.evaluations + subtotals.enumerators + subtotals.incentives + subtotals.other
+
+// Currency formatter
+fmt = d3.format("$,.0f")
+```
+
+```{ojs}
+//| echo: false
+
+html`<div style="font-size: 0.95em;">
+<p><strong>Scenario: ${scenario}</strong> - Duration: ${p("duration_months")} months, ${p("num_eval_packages")} evaluation packages, ${p("num_focal_papers_llm")} focal papers for LLM comparison</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+<thead>
+<tr style="background: #f0f0f0; border-bottom: 2px solid #333;">
+  <th style="text-align: left; padding: 8px;">Section</th>
+  <th style="text-align: left; padding: 8px;">Item</th>
+  <th style="text-align: right; padding: 8px;">Cost</th>
+  <th style="text-align: right; padding: 8px;">Subtotal</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding: 6px;"><strong>People</strong></td><td>Research team (co-PIs) @ ${((p("reinstein_fte")+p("klotz_fte"))*100).toFixed(0)}% FTE combined</td><td style="text-align: right;">${fmt(subtotals.people)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td></tr>
+
+<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Evaluations</strong></td><td>${p("num_eval_packages")} packages @ ${fmt(p("cost_per_eval_package"))}</td><td style="text-align: right;">${fmt(costs.eval_packages)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.evaluations)}</td></tr>
+
+<tr><td style="padding: 6px;"><strong>Enumerators</strong></td><td>Consensus critiques (${p("num_papers_consensus")} papers x ${p("hours_per_paper_consensus")}h)</td><td style="text-align: right;">${fmt(costs.consensus_critiques)}</td><td></td></tr>
+<tr><td></td><td>LLM eval labeling (${p("num_focal_papers_llm")} papers x ${p("num_models_per_paper")} models x ${p("num_enumerators")} raters)</td><td style="text-align: right;">${fmt(costs.llm_eval_enumerators)}</td><td></td></tr>
+<tr><td></td><td>Senior expert checks (${(p("fraction_evals_senior_check")*100).toFixed(0)}% sample)</td><td style="text-align: right;">${fmt(costs.senior_checks)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.enumerators)}</td></tr>
+
+<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Incentives</strong></td><td>Author response incentives</td><td style="text-align: right;">${fmt(costs.author_incentives)}</td><td></td></tr>
+<tr style="background: #fafafa;"><td></td><td>Crowd/prediction market incentives</td><td style="text-align: right;">${fmt(costs.crowd_incentives)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.incentives)}</td></tr>
+
+<tr><td style="padding: 6px;"><strong>Other</strong></td><td>Travel & conferences</td><td style="text-align: right;">${fmt(costs.travel)}</td><td></td></tr>
+<tr><td></td><td>LLM/compute costs</td><td style="text-align: right;">${fmt(costs.computing)}</td><td></td></tr>
+<tr><td></td><td>Additional engineering</td><td style="text-align: right;">${fmt(costs.engineering)}</td><td></td></tr>
+<tr><td></td><td>Software/server overhead</td><td style="text-align: right;">${fmt(costs.software)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.other)}</td></tr>
+
+<tr style="border-top: 2px solid #333; background: #e8f4e8;">
+  <td style="padding: 8px;"><strong>TOTAL</strong></td>
+  <td></td>
+  <td></td>
+  <td style="text-align: right; font-weight: bold; font-size: 1.1em;">${fmt(grandTotal)}</td>
+</tr>
+</tbody>
+</table>
+</div>`
+```
+
+::: {.callout-note collapse="true"}
+## Key parameters driving this budget
+
+```{ojs}
+//| echo: false
+html`<table style="width: 100%; font-size: 0.9em;">
+<tr><th style="text-align: left;">Parameter</th><th>Small</th><th>Medium</th><th>Large</th><th style="text-align: left;">Description</th></tr>
+<tr><td>Duration</td><td>${params.duration_months[0]} mo</td><td>${params.duration_months[1]} mo</td><td>${params.duration_months[2]} mo</td><td>Project duration</td></tr>
+<tr><td>Research team FTE</td><td>${(params.reinstein_fte[0]+params.klotz_fte[0]).toFixed(2)}</td><td>${(params.reinstein_fte[1]+params.klotz_fte[1]).toFixed(2)}</td><td>${(params.reinstein_fte[2]+params.klotz_fte[2]).toFixed(2)}</td><td>Combined co-PI effort allocation</td></tr>
+<tr><td>Eval packages</td><td>${params.num_eval_packages[0]}</td><td>${params.num_eval_packages[1]}</td><td>${params.num_eval_packages[2]}</td><td>New Unjournal evaluation packages</td></tr>
+<tr><td>Focal papers</td><td>${params.num_focal_papers_llm[0]}</td><td>${params.num_focal_papers_llm[1]}</td><td>${params.num_focal_papers_llm[2]}</td><td>Papers for detailed LLM comparison</td></tr>
+<tr style="background: #f9f9f9;"><td colspan="5"><em>Enumerator costs</em></td></tr>
+<tr><td>Enumerator rate</td><td>$${params.enumerator_hourly_rate[0]}/hr</td><td>$${params.enumerator_hourly_rate[1]}/hr</td><td>$${params.enumerator_hourly_rate[2]}/hr</td><td>Hourly rate for labeling work</td></tr>
+<tr><td>Senior expert rate</td><td>$${params.senior_hourly_rate[0]}/hr</td><td>$${params.senior_hourly_rate[1]}/hr</td><td>$${params.senior_hourly_rate[2]}/hr</td><td>Rate for expert review checks</td></tr>
+<tr><td>Hours per eval unit</td><td>${params.hours_per_eval_unit[0]}</td><td>${params.hours_per_eval_unit[1]}</td><td>${params.hours_per_eval_unit[2]}</td><td>Time to label each LLM evaluation</td></tr>
+</table>`
+```
+:::
+
+**Cost categories:** Core team time (co-PIs), payments for human research evaluators (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, engineering and development, and compute/API costs.
+
+::: {.callout-note collapse="true"}
+## Scope extensions in larger scenarios
+
+**Research prioritization (all scenarios):** We test LLM ability to source and prioritize high-impact research, comparing AI recommendations to prioritization decisions made by The Unjournal's internal team.
+
+**Pivotal Questions (Large scenario):** In the larger grant, we extend this to research relevant to specific "[Pivotal Questions](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/pivotal-questions)"—high-stakes research questions identified by GCR-focused organizations where better evidence synthesis could meaningfully inform decisions.
+:::
+
+## Project Timeline
+
+```{ojs}
+//| echo: false
+
+// Timeline visualization showing overlapping activities
+timelineData = [
+  {activity: "Pre-analysis plan & registration", start: 1, end: 3, row: 0, color: "#6b7280"},
+  {activity: "Pipeline & tooling development", start: 1, end: 6, row: 1, color: "#3b82f6"},
+  {activity: "Baseline LLM runs (existing evals)", start: 2, end: 5, row: 2, color: "#8b5cf6"},
+  {activity: "Human evaluations (ongoing intake)", start: 1, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 3, color: "#10b981"},
+  {activity: "LLM evaluation of new papers", start: 4, end: idx === 0 ? 10 : idx === 1 ? 15 : 21, row: 4, color: "#8b5cf6"},
+  {activity: "Enumerator labeling & adjudication", start: 5, end: idx === 0 ? 11 : idx === 1 ? 16 : 22, row: 5, color: "#f59e0b"},
+  {activity: "Analysis & model refinement", start: 3, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 6, color: "#ef4444"},
+  {activity: "Training predictive models", start: idx === 0 ? 6 : idx === 1 ? 8 : 10, end: idx === 0 ? 10 : idx === 1 ? 15 : 20, row: 7, color: "#ec4899", show: idx >= 1},
+  {activity: "Out-of-time validation (pipeline)", start: idx === 0 ? 9 : idx === 1 ? 13 : 17, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 8, color: "#06b6d4", show: idx >= 1},
+  {activity: "Dashboard & data releases", start: 4, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 9, color: "#84cc16"},
+  {activity: "Publications & dissemination", start: idx === 0 ? 8 : idx === 1 ? 12 : 16, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 10, color: "#6b7280"}
+]
+
+maxMonth = idx === 0 ? 12 : idx === 1 ? 18 : 24
+filteredTimeline = timelineData.filter(d => d.show !== false)
+```
+
+```{ojs}
+//| echo: false
+
+html`<div style="font-size: 0.9em; overflow-x: auto;">
+<p><strong>${scenario} scenario timeline (${maxMonth} months)</strong></p>
+<svg width="${Math.max(700, maxMonth * 35 + 250)}" height="${filteredTimeline.length * 28 + 40}">
+  <!-- Month labels -->
+  ${Array.from({length: maxMonth}, (_, i) => i + 1).map(m =>
+    `<text x="${250 + (m - 0.5) * 35}" y="15" text-anchor="middle" font-size="11" fill="#666">${m}</text>`
+  ).join('')}
+
+  <!-- Grid lines -->
+  ${Array.from({length: maxMonth + 1}, (_, i) => i).map(m =>
+    `<line x1="${250 + m * 35}" y1="20" x2="${250 + m * 35}" y2="${filteredTimeline.length * 28 + 30}" stroke="#e5e7eb" stroke-width="1"/>`
+  ).join('')}
+
+  <!-- Activity bars -->
+  ${filteredTimeline.map((d, i) => `
+    <g transform="translate(0, ${25 + i * 28})">
+      <text x="245" y="14" text-anchor="end" font-size="11" fill="#333">${d.activity}</text>
+      <rect x="${250 + (d.start - 1) * 35}" y="2" width="${(d.end - d.start + 1) * 35 - 4}" height="18" rx="3" fill="${d.color}" opacity="0.8"/>
+    </g>
+  `).join('')}
+</svg>
+</div>`
+```
+
+```{ojs}
+//| echo: false
+// Predictive modeling note (only shown for Medium/Large)
+predictiveNote = idx >= 1 ? `<p style="margin-top: 0.5em;"><strong>Predictive modeling</strong> (Medium/Large): In months ${idx === 1 ? '8-15' : '10-20'}, we use accumulated human evaluations as training signal to build predictive models for papers entering The Unjournal pipeline, enabling out-of-time validation in the final phase. This may involve few-shot prompting, statistical models, or light calibration—the exact approach is part of the research.</p>` : ''
+html`${predictiveNote}`
+```
+
+### **Key research principles:**
+
+-   **Pre-registration early**: We specify and register a general pre-analysis plan in months 1-3 to constrain researcher degrees of freedom
+-   **Continuous human evaluations**: New Unjournal evaluation packages arrive throughout the project, feeding both the benchmark dataset and predictive modeling
+-   **Living research**: Data and results are openly available and updated continuously; there is no "final dataset," only versioned releases
+
+## Deliverables
+
+1.  **Living benchmark dataset**: Continuously updated paper prioritization + human evaluations + LLM outputs + adjudication scores, openly available
+2.  **Public dashboard**: Continuously-updated website where new models can be compared against evolving benchmarks
+3.  **Open-source codebase**: Pipelines for running AI evaluations and computing metrics
+4.  **Failure-mode taxonomy**: Documented patterns of AI reasoning failures
+5.  **"Taste/alignment" analysis**: Quantitative comparison of human vs. AI research preferences
+6.  **Academic paper(s)**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals, as well as journal-independent evaluation initiatives
+7.  **Practical guidance and general writeups**: 'Playbook' for using AI peer review, understanding its strengths and limitations; forum-style posts/ reports on AI research judgement
+
+## Success Metrics
+
+**Benchmark quality:**
+
+-   80+ papers with complete paired human/LLM evaluations, LLM evaluations rated as 'high-quality' relative to other cutting-edge tools
+-   Reliable/consistent critique-matching across enumerators
+-   3+ SOTA models systematically compared along with 1+ bespoke tools
+
+**Informative results:**
+
+-   Pre-registered quantitative metrics with adequate statistical power
+-   At least one high-quality 'journal-tier-worthy' research output; actual "publication outcomes" or journal-independent credible evaluation/review
+-   Clear evidence of specific failure modes (or their absence)
+
+**Practical uptake:**
+
+-   Unjournal team adapts tools into evaluation pipeline, or finds the results credible for providing guidance on the limitations of AI use[^proposal-8]
+-   2+ external organizations (GCR funders, journals/evaluation initiatives, research users) engage with research outputs
+-   Curated data and benchmarks used by other researchers, especially in AI safety evaluation
+-   We report findings transparently regardless of whether LLM tools prove practically useful, documenting how they differ from human judgment and what this implies for AI reasoning
+
+[^proposal-8]: Of course this measure is not a neutral one, as we are affiliated with The Unjournal. Nonetheless, outsiders might be able to judge the apparent credibility and success of this \~internal takeup.
+
+## Risks and Mitigations
+
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Risk                                             | Mitigation                                                                                                                                                                                                                                                                                                       |
++==================================================+==================================================================================================================================================================================================================================================================================================================+
+| LLMs differ substantially from human assessments | This is informative, not a failure. We document how and why AI evaluations diverge, with implications for using them as practical tools and for understanding LLM reasoning capacities.                                                                                                                          |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Human evaluations are noisy                      | Use adjudication and curated subsets where multiple evaluators agree. Statistical modeling accounts for rater variance.                                                                                                                                                                                          |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Engineering bottlenecks                          | Modular pipelines, flexible staffing, leverage existing tools (OpenAI API, existing Unjournal infrastructure)                                                                                                                                                                                                    |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Low external uptake                              | We are in contact with researchers/leaders at organizations including GiveWell, Open Philanthropy, and Founders Pledge, who have expressed interest in evaluation quality. We are engaging with research evaluation initiatives (e.g., DORA signatories, preprint review projects) and academic journal editors. |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+## Why Now?
+
+LLMs are now sophisticated enough to plausibly conduct research evaluation—but the window to understand their failure modes *before* widespread adoption is closing. The Unjournal's structured evaluations provide a unique ground truth for benchmarking AI reasoning in economics and policy research; no comparable dataset exists. If AI research evaluation becomes reliable, it could reduce costs and accelerate evidence synthesis for time-sensitive decisions. If it remains unreliable, decision-makers need to know.
+
+## Contact and Resources
+
+-   **Project site**: [llm-uj-research-eval.netlify.app](https://llm-uj-research-eval.netlify.app)
+-   **The Unjournal**: [unjournal.org](https://unjournal.org)
+-   **Repository**: [github.com/valentinklotzbuecher/llm-uj-research-eval](https://github.com/valentinklotzbuecher/llm-uj-research-eval)
+-   **PI contact**: David Reinstein, davidreinstein\@unjournal.org
