@@ -20,26 +20,89 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1603,
     "comparison": {
-      "coverage_pct": 60,
-      "precision_pct": 90,
-      "missed_issues": [
-        "Sensitivity to controls/power: the field ITT estimate’s standard error and statistical significance depend heavily on including the prior election result as a covariate (Table 2 cols 1–2). This dependence should be highlighted and discussed as a key robustness/power concern.",
-        "Lab experiment specification: experts ask why the authors do not use pre–post (change-score) outcomes (difference between post- and pre-treatment) rather than only post-treatment values."
+      "matched_pairs": [
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            5
+          ],
+          "match_quality": 95,
+          "label": "Spillovers/interference attenuate estimated treatment effects",
+          "match_explanation": "Both flag that untreated units may be indirectly exposed to treatment information, violating SUTVA and likely attenuating (biasing toward zero) estimated effects.",
+          "detailed_discussion": "The human critique emphasizes that spillovers (e.g., word-of-mouth, shared pamphlets) would make the reported effects lower bounds and potentially biased. The LLM issue similarly points to plausible interference in a dense urban setting and notes the analysis largely assumes SUTVA without tests or bounds. Both are focused on the same identification threat: contamination of control neighborhoods. The LLM additionally suggests design/analysis remedies (testing/bounding), whereas the human note mainly highlights the direction of bias (attenuation)."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            2,
+            6,
+            11
+          ],
+          "match_quality": 60,
+          "label": "Framing/interpretation and external validity of “demand” claims",
+          "match_explanation": "Both question whether the messages and outcomes identify normative commitments to democracy/media freedom versus context-specific persuasion, and both raise limits on generalizing beyond the specific Turkish context.",
+          "detailed_discussion": "The human critique argues the framings are contextually salient but do not cleanly isolate intrinsic democratic or media-freedom commitments, warning that “demand for democracy” may overstate what is being measured and may be driven by earthquake/disaster and corruption salience. The LLM’s L2 overlaps by arguing the scripts present strong causal claims that may function as persuasive/valence messaging rather than “accurate information correction,” which similarly complicates interpretation of what attitude is being moved. The LLM’s L6 directly overlaps with the human concern about generalizability, though the LLM frames it more as sampling/site limitations (single city, Facebook sample) rather than conceptual generalizability of the construct. L11 partially aligns by noting the paper may overgeneralize from specific estimands/mechanisms to broad claims about “accurate information campaigns,” which is adjacent to the human worry about overly strong “demand for democracy” language. The match is not perfect because the human issue is especially about construct validity (normative commitment vs instrumental evaluation), while the LLM spreads the concern across message epistemics, sample/site external validity, and over-claiming."
+        }
       ],
-      "extra_issues": [
-        "Epistemic/measurement critique of labeling beliefs as “misperceptions” using V-Dem as ground truth",
-        "Concern that treatments communicate strong causal claims (democracy → fewer disaster deaths; media independence → less corruption) based on largely observational evidence, potentially conflating persuasion/valence with information correction",
-        "Partisan entanglement of field implementation (opposition involvement/branding) undermining a ‘non-partisan information’ interpretation",
-        "2SLS/LATE identification and exclusion restriction concerns (assignment affects multiple channels beyond ‘completed conversations’)",
-        "Data integrity/measurement concerns about administrative turnout values exceeding 1 and documentation inconsistencies",
-        "Placebo arm not “clean” because it still contains substantive propositions, complicating interpretation",
-        "Multiple comparisons/median splits in heterogeneity analyses and need for adjustment or clearer confirmatory vs exploratory framing",
-        "Persistence interpretation using the 2024 municipal election needing stronger discussion of alternative explanations (later campaigns, mapping stability, administrative changes)",
-        "Clarity issues distinguishing ITT vs compliance-adjusted effects and avoiding over-claiming about ‘accurate information campaigns’"
+      "unmatched_human": [
+        {
+          "index": 1,
+          "brief_description": "Field results are highly sensitive to including prior election results as a control; without it, SEs are much larger and significance disappears.",
+          "why_missed": "The LLM list does not discuss covariate adjustment sensitivity, precision/power dependence on controls, or highlighting specification fragility in Table 2; it focuses more on interference, compliance/IV interpretation, and implementation validity."
+        },
+        {
+          "index": 4,
+          "brief_description": "Lab experiment should analyze change scores (post–pre) rather than only post-treatment outcomes to leverage baseline and improve inference.",
+          "why_missed": "No LLM issue mentions the pre/post measurement structure or recommends difference-in-differences/change-score modeling for the lab experiment; the LLM critiques center on messaging validity, identification threats, and reporting/measurement concerns elsewhere."
+        }
       ],
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Misperceptions measured relative to V-Dem treated as ground truth needs epistemic nuance.",
+          "why_extra": "Human critiques did not raise concerns about using expert-coded indices as the benchmark for ‘misperceptions’."
+        },
+        {
+          "index": 3,
+          "brief_description": "Partisan branding/opposition-party entanglement confounds ‘non-partisan information’ interpretation.",
+          "why_extra": "Humans did not flag partisan delivery/branding as a central threat (they focused more on spillovers, controls, and construct validity)."
+        },
+        {
+          "index": 4,
+          "brief_description": "2SLS/compliance estimand: exclusion restriction concerns because assignment affects multiple channels beyond conversations.",
+          "why_extra": "Humans did not discuss IV exclusion restrictions or multi-channel violations for the field compliance analysis."
+        },
+        {
+          "index": 7,
+          "brief_description": "Data integrity concerns: turnout values >1 and documentation inconsistencies for the online turnout variable.",
+          "why_extra": "Human notes did not mention potential data coding/validation issues."
+        },
+        {
+          "index": 8,
+          "brief_description": "Placebo messages contain substantive content, potentially muddying the placebo/demand interpretation.",
+          "why_extra": "Humans did not critique placebo construction or experimenter-demand isolation."
+        },
+        {
+          "index": 9,
+          "brief_description": "Heterogeneity analysis uses many median splits/subgroups; potential multiple-testing and preregistration clarity needed.",
+          "why_extra": "Humans did not raise multiplicity/heterogeneity specification concerns."
+        },
+        {
+          "index": 10,
+          "brief_description": "Persistence claims tied to 2024 municipal election need stronger alternative-explanations discussion.",
+          "why_extra": "Humans did not focus on longer-run/persistence identification threats across elections."
+        },
+        {
+          "index": 12,
+          "brief_description": "Non-partisan narrative vs partisan implementation needs transparency.",
+          "why_extra": "Not explicitly raised by humans; overlaps somewhat with L3 but remains distinct from the human-listed issues."
+        }
+      ],
+      "coverage_pct": 50,
+      "precision_pct": 33,
       "overall_rating": "Moderate",
-      "overall_justification": "GPT captures two central human concerns—spillovers and over-interpretation/external-validity limits of the ‘demand for democracy’ framing—but misses the experts’ most technical points about sensitivity to a key control and the preferred pre–post specification in the lab.",
-      "detailed_notes": "The largest gap is that the human critiques emphasize a specific, high-leverage robustness/power issue (SE halves when controlling for prior election results), whereas GPT focuses more on identification/interpretation threats (SUTVA, exclusion restrictions, partisanship) and reporting/analysis hygiene (placebo content, multiple testing). Those extra GPT points are mostly plausible and substantive but are not the same priorities raised by the experts."
+      "overall_justification": "The LLM captures the spillover/interference concern very well and partially captures the human construct-validity/external-validity worry about framing and over-strong ‘demand’ interpretation. However, it misses two prominent human points: (i) the strong sensitivity of field precision/significance to including prior election controls, and (ii) the lab design-analysis suggestion to use pre–post differences. Many LLM critiques are additional and not present in the human list, lowering precision.",
+      "detailed_notes": "Matching threshold used: match_quality >= 30. Matched LLM issues: L2, L5, L6, L11. Unmatched human issues reflect more specification-robustness and within-subject (pre/post) analysis concerns, which are distinct from the LLM’s emphasis on identification assumptions (SUTVA/IV), message epistemics, and external validity/sampling."
     }
   },
   {
@@ -63,28 +126,156 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 2526,
     "comparison": {
-      "coverage_pct": 68,
-      "precision_pct": 92,
-      "missed_issues": [
-        "Pre-registration deviations / researcher degrees of freedom beyond winsorization (explicitly flagging departures from the pre-registered analysis plan)",
-        "Outcome normalization choice: donations normalized by ZIP-code population and how that affects interpretation/inference",
-        "Pre-registered heterogeneity method not implemented: planned causal trees approach for structured heterogeneity search",
-        "Main-results interpretation: failure to emphasize uncertainty bounds / confidence intervals (experts explicitly criticize point-estimate-centric discussion)",
-        "HTE statistical inference gaps: missing joint tests (e.g., F-tests) to establish which HTEs are significant",
-        "HTE interpretability: large positive/negative split effects likely noise without theory for negative effects; overselling of HTE patterns",
-        "Spillover modeling arbitrariness details: sensitivity to assumed spillover radius/distance cutoff and functional form; the striking claim that indirect effect is ~10x direct effect",
-        "Conceptual critique of using covariate-balance hypothesis tests as a ‘test of randomization’; preference for standardized differences"
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            4
+          ],
+          "match_quality": 75,
+          "label": "Winsorization/transforming outcome affects inference",
+          "match_explanation": "Both note that winsorizing PLZ-day donations at €1,000 is consequential in a heavy-tailed setting and can change estimated effects and inference.",
+          "detailed_discussion": "The human critique frames winsorization as a potential deviation from the pre-registered plan and a key researcher degree of freedom (transforming the outcome). The LLM focuses less on preregistration per se and more on the statistical consequences of a €1,000 cap under heavy tails, calling for fuller robustness checks. Both imply that tail-handling choices can materially move treatment effects and downstream conclusions. The overlap is strong on the transformation concern, but the LLM does not explicitly emphasize preregistration deviations, lowering the match quality."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            2
+          ],
+          "match_quality": 55,
+          "label": "Per-capita normalization and estimand interpretation",
+          "match_explanation": "Both raise concerns about interpreting effects when outcomes are scaled by population/area and when exposure varies within assigned areas.",
+          "detailed_discussion": "The human critique flags that donations are normalized by zip-code population, which changes interpretation and may embed assumptions about linear scaling with residents. The LLM raises a related but broader point: assignment at the postal-code level does not guarantee uniform exposure because platform delivery creates endogenous intensity, making “€ per million residents” interpretations fragile. Both are ultimately about the estimand implied by aggregation/scaling choices. The LLM does not directly critique the population-normalization choice as such, so the match is partial."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            5
+          ],
+          "match_quality": 80,
+          "label": "Outcome window length and seasonal dynamics",
+          "match_explanation": "Both question how the chosen post-treatment measurement window affects conclusions, especially given end-of-year seasonality.",
+          "detailed_discussion": "The human issue highlights the degree of freedom in selecting the measurement window length, which can materially affect estimated persistence and ROI. The LLM specifically critiques the Dec 31 endpoint as confounding persistence with extreme seasonal donation dynamics and recommends more explicit dynamic/event-study modeling. Both imply that results may be sensitive to windowing choices. The LLM adds a concrete seasonal mechanism and a methodological fix, making the match strong."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            6,
+            11
+          ],
+          "match_quality": 85,
+          "label": "Competing-charity effects and crowd-out inference",
+          "match_explanation": "Both address analyzing spillovers to competing charities/crowding out and the limits of available competitor data for strong conclusions.",
+          "detailed_discussion": "The human critique notes that the paper adds an extra analytical dimension by investigating competing charities, implicitly raising concerns about scope creep or interpretive overreach. The LLM similarly treats competitor/crowding-out conclusions as constrained by incomplete and mismatched datasets and connects this to social-impact interpretation and ROI assumptions. Both are aligned that competitor effects are hard to measure well and conclusions may be too strong. The LLM is more specific about data limitations, while the human critique is more about the analytic expansion/degree of freedom."
+        },
+        {
+          "human_issue_index": 5,
+          "llm_issue_indices": [
+            10
+          ],
+          "match_quality": 45,
+          "label": "Planned causal-tree heterogeneity not implemented",
+          "match_explanation": "The human critique notes a preregistered causal-tree approach was not carried out; the LLM flags heterogeneity analyses as exploratory and at risk of false positives.",
+          "detailed_discussion": "The human issue is a concrete preregistration deviation: a promised structured heterogeneity search via causal trees was not done. The LLM does not mention this specific omission, but it does critique the heterogeneity section as exploratory with multiplicity risk and calls for stronger validation, which is directionally similar to why a structured approach was preregistered. Both are concerned about how heterogeneity is discovered/validated. Because the LLM does not discuss adherence to the preregistered causal-tree plan, the match remains moderate."
+        },
+        {
+          "human_issue_index": 6,
+          "llm_issue_indices": [
+            3,
+            11
+          ],
+          "match_quality": 70,
+          "label": "Overstated conclusions without uncertainty intervals",
+          "match_explanation": "Both argue interpretations (especially profitability/long-run effects) should be more cautious and should foreground uncertainty rather than point estimates.",
+          "detailed_discussion": "The human critique explicitly complains about missing or underemphasized confidence intervals and uncertainty bounds in narrative discussion, leading to overselling. The LLM similarly calls the revenue effects borderline and emphasizes sensitivity of ROI/profitability to assumptions, urging explicit uncertainty propagation for ROI. Both converge on the need to present uncertainty prominently when effects are weak or assumption-dependent. The LLM frames uncertainty partly through robustness/sensitivity rather than the specific reporting failure of CIs, so it is not a perfect match."
+        },
+        {
+          "human_issue_index": 7,
+          "llm_issue_indices": [
+            10
+          ],
+          "match_quality": 55,
+          "label": "HTE sign-flips suggest noise over theory",
+          "match_explanation": "Both question heterogeneous treatment effects that look unstable and may reflect noise rather than meaningful subgroup differences.",
+          "detailed_discussion": "The human critique focuses on a substantive interpretability red flag: large high-low subgroup differences arise because one subgroup is estimated positive and the other negative, which seems theoretically implausible and likely noise. The LLM does not single out sign reversals, but it broadly warns that many subgroup interactions are exploratory and prone to false positives without controls/validation. Both imply that the heterogeneity patterns may not be reliable enough for strong managerial recommendations. The human critique is more theory-driven (implausible negative effects), while the LLM is more statistical/multiplicity-driven."
+        },
+        {
+          "human_issue_index": 8,
+          "llm_issue_indices": [
+            10
+          ],
+          "match_quality": 80,
+          "label": "Multiple testing risk in HTE exploration",
+          "match_explanation": "Both highlight multiplicity/multiple-hypothesis-testing risks in reported heterogeneous treatment effects and suggest more structured/validated approaches.",
+          "detailed_discussion": "The human critique explicitly flags MHT bias in HTE testing and notes that the preregistered causal-tree approach might have mitigated this problem. The LLM mirrors this by warning that many subgroup interactions look exploratory and could be false positives without multiplicity control or holdout validation. Both therefore converge on the same statistical threat: overinterpreting selected significant subgroup findings. The LLM adds concrete remedies (multiplicity control/validation) whereas the human critique points to the (unused) causal-tree plan."
+        },
+        {
+          "human_issue_index": 9,
+          "llm_issue_indices": [
+            10
+          ],
+          "match_quality": 40,
+          "label": "Insufficient formal testing for HTE claims",
+          "match_explanation": "The human critique notes missing omnibus tests (e.g., F-tests) for HTE significance; the LLM more generally critiques HTE reporting as exploratory without rigorous error control.",
+          "detailed_discussion": "The human issue is specific: the authors report HTEs but do not conduct appropriate joint tests (e.g., F-tests) to determine which are statistically significant. The LLM does not mention F-tests, but its multiplicity/false-positive critique implies that the inferential framework for HTE claims is weak. Both point to shortcomings in statistical inference supporting heterogeneity conclusions. Because the LLM’s point is broader and not about the specific missing tests, the match is limited."
+        },
+        {
+          "human_issue_index": 10,
+          "llm_issue_indices": [
+            4,
+            3,
+            11
+          ],
+          "match_quality": 85,
+          "label": "Profitability/ROI highly sensitive to trimming",
+          "match_explanation": "Both argue that winsorization/trimming in a heavy-tailed outcome can materially alter ROI and profitability conclusions, which are already sensitive to assumptions/specifications.",
+          "detailed_discussion": "The human critique stresses that trimming/winsorizing is especially problematic for profitability estimates because ROI is driven by tail donations. The LLM similarly emphasizes that the €1,000 cap may strongly affect inference under heavy tails and separately notes that revenue/ROI conclusions are borderline and assumption-dependent (lifetime value, specifications). Both therefore see ROI as fragile to tail-handling and modeling choices. The LLM expands beyond trimming to include broader ROI-assumption uncertainty, but the shared core concern is strong."
+        },
+        {
+          "human_issue_index": 11,
+          "llm_issue_indices": [
+            1
+          ],
+          "match_quality": 90,
+          "label": "Spillovers/interference rely on strong assumptions",
+          "match_explanation": "Both critique the spillover/interference analysis as relying on arbitrary modeling/measurement assumptions and producing implausibly large indirect effects relative to direct effects.",
+          "detailed_discussion": "The human critique highlights that estimated spillovers are an order of magnitude larger than direct effects and depend on arbitrary distance cutoffs and functional-form assumptions, raising interpretability concerns. The LLM likewise frames this as an interference/SUTVA problem: neighbor-share regressions are suggestive rather than randomized tests, and cross-area spillovers and misclassification complicate the causal estimand. Both agree that spillovers are not cleanly identified and should be interpreted cautiously. The LLM adds the causal-inference framing (SUTVA/estimands), while the human critique focuses more on the magnitude and arbitrariness of specific modeling choices."
+        }
       ],
-      "extra_issues": [
-        "Treatment intensity vs. assignment driven by Facebook’s delivery algorithm potentially inducing endogenous exposure differences within treated ZIP codes",
-        "Mechanism claim (“power of asking”) not directly tested against alternative mechanisms (salience/trust/news shocks)",
-        "Factorial design/power: content and impression-allocation comparisons not statistically distinguishable and should be framed as low power rather than equivalence",
-        "Replication/reproducibility constraints due to proprietary/aggregated data and unclear code availability",
-        "Pre-treatment imbalance concerns for the 23-charity alliance outcomes framed as potential residual confounding/seasonality issues"
+      "unmatched_human": [
+        {
+          "index": 12,
+          "brief_description": "Covariate balance tables should not be used as randomization tests; prefer standardized differences over hypothesis tests.",
+          "why_missed": "No LLM issue explicitly critiques balance-table hypothesis testing or recommends standardized differences; related concerns (e.g., pretreatment imbalance) are mentioned only in a different context (LLM L7) and not framed as a conceptual error about testing randomization."
+        }
       ],
+      "unmatched_llm": [
+        {
+          "index": 7,
+          "brief_description": "Pretreatment imbalance and residual confounding for 23-charity alliance outcomes despite DiD adjustments.",
+          "why_extra": "The human critiques provided do not specifically discuss the 23-charity alliance imbalance/DiD identification threat."
+        },
+        {
+          "index": 8,
+          "brief_description": "Mechanism claims ('power of asking') exceed what is directly identified/tested.",
+          "why_extra": "Humans focus on uncertainty, HTE inference, spillovers, and preregistration/transformations, not on mechanism identification."
+        },
+        {
+          "index": 9,
+          "brief_description": "Factorial design content differences are mostly underpowered/not distinguishable; avoid equivalence-style rhetoric.",
+          "why_extra": "The human list does not mention factorial/video-type comparisons or equivalence vs low power."
+        },
+        {
+          "index": 12,
+          "brief_description": "Replication constraints from proprietary/aggregated data and unclear code/data availability.",
+          "why_extra": "Human issues emphasize preregistration deviations and inference/interpretation, not reproducibility constraints."
+        }
+      ],
+      "coverage_pct": 92,
+      "precision_pct": 67,
       "overall_rating": "Good",
-      "overall_justification": "GPT captures most of the core substantive concerns (winsorization/ROI sensitivity, spillovers/interference, window choice, competitor effects limits, and multiplicity in HTEs), but it misses several expert-emphasized points about pre-registration deviations, confidence intervals/uncertainty communication, and specific shortcomings in HTE and spillover inference.",
-      "detailed_notes": "The biggest gap is that human critiques focus heavily on (i) adherence to the pre-analysis plan (including the unimplemented causal-trees HTE plan), and (ii) inference/communication issues (confidence intervals, joint tests for HTEs, and interpretability of negative subgroup effects). GPT’s spillover critique matches the theme (interference) but not the experts’ emphasis on arbitrariness/sensitivity and the unusually large indirect-effect magnitude. GPT’s additional points (platform delivery endogeneity, mechanism, factorial-design power, reproducibility) are plausible and largely non-spurious, even if not raised by the cited experts."
+      "overall_justification": "The LLM covers nearly all major human concerns (windowing/seasonality, spillovers/interference, winsorization/ROI sensitivity, competitor effects, and HTE multiplicity), but misses the specific methodological critique about balance-table hypothesis testing and adds several extra issues (mechanisms, factorial power, alliance imbalance, reproducibility) not present in the human list.",
+      "detailed_notes": "Several matches are conceptually aligned but differ in emphasis: humans repeatedly foreground preregistration adherence and specific missing inferential elements (confidence intervals, F-tests), while the LLM often reframes these as sensitivity/assumption-dependence or multiplicity/validation problems. The strongest alignments are spillovers/interference (H11-L1), tail handling/winsorization (H1/H10-L4), and windowing/seasonality (H3-L5). The weakest alignments are the preregistered causal-trees omission (H5) and the missing HTE F-tests (H9), which the LLM addresses only indirectly via general heterogeneity/multiplicity concerns."
     }
   },
   {
@@ -106,29 +297,73 @@
     "num_gpt_issues": 10,
     "coda_critique_length": 2001,
     "comparison": {
-      "coverage_pct": 5,
-      "precision_pct": 10,
-      "missed_issues": [
-        "Ceiling effects in Likert-scale belief measures (most responses at the maximum), which can attenuate estimated treatment effects and differences between groups",
-        "Suggestion to use an appropriate censored/outcome model (e.g., Tobit) to account for the ceiling effect (and consider how it interacts with inverse probability weighting)",
-        "Misinterpretation of non-significant differences in belief updating as evidence of no difference (“absence of evidence” vs “evidence of absence”), especially under potential low power driven by ceiling effects",
-        "Group differences in available ‘room to update’ (information seekers vs avoiders) induced by the ceiling, affecting comparability of belief-updating magnitudes"
+      "matched_pairs": [
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            2,
+            5
+          ],
+          "match_quality": 55,
+          "label": "Overstating null differences from non-significance",
+          "match_explanation": "H2 criticizes interpreting a non-significant difference as evidence of no difference, especially under low power. L2 similarly argues the paper’s headline conclusion is too strong given the evidence, and L5 cautions against strong interpretation of null effects in a particular manipulation.",
+          "detailed_discussion": "The human expert focuses on a specific statistical inference problem: the authors treat p=0.55 as implying “differences are unlikely,” despite a numerically meaningful gap (0.15 vs 0.20) and likely low power due to ceiling effects. The LLM raises an analogous interpretive concern at a more conceptual level: weak/low correlations (or null effects) do not justify strong claims like “no stable types,” and null results should be stated cautiously. Unlike the human critique, the LLM does not discuss power, effect sizes, or ceiling-induced censoring; it mainly emphasizes that the evidentiary standard for strong ‘no difference/no structure’ conclusions is not met. L5 is only partially related because it is about a particular manipulation’s null effect and external interpretation, not about underpowered tests or censored outcomes."
+        }
       ],
-      "extra_issues": [
-        "Construct validity concerns about pooling ‘deontological’ choices across heterogeneous moral domains/tasks",
-        "Overstated conclusion about absence of stable preference types; suggestion of latent variable / IRT / mixture models",
-        "Problems using Pearson correlations on dichotomous measures; attenuation and alternative estimators",
-        "Confounds in the trolley-style task interpretation (default/omission/commission/fairness/indirectness)",
-        "Caution about probabilistic ‘real stakes’ manipulation and interpretation of null effects",
-        "Shared framing across tasks potentially driving common behavior (charity vs direct transfer; demand effects)",
-        "Limited external validity due to online/student sample",
-        "Some tasks may measure compliance/experimenter-demand rather than moral constructs",
-        "Multiple-hypothesis/testing and narrative over-weighting small significant links",
-        "Open-science/replication clarity: permanent links to data/code/materials"
+      "unmatched_human": [
+        {
+          "index": 1,
+          "brief_description": "Ceiling effects in Likert beliefs; suggest Tobit/censoring model (possibly with IPW).",
+          "why_missed": "No LLM issue addresses censoring/ceiling effects in Likert-scale outcomes, nor proposes Tobit or similar models to correct underestimated treatment effects due to bounded scales."
+        }
       ],
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Construct validity: ‘deontological’ option differs across games; multidimensionality.",
+          "why_extra": "Human critiques focus on Likert belief updating measurement/statistical inference, not on cross-task construct validity of moral games."
+        },
+        {
+          "index": 3,
+          "brief_description": "Pearson correlations on dichotomous choices; attenuation/measurement error and alternative estimators.",
+          "why_extra": "Human issues concern ceiling/censoring in Likert belief measures and interpretation of non-significance, not correlation estimators for binary indicators."
+        },
+        {
+          "index": 4,
+          "brief_description": "Trolley (SAL) interpretation confounded by defaults/omission/fairness/indirect mapping.",
+          "why_extra": "Not discussed by the human expert, who instead critiques belief-updating analysis."
+        },
+        {
+          "index": 6,
+          "brief_description": "Common consequence frame across tasks may drive apparent preferences.",
+          "why_extra": "Outside the human critique scope (which is about belief updating statistics)."
+        },
+        {
+          "index": 7,
+          "brief_description": "External validity limits from online mostly-student sample.",
+          "why_extra": "No corresponding human issue; human critique is methodological/statistical within-sample."
+        },
+        {
+          "index": 8,
+          "brief_description": "Some games may measure compliance/experimenter demand rather than moral philosophy.",
+          "why_extra": "Human critique does not address demand/compliance confounds."
+        },
+        {
+          "index": 9,
+          "brief_description": "Multiple-hypothesis testing; narrative may overweight small significant links.",
+          "why_extra": "Human critique is about interpreting a non-significant difference and ceiling effects, not multiple-comparisons control."
+        },
+        {
+          "index": 10,
+          "brief_description": "Open-science clarity: provide permanent links to data/code/materials.",
+          "why_extra": "Not raised in the human critique."
+        }
+      ],
+      "coverage_pct": 50,
+      "precision_pct": 20,
       "overall_rating": "Poor",
-      "overall_justification": "The human critiques focus narrowly on ceiling effects in Likert belief measures and on improper inference from non-significance; GPT’s issues do not address these points and instead critique construct validity and modeling in an apparently different part of the paper.",
-      "detailed_notes": "There is essentially no direct overlap: GPT does not mention Likert ceiling/censoring, Tobit/censored models, power concerns due to ceiling effects, or the logical error of treating non-significance as evidence of no effect. Most GPT points may be substantively reasonable in another context, but they do not align with the specific expert concerns provided."
+      "overall_justification": "Only one of the two human expert concerns is even partially captured by the LLM list (interpretation of null/non-significant results). The core methodological point about Likert ceiling effects and appropriate censored-outcome modeling is entirely absent from the LLM issues.",
+      "detailed_notes": "The overlap is thematic rather than technical: the LLM warns against overly strong ‘no effect/no structure’ conclusions from weak evidence, aligning with H2’s ‘absence of evidence is not evidence of absence’ point. However, the human critique’s key technical mechanism (ceiling effects causing underestimation and underpower; Tobit with IPW) is not reflected in any LLM issue. Most LLM issues instead focus on construct validity and interpretation of cross-task moral preference measures, suggesting the LLM critique targets different sections/questions than the human reviewer."
     }
   },
   {
@@ -151,26 +386,95 @@
     "num_gpt_issues": 11,
     "coda_critique_length": 2827,
     "comparison": {
-      "coverage_pct": 85,
-      "precision_pct": 90,
-      "missed_issues": [
-        "Explicit recommendation to validate finite-sample confidence intervals with simulation evidence tailored to “time series + few observations + many parameters” (GPT notes finite-sample inference concerns but not the concrete simulation-based diagnostic).",
-        "Specific suggestion to increase the number of lags to reflect longer geoscience/climate cycles (GPT discusses persistence/shock-construction choices, but not the targeted ‘add more lags’ robustness request in the local temperature model).",
-        "Targeted request to report impacts beyond 10 years / provide an SCC robustness calculation that explicitly allows longer-run effects (GPT flags 10-year-horizon issues and SCC model-dependence, but not the concrete ‘show >10 years out’ deliverable as clearly)."
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            5
+          ],
+          "match_quality": 85,
+          "label": "Finite-sample inference with many parameters",
+          "match_explanation": "Both critiques worry that short time series with relatively many parameters can make standard (asymptotic) confidence intervals unreliable. The LLM frames this as long-horizon LP finite-sample/SE bias issues, aligning closely with the human’s asymptotic-validity concern.",
+          "detailed_discussion": "The human critique focuses on the ratio of observations to parameters (≈50 observations, ≥7 parameters) and explicitly questions whether asymptotic approximations justify the reported frequentist confidence intervals, recommending simulation-based validation. The LLM similarly flags finite-sample inference problems in long-horizon local projections (overlapping outcomes, persistent regressors, multiple controls) that can bias standard errors and make results specification-sensitive. Both are fundamentally about inference credibility when T is small and the design is complex. The LLM is more specific about LP pathologies (overlap/persistence) rather than recommending Monte Carlo validation, but the underlying inferential risk is the same."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            5,
+            3,
+            9
+          ],
+          "match_quality": 75,
+          "label": "Long-run effects beyond 10 years",
+          "match_explanation": "Both identify that limiting attention to a 10-year horizon may miss important longer-run damage dynamics and can materially change SCC/damage interpretations. The LLM additionally ties this to persistence-to-welfare mapping and the structural SCC translation.",
+          "detailed_discussion": "The human asks for impacts beyond 10 years and an SCC robustness check allowing longer-run effects, motivated by concern that damages may not mean-revert quickly. The LLM’s L5 directly echoes the horizon/inference difficulty at 10-year horizons and implies those issues only intensify when extending horizons. L3 relates because translating an impulse response into welfare damages depends critically on estimated temperature persistence and the implied damage kernel—exactly the long-run mapping the human wants explored. L9 overlaps more loosely: it highlights that SCC/welfare translation depends on a structural model and kernel assumptions, which become more consequential as one pushes to longer-run effects beyond observed horizons."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            6,
+            5
+          ],
+          "match_quality": 55,
+          "label": "Lag length / dynamics specification sensitivity",
+          "match_explanation": "Both critiques raise sensitivity to dynamic specification choices (lags/dynamics) and imply that results can change depending on how persistence is modeled. The human frames it as adding longer lags for geoscience realism; the LLM frames it as shock-construction and LP/specification dependence.",
+          "detailed_discussion": "The human issue is motivated by geoscience: longer climate cycles suggest using more lags (especially in a longer historical sample) to capture dynamics appropriately. The LLM’s L6 targets the temperature-shock construction (multi-step forecast errors) where choices like horizon and lag order embed assumptions about persistence, which can affect implied damages. L5 is adjacent because it notes specification sensitivity in long-horizon LPs with persistent regressors and many controls, which includes sensitivity to lag structure. The overlap is substantive but not exact: the human is primarily about physical/climate-cycle realism in lag selection, whereas the LLM emphasizes econometric identification and embedded persistence assumptions."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            4
+          ],
+          "match_quality": 80,
+          "label": "Nonlinearities and growth vs level effects",
+          "match_explanation": "Both focus on whether linear/level-effect specifications miss important nonlinear or alternative (e.g., growth) damage channels. The LLM frames this as weak identification of nonlinearities/tails from small historical shocks, aligning with the human’s request for nonlinear or permanent-growth modeling for comparability.",
+          "detailed_discussion": "The human critique asks for nonlinear or permanent growth effects in the local temperature model to enable fair comparison with prior literature, even if the authors prefer a conservative level-effect baseline. The LLM similarly argues that historical shocks are small and provide limited information about nonlinearities and tail risks, making linear extrapolation questionable and nonlinear regimes weakly identified. Both are pointing to model-form risk: the chosen functional form can drive conclusions about long-run damages. The LLM leans more toward tail/tipping-point concerns, while the human leans more toward comparability with the existing “growth vs level effects” literature."
+        },
+        {
+          "human_issue_index": 5,
+          "llm_issue_indices": [
+            4,
+            2
+          ],
+          "match_quality": 85,
+          "label": "Out-of-sample scaling and linear extrapolation",
+          "match_explanation": "Both critiques highlight that scaling results from typical small temperature shocks to a 1°C change (and beyond) is an out-of-sample extrapolation that relies on linearity. The LLM adds that the underlying shock type may also be externally invalid for anthropogenic warming patterns.",
+          "detailed_discussion": "The human explicitly notes that typical shocks are around 0.3°C and that calibrating to 1°C requires a linearity assumption, urging acknowledgement of how far out-of-sample that step is. The LLM’s L4 matches directly by emphasizing limited identification of nonlinearities from small shocks and the weakness of linear extrapolation to larger warming and tail events. The LLM’s L2 overlaps by stressing external validity: natural-variability shocks may not represent sustained anthropogenic warming, so extrapolation is problematic not only in magnitude but also in kind. Compared to the human, the LLM broadens the critique from “linearity scaling” to “representativeness of the underlying shock process.”"
+        }
       ],
-      "extra_issues": [
-        "Confounding from unobserved global shocks correlated with temperature innovations (policy/finance/technology/geopolitics) affecting GDP.",
-        "External validity concern: natural-variability shocks (ENSO/volcano/internal variability) may not map to anthropogenic warming damages.",
-        "Detailed critique of temperature-shock construction choices (Hamilton multi-step forecast error; sensitivity to h and p) and how embedded persistence assumptions affect damages.",
-        "Causal skepticism about the extreme-events mediation / bottom-up aggregation channel (measurement and separability assumptions).",
-        "Panel design concern about residual common-factor confounding and missing time fixed effects for global shocks.",
-        "Broader welfare/SCC mapping limitations (representative-agent TFP-only damages; omitted adaptation/heterogeneity/endogenous mitigation; functional-form extrapolation).",
-        "Uncertainty propagation critique (deep uncertainties not integrated beyond reduced-form CI).",
-        "Replicability/code-release and pipeline versioning concerns."
+      "unmatched_human": [],
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Identification/confounding: temperature innovations may correlate with unobserved global shocks",
+          "why_extra": "The human critique focuses on inference validity and horizon length rather than omitted-variable/common-shock confounding in identifying causal temperature effects."
+        },
+        {
+          "index": 7,
+          "brief_description": "Extreme-events mediation is suggestive but not causal; construction/aggregation choices matter",
+          "why_extra": "The human issues do not discuss the paper’s proposed mediation through extremes or concerns about reanalysis indices and bottom-up channel aggregation."
+        },
+        {
+          "index": 8,
+          "brief_description": "Panel evidence lacks time fixed effects; residual common-factor confounding",
+          "why_extra": "The human critique does not raise the panel-design/time-FE concern; it concentrates on the main time-series sample size and long-run dynamics."
+        },
+        {
+          "index": 10,
+          "brief_description": "Uncertainty propagation incomplete (climate IRF, measurement error, external validity)",
+          "why_extra": "While the human questions frequentist CI validity in small samples, they do not broaden to integrating multiple layers of uncertainty beyond reduced-form estimation."
+        },
+        {
+          "index": 11,
+          "brief_description": "Replicability/code release and exact data-processing pipeline",
+          "why_extra": "The human critique does not mention computational reproducibility, code availability, or versioning of data transformations."
+        }
       ],
+      "coverage_pct": 100,
+      "precision_pct": 55,
       "overall_rating": "Good",
-      "overall_justification": "GPT captures the core human critiques around small-sample/finite-sample inference, extrapolation/linearity, and horizon limitations, but it misses some of the most concrete methodological asks (notably simulation validation and the explicit ‘more lags’ request). It also adds several plausible but broader concerns not highlighted by the experts.",
-      "detailed_notes": "Human critiques are relatively focused (sample size/inference validity; longer horizons/lags; nonlinearity/comparability; out-of-sample scaling). GPT covers these themes but expands into identification/external-validity and SCC-modeling critiques, which are substantively relevant yet not directly reflected in the provided expert comments."
+      "overall_justification": "All human expert concerns are covered to a meaningful degree (full coverage), especially around finite-sample inference, horizon length, lag/dynamics sensitivity, and extrapolation/nonlinearity. However, several LLM-raised concerns (identification/common shocks, mediation via extremes, panel time-FE confounding, broader uncertainty propagation, and replicability) are not present in the human critique, reducing precision.",
+      "detailed_notes": "Scoring rule applied: a human issue is counted as covered if at least one matched LLM issue has match_quality ≥ 30. Precision counts an LLM issue as matching if it appears in any matched_pairs list with match_quality ≥ 30. Some conceptual adjacency (e.g., H1 vs L1) was not treated as a match because the core critique differs (inference validity vs causal confounding)."
     }
   },
   {
@@ -194,29 +498,75 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1981,
     "comparison": {
-      "coverage_pct": 80,
-      "precision_pct": 90,
-      "missed_issues": [
-        "Specific concern that the *same people* served as both enumerators and intervention deliverers, potentially increasing respondent trust/familiarity and biasing *self-reported* endline outcomes (especially economic activity) even absent real effects.",
-        "Human-suggested diagnostic: test in the data for changes in (or proxies for) respondent familiarity/trust in enumerators that could drive differential reporting.",
-        "Human-suggested remedy: consider dropping the 2SLS strategy entirely (given exclusion restriction concerns) and instead present correlational associations between knowledge and outcomes.",
-        "Explicit recommendation to test whether the treatment directly affected the *probability of receiving a tax official visit* (not just how to interpret results conditional on visits).",
-        "Suggestion to use survey data to construct an alternative/indirect measure of tax liabilities paid (as a robustness outcome) rather than relying primarily on receipt-validated payments with heavy missingness."
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            2,
+            3,
+            5,
+            8
+          ],
+          "match_quality": 85,
+          "label": "Enumerator-delivered intervention threatens measurement and IV exclusion",
+          "match_explanation": "Both critiques worry that intervention delivery and data collection are entangled, creating differential reporting/engagement and violating the 2SLS exclusion restriction. The LLM expands this into attention effects and broader reporting noise beyond the IV concern.",
+          "detailed_discussion": "The human expert’s core concern is that using the same enumerators to deliver treatment and collect endline data could change trust/familiarity and thus self-reports, especially for non-validated outcomes, and that this undermines the 2SLS exclusion restriction (treatment affects outcomes through more than “knowledge”). The LLM covers the same conceptual risks via (L5) explicit exclusion-restriction doubts about the IV/knowledge LATE, and via (L2, L8) differential misreporting and survey/reporting effects driven by engagement. The LLM also adds an attention/Hawthorne framing (L3), generalizing beyond “same people” to “more contact” as a competing channel. The human proposes a concrete diagnostic (proxies for enumerator familiarity/trust, possibly dropping 2SLS), whereas the LLM emphasizes interpretation cautions and alternative channel threats without the specific enumerator-familiarity test."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            4,
+            10
+          ],
+          "match_quality": 55,
+          "label": "Tax-official visit channel needs direct causal testing",
+          "match_explanation": "The human asks to test whether treatment directly affects visits; the LLM does not phrase it as that exact test but raises closely related concerns about using visits in mechanism analysis and the lack of direct enforcement data.",
+          "detailed_discussion": "The human critique is narrowly about identification: if the intervention changes the likelihood of a tax-official visit, then interpretations that condition on (or treat visits as exogenous) are questionable, and the authors should test the treatment’s effect on visits. The LLM’s nearest match is (L4), which warns that conditioning on post-treatment “visited by a tax official” can induce post-treatment selection/collider bias, implying that visit-based splits should be descriptive rather than causal. The LLM also echoes the human’s desire for more direct evidence on enforcement patterns via (L10), noting the mechanism is not directly tested with administrative enforcement data and relies on self-reports/descriptive patterns. However, the LLM does not explicitly call for the specific reduced-form test “treatment → visit” as the human does, so the overlap is partial rather than exact. Conceptually, both critiques challenge the credibility of the visit-based mechanism story without stronger causal or administrative evidence."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            1
+          ],
+          "match_quality": 95,
+          "label": "Receipts missingness and zero-imputation bias tax amounts",
+          "match_explanation": "Both point to the same measurement problem: revenue/payment amounts are observed only for a subset with receipts and missing values are treated as zeros, making results sensitive and potentially biased. The human additionally suggests constructing an alternative indirect outcome for robustness.",
+          "detailed_discussion": "The human expert flags that tax payments are largely self-reported, receipts are missing for many firms, and imputing missing receipts as zero creates noise and possibly bias; they suggest exploring an indirect/constructed liabilities-paid measure using survey information as a robustness outcome. The LLM (L1) closely matches this: it highlights the small verified-receipt subset, the conflation of nonpayment with non-verification, and high sensitivity of the “revenue increased” conclusion to missing-data assumptions. The LLM frames the issue as a threat to the main claim’s stability under alternative missingness assumptions, whereas the human frames it as a limitation of admin validation and proposes an alternative measurement/imputation strategy. Both converge on the need to treat the tax-amount findings as fragile unless backed by stronger handling of missingness or alternative outcome construction."
+        }
       ],
-      "extra_issues": [
-        "Potential lack of appropriate clustering of standard errors given clustered sampling/enforcement environments.",
-        "Specification sensitivity (large changes in significance across models) and the need for robustness approaches (e.g., randomization inference, pre-specified primary model).",
-        "Multiple-testing concerns in heterogeneity analyses and the need for adjustments or clearer reporting of the search space.",
-        "Post-treatment conditioning/collider bias warning when splitting/conditioning on visits (related to, but distinct from, the human request to test direct effects on visits).",
-        "Attention/Hawthorne effects from differential contact intensity (training + consultations) as an alternative channel beyond knowledge.",
-        "Concerns about noise/seasonality and survey-timing effects for economic activity measures.",
-        "Mechanism not directly testable without administrative enforcement data (humans noted admin-data limitations mainly for outcome measurement rather than mechanism testing).",
-        "Timeline/baseline definition clarity (ensuring covariates/outcomes are strictly pre-treatment).",
-        "Open-science/replicability gaps (data/code/preregistration not evident)."
+      "unmatched_human": [],
+      "unmatched_llm": [
+        {
+          "index": 6,
+          "brief_description": "Standard errors may need clustering by area/enforcement environment",
+          "why_extra": "The human critiques do not discuss inference/SE specification or clustered sampling implications."
+        },
+        {
+          "index": 7,
+          "brief_description": "Treatment effects appear specification-sensitive; need robustness/prespecification",
+          "why_extra": "Humans focus on measurement/identification threats (enumerators, visits, receipts) rather than robustness to controls/specifications."
+        },
+        {
+          "index": 9,
+          "brief_description": "Heterogeneity analyses risk multiple-testing/selective emphasis",
+          "why_extra": "Human issues do not mention multiple comparisons or exploratory heterogeneity concerns."
+        },
+        {
+          "index": 11,
+          "brief_description": "Baseline/timeline clarity about pre-treatment measures could be improved",
+          "why_extra": "Human critiques do not raise timing/baseline definitional clarity as an issue."
+        },
+        {
+          "index": 12,
+          "brief_description": "Open-science/replicability elements (data/code/preregistration) not evident",
+          "why_extra": "Humans do not comment on transparency, preregistration, or replication materials."
+        }
       ],
+      "coverage_pct": 100,
+      "precision_pct": 58,
       "overall_rating": "Good",
-      "overall_justification": "GPT captures the core human concerns about missing receipt-based verification, self-reporting threats, and (especially) exclusion restriction problems for the 2SLS, but it misses the most specific enumerator/intervention overlap critique and the explicit suggestion to test direct treatment effects on visits and enumerator-trust proxies.",
-      "detailed_notes": "The human critique about enumerators delivering the intervention is only indirectly reflected in GPT’s broader ‘attention/differential engagement’ points; GPT does explicitly flag IV exclusion issues, aligning well with the expert’s main econometric concern. GPT also goes beyond the experts with several generally valid econometric/reporting issues (clustering, multiple testing, robustness), which boosts breadth but reduces strict alignment."
+      "overall_justification": "All human expert concerns are captured by at least one LLM issue (often multiple), including the key identification/measurement threats (enumerator-intervention confounding, visit-based mechanism concerns, and receipts/missingness). The LLM additionally flags several important but distinct issues (SE clustering, robustness sensitivity, multiple testing, timeline clarity, and open-science) that were not raised by the human experts, lowering precision.",
+      "detailed_notes": "Match threshold used for coverage: match_quality >= 30. Precision counts an LLM issue as ‘matched’ if it substantively overlaps any human issue at or above that threshold; under this rule, L1, L2, L3, L4, L5, L8, and L10 are matched (7/12). The closest-to-miss match is H2↔L4/L10 because the human requests a specific reduced-form test of treatment effects on visits, while the LLM mainly cautions against post-treatment conditioning and notes lack of direct enforcement data."
     }
   },
   {
@@ -240,29 +590,83 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1707,
     "comparison": {
-      "coverage_pct": 45,
-      "precision_pct": 90,
-      "missed_issues": [
-        "Key construct-validity concern specific to the paper’s proxy: using WTP for replacing conventional meat with cultured/cultivated meat may not identify altruistic animal-welfare preferences because it is confounded by expected product quality differences, food neophobia, and “naturalness/anti-food-tech” attitudes.",
-        "Cultured-meat substitution may change beliefs about animal population dynamics (e.g., preventing animal births), which can affect welfare judgments independently of “reducing suffering,” so the implied marginal altruistic WTP may be conceptually mis-specified.",
-        "The expert critique’s broader point that many stated limitations may already be acknowledged in the paper (i.e., not true omissions) is not addressed by GPT."
+      "matched_pairs": [
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            6,
+            2
+          ],
+          "match_quality": 75,
+          "label": "Cultured-meat WTP confounds altruistic valuation",
+          "match_explanation": "Both critiques argue the paper’s willingness-to-pay measures may not cleanly capture the intended animal-welfare/altruistic construct because responses can be driven by other attitudes or reactions. The LLM frames this as construct-validity/measurement error; the human critique specifies concrete confounds unique to cultured meat.",
+          "detailed_discussion": "The human critique (Espinosa) targets a specific operationalization: using WTP to replace conventional meat with cultured meat as a proxy for marginal altruistic WTP for animal welfare. It argues this proxy is confounded by expected quality differences, food neophobia, naturalness/anti-tech views, and even beliefs about preventing animal births—factors that can move WTP independent of altruistic concern for suffering. The LLM raises a broader construct-validity concern that survey responses may reflect moral attitudes, social desirability, misunderstanding, or general reactions rather than welfare judgments, and (via L2) that valuations can reflect aversion to the scenario rather than the intended attribute. Compared to the human issue, the LLM critique is less tied to the cultured-meat substitution specifically, but it covers the same core risk: the measured WTP may not identify altruistic animal-welfare preferences."
+        }
       ],
-      "extra_issues": [
-        "Pill-scenario identification assumptions and anchoring/zero-point problems (welfare-neutral animal, interpersonal/species comparability, additive separability).",
-        "Evidence respondents value the “neutral” animal positively, suggesting contamination by non-welfare factors (identity loss, disgust/fear).",
-        "Severe attrition/selection effects due to exclusions and confidence-based filtering, with potentially upward-biased estimates.",
-        "Ad hoc outlier handling for mean WTA and sensitivity of headline results to trimming/cutoffs.",
-        "Large WTA–WTP gap and lack of justification for privileging WTA or switching between mean/median and WTA/WTP for conclusions.",
-        "Limited statistical inference: low effective N, multiple testing, limited modeling of heterogeneity and comprehension.",
-        "Sensitivity of per-kg conversions to assumed edible yields driving species comparisons (chicken vs beef).",
-        "External validity limits of a Flemish Belgian online panel despite broader/global interpretation.",
-        "Policy-calculation concerns (carbon-tax backfire) from mixing contexts and not propagating uncertainty.",
-        "Reproducibility/reporting gaps (questionnaire wording, cleaning scripts, data/code availability).",
-        "Overstated interpretation relative to acknowledged uncertainty/sensitivity."
+      "unmatched_human": [
+        {
+          "index": 1,
+          "brief_description": "Several stated limitations are already acknowledged by the author, so critiques shouldn’t be framed as omissions/mistakes; at least one critique was genuinely new.",
+          "why_missed": "The LLM issues focus on methodological/statistical validity and interpretation, not on meta-evaluation of whether limitations were already disclosed in the original paper or whether critiques are 'omissions' versus acknowledged caveats."
+        }
       ],
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Strong, unvalidated assumptions linking pill-scenario WTP/WTA to 'external animal welfare costs' (separability, δa=1, zero-point meaning).",
+          "why_extra": "Human critique did not discuss the pill-scenario identification assumptions or comparability/zero-point foundations."
+        },
+        {
+          "index": 3,
+          "brief_description": "Extreme attrition/selection and confidence-based exclusions leading to tiny effective samples and potential upward bias.",
+          "why_extra": "Human critique did not address sample attrition, selection, or confidence-exclusion bias."
+        },
+        {
+          "index": 4,
+          "brief_description": "Ad hoc outlier handling for mean WTA that materially changes headline results.",
+          "why_extra": "Human critique did not mention outlier rules or robustness of mean estimates."
+        },
+        {
+          "index": 5,
+          "brief_description": "Unjustified reliance on WTA vs WTP given huge WTA–WTP gap; inconsistent use of mean/median.",
+          "why_extra": "Human critique did not focus on the WTA–WTP gap or normative justification for choosing WTA."
+        },
+        {
+          "index": 7,
+          "brief_description": "Weak statistical inference: low power, multiple testing, limited modelling; heterogeneity questions unresolved.",
+          "why_extra": "Human critique did not raise inference/power/modelling concerns."
+        },
+        {
+          "index": 8,
+          "brief_description": "Per-kg conversion depends heavily on assumed edible-meat yields; not stress-tested.",
+          "why_extra": "Human critique did not discuss yield assumptions or per-kg conversion sensitivity."
+        },
+        {
+          "index": 9,
+          "brief_description": "Limited external validity (Belgian panel) yet broad global/practitioner conclusions are suggested.",
+          "why_extra": "Human critique did not address population generalizability or cross-country comparability."
+        },
+        {
+          "index": 10,
+          "brief_description": "Carbon-tax backfire calculation mixes contexts (Belgian welfare costs with US parameters) and under-propagates uncertainty.",
+          "why_extra": "Human critique did not discuss the policy simulation or cross-context parameter mixing."
+        },
+        {
+          "index": 11,
+          "brief_description": "Reporting/replicability gaps: missing full wording, scripts, and data/code.",
+          "why_extra": "Human critique did not mention reproducibility, appendices, or data/code availability."
+        },
+        {
+          "index": 12,
+          "brief_description": "Overstated interpretation: contingent estimates framed too strongly as likely/robust.",
+          "why_extra": "Human critique did not focus on rhetorical overclaiming relative to acknowledged uncertainty."
+        }
+      ],
+      "coverage_pct": 50,
+      "precision_pct": 17,
       "overall_rating": "Moderate",
-      "overall_justification": "GPT captures the general idea of construct-validity/confounding but does not directly flag the expert’s central criticism about cultured-meat WTP being an invalid proxy for altruistic animal-welfare WTP and the specific confounds involved. Most GPT issues are substantive and plausible, but they largely go beyond the human critique rather than matching it.",
-      "detailed_notes": "The human critique is narrowly focused on one proxy-measurement problem (cultured meat as a confounded measure of altruistic WTP), whereas GPT provides a broad methodological audit of the paper (identification, attrition, outliers, inference, external validity, policy extrapolation). Hence precision is high (issues are relevant to paper quality) but alignment/coverage relative to the specific expert critique is only partial."
+      "overall_justification": "The LLM captures the main substantive human concern about confounding/construct validity in using WTP proxies (especially via its construct-validity framing), but it misses the meta-level human point about whether issues were already acknowledged. Most LLM issues are additional, broader methodological critiques not present in the human notes, lowering precision.",
+      "detailed_notes": "Mapping rule used: a match requires the same underlying threat to validity (e.g., confounding/construct validity), not merely both being 'limitations.' H2 aligns most closely with L6 (construct validity) and partially with L2 (scenario aversion/contamination). No LLM issue addresses H1’s evaluation-of-critique framing (acknowledged vs omitted), so it remains unmatched."
     }
   },
   {
@@ -286,28 +690,83 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 2884,
     "comparison": {
-      "coverage_pct": 45,
-      "precision_pct": 95,
-      "missed_issues": [
-        "Core omission/“stacking the deck”: the paper compares historical benefits of science against biotech risk while largely ignoring AI risk (and does not justify treating AI progress as outside ‘science’/academic funding); also insufficiently explained why other major risks (nukes, climate) are treated as effectively sunk costs.",
-        "Specific critique of the 2% discount rate: inconsistent/insufficient justification, including implicitly extrapolating a short-horizon TAI forecast (meant to resolve in ~20 years) over millennia, and high sensitivity of results to this choice.",
-        "Reviewer concern that the paper’s scope framing is unfair in a way that biases against concluding in favor of a science slowdown (beyond technical model critiques)—i.e., a “question framing”/comparative-baseline critique rather than a parameter/structure critique."
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            3,
+            9
+          ],
+          "match_quality": 55,
+          "label": "Scope bias: biotech focus ignores AI risk",
+          "match_explanation": "The human critique argues the paper unfairly pits all benefits of science against (mostly) biotech risks while omitting AI and other risk domains; the LLM similarly flags that conclusions about shifting risk with “science pace” may fail if AI/engineering dominates (L3) and that biotech-risk framing rests on contestable attribution/assumption choices (L9).",
+          "detailed_discussion": "Humans emphasize a key omission and fairness concern: the analysis is structurally tilted (“stacks the deck”) because it aggregates broad historical benefits of science but compares them primarily to biotech harms, while sidelining AI risk (and inadequately explaining why nuclear/climate are treated as ‘sunk costs’). The LLM does not directly call out the omission of AI risk estimates or the apples-to-oranges comparison, but L3 gestures at the same underlying vulnerability: marginal changes in “science” may not move the frontier risk if AI/capability drivers are elsewhere. L9 partially overlaps by challenging the claim that biotech non-extinction risks are too small, noting the dependence on historical-benefit persistence and weakly identified attribution shares. Overall, the LLM covers the ‘model may be mis-scoped / mis-framed around biotech’ concern, but it does not match the human critique’s central complaint about explicitly excluding AI risk estimates and the implied one-sided comparison."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            2,
+            10
+          ],
+          "match_quality": 60,
+          "label": "Discounting choice and long-run extrapolation fragility",
+          "match_explanation": "The human critique targets the paper’s 2% discount rate as inconsistently justified and based on extrapolating a short-horizon AI forecast; the LLM flags that results are highly sensitive to the discounting/hazard construct (L2) and that the extension across regimes treats discounting inconsistently (L10).",
+          "detailed_discussion": "Humans focus on a concrete parameter-choice critique: why 2% is chosen, the inconsistency with criticisms made elsewhere, and the implicit extrapolation of ~20-year AI timelines to millennia—plus sensitivity of conclusions to that rate. The LLM reframes the issue more structurally: L2 criticizes the ‘epistemic regime’ discounting as a compound hazard with strong assumptions and high sensitivity, without centering on the specific 2% numerical justification. L10 adds that the extinction-risk extension can yield misleadingly precise break-even numbers because discounting/population/income dynamics are not treated consistently across regimes. Thus, the overlap is real (discounting drives conclusions and is not robust), but the LLM does not explicitly address the particular Open Phil-derived 2% rationale and the alleged ad-hoc nature of the author’s post-hoc justification."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            11
+          ],
+          "match_quality": 90,
+          "label": "Overconfident preference for superforecasters vs experts",
+          "match_explanation": "Both the human critique and L11 question whether the paper is too confident in privileging superforecaster estimates over domain expert estimates when that choice flips the sign of the recommendation.",
+          "detailed_discussion": "Humans report reviewers’ concern that the author’s stated personal preference (e.g., ‘3 in 4 chance’) for the superforecaster-derived optimistic view is too strong and should be more ambivalent given the stakes and uncertainty. L11 closely matches by arguing that the reasons offered for favoring superforecasters (track record, correlated pessimism, intersubjective accuracy) are not robustly validated and leave the accelerate-vs-pause conclusion epistemically fragile. The LLM frames it as an evidential/validation shortfall rather than a tone/credence-calibration problem, but the substance is the same: the justification for weighting forecaster classes is not strong enough to support confident conclusions. This is a near-direct alignment."
+        }
       ],
-      "extra_issues": [
-        "Conflation of average returns to science, effect of a one-year global pause, and marginal metascience/philanthropic acceleration (non-equivalence under diminishing returns/general equilibrium).",
-        "Detailed concerns about the hazard/“epistemic regime” construction and sensitivity to that modeling choice (beyond the human critique’s focus on a particular discount rate).",
-        "Critiques of the XPT-to-hazard transformation pipeline and lack of uncertainty propagation/sensitivity analysis.",
-        "Normative assumptions in the welfare function and population ethics shifts across model versions affecting headline ROI.",
-        "Potential overstatement in health/population mechanisms (permanent growth effects from a one-year pause) and hardcoded demographic assumptions.",
-        "Questioning calibration of long lags from science to invention/diffusion and dependence of results on these lag choices.",
-        "Policy-relevance critique of the ROI comparator/counterfactual and linear conversion from a global pause to per-dollar marginal effects.",
-        "Weak identification of attribution fractions (e.g., science share of life expectancy gains) underlying key conclusions.",
-        "Reduced-form extinction-risk extension (λW) potentially yielding misleadingly precise break-even results.",
-        "Replicability concerns (lack of clearly provided code/data artifacts; need for reproducible workflow)."
+      "unmatched_human": [],
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Conflation of average returns, one-year pause effects, and marginal philanthropic acceleration under diminishing returns/general equilibrium.",
+          "why_extra": "Human critiques provided here focus on scope (AI omission), discounting justification, and forecaster weighting; they do not raise this conceptual-equivalence/identification problem."
+        },
+        {
+          "index": 4,
+          "brief_description": "Strong, multi-step transformations from XPT forecasts into annual hazards with unpropagated uncertainty.",
+          "why_extra": "Humans mention discount-rate extrapolation and sensitivity but not the specific forecast-to-hazard conversion pipeline and missing uncertainty propagation."
+        },
+        {
+          "index": 5,
+          "brief_description": "Normative welfare-function commitments (log income, healthy-year weighting, population ethics shifts) materially drive results.",
+          "why_extra": "Human issues listed do not address normative welfare aggregation choices or comparability across model versions."
+        },
+        {
+          "index": 6,
+          "brief_description": "Population/health mechanism likely overstates long-run effects; ‘more realistic health’ patch adds hardcoded assumptions.",
+          "why_extra": "Not raised in the human critiques provided; this is a model-mechanism critique beyond discounting/scope."
+        },
+        {
+          "index": 7,
+          "brief_description": "Calibration of long science→invention and diffusion lags relies on indirect proxies and drives results.",
+          "why_extra": "Humans did not flag lag structure/calibration as a key weakness in the provided critique set."
+        },
+        {
+          "index": 8,
+          "brief_description": "ROI comparison/counterfactual is not policy-relevant; linear conversion from global pause to per-dollar effects is suspect.",
+          "why_extra": "Humans did not critique the chosen ROI metric/counterfactual framing in the provided issues."
+        },
+        {
+          "index": 12,
+          "brief_description": "Limited replicability due to missing packaged code/data and insufficient reproducible workflows/sensitivity analysis.",
+          "why_extra": "Humans here did not raise reproducibility concerns."
+        }
       ],
-      "overall_rating": "Moderate",
-      "overall_justification": "GPT captures one of the three main expert concerns well (the fragility of preferring superforecasters over domain experts) and only tangentially relates to the discounting critique, but it largely misses the experts’ central scope/framing complaint about ignoring AI risk. Most GPT issues are substantive, but they are mostly additional technical/modeling critiques not raised by the human experts.",
-      "detailed_notes": "The closest GPT comes to the experts’ AI-omission point is a brief mention that risks may not be shifted by marginal science pace ‘especially if AI/engineering dominate capabilities,’ but it does not flag the evaluators’ main complaint: that AI risk levels are plausibly much higher than bio risk and should be included in the benefit–risk comparison. Likewise, GPT’s general critique of the discounting/hazard construct does not specifically address the evaluators’ objection to the 2% rate being derived from a short-horizon TAI forecast and extrapolated over very long horizons."
+      "coverage_pct": 100,
+      "precision_pct": 42,
+      "overall_rating": "Good",
+      "overall_justification": "All human issues are at least partially covered (100% coverage), with a strong match on the superforecaster-vs-expert weighting and moderate matches on discounting and scope/AI omission. Precision is lower because many LLM-identified issues (normative welfare choices, lag calibration, replicability, etc.) are not present in the human critique set provided.",
+      "detailed_notes": "The main gap is that the LLM does not explicitly foreground the human’s headline fairness/omission claim—i.e., comparing broad historical benefits of science against a narrow biotech risk while neglecting AI risk estimates and other domains (nuclear/climate rationale). Instead, it touches the issue indirectly via ‘AI/engineering may dominate capabilities’ (L3) and via contestability of biotech-attribution assumptions (L9). Conversely, the LLM contributes several additional model-structure and methodology critiques (forecast-to-hazard mapping, welfare function, lags, replicability) that are not reflected in the human issues listed here."
     }
   },
   {
@@ -330,31 +789,121 @@
     "num_gpt_issues": 11,
     "coda_critique_length": 4998,
     "comparison": {
-      "coverage_pct": 45,
-      "precision_pct": 85,
-      "missed_issues": [
-        "Specific magnitude/unit error in the Delft FGF2 cost table (gram vs kg; ~1000x misstatement) and the possibility that this materially anchored forecasts",
-        "Mischaracterization of conditional claims (treating conditional probabilities about protests/willingness-to-try as unconditional evidence that consumer approval is not a major constraint)",
-        "Need to clearly communicate that the TEAs are conditional/scenario estimates (often using present-day input costs) rather than predictions of future costs, and that this framing may have misled forecasters",
-        "Need for deeper cell-biology/bioprocessing expert input to avoid definitional/technical mistakes (e.g., incorrect definition of “growth factors” including vitamins/cytokines)",
-        "Diversifying and updating the background literature provided to forecasters beyond heavy reliance on Humbird (e.g., more recent sources, patents, regulatory dossiers, GFI reports)",
-        "Elicitation design: lack of opportunity for discussion/structured collaboration and updating among forecasters (which Tetlock-style forecasting suggests improves performance)",
-        "Insufficient specification of the cell type/tissue type (beyond 'cow cells') despite its strong influence on media needs and cost"
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            1,
+            5,
+            6
+          ],
+          "match_quality": 90,
+          "label": "Tiny sample undermines inference and aggregation",
+          "match_explanation": "Both critiques emphasize that n=6 is too small for strong conclusions and that aggregation/inference can be driven by outliers. The LLM additionally focuses on pooling-rule justification and statistical-testing validity as specific failure modes of small-n.",
+          "detailed_discussion": "The human critique argues the sample (one expert + five forecasters) is too small to support the strength of some claims, and flags a concrete example where aggregate reporting “hides disagreement.” The LLM similarly centers the small, potentially unrepresentative panel (L1), and extends the critique to methodological consequences: un-justified aggregation choices and lack of sensitivity checks (L5), plus unreliable p-values/correlations with many comparisons at n=6 (L6). The human framing is primarily about over-claiming from limited evidence and interpretability of disagreement; the LLM frames it as statistical and aggregation invalidity. These are highly aligned, with the LLM being more formal about which analyses become non-credible under small-n."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            4,
+            8
+          ],
+          "match_quality": 55,
+          "label": "Material input-cost framing errors may bias forecasts",
+          "match_explanation": "Both point to potentially important errors or mis-specifications in technical input-cost information provided to forecasters. However, the human issue is a specific units/typo error (FGF2 cost per gram vs per kg), while the LLM highlights a different wording/reference error in a different input-cost question.",
+          "detailed_discussion": "The human expert flags a concrete, high-magnitude table error: reporting Delft’s FGF2 costs per kg when the source was per gram, potentially distorting comparisons by ~1000x and possibly missing the “eliminate FGF2” possibility. The LLM does not identify that exact FGF2 unit error, but raises a closely related class of problem: a wording/reference error in a key cost question (L4) and broader risks of anchoring on TEAs and their assumptions (L8). In both cases, the concern is that mistaken or misleading technical cost inputs can shift forecasts and downstream narratives. The match is partial because the specific factual error (FGF2 units) and its implications are not explicitly captured by the LLM issues."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            9
+          ],
+          "match_quality": 70,
+          "label": "Confusion from conditional/compound question interpretation",
+          "match_explanation": "Both critiques target misinterpretation risk when outcomes are conditional on other events or thresholds. The human critique focuses on the authors’ narrative mischaracterizing what a conditional forecast implies, while the LLM focuses on compound, cognitively demanding question design that increases interpretation variance.",
+          "detailed_discussion": "The human critique argues the paper improperly treats conditional probabilities (e.g., willingness to try/protest probabilities conditional on >10kt production) as evidence that consumer approval is not a barrier, when forecasters could believe approval is a barrier precisely because the condition is unlikely. The LLM’s L9 flags that multi-threshold, condition-heavy questions increase noise and cross-forecaster variance, which directly contributes to the kind of confusion the human highlights. The LLM doesn’t explicitly call out the specific narrative error (drawing an unconditional conclusion from conditional statements), but it does identify the design feature that makes such mischaracterizations likely. Thus the overlap is substantial but not exact."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            8
+          ],
+          "match_quality": 65,
+          "label": "TEAs treated as forecasts rather than conditionals",
+          "match_explanation": "Both critiques warn that techno-economic analyses (TEAs) can be misused as anchors or implicit predictions rather than conditional scenario estimates. The LLM frames this as over-reliance on a few TEAs and lack of a structured combination approach, while the human emphasizes explicitly clarifying TEAs are not future predictions and are tied to present-day costs.",
+          "detailed_discussion": "The human issue is that the background material did not clearly communicate TEAs as conditional estimates (often based on current costs) rather than predictive forecasts of future costs. LLM issue L8 overlaps by criticizing heavy reliance on a small set of TEAs as anchors and not integrating them with other modeling approaches or reference classes. Both are concerned that readers/forecasters may overweight TEA outputs and misinterpret what they mean. The human critique is more about explanatory clarity and epistemic status; the LLM critique is more about methodological over-weighting and combination of evidence. These are closely related but not identical."
+        },
+        {
+          "human_issue_index": 5,
+          "llm_issue_indices": [
+            4,
+            8
+          ],
+          "match_quality": 45,
+          "label": "Domain-definition inaccuracies suggest missing technical expertise",
+          "match_explanation": "Both critiques identify technical inaccuracies in the background/questions that could mislead forecasters. The human critique specifically calls out an incorrect definition of “growth factors” and recommends more cell-biology/bioprocess expertise; the LLM cites a different technical wording/reference error and general TEA-anchoring weakness.",
+          "detailed_discussion": "The human expert points to a concrete definitional mistake (growth factors incorrectly including vitamins/various cytokines) and infers insufficient consultation with relevant biological/bioprocessing experts. The LLM similarly notes a problematic technical phrasing/reference mix-up in an input-cost question (L4), implying that domain details were mishandled, and more broadly that the technical basis was overly anchored to a few TEAs (L8). Both critiques converge on “technical slippage” that can distort elicitation, but they differ on the specific scientific content (growth-factor definition vs amino-acids/recombinant-protein question). As a result, the match is moderate rather than strong."
+        },
+        {
+          "human_issue_index": 6,
+          "llm_issue_indices": [
+            8
+          ],
+          "match_quality": 85,
+          "label": "Over-reliance on limited TEA sources/anchors",
+          "match_explanation": "Both critiques argue the background relied too heavily on a narrow set of techno-economic analyses, risking anchoring and outdated or incomplete assumptions. The human suggests diversifying literature sources; the LLM frames this as lacking a structured approach to combining TEAs with other evidence.",
+          "detailed_discussion": "The human issue explicitly notes the authors leaned primarily on the Humbird TEA plus a few other papers and recommends broadening to additional peer-reviewed work, regulatory dossiers, patents, and industry reports. LLM issue L8 closely matches by criticizing heavy reliance on a few TEAs as anchors and not combining them systematically with engineering constraints and reference-class growth. Both are concerned about anchoring effects and missing newer or alternative assumptions that would change forecasts. The LLM adds a methodological prescription (structured synthesis), while the human provides concrete source categories and examples. Overall, these are strongly aligned."
+        },
+        {
+          "human_issue_index": 8,
+          "llm_issue_indices": [
+            9
+          ],
+          "match_quality": 60,
+          "label": "Insufficient specification of biological product assumptions",
+          "match_explanation": "Both critiques raise that unclear biological/species/tissue constraints in questions can change interpretations and cost implications. The human focuses on defining cell type (species and tissue) because it affects media needs and cost; the LLM notes that species restrictions and other compound constraints increase interpretation variance.",
+          "detailed_discussion": "The human critique argues that focusing on “cow cells” without specifying the relevant cell/tissue type leaves major cost drivers underdetermined, since media requirements differ substantially by cell type and species. LLM issue L9 addresses a related design problem: complex questions with species restrictions and multiple thresholds increase noise and variance in interpretation. The LLM does not explicitly emphasize the bioprocess cost mechanism (cell type → media requirements → cost), but it does capture the general risk that underspecified biological constraints reduce comparability across forecasts. This makes the match moderate."
+        }
       ],
-      "extra_issues": [
-        "Ambiguity in the core definition “>51% from animal cells” (weight vs calories vs value), especially relevant for hybrid products",
-        "Insufficiently pre-committed resolution protocol / authoritative data sources for global production and sales endpoints given proprietary/inconsistent reporting",
-        "Potential wording/reference error in an amino-acids input-cost question (mixing recombinant proteins and non-amino-acid examples) as a biasing anchor",
-        "Unjustified aggregation rule (geometric mean of odds) and lack of robustness checks to alternative pooling/extremizing/leave-one-out approaches",
-        "Use of correlation and p<0.05 significance claims with n=6 without multiple-comparisons control or credible statistical assumptions",
-        "Conflation of descriptive forecasts with strategic recommendations without modeling counterfactual philanthropic leverage",
-        "Overly compound/cognitively demanding question designs increasing interpretation variance",
-        "Insufficient analysis of displacement/rebound/market-expansion mechanisms relevant to animal-welfare impact",
-        "Underspecified “conditional on no transformative AI” assumption and lack of sensitivity to broader macro scenarios"
+      "unmatched_human": [
+        {
+          "index": 7,
+          "brief_description": "Forecasters/experts lacked opportunity to discuss and update forecasts (structured collaboration).",
+          "why_missed": "No LLM issue addresses the elicitation process design choice of preventing discussion/iterative updating (e.g., Tetlock-style collaboration); the LLM focuses on question design, aggregation, and technical framing instead."
+        }
       ],
-      "overall_rating": "Moderate",
-      "overall_justification": "GPT captures the major meta-critique about the tiny sample and partially overlaps with concerns about TEA anchoring, but it misses several central, concrete expert points (notably the FGF2 unit error and the conditional-claim misinterpretation) and several domain-specific framing/definition problems. Many GPT-added points are still plausible and substantive, but they go beyond what the human experts emphasized.",
-      "detailed_notes": "On TEAs, GPT’s “heavy reliance on a few techno-economic analyses as anchors” aligns with the experts’ concern about over-reliance on Humbird and insufficient source diversity, but GPT does not explicitly flag the experts’ key nuance that TEAs are conditional scenarios using present-day costs (not forecasts of future costs). The most consequential expert-identified issue—the 1000x FGF2 unit typo—is not reflected in GPT’s list, even though it is a concrete, potentially high-impact error."
+      "unmatched_llm": [
+        {
+          "index": 2,
+          "brief_description": "Ambiguity in the core metric “>51% from animal cells” (mass vs calories vs value).",
+          "why_extra": "Human critiques did not raise definitional ambiguity for the headline construct or hybrid-product resolution; they focused more on sample size, TEA framing, and specific technical/background errors."
+        },
+        {
+          "index": 3,
+          "brief_description": "High resolution/measurement risk for global volumes and lack of a detailed pre-committed resolution protocol.",
+          "why_extra": "Humans did not discuss outcome verifiability, proprietary data, or formal resolution rules/data sources for endpoints."
+        },
+        {
+          "index": 7,
+          "brief_description": "Mixing forecasts with intervention recommendations without modeling counterfactual leverage.",
+          "why_extra": "Humans did not critique the decision-analysis leap from probabilities to philanthropic strategy; their focus stayed on elicitation validity and technical framing."
+        },
+        {
+          "index": 10,
+          "brief_description": "Welfare impact mechanism (displacement, rebound, market expansion) acknowledged but not analyzed.",
+          "why_extra": "Human issues did not emphasize downstream animal-welfare impact modeling; they emphasized accuracy/interpretability of the forecasts and inputs."
+        },
+        {
+          "index": 11,
+          "brief_description": "Underspecified “conditional on no transformative AI” and missing macro-scenario sensitivity.",
+          "why_extra": "Humans did not raise scenario-conditioning or macro uncertainty framing beyond the specific conditional-probability mischaracterization about consumer acceptance."
+        }
+      ],
+      "coverage_pct": 88,
+      "precision_pct": 55,
+      "overall_rating": "Good",
+      "overall_justification": "The LLM captures most major human critiques (7/8) at least partially—especially small-sample limitations and over-reliance on TEA anchors—though it misses the elicitation-collaboration point and does not reproduce some human critiques’ specific factual details (e.g., the FGF2 unit error). Precision is moderate because several LLM issues introduce additional, plausible concerns (resolution protocols, construct ambiguity, welfare-mechanism analysis, macro-scenario conditioning) not raised by the human experts.",
+      "detailed_notes": "Scoring threshold used: match_quality >= 30 counts toward coverage; an LLM issue counts toward precision if it matches at least one human issue at >= 30. Partial matches mainly arise where both sides critique “technical inaccuracies,” but refer to different concrete mistakes (H2 vs L4) or where one side targets narrative misuse of conditional probabilities (H3) while the other targets question complexity more generally (L9)."
     }
   },
   {
@@ -378,27 +927,75 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1481,
     "comparison": {
-      "coverage_pct": 70,
-      "precision_pct": 90,
-      "missed_issues": [
-        "Overconfidence in back-of-the-envelope cost-effectiveness (e.g., ~$40k/QALY) claims without clear sensitivity analysis to key assumptions",
-        "Failure to acknowledge/handle heterogeneity in cost-effectiveness across drugs/indications (variation around the average BOTEC)"
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            2,
+            7,
+            8,
+            10
+          ],
+          "match_quality": 85,
+          "label": "GDP correlation over-interpreted as causal effect",
+          "match_explanation": "Both critiques argue the paper treats a GDP–(price/contribution) correlation as evidence for the authors’ mechanism, despite alternative explanations and weak identification. The LLM list expands this into specific reasons the GDP relationship is non-diagnostic (mechanical scaling, non-testable theory mapping, and confounding elasticities).",
+          "detailed_discussion": "The human critique (E1) frames the key problem as omitted variable bias and overly simplistic regression—GDP is correlated with other determinants, so causal language is too strong. It also (E2) highlights an alternative channel: willingness-to-pay for current health benefits could drive higher prices in richer countries, independent of internalizing R&D returns. The LLM critique overlaps strongly by arguing the GDP relationship may be mechanically induced by how the dependent variable is constructed (L2) and that the empirical work doesn’t cleanly test the theory beyond the GDP correlation (L7). L8 aligns closely with the human’s willingness-to-pay point by noting the elasticity result conflates general spending elasticities with strategic “under-contribution,” and L10 adds that small-sample leverage/outliers could further undermine inference, reinforcing the human’s caution about interpretation."
+        }
       ],
-      "extra_issues": [
-        "Questioning whether the dependent variable (single-year quasi-rents) is the incentive-relevant object for R&D decisions (lifecycle/global expected profits)",
-        "Mechanical/logical dependence of the constructed ‘contribution’ measure on GDP via spending/sales scaling, undermining identification of strategic free-riding",
-        "Weak/assumption-heavy marginal cost identification (Turkey price index proxy; generic-entry erosion; rebate adjustments) and the problematic assumption of common MC across countries",
-        "Potential mismeasurement in cross-country price indices due to mix, launch timing, coverage, and confidential discounts",
-        "Not accounting for quantity/access differences (launch lags, reimbursement/coverage) that could confound interpretations of low prices as free-riding",
-        "Theory-to-empirics mismatch: models are not translated into discriminating, testable implications beyond the GDP correlation",
-        "Elasticity>1 is not a clean test of Olson–Zeckhauser/public-goods logic; could reflect standard income elasticity of health/pharma spending",
-        "Data construction/auditing concerns (brand-share assumptions; alignment with price-index basket) and limited leverage/outlier diagnostics in small samples",
-        "Policy recommendations lack explicit welfare analysis balancing innovation incentives vs static access/affordability and distributional impacts",
-        "Replication/transparency gaps (code/data wrangling detail; uncertainty propagation for key assumptions)"
+      "unmatched_human": [
+        {
+          "index": 2,
+          "brief_description": "BOTEC/cost-effectiveness claims stated too confidently; high sensitivity to assumptions and heterogeneity across indications.",
+          "why_missed": "None of the LLM issues directly address the paper’s back-of-the-envelope cost-effectiveness (e.g., $/QALY) claims, their sensitivity analyses, or across-indication variation; the LLM focuses on the cross-country pricing/R&D contribution framework instead."
+        }
       ],
-      "overall_rating": "Good",
-      "overall_justification": "GPT captures the experts’ central critique that the GDP–price relationship is not causally identified and may reflect omitted factors like willingness to pay, but it misses the experts’ specific concern about overconfident cost-effectiveness BOTECs and heterogeneity across indications. Most additional GPT issues are relevant methodological weaknesses rather than spurious points.",
-      "detailed_notes": "The human critiques are narrow (mainly causal/OVB and BOTEC confidence), while GPT provides a broader methods-and-measurement audit. GPT’s points about mechanical scaling and conflation with general spending elasticities substantially overlap with the experts’ ‘GDP correlated with other determinants’ and ‘willingness to pay’ concerns, even if not phrased as classic omitted-variable bias. The only clear gap is the paper’s cost-effectiveness BOTEC claims and their sensitivity/heterogeneity."
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Outcome (‘contribution’ in one year) may not reflect incentive-relevant global expected profits for marginal R&D.",
+          "why_extra": "This is a construct/measurement-validity critique about aligning the dependent variable with R&D incentives; the human critique focuses on causal over-interpretation of GDP correlations and BOTEC confidence."
+        },
+        {
+          "index": 3,
+          "brief_description": "Marginal cost weakly identified; MC choices can change levels/signs of contributions.",
+          "why_extra": "The human critique does not discuss marginal-cost identification or robustness of MC assumptions."
+        },
+        {
+          "index": 4,
+          "brief_description": "Assuming common marginal cost across countries is problematic due to system-specific downstream costs.",
+          "why_extra": "Not raised by the human critique; it is a specific cross-country cost comparability issue."
+        },
+        {
+          "index": 5,
+          "brief_description": "Cross-country price indices may be distorted by mix, timing, coverage, and confidential discounts.",
+          "why_extra": "The human critique does not flag price-index measurement/comparability problems."
+        },
+        {
+          "index": 6,
+          "brief_description": "Ignoring quantity/access differences risks mislabeling lower spending as free-riding.",
+          "why_extra": "The human critique does not discuss utilization, access, launch lags, or coverage as confounders."
+        },
+        {
+          "index": 9,
+          "brief_description": "National branded-originator revenues built from strong assumptions (total sales × brand share) without auditing consistency with index basket.",
+          "why_extra": "This is a data-construction/auditing concern not present in the human critique."
+        },
+        {
+          "index": 11,
+          "brief_description": "Policy conclusion ‘ROW should pay more’ lacks explicit welfare tradeoff (dynamic innovation vs static access/affordability).",
+          "why_extra": "The human critique centers on identification/interpretation and BOTEC confidence, not on welfare accounting for the policy recommendation."
+        },
+        {
+          "index": 12,
+          "brief_description": "Replication barriers: code/data wrangling opacity and missing uncertainty propagation.",
+          "why_extra": "The human critique does not mention reproducibility, code availability, or uncertainty propagation."
+        }
+      ],
+      "coverage_pct": 50,
+      "precision_pct": 33,
+      "overall_rating": "Moderate",
+      "overall_justification": "The LLM captures the main human concern about over-interpreting the GDP correlation (including a close analogue to the willingness-to-pay alternative), but it misses the human’s separate critique about overconfident BOTEC cost-effectiveness claims. Many LLM points are additional, more technical measurement/replication critiques not present in the human list.",
+      "detailed_notes": "Matching rule used: an LLM issue is considered a match if it addresses the same underlying threat to inference/interpretation raised by the human issue. For H1, L2/L7/L8 are core overlaps (identification/non-diagnostic correlation), while L10 is a partial overlap (inference fragility reinforcing non-causal interpretation). H2 has no clear analogue among L1–L12."
     }
   },
   {
@@ -422,27 +1019,111 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1197,
     "comparison": {
-      "coverage_pct": 75,
-      "precision_pct": 92,
-      "missed_issues": [
-        "Failure to follow standard systematic-review reporting/methods specifically: lack of a fully reproducible search strategy (full queries, databases, dates, etc.)",
-        "Lack of clearly articulated inclusion/exclusion criteria and explicit justification/documentation for screening decisions (beyond the single-coder concern)",
-        "Questionable exclusion rule of omitting studies with n<25 per group (and the implication that this can impede publication-bias detection by restricting the SE range)"
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            4,
+            5
+          ],
+          "match_quality": 45,
+          "label": "Systematic review process not standard or rigorous",
+          "match_explanation": "The human critique flags non-adherence to standard systematic-review methods; the LLM raises related process-rigor concerns via single-coder screening/extraction (L4) and post hoc eligibility changes (L5).",
+          "detailed_discussion": "The human issue is broad, asserting the review did not follow standard systematic review methods overall. The LLM does not explicitly call out missing PRISMA-style elements at a high level, but it does identify two concrete deviations that contribute to non-standard methods: reliance on one screener/coder (L4) and eligibility refinements after data collection began (L5). These LLM points overlap with the human’s “methods not standard” concern, but they do not fully capture the full scope implied by the human critique (e.g., reproducible search documentation). Thus the match is substantive but incomplete."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            4,
+            5
+          ],
+          "match_quality": 35,
+          "label": "Insufficiently documented screening and eligibility decisions",
+          "match_explanation": "The human critique emphasizes missing reproducible search and clear inclusion/exclusion criteria; the LLM overlaps mainly on the transparency/credibility of screening and eligibility decisions (L4, L5) rather than the search strategy itself.",
+          "detailed_discussion": "The human issue focuses on missing core documentation: a reproducible search strategy, explicit inclusion/exclusion criteria, and justification for screening decisions. The LLM does not mention search strings, databases, dates, or reproducibility of the search, so that central component is not covered. However, L4 and L5 do align with the human concern about screening decisions being insufficiently robust/transparent: single-coder screening (L4) raises risk of inconsistent inclusion decisions, and post hoc eligibility refinements (L5) raise concerns about researcher degrees of freedom. Overall, the overlap is partial because the LLM critiques process integrity rather than the specific missing reporting elements the human highlights."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            2
+          ],
+          "match_quality": 95,
+          "label": "Biased imputation for missing or null effects",
+          "match_explanation": "Both critiques target the same practice: coding inadequately reported null results as a small fixed SMD, which can bias the pooled estimate near zero.",
+          "detailed_discussion": "The human critique argues that assigning SMD=0.01 to non-significant unreported effects induces systematic bias and ignores imputation variance. L2 closely mirrors this by calling the coding arbitrary and potentially influential, and by noting missing reporting on how many cases were affected and whether robustness checks were done. The main difference is emphasis: the human explicitly frames it as missing-data handling that should incorporate imputation uncertainty/variance, whereas the LLM emphasizes arbitrariness, sensitivity analysis, and transparency about counts. Substantively, they converge on the same threat to validity and likely direction of distortion."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            1,
+            9
+          ],
+          "match_quality": 90,
+          "label": "Single-effect selection discards within-study information",
+          "match_explanation": "Both identify loss of information and potential bias from selecting only one effect per study; the LLM adds that the specific “longest follow-up” rule needs sensitivity analyses and relates to dependence handling (L9).",
+          "detailed_discussion": "The human critique frames the problem as wasted data and suggests multilevel modeling as a better alternative to retain multiple outcomes/effects. L1 aligns strongly by criticizing the “longest follow-up only” rule as consequential and undersupported by sensitivity analyses, and it points toward alternative rules or modeling strategies. L9 partially overlaps by discussing how dependence and representation of multiple interventions per study could affect results, reinforcing the broader point that within-study multiplicity should be modeled/checked rather than collapsed arbitrarily. The LLM framing is more about rule choice and robustness checks, while the human framing is more about statistical efficiency and multilevel modeling as the remedy."
+        },
+        {
+          "human_issue_index": 5,
+          "llm_issue_indices": [
+            7,
+            8
+          ],
+          "match_quality": 85,
+          "label": "Risk-of-bias assessment misses key RCT bias domains",
+          "match_explanation": "Both critiques argue the bias assessment is incomplete; the LLM enumerates omitted domains (including attrition and selective reporting) and adds context on selective reporting complexities (L8).",
+          "detailed_discussion": "The human critique states the risk-of-bias approach is informal/inadequate and specifically flags missing selective reporting and attrition among critical sources. L7 directly matches this by stating that the coded indicators do not cover common RCT bias domains and explicitly lists attrition and related threats. L8 connects more indirectly by discussing outcome/analysis-level selective reporting and how publication-bias models may not capture it, which complements (but does not replace) a formal RoB assessment critique. Compared to the human, the LLM is more granular about methodological domains, while the human emphasizes that the approach is too informal and incomplete."
+        },
+        {
+          "human_issue_index": 6,
+          "llm_issue_indices": [
+            7
+          ],
+          "match_quality": 70,
+          "label": "Attrition bias in RCTs insufficiently addressed",
+          "match_explanation": "The human critique faults the manuscript for not discussing attrition bias; the LLM notes attrition is not covered by their risk-of-bias indicators, which is a closely related omission.",
+          "detailed_discussion": "The human issue is specifically about the lack of discussion of attrition bias and why it matters (non-random attrition in dietary interventions). L7 overlaps by identifying attrition as a missing bias domain in the study’s risk-of-bias coding, implying it was not systematically evaluated. The LLM does not explicitly echo the human’s emphasis on diet-intervention-specific attrition patterns or the need for a narrative discussion, focusing instead on measurement/assessment omissions. So the match is strong on the underlying gap (attrition not adequately handled) but not perfectly aligned on the “discussion” aspect and domain-specific rationale."
+        }
       ],
-      "extra_issues": [
-        "Heterogeneous outcome constructs and conversions being pooled (non-comparability across very different measures)",
-        "Single-coder screening/extraction and missing inter-rater reliability reporting",
-        "Post hoc eligibility refinements creating researcher degrees of freedom absent preregistration/robustness checks",
-        "Extremely sparse evidence for choice architecture under the stated criteria (very low k leading to over-interpretation risk)",
-        "Concerns about publication-bias model assumptions (selection on p-values/sign vs outcome/analysis-level selective reporting, differing incentives in gray literature)",
-        "Dependence/weighting sensitivity beyond RVE (how multiple interventions per study are represented; need alternative aggregations)",
-        "Limited translation of SMDs into decision-relevant absolute units or cost-effectiveness",
-        "RPM vs MAP inference gap: substitution to other MAP largely unmeasured, so conclusions should be framed as an evidence gap",
-        "External validity/generalizability limitations due to restrictive eligibility (pure controls, voluntary choice), potentially excluding policy-relevant interventions"
+      "unmatched_human": [
+        {
+          "index": 7,
+          "brief_description": "Excluding studies with n<25 per group is unwarranted and may hinder publication-bias detection by restricting the range of standard errors.",
+          "why_missed": "No LLM issue flags the small-sample exclusion criterion or its implications for diagnosing publication bias via standard-error variation; LLM publication-bias comments focus on selection-model assumptions rather than eligibility restrictions."
+        }
       ],
+      "unmatched_llm": [
+        {
+          "index": 3,
+          "brief_description": "Pooling heterogeneous outcome constructs and conversion pathways risks non-comparability.",
+          "why_extra": "The human critique did not raise construct heterogeneity or effect-size conversion comparability as a key limitation."
+        },
+        {
+          "index": 6,
+          "brief_description": "Very sparse evidence for choice architecture category leads to over-interpretation risk.",
+          "why_extra": "Humans did not focus on low-k category-specific inference or narrative overreach due to extremely wide uncertainty."
+        },
+        {
+          "index": 10,
+          "brief_description": "Limited translation of SMDs into decision-relevant absolute units or practical impact.",
+          "why_extra": "Human critiques concentrated on review methods, missing data, and bias assessment rather than interpretability/decision metrics."
+        },
+        {
+          "index": 11,
+          "brief_description": "RPM vs MAP inference gap due to unmeasured substitution; substitution discussion should be reframed as evidence gap.",
+          "why_extra": "Humans did not flag this specific conceptual inference gap about substitution effects."
+        },
+        {
+          "index": 12,
+          "brief_description": "Generalizability constraints from eligibility choices may exclude policy-relevant interventions.",
+          "why_extra": "Humans did not emphasize external validity limits arising from the review’s control/voluntariness requirements."
+        }
+      ],
+      "coverage_pct": 86,
+      "precision_pct": 58,
       "overall_rating": "Good",
-      "overall_justification": "GPT captures most core human critiques (improper null imputation, single-outcome selection, and inadequate risk-of-bias coverage including attrition) but misses the explicitly highlighted systematic-review transparency/reproducibility deficits and the n<25 exclusion concern.",
-      "detailed_notes": "The strongest overlap is on (i) the SMD=0.01 handling of missing/non-significant results and (ii) the wasted-data problem from selecting only one effect per study, plus (iii) risk-of-bias gaps (GPT explicitly lists attrition and selective reporting). The main shortfall is that GPT reframes the systematic-review-methods critique into coder/researcher-degrees-of-freedom issues without directly calling out missing reproducible search strings and incomplete inclusion/exclusion documentation, which are central to the human assessment."
+      "overall_justification": "The LLM captures most major human-identified problems (missing-data imputation, single-effect selection, and inadequate risk-of-bias/attrition coverage) and partially reflects broader systematic-review rigor concerns. It misses the specific critique about small-study exclusion affecting publication-bias detectability and does not directly address the missing reproducible search strategy; conversely, it introduces several additional conceptual and interpretability issues not mentioned by the human expert.",
+      "detailed_notes": "Match-quality scores are lower where the LLM addresses adjacent process-integrity concerns (single-coder screening, post hoc eligibility) but does not explicitly cover the human’s key reporting expectations (fully reproducible search strategy, explicit inclusion/exclusion text, documented screening justifications). Precision is moderated because multiple LLM points (outcome heterogeneity, decision-unit translation, substitution inference, generalizability, sparse-category k) are absent from the human critique."
     }
   },
   {
@@ -466,27 +1147,71 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1422,
     "comparison": {
-      "coverage_pct": 55,
-      "precision_pct": 95,
-      "missed_issues": [
-        "Arbitrary exclusion of outliers and high risk-of-bias (RoB) studies (experts explicitly objected to removing these and preferred showing full-data impacts transparently).",
-        "Request for a clear, visual multiverse/sensitivity-analysis summary (e.g., specification curve / analogue of Figure 2) to show how many analytic choices move the final estimates—called the most significant statistical recommendation."
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            2,
+            4,
+            5,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "match_quality": 70,
+          "label": "Ad hoc adjustments need standardized decision rules",
+          "match_explanation": "Both critiques point to numerous discretionary, project-specific adjustments that materially affect results. The LLM enumerates several such modeling/discounting/weighting choices, aligning with the human request for explicit, consistent rules governing adjustments.",
+          "detailed_discussion": "The human experts emphasize the meta-level concern: many adjustments appear subjective and would be more credible if governed by a clearly stated, consistently applied rulebook (including how to treat outliers and weighting). The LLM echoes this by flagging multiple concrete places where judgment calls drive headline estimates—e.g., the long-term follow-up handling (L2), evidence-source weighting (L5), bespoke study/context adjustments (L8, L11), M&E discounts (L10), publication-bias correction choices (L9), and cost-counterfactual assumptions (L12). Where the human critique asks for systematization and a catalog of rules/adjustments, the LLM critique mostly diagnoses the specific adjustment points and why each is consequential. The overlap is strong on “discretion/ad hoc choices,” but the LLM is less explicit about proposing a standardized protocol applied uniformly across projects, hence not a near-perfect match."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            2,
+            8
+          ],
+          "match_quality": 55,
+          "label": "Excluding outliers/high-bias data may be arbitrary",
+          "match_explanation": "The human issue targets exclusion rules for outliers and high-RoB studies, arguing for transparent inclusion and sensitivity checks. The LLM raises closely related concerns about discarding/discounting influential evidence (long-term follow-ups in L2; suspicious-context study adjustment in L8) as potentially unjustified or not validated.",
+          "detailed_discussion": "Evaluator 2’s critique is about principled data inclusion: outlier trimming (e.g., >2 SD) and dropping high-RoB studies can look arbitrary, and the preferred remedy is showing results with and without such exclusions. The LLM does not directly discuss a generic outlier rule or systematic high-RoB exclusion, but it does highlight analogous “removal/discounting” decisions that can function like selective exclusion. In L2, the long-term follow-up is effectively sidelined from the core time model and then partially reintroduced via a multiplicative compromise, which parallels concerns about selectively handling influential datapoints. In L8, the adjustment that treats a larger effect as likely biased due to contextual suspicion similarly risks discarding real heterogeneity without independent validation. The match is therefore related-but-not-identical: the LLM critiques particular exclusion-like choices rather than the paper’s explicit outlier/high-RoB exclusion policy."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            1
+          ],
+          "match_quality": 95,
+          "label": "Linear decay assumption may misstate total effects",
+          "match_explanation": "Both critiques directly challenge the choice of linear decay over time for psychotherapy effects and note that total-effect estimates are highly sensitive to this assumption. The LLM adds the triangular AUC framing and emphasizes nonlinear/long-tail alternatives.",
+          "detailed_discussion": "Evaluator 2 questions why the authors assume linear decay when exponential or other nonlinear patterns are common in psychological phenomena and worries linear decay could overestimate effects. The LLM’s L1 is essentially the same technical concern: a linear decay with triangular area-under-curve can misrepresent persistence (e.g., long tails) and makes total WELLBYs assumption-sensitive. The LLM frames the consequence in terms of integrating effect over time (AUC) and sensitivity of total benefits, while the human critique frames it as model choice plausibility and potential bias direction. Both converge on the need to justify the functional form and/or show robustness across plausible decay models."
+        }
       ],
-      "extra_issues": [
-        "WELLBY conversion and construct/normative assumptions (mapping SD-years to 0–10 life satisfaction; combining different outcome constructs).",
-        "Use of a pseudo-synthetic control for charity M&E pre–post effects without established exchangeability (risk of regression to mean, selection/attrition, measurement/incentive artifacts).",
-        "Household spillover benefits comprising a large share of total effects despite very sparse/heterogeneous evidence; spillover prior strongly driving totals.",
-        "Dose-response functional form choice for Friendship Bench (log(+1) transformation) and limited empirical grounding for parameterization.",
-        "Specific ad hoc adjustment decisions (e.g., 'Iran study' contextual suspicion) potentially conflating bias with true heterogeneity.",
-        "Publication-bias correction approach (averaging multiple methods; concerns under heterogeneity/dependence/time moderation).",
-        "Generic replication/response-bias discounts applied to M&E data that may double-count or miss biases and materially affect results.",
-        "Treatment of StrongMinds RCT relevance and the consequential decision to downweight rather than treat as strong negative evidence.",
-        "Cost-model counterfactual/partner adjustments for StrongMinds and need for better empirical grounding and uncertainty propagation.",
-        "Handling of long-term follow-ups via a structural compromise (exclude from core time model then apply a multiplicative factor) as a major discretionary modeling choice."
+      "unmatched_human": [
+        {
+          "index": 3,
+          "brief_description": "Clearer/visual depiction of sensitivity or multiverse analysis (e.g., specification curve).",
+          "why_missed": "The LLM issues critique many assumption-sensitive choices but do not explicitly request a consolidated visual summary (specification curve/multiverse plot) or emphasize presentation/communication of sensitivity results as a primary recommendation."
+        }
       ],
-      "overall_rating": "Moderate",
-      "overall_justification": "GPT captures the core concern about the linear decay model and broadly echoes the experts’ theme of ad hoc/subjective adjustments, but it misses the experts’ key recommendation for a visual multiverse/sensitivity summary and does not directly flag the specific outlier/RoB exclusion critique.",
-      "detailed_notes": "The GPT list is largely methodologically substantive and overlaps conceptually with the experts’ main ‘standardized rules’ complaint via multiple points about discretionary weighting/adjustments. However, the human critiques focus on transparency and principled standardization (including explicit inclusion/exclusion rules and a compact sensitivity visualization), whereas GPT expands into additional domains (outcome metric mapping, spillovers, M&E design validity, publication-bias tooling, and cost modeling) that are plausible but not raised by the experts."
+      "unmatched_llm": [
+        {
+          "index": 3,
+          "brief_description": "Normative/construct validity concerns in WELLBY conversion and combining outcome constructs.",
+          "why_extra": "Human critiques (as provided) focus on adjustment rules, exclusions, sensitivity visualization, and decay functional form, not on the philosophical/measurement assumptions of mapping SD-years to WELLBYs or mixing MHa with SWB constructs."
+        },
+        {
+          "index": 6,
+          "brief_description": "Large household spillover component driven by sparse, low-quality evidence.",
+          "why_extra": "The human issues do not mention spillover estimation quality or the dominance/sparsity of the spillover evidence base, whereas the LLM flags this as a major driver of totals and uncertainty."
+        }
+      ],
+      "coverage_pct": 75,
+      "precision_pct": 83,
+      "overall_rating": "Good",
+      "overall_justification": "Most human critiques are reflected in the LLM’s identified issues, especially around discretionary/ad hoc adjustments and the linear decay assumption. The main gap is the human request for a clear, visual multiverse/sensitivity depiction, which the LLM does not explicitly surface.",
+      "detailed_notes": "Scoring rules used: a human issue is counted as covered if any matched LLM issue yields match_quality ≥ 30 (3 of 4 covered). An LLM issue is counted as matching if it appears in any matched_pairs entry (10 of 12 matched). Match qualities are lower where the LLM flags analogous selective-handling choices (e.g., L2/L8) rather than the specific outlier/high-RoB exclusion policy emphasized by the human expert."
     }
   },
   {
@@ -509,32 +1234,97 @@
     "num_gpt_issues": 11,
     "coda_critique_length": 1940,
     "comparison": {
-      "coverage_pct": 15,
-      "precision_pct": 20,
-      "missed_issues": [
-        "Need to establish/mention ASQ-3 regional (India-specific) validation and implications if not validated",
-        "Multiple-comparisons problem from reporting many outcomes (overall index, domain indices, individual ASQ items) without correction or clear pre-specification",
-        "Departure from the pre-analysis plan (PAP): detailed disaggregation into component indices/items not clearly pre-specified",
-        "ASQ-3 is a screening tool typically interpreted via risk cutoffs; paper should report effects on the proportion of children 'at risk' of developmental delay (not just mean index scores)",
-        "Risk of bias from parent-reported ASQ outcomes in an unblinded trial (demand/expectancy effects) should be highlighted as a key limitation",
-        "Recommendation (optional) to include a CONSORT flow diagram for transparency on enrollment/attrition"
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            9
+          ],
+          "match_quality": 35,
+          "label": "Need context-specific validation of measures",
+          "match_explanation": "H1 asks for evidence the ASQ-3 instrument is validated in India; L9 similarly raises that outcomes can be noisy and context-dependent, requiring stronger measurement-validity discussion.",
+          "detailed_discussion": "The human critique is concrete and instrument-specific: show that ASQ-3 has been validated in India (or otherwise justify its use). The LLM critique is broader and about measurement heterogeneity and context dependence, but in a different substantive domain (agency measures) rather than ASQ-3. Both are ultimately about construct validity and whether the measurement means the same thing across settings. However, L9 does not explicitly call for regional validation evidence, so the overlap is conceptual rather than direct."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            5
+          ],
+          "match_quality": 55,
+          "label": "Multiple comparisons and pre-specification concerns",
+          "match_explanation": "H2 criticizes presenting many outcomes/items without multiple-comparison adjustments or a clearly pre-specified plan; L5 similarly flags multiple-testing risks and recommends pre-specification/correction strategies.",
+          "detailed_discussion": "The human critique is focused on within-study reporting: many ASQ domains and individual items are analyzed, raising familywise error concerns and questions about whether the breakdown was pre-specified in a PAP. The LLM critique is focused on meta-analytic moderator/meta-regression testing, but it targets the same statistical vulnerability: exploring many comparisons can create false positives unless hierarchy/corrections are used. Both recommend stronger discipline around what was planned versus explored and how inferential error rates are controlled. The mismatch is that H2 is about outcome multiplicity in a trial paper, while L5 is about multiplicity in subgroup/moderator analysis, so they are related but not the same operational problem."
+        }
       ],
-      "extra_issues": [
-        "Meta-analysis heterogeneity (I²/τ²) and need for prediction intervals/limits to generalization",
-        "Internal inconsistencies/typos in pooled effects and confidence intervals requiring reconciliation with code outputs",
-        "Questionable harmonization/construct validity when standardizing across very different outcome constructs",
-        "Lack of transparency/sensitivity analysis for robust variance estimation (RVE) parameters (e.g., within-study rho, small-sample corrections)",
-        "Underpowered moderator/meta-regressions and multiple-testing risk in subgroup analyses; need correction or pre-specified hierarchy",
-        "Confounding in modality comparisons (UCT vs CCT vs in-kind) due to correlated design features; causal interpretation should be more cautious",
-        "Restriction to RCTs may reduce representativeness for real-world national programs often evaluated quasi-experimentally",
-        "Regional/modality concentration of the evidence base limiting external validity for underrepresented regions/modalities",
-        "Measurement heterogeneity/noise in 'agency' outcomes and its effect on pooled estimates",
-        "Sparse/non-harmonized cost-benefit evidence and missing women-specific benefits limiting value-for-money conclusions",
-        "Incomplete open-science/reproducibility posture (delayed repository, nonpublic extraction forms)"
+      "unmatched_human": [
+        {
+          "index": 3,
+          "brief_description": "ASQ-3 is a screening tool; report effects on 'at-risk' proportions using cutoffs, not only index scores.",
+          "why_missed": "No LLM issue discusses using clinically/diagnostically meaningful ASQ-3 cutoffs or re-expressing results as risk/proportion-at-risk rather than continuous indices."
+        },
+        {
+          "index": 4,
+          "brief_description": "Include a CONSORT flow diagram for participant flow.",
+          "why_missed": "LLM issues focus on meta-analysis reporting/reproducibility and do not mention CONSORT-style trial reporting elements."
+        },
+        {
+          "index": 5,
+          "brief_description": "Parent-reported ASQ-3 in an unblinded trial may bias results (demand effects); should be emphasized as a key limitation.",
+          "why_missed": "LLM issues do not address blinding, respondent-report bias, or demand effects as threats to internal validity in an RCT context."
+        }
       ],
+      "unmatched_llm": [
+        {
+          "index": 1,
+          "brief_description": "Very high heterogeneity undermines pooled effect interpretability; need prediction intervals/emphasis on dispersion.",
+          "why_extra": "Human critiques are about ASQ-3 measurement/analysis choices within a single study, not heterogeneity across a meta-analytic evidence base."
+        },
+        {
+          "index": 2,
+          "brief_description": "Internal inconsistencies/typos in reported magnitudes and confidence intervals need reconciliation.",
+          "why_extra": "No human issue raises numerical inconsistencies, traceability to code, or reporting typos."
+        },
+        {
+          "index": 3,
+          "brief_description": "Outcome harmonization across disparate constructs using standardized effects risks conflating mechanisms; need construct-validity justification.",
+          "why_extra": "Human critiques are specific to ASQ-3 child development measurement, not harmonizing multiple construct families in a meta-analysis."
+        },
+        {
+          "index": 4,
+          "brief_description": "Insufficient transparency on robust variance estimation (RVE) settings and sensitivity to within-study correlation assumptions.",
+          "why_extra": "Human critiques do not mention RVE, dependence among effect sizes, or meta-analytic estimation choices."
+        },
+        {
+          "index": 6,
+          "brief_description": "Modality comparisons may be confounded by correlated program design features; causal claims should be more cautious.",
+          "why_extra": "Human issues do not discuss cross-program modality comparisons or confounding among intervention features."
+        },
+        {
+          "index": 7,
+          "brief_description": "RCT-only inclusion may reduce representativeness for national programs evaluated quasi-experimentally.",
+          "why_extra": "Human critiques are not about evidence-inclusion criteria or external validity from restricting study designs in a review/meta-analysis."
+        },
+        {
+          "index": 8,
+          "brief_description": "Regional and modality concentration makes conclusions fragile for underrepresented settings/interventions.",
+          "why_extra": "Aside from a narrow request for ASQ-3 validation in India, human critiques do not address evidence-base concentration in a synthesis context."
+        },
+        {
+          "index": 10,
+          "brief_description": "Cost-benefit evidence is sparse and not harmonized; women-specific benefits often omitted.",
+          "why_extra": "Human critiques do not discuss cost-benefit analysis or value-for-money claims."
+        },
+        {
+          "index": 11,
+          "brief_description": "Open-science posture incomplete (delayed repository; extraction form not public) limiting reproducibility.",
+          "why_extra": "Human critiques do not mention data/code sharing, extraction forms, or reproducibility infrastructure."
+        }
+      ],
+      "coverage_pct": 40,
+      "precision_pct": 18,
       "overall_rating": "Poor",
-      "overall_justification": "The human critiques focus on ASQ-3 measurement validity, pre-specification, multiple comparisons, and bias from unblinded parent reports, while the GPT issues largely address meta-analysis/RVE/heterogeneity and evidence-base composition—suggesting it is critiquing a different kind of paper. As a result, overlap is minimal and most GPT points do not align with the expert concerns.",
-      "detailed_notes": "There is slight conceptual overlap only in the general notion of measurement validity/noise and multiple-testing risk, but GPT frames these in terms of meta-regression/moderators rather than the core human concern: many ASQ outcomes/items analyzed without adjustment and without clear PAP pre-specification. The mismatch strongly suggests the GPT key issues were generated for a different manuscript (systematic review/meta-analysis) than the one the human critiques target (an RCT using ASQ-3 in India)."
+      "overall_justification": "The human critiques focus on ASQ-3 measurement validity, trial reporting, and within-study multiplicity, while the LLM critiques largely target meta-analysis methodology (heterogeneity, RVE, moderator testing, representativeness, open science). Only two human issues have even partial conceptual overlap with the LLM list, yielding low coverage and very low precision.",
+      "detailed_notes": "Interpretation is constrained by apparent topic mismatch: the LLM issues read like a critique of a meta-analysis (social safety nets/agency/cost-benefit, RVE, heterogeneity), whereas the human issues clearly concern an RCT using ASQ-3 in India (validation, cutoffs, blinding, CONSORT). The only meaningful bridges are (a) general measurement validity/context dependence (H1~L9) and (b) general multiple-testing/pre-specification logic (H2~L5). If the intention was to compare critiques of the same paper, the LLM issue set likely corresponds to a different manuscript or an earlier/different evaluation target."
     }
   },
   {
@@ -558,30 +1348,95 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 1908,
     "comparison": {
-      "coverage_pct": 70,
-      "precision_pct": 90,
-      "missed_issues": [
-        "Need more detail on intervention context beyond the IVR/cash bundle—especially how participants were actually encouraged to spend on nutritious foods (implementation fidelity and messaging content/delivery).",
-        "Potential confounding/interaction with concurrent programs (e.g., conditional cash transfers and other early-childhood health services) that could affect interpretation of impacts and heterogeneity.",
-        "Concern that the paper’s framing/abstract language may overemphasize ‘statistically significant’ sanitation-subgroup anthropometric results even while caveating them in-text (i.e., reader takeaway risk).",
-        "Exclusion of breastmilk from child food consumption measurement/accounting (not central, but raised).",
-        "Requests for clearer study schematics (CONSORT-style flow chart; DAG) to improve transparency (lower priority, but mentioned)."
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            2,
+            7,
+            8
+          ],
+          "match_quality": 90,
+          "label": "Sanitation heterogeneity and multiple-testing risk",
+          "match_explanation": "Both critiques warn that the sanitation-subgroup result is fragile: the LLM highlights post-treatment/non-random sanitation measurement and measurement error, and also flags multiple outcomes/heterogeneities without clear multiple-testing control—directly aligning with the human concern about overstated significance.",
+          "detailed_discussion": "The human expert’s core worry is interpretive: the paper’s emphasis (abstract/intro) could leave readers believing anthropometric effects are genuinely \"statistically significant\" in high-sanitation areas, despite subgroup/MHT concerns. The LLM converges on the same vulnerability but frames it more as identification and measurement: sanitation is measured post-treatment and may proxy for correlated area characteristics (L2) and has reliability issues (L8). The LLM also adds a general manuscript-wide multiple-testing critique (L7), which supports the human point that subgroup significance can be overstated without adjustments. Overall, the LLM covers both the statistical-significance overstatement channel (MHT) and a deeper reason the heterogeneity could be spurious (post-treatment, confounded sanitation measure)."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            1,
+            6
+          ],
+          "match_quality": 60,
+          "label": "Intervention details and messaging/implementation context",
+          "match_explanation": "Both request clearer articulation of what the intervention actually was and how messaging operated; the LLM focuses on bundling/interpretation of \"unconditional cash\" (L1) and on measuring actual IVR exposure (L6), which partially overlaps with the human request for more messaging/context detail.",
+          "detailed_discussion": "The human critique asks for richer contextual detail: what exactly participants were told/encouraged to do with cash, and how concurrent programs (CCTs/health services) might interact with the intervention. The LLM similarly pushes for clearer intervention definition (cash + nutrition framing/IVR rather than a pure income shock) and better evidence on messaging exposure (call connection/delivery), which speaks to the “how did messaging work?” component. However, the LLM does not explicitly raise the possibility of concurrent CCTs/health-service targeting creating interaction effects or confounding the interpretation, which is a central part of the human issue. So the overlap is substantial on messaging/packaging clarity, but incomplete on the broader policy-context/interacting-programs concern."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            7
+          ],
+          "match_quality": 95,
+          "label": "Multiple comparisons across many indices/outcomes",
+          "match_explanation": "Both critiques directly flag a multiple-hypothesis testing problem arising from many reported indices/items/heterogeneities without clear family definitions or adjustments.",
+          "detailed_discussion": "The human expert points specifically to child development indices and ASQ items being analyzed without MHT correction or clarity that this was pre-specified. The LLM generalizes the same concern across the manuscript—many outcomes and heterogeneities—and calls for explicit primary families and clearer confirmatory vs exploratory labeling. The LLM framing is slightly broader (covering indices \"beyond\" any single domain), but it squarely covers the human complaint about multiple comparisons. This is one of the cleanest overlaps between the two critiques."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            5
+          ],
+          "match_quality": 35,
+          "label": "Diet measurement limitations (including missing components)",
+          "match_explanation": "The human issue about excluding breastmilk from child consumption is a specific measurement limitation; the LLM raises broader dietary recall/portion/allocation measurement error concerns that relate only indirectly.",
+          "detailed_discussion": "The human critique is narrowly about an omitted intake source (breastmilk) and how that affects child food consumption accounting. The LLM does not mention breastmilk specifically, but it does question the robustness of dietary measurement based on 24-hour recall and complex allocation/portioning, including potential differential misreporting. Conceptually, both are “diet measurement validity” issues, but they point to different failure modes (systematic omission vs recall/measurement error). Because the LLM doesn’t directly engage the breastmilk omission, the match is partial rather than strong."
+        }
       ],
-      "extra_issues": [
-        "Clarification that impacts are for a bundled intervention (cash to women + nutrition framing/IVR), not a generic income shock/unconditional cash effect.",
-        "COVID-truncated subsample and mode/composition differences across years potentially affecting comparisons over time.",
-        "Parent-reported ASQ outcomes: risk of differential reporting/experimenter-demand effects and need for more objective validation.",
-        "Dietary measurement limitations (24-hour recall, portion allocation) and robustness to measurement error/differential misreporting.",
-        "IVR exposure measurement is indirect; suggestion to use call delivery/connection data or stronger exposure measures.",
-        "Sanitation index reliability concerns (perceptions of neighbors, enumerator subjectivity) and sensitivity to alternative proxies.",
-        "‘Explained share’/channel decomposition based on cross-sectional correlations is non-causal and could mislead if interpreted mechanistically.",
-        "Non-food spending missing in year 1 (form error) limits welfare/budget share interpretation during transfer receipt.",
-        "External validity limits (Jharkhand/ICDS-linked registrants; sample slightly wealthier than state average).",
-        "Replication readiness/data-and-code availability and index construction scripts not clearly stated."
+      "unmatched_human": [
+        {
+          "index": 5,
+          "brief_description": "Request for CONSORT-style flow chart and/or DAG",
+          "why_missed": "None of the LLM issues explicitly mention adding a CONSORT diagram or a DAG as reporting/clarity improvements; the LLM focused more on identification, measurement, and inference concerns than on these specific presentation standards."
+        }
       ],
-      "overall_rating": "Good",
-      "overall_justification": "GPT captures the central expert concern about sanitation subgroup claims and multiple testing/over-interpretation, and partially overlaps on messaging/implementation (via IVR exposure). It misses the key context concern about concurrent programs and the critique about narrative emphasis, but adds several plausible, substantive methodological issues.",
-      "detailed_notes": "On the most important human point (subgroup/heterogeneity and MHT), GPT aligns strongly: it flags both multiple comparisons and the non-random/post-treatment nature of sanitation measurement. The second human point (intervention context and concurrent services) is only partially addressed: GPT focuses on IVR exposure measurement and bundling, but not on other contemporaneous programs (CCTs/health services) that could drive or modify effects."
+      "unmatched_llm": [
+        {
+          "index": 3,
+          "brief_description": "COVID-truncated year-2 subsample and mode/composition changes",
+          "why_extra": "Human critiques did not raise concerns about COVID-driven sampling/mode changes affecting year-to-year comparability."
+        },
+        {
+          "index": 4,
+          "brief_description": "Parent-reported ASQ outcomes susceptible to reporting/demand effects",
+          "why_extra": "Humans flagged multiple testing around ASQ items but did not emphasize measurement bias from parent reporting or experimenter demand."
+        },
+        {
+          "index": 9,
+          "brief_description": "Non-causal interpretation of \"explained share\" mediation-style correlations",
+          "why_extra": "Human issues focused on subgroup/MHT and context details, not on the causal interpretability of correlation-based channel decomposition."
+        },
+        {
+          "index": 10,
+          "brief_description": "Year-1 non-food spending missing due to survey form error",
+          "why_extra": "Humans did not mention this data gap or its implications for welfare/budget-share interpretation."
+        },
+        {
+          "index": 11,
+          "brief_description": "External validity limits (Jharkhand/ICDS registrants; wealth differences)",
+          "why_extra": "Humans did not discuss generalizability beyond the study setting or sampling frame."
+        },
+        {
+          "index": 12,
+          "brief_description": "Replication readiness (code/data availability; construction scripts)",
+          "why_extra": "Humans did not raise reproducibility, data/code access, or index-construction transparency as a critique."
+        }
+      ],
+      "coverage_pct": 80,
+      "precision_pct": 50,
+      "overall_rating": "Moderate",
+      "overall_justification": "The LLM covers most major human concerns (4/5), especially the key multiple-testing and sanitation-heterogeneity issues, but it misses one entire human request (CONSORT/DAG) and only partially addresses the intervention-context/interacting-programs concern. Conversely, half of the LLM’s points add new (often valuable) critiques not raised by humans, lowering precision against the human issue set.",
+      "detailed_notes": "Match threshold used: match_quality >= 30. H2 is treated as matched but only moderately because LLM addresses messaging/bundling clarity but not the specific concern about concurrent CCTs/health services and resulting interaction effects. H4 is treated as a low-confidence match because it shares the measurement-validity theme but not the breastmilk-specific omission."
     }
   },
   {
@@ -605,29 +1460,117 @@
     "num_gpt_issues": 12,
     "coda_critique_length": 3881,
     "comparison": {
-      "coverage_pct": 35,
-      "precision_pct": 92,
-      "missed_issues": [
-        "Primary concern: data leakage / contemporaneous predictors — key predictors (e.g., NPP, burned area, road density, some land cover) are measured over the same period as (or overlapping with) the 2000–2012/2016 regrowth outcome, potentially encoding post-outcome information and inflating performance.",
-        "“Validation” problem: comparing a 2030-oriented prediction/claim against historical regrowth observations (2000–2016) is not a true validation of future predictive ability.",
-        "Neglect of the intensive margin of regrowth (canopy recovery / biomass increases within existing forest pixels), focusing only on extensive-margin new forest gain.",
-        "Reliance on an older GFC gain product (v1.5) when newer improved datasets (e.g., incorporating GEDI) exist, potentially affecting label quality and conclusions.",
-        "Need for a hindcast and reconciliation of magnitude: the paper does not report model-predicted regrowth for 2000–2016 to benchmark against Fagan et al. (2022), despite a large discrepancy (e.g., 215 Mha vs ~31.6 Mha ± 11.9 Mha).",
-        "Definition issue: “natural regrowth” inherits Fagan et al.’s definition that may conflate natural regeneration with human-assisted regeneration (beyond just plantations)."
+      "matched_pairs": [
+        {
+          "human_issue_index": 1,
+          "llm_issue_indices": [
+            7,
+            8
+          ],
+          "match_quality": 75,
+          "label": "Temporal leakage / contemporaneous predictors in training",
+          "match_explanation": "Both critiques flag problematic time alignment between predictors and the 2000–2016 regrowth outcome, which can inflate apparent performance. The LLM frames it as temporal inconsistency and mixed time windows rather than explicitly as post-outcome leakage.",
+          "detailed_discussion": "The human reviewers argue that key predictors (e.g., NPP, burned area, road density) are measured during the same window as the outcome and may be influenced by regeneration, creating leakage and optimistic accuracy. The LLM similarly notes predictors spanning 2000–2015/2017 and other time-window mismatches, plus inconsistencies from updating covariates to later years. However, the LLM emphasizes resolution/temporal-mismatch artifacts and transfer incoherence, while the human critique emphasizes the causal direction problem (predictors containing information affected by the outcome). Substantively, both point to the same risk: inflated in-sample validation and degraded real-world generalization due to temporally entangled inputs."
+        },
+        {
+          "human_issue_index": 2,
+          "llm_issue_indices": [
+            8
+          ],
+          "match_quality": 50,
+          "label": "Outdated / inconsistent forest-change product versions",
+          "match_explanation": "Both mention that product/version choices in GFW/GFC-derived inputs can affect results and comparability over time. The human critique focuses on newer improved datasets (e.g., GEDI-informed updates), while the LLM highlights version/temporal inconsistency more generally.",
+          "detailed_discussion": "The human issue is specifically that the study relies on an older GFC gain label layer (v1.5) and should consider newer updates that may materially change training labels and conclusions. The LLM does not explicitly call for switching to the latest gain dataset or cite GEDI-based improvements, but it does warn that known version differences in GFW products and updating covariates to 2018 can yield incoherent signals and affect transfer to future predictions. Thus, both are concerned that dataset vintage/versioning undermines validity, but they stress different remedies: the humans want updated gain labels; the LLM stresses temporal consistency and comparability."
+        },
+        {
+          "human_issue_index": 3,
+          "llm_issue_indices": [
+            3,
+            9
+          ],
+          "match_quality": 90,
+          "label": "Socioeconomic confounding undermines “biophysical potential” claims",
+          "match_explanation": "Both critiques argue that observational patterns conflate biophysical suitability with human land-use/governance, so outputs cannot be interpreted as purely biophysical potential. The LLM explicitly flags omitted-variable bias/proxying when socioeconomic covariates are excluded from prediction.",
+          "detailed_discussion": "The human reviewers emphasize that biophysical and socioeconomic conditions are intertwined and that using a biophysical-only prediction model cannot support the interpretation of ‘pure biophysical potential.’ The LLM makes the same point via two angles: (i) negatives and the domain include actively managed lands, so the model learns land-use decisions as much as ecology; and (ii) dropping socioeconomic covariates causes omitted-variable bias, with biophysical variables acting as proxies for governance/pressure. The human critique is framed as an interpretation/identification problem (“you cannot infer pure biophysical potential”), while the LLM frames it as a statistical bias/problem setup issue. These are essentially the same concern, expressed with different causal/statistical language."
+        },
+        {
+          "human_issue_index": 4,
+          "llm_issue_indices": [
+            1
+          ],
+          "match_quality": 45,
+          "label": "Outcome definition misses important regrowth processes",
+          "match_explanation": "Both raise that the chosen regrowth label misses meaningful forms of recovery. The human critique focuses on intensive-margin recovery within existing forests, whereas the LLM focuses on early/slow regeneration and persistence limitations.",
+          "detailed_discussion": "The human issue is that the study only captures extensive-margin gain (new forest pixels) and ignores intensive-margin recovery (canopy densification/regrowth within existing forest). The LLM similarly critiques the target definition as an imperfect proxy that can miss early regeneration and slow-growing ecosystems and may not ensure persistence beyond 2016. These overlap in the general idea that “regrowth” is incompletely operationalized, but they are not the same measurement gap: intensive-margin recovery is specifically about within-forest changes rather than new forest appearance. Hence the match is partial: both identify label incompleteness, but for different missing components."
+        },
+        {
+          "human_issue_index": 6,
+          "llm_issue_indices": [
+            1,
+            2
+          ],
+          "match_quality": 45,
+          "label": "Label definition of “natural regrowth” is problematic",
+          "match_explanation": "Both critiques question whether the label truly represents the intended concept of natural regeneration. The LLM focuses on proxy/measurement limitations and label error, while the human critique focuses on conceptual misclassification (natural vs human-assisted).",
+          "detailed_discussion": "The human reviewer concern is definitional: inheriting Fagan et al.’s label may conflate natural processes with human-assisted regeneration (anything non-plantation counted as “natural”). The LLM does not explicitly discuss assisted vs natural categories, but it does argue the target is only a proxy for restoration success and that upstream labels have systematic omission/accuracy problems that can bias training. Conceptually, both are about construct validity: what the label actually measures versus what the paper claims. The human critique is about mislabeling the mechanism/type of regrowth; the LLM is about measurement error and proxy validity more broadly."
+        },
+        {
+          "human_issue_index": 7,
+          "llm_issue_indices": [
+            2,
+            6
+          ],
+          "match_quality": 92,
+          "label": "Omission error in labels inflates area potential",
+          "match_explanation": "Both identify that the upstream regrowth map has high omission/low producer’s accuracy, which biases training and can overstate available/potential area. The LLM explicitly notes systematic false negatives and missing uncertainty propagation.",
+          "detailed_discussion": "The human critique ties directly to Fagan et al.’s reported low producer’s accuracy (~18.7%) and argues this leads to overestimation of the ‘available’ area because already-regrown areas may be miscounted or misrepresented. The LLM similarly highlights that the label layer has systematic false negatives (omission), which will bias model training and spatial patterns, and further notes that such label noise is not reflected in uncertainty intervals. The two critiques align closely on the technical failure mode (label omission) and its downstream consequence (biased area estimates). The LLM extends the point by connecting it to uncertainty accounting, while the human critique emphasizes inherited error from the benchmark dataset."
+        },
+        {
+          "human_issue_index": 8,
+          "llm_issue_indices": [
+            5,
+            6
+          ],
+          "match_quality": 55,
+          "label": "Headline area estimates lack credible validation/uncertainty",
+          "match_explanation": "Both raise that the headline area number is not adequately supported by validation against historical benchmarks or by realistic uncertainty. The LLM focuses on missing uncertainty sources and over-optimistic validation; the human critique emphasizes the discrepancy with Fagan et al. and the absence of a hindcast.",
+          "detailed_discussion": "The human reviewers stress that the 215 Mha estimate is far larger than Fagan et al.’s ~31.6 Mha benchmark and that the authors fail to report a hindcast for 2000–2016 to check consistency. The LLM does not name that specific discrepancy, but it argues the reported confidence intervals are implausibly narrow because they omit major uncertainties (label noise, non-stationarity, predictor error, specification uncertainty), and it warns that non-spatially-blocked validation can be optimistic. Both are ultimately challenging evidentiary support for the headline magnitude, but they differ in emphasis: humans want a concrete historical back-test against the benchmark; the LLM critiques the general uncertainty/validation framework."
+        }
       ],
-      "extra_issues": [
-        "Lack of calibration/threshold tradeoff reporting (precision–recall, calibration curves), important when converting probabilities to areas and decisions.",
-        "Insufficient spatially blocked cross-validation (beyond random splits), with risk of spatial autocorrelation inflating performance estimates.",
-        "Unrealistically narrow confidence intervals / incomplete uncertainty propagation (label noise, non-stationarity, predictor error, model specification).",
-        "Mixed spatial/temporal resolution predictors presented at 30 m outputs, risking fine-scale artifacts and overconfidence in local precision.",
-        "Temporal inconsistency from updating covariates to later years (e.g., 2018) while training on 2000–2016 outcomes.",
-        "Carbon accumulation methodology concerns (resampling 1 km carbon layers to 30 m without uncertainty/covariance handling).",
-        "Reproducibility limitation: code only available “on request.”",
-        "Risk of policy/operational misinterpretation (map could be read as identifying realizable/additional/permanent sequestration opportunities without sufficient caveats)."
+      "unmatched_human": [
+        {
+          "index": 5,
+          "brief_description": "Validation compares 2030 predictions to 2000–2016 outcomes (not true future validation).",
+          "why_missed": "The LLM critique focuses on cross-validation design (random vs spatial blocking) rather than the specific logical mismatch of ‘validating’ a 2030 map using historical regrowth labels from 2000–2016."
+        }
       ],
-      "overall_rating": "Moderate",
-      "overall_justification": "GPT captures the socioeconomic–biophysical confounding concern and label/omission-error problems, but misses the central expert-flagged threats to validity: contemporaneous-predictor leakage and the flawed future-oriented “validation,” plus several other major human critiques (intensive margin, outdated GFC gain reliance, and missing hindcast/benchmark reconciliation).",
-      "detailed_notes": "Several GPT points are high-quality, paper-relevant methodological critiques (spatial CV, uncertainty propagation, resolution mismatch), but they do not substitute for directly identifying leakage from predictors recorded during/after the regrowth window, which the human experts treat as necessary and potentially fatal to causal/predictive interpretation. GPT’s discussion of temporal inconsistency (e.g., covariates updated to 2018) is related to time-mismatch but is not the same as the experts’ leakage concern about predictors observed contemporaneously with the outcome."
+      "unmatched_llm": [
+        {
+          "index": 4,
+          "brief_description": "Limited calibration/threshold analysis despite probability-to-area aggregation.",
+          "why_extra": "Human critiques did not focus on calibration, threshold choice, or precision–recall tradeoffs as a central methodological risk."
+        },
+        {
+          "index": 10,
+          "brief_description": "Carbon layer resampling from 1 km to 30 m without uncertainty/covariance handling.",
+          "why_extra": "Human critiques centered on regeneration mapping/validation rather than the downstream carbon accumulation estimation workflow."
+        },
+        {
+          "index": 11,
+          "brief_description": "Risk of policy/operational misuse; need clearer guidance on additionality/permanence.",
+          "why_extra": "Human critiques were primarily technical (data leakage, confounding, validation) rather than interpretability/communications risks for end users."
+        },
+        {
+          "index": 12,
+          "brief_description": "Code availability only on request limits reproducibility/auditing.",
+          "why_extra": "Human critiques did not explicitly raise transparency/reproducibility as a key issue."
+        }
+      ],
+      "coverage_pct": 88,
+      "precision_pct": 67,
+      "overall_rating": "Good",
+      "overall_justification": "The LLM captures most major human concerns (7/8), including confounding and label omission, and partially captures data leakage and label-definition problems. It misses one prominent human-identified flaw: the specific logical error of validating a 2030 prediction against historical (2000–2016) outcomes. Several LLM points extend beyond the human critique (calibration, carbon downscaling, misuse risk, reproducibility), lowering precision but adding relevant methodological depth.",
+      "detailed_notes": "Match-quality threshold used for coverage: >=30%. Some matches are partial because the LLM addresses the same broad failure mode (e.g., temporal inconsistency) but not the exact human framing (e.g., predictors being influenced by regeneration itself). Precision counts an LLM issue as ‘matched’ if it supports at least one human issue at >=30% quality; by that rule, 8/12 LLM issues align with human critiques."
     }
   }
 ]
