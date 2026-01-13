@@ -102,8 +102,10 @@ if (!is.null(comparison_data) && !is.na(comparison_results_file)) {
       gpt_paper,
       coverage_pct,
       precision_pct,
-      missed_issues,
-      extra_issues,
+      # New format uses matched_pairs, unmatched_human, unmatched_llm
+      any_of(c("matched_pairs", "unmatched_human", "unmatched_llm")),
+      # Old format used missed_issues, extra_issues (keep for backward compat)
+      any_of(c("missed_issues", "extra_issues")),
       overall_rating,
       overall_justification,
       detailed_notes
