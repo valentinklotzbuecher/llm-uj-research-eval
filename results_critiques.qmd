@@ -517,6 +517,21 @@ if (!is.null(comparison_data) && n_papers > 0) {
       avg_score <- (coverage_val + precision_val) / 2
       rating <- if (!is.null(row$overall_rating)) row$overall_rating else "Unknown"
 
+      # Calculate weighted coverage: mean of match_quality across all human issues (0 for unmatched)
+      matched_pairs_data <- if (!is.null(paper_comparison$matched_pairs)) paper_comparison$matched_pairs else list()
+      unmatched_human_data <- if (!is.null(paper_comparison$unmatched_human)) paper_comparison$unmatched_human else list()
+      n_matched <- length(matched_pairs_data)
+      n_unmatched <- length(unmatched_human_data)
+      n_total_human <- n_matched + n_unmatched
+
+      if (n_total_human > 0) {
+        # Sum of match_quality for matched issues + 0 for each unmatched issue
+        match_qualities <- sapply(matched_pairs_data, function(x) as.numeric(x$match_quality))
+        weighted_coverage <- round(sum(match_qualities) / n_total_human, 0)
+      } else {
+        weighted_coverage <- NA
+      }
+
       # Determine badge color based on rating
       if (rating %in% c("Good", "Excellent")) {
         badge_class <- "callout-tip"
@@ -527,8 +542,13 @@ if (!is.null(comparison_data) && n_papers > 0) {
       }
 
       cat(sprintf("::: {.%s appearance=\"simple\"}\n", badge_class))
-      cat(sprintf("**Coverage:** %s%% | **Precision:** %s%%\n",
-                  row$coverage_pct, row$precision_pct))
+      if (!is.na(weighted_coverage)) {
+        cat(sprintf("**Coverage:** %s%% | **Weighted Coverage:** %s%% | **Precision:** %s%%\n",
+                    row$coverage_pct, weighted_coverage, row$precision_pct))
+      } else {
+        cat(sprintf("**Coverage:** %s%% | **Precision:** %s%%\n",
+                    row$coverage_pct, row$precision_pct))
+      }
       cat(":::\n\n")
     }
 
@@ -769,7 +789,16 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
 The comparison between GPT key issues and human critiques was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and precision (whether GPT issues are substantive).
 
+- **Coverage**: Proportion of *consensus* human issues that have any LLM match (match quality ≥ 30%)
+- **Weighted Coverage**: Mean match quality across all human issues (treating unmatched issues as 0%)
+- **Precision**: Proportion of LLM issues that match a human concern
+
 **Note**: Any interpretation or narrative commentary in this section is written by an LLM (Codex). The values themselves come from the GPT-5.2 Pro comparison outputs.
+
+::: {.callout-note}
+## Caveat on Precision
+"Precision" only reflects whether LLM issues match the *consensus* human issues curated in Coda—those prioritized by evaluation managers as the most important concerns. Many LLM-identified issues may have been noted by one or more individual human evaluators but were not included in this curated set. A low precision score does not necessarily mean the LLM raised irrelevant concerns; it may simply reflect issues that weren't prioritized in the consensus summary.
+:::
 
 ```{r}
 #| label: check-llm-results
