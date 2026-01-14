@@ -34,15 +34,13 @@ This includes
 
 [^proposal-3]: Human reviews, even from vetted, incentivized experts, are not a ‘ground truth’ about research quality. To the extent we’re aiming at ‘making research assessment more accurate and improving research, and assessing AI’s capacity’, this is a limitation. We address this somewhat by focusing on critiques raised by multiple evaluators particularly where the authors agreed and where we the managers agreed. We also aim measure the ways AI evaluations align with and deviate from expert human researchers. We are confident that Unjournal evaluations represent mainstream research expertise. They often come from world-class experts, they generally have strong credentials, and usually have authored high-status peer-reviewed work related to the papers evaluated. Where they leave their names this can be looked up; for anonymous evaluations we ask them to state their years of experience in the field and number of papers reviewed/evaluated.
 
-This work informs the increasingly proposed [and actual](https://www.nature.com/articles/d41586-025-04066-5) use of AI to evaluate human-led research,[^proposal-4] as well as for AI's potentially transformative role in scientific discovery.[^proposal-5] We are seeking evidence on AI's reasoning about research: where does it excel, what are its limitations, and what drives the differences from humans?
+While LLM tools are being built and [used](https://openai.com/science/) for [peer-review](https://aclanthology.org/2025.naacl-demo.44/) ([often without permission](https://www.nature.com/articles/d41586-025-04066-5)), [feedback](https://www.refine.ink/), [grant-prioritization](https://www.chemistryworld.com/news/ukri-opens-up-grant-proposal-data-to-explore-using-ai-to-smooth-peer-review/4022597.article), and [scientific ](https://arxiv.org/abs/2511.02824)discovery, we lack detailed evidence comparing their reasoning to human experts. This project aims to understand AI's potential for evaluatinghuman-led research, as well for its potentially transformative role in scientific discovery.[^proposal-4] We seek evidence on AI's reasoning about research: where does it excel, what are its limitations, and what drives the differences from humans?
 
-[^proposal-4]: ,As noted in our introduction, "if AI research-evaluation works it could free up a lot of scientific resources – perhaps \$1.5 billion/year in the US alone ([Aczel, Szaszi, and Holcombe 2021](references.html#ref-aczel2021billion)) – and offer more continual and detailed review, helping improve research and address the '[peer-review crisis](https://www.nature.com/articles/d41586-025-02457-2)'. Numerous accounts report a system under strain, with widespread difficulty finding human peer reviewers with appropriate expertise willing to put in careful effort. An influx of AI-generated or AI-human hybrid research seems likely to exacerbate this problem.
-
-[^proposal-5]: [The leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis” – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Recent EU Union recent guidelines argue that "AI has great potential for accelerating scientific discovery and improving the effectiveness and pace of research and verification processes" (@eger2025).
+[^proposal-4]: [The leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis” – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Recent EU Union recent guidelines argue that "AI has great potential for accelerating scientific discovery and improving the effectiveness and pace of research and verification processes" (@eger2025).
 
 *Core outputs:*
 
--   Public database and curated resources for benchmarking and testing[^proposal-6]
+-   Public database and curated resources for benchmarking and testing[^proposal-5]
 
 -   Quantitative measures of AI calibration, consistency, and alignment with human expert judgment
 
@@ -52,7 +50,7 @@ This work informs the increasingly proposed [and actual](https://www.nature.com/
 
 -   Practical guidance on the uses and limitations of AI for peer review and research prioritization
 
-[^proposal-6]: This will include Unjournal evaluation and rating content paired with LLM evaluations, and enumerator evaluations of these evaluations. We also build sets of human-validated 'consensus critiques'. We will also set up processes for the future Unjournal pipeline to be similarly publicly curated for external users.
+[^proposal-5]: This will include Unjournal evaluation and rating content paired with LLM evaluations, and enumerator evaluations of these evaluations. We also build sets of human-validated 'consensus critiques'. We will also set up processes for the future Unjournal pipeline to be similarly publicly curated for external users.
 
 ## Relevance and fit with RFP criteria
 
@@ -61,11 +59,11 @@ This work informs the increasingly proposed [and actual](https://www.nature.com/
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | RFP Criterion          | Our Approaches                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 +========================+============================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
-| **Truthfulness**       | *Detection:* Measure LLM detection of \~confirmed misleading research claims identified by human evaluators                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **Truthfulness**       | *Detection:* Measure LLM detection of \~confirmed misleading research claims identified by human evaluators. Human enumerators identify ‘false positive’ critiques and misleading and inconsistent statements in AI output.                                                                                                                                                                                                                                                                                                                                |
 |                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 |                        | *Informativeness:* Human ratings of AI critiques, performance of human-AI hybrid evaluators                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Meta-reasoning**     | *Calibration:* Consider plausibility of stated confidence intervals (90% credible bounds) for percentile ranking measures, compare to actual outcomes where available (e.g., publication journal-tiers, predicted human ratings)                                                                                                                                                                                                                                                                                                                           |
+| **Meta-reasoning**     | *Calibration:* AI evaluators make predictions, e.g., ‘What journal tier will this paper be published in’?, ‘What will be the mean human-expert’s overall rating’, and state 90% credible intervals. We can consider the plausibility of stated confidence intervals for percentile ranking measures, and compare to actual outcomes where available (e.g., publication journal-tiers, predicted human ratings). We can measure and compare the calibration (and sharpness) across models, questions and framings.                                          |
 |                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 |                        | *Explanation:* (E.g.), compare rating justifications across different framings/extraneous features (e.g., author/institution prestige)                                                                                                                                                                                                                                                                                                                                                                                                                     |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -82,12 +80,12 @@ As noted in the [related literature reviewed in our Introduction](index.qmd#sec-
 
 1.  Real high-quality human expert evaluations (The Unjournal's managed and incentivized process)
 2.  Prospective pipeline: The Unjournal's ongoing intake enables out-of-time validation with clean test sets, A/B trials of hybrid human-AI evaluation, and direct validation where the same evaluators and authors can assess LLM outputs
-3.  Economics/policy domain: Most existing benchmarks focus on CS/NLP venues; we cover high-stakes policy research directly relevant to global priorities[^proposal-7]
+3.  Economics/policy domain: Most existing benchmarks focus on CS/NLP venues; we cover high-stakes policy research directly relevant to global priorities[^proposal-6]
 4.  Structured quantitative ratings context: Multi-dimensional percentile ratings with credible intervals, not binary accept/reject
 5.  Ground-truth outcomes: Journal tier predictions have verifiable outcomes enabling calibration analysis
 6.  Research prioritization: We also measure LLM ability and taste in identifying and prioritize high-impact research, comparing AI recommendations to our internal team's prioritization decisions
 
-[^proposal-7]: See @eger2025 and @dycke2023 for discussion of how existing peer-review datasets skew toward computer science.
+[^proposal-6]: See @eger2025 and @dycke2023 for discussion of how existing peer-review datasets skew toward computer science.
 
 ### What We Measure (examples)
 
@@ -97,12 +95,12 @@ As noted in the [related literature reviewed in our Introduction](index.qmd#sec-
 -   **Precision:** How many LLM-identified issues are valid vs. false positives?
 -   **Bias:** Do ratings vary based on author names, institutions, or other non-content features?
 -   **Taste:** Where do AI and human evaluators systematically diverge?
-    -   What types of critiques do each tend to identify and emphasize?[^proposal-8]
+    -   What types of critiques do each tend to identify and emphasize?[^proposal-7]
     -   How do the critiques, text content, and multi-dimensional ratings differently predict overall assessments?
     -   What features do each prioritize in considering global-priorities relevance and impact potential?
 -   Relative performance across models, prompts, and contexts. [See PoC rating distribution by model →](results_ratings.qmd#rating-distribution-by-model)
 
-[^proposal-8]: E.g., human reviewers may tend to offer more (correct and incorrect) critiques over  the realism of assumptions and generalizability outside of the context of the research data, while AI may focus more on internal inconsistencies in the research.
+[^proposal-7]: E.g., human reviewers may tend to offer more (correct and incorrect) critiques over  the realism of assumptions and generalizability outside of the context of the research data, while AI may focus more on internal inconsistencies in the research.
 
 ### Limited scale, no general capabilities development
 
@@ -113,10 +111,10 @@ This project focuses on measurement, diagnosis, and insight, and providing a use
 ::: callout-warning
 ## Preliminary and illustrative
 
-The results below (and in the other chapters in this document) are from early pilot work and have not yet been carefully vetted. They are meant to illustrate our approach, show viability, and illustrate the types of comparisons we will make. Our methods, prompts, and analysis will improve substantially throughout the project.[^proposal-9]
+The results below (and in the other chapters in this document) are from early pilot work and have not yet been carefully vetted. They are meant to illustrate our approach, show viability, and illustrate the types of comparisons we will make. Our methods, prompts, and analysis will improve substantially throughout the project.[^proposal-8]
 :::
 
-[^proposal-9]: As noted, subject to pre-registration.
+[^proposal-8]: As noted, subject to pre-registration.
 
 We have completed initial benchmarking with 55 papers (each with 2+ human evaluations) using GPT-5.2 Pro.
 
@@ -124,19 +122,31 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 **Rating agreement:** Moderate positive correlation between LLM and human ratings (r ≈ 0.4-0.6 depending on dimension), with substantial variation across papers and metrics. [See detailed analysis →](results_ratings.qmd)
 
+**Calibration:** Non-trivial credible intervals. (More detailed analysis is needed)
+
 **Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues (and raises a substantial number of additional issues which would need vetting). A very preliminary comparison suggests coverage varies by issue type; methodological concerns seem captured better than domain-specific errors. *However*, this is based on GPT-5 Pro's own comparison and diagnosis of the correspondence between human and LLM critiques; this needs further [human vetting and labeling](https://llm-uj-research-eval.netlify.app/results_critiques#questions-for-manual-review). — [See critique comparison →](results_critiques.qmd)
 
 **Illustrative cases from critique analysis** ([very preliminary comparison →](results_critiques.qmd)):
 
--   *Good alignment (Bilal & Känzig 2024):* GPT-5 pro claims the LLM achieved 100% coverage on this climate-macroeconomics paper—identifying all human concerns about finite-sample inference, long-run effects, and dynamic specification. However, a closer inspection reveals that
+-   *Good apparent alignment* (Clancy, 2024)*:* GPT-5 pro claims the LLM achieved 100% coverage—identifying all 3 prioritized "consensus critiques", at least partially. Both seem to raise some concerns about neglecting AI risk while considering *all* the benefits of science (H1 vs L3/L9, although these go in somewhat different directions). Both flag the lack of consistent treatment and justification of the discount rate. Neither are convinced by the privileging of superforecaster estimates over domain experts.
 
--   *Poor alignment (Peterman et al. 2025):* On a child development meta-analysis, the LLM achieved only 40% coverage. Human experts focused on domain-specific issues (ASQ-3 measurement validity in India, CONSORT reporting, clinical cutoffs), while the LLM critiqued general meta-analysis methodology (heterogeneity statistics, RVE implementation). The LLM identified *different* issues rather than *wrong* ones—a systematic "taste" divergence.
+-   *Decent alignment* (Dullaghan and Zhang, 2022*):* GPT-5 pro claims the LLM achieved 88% coverage—identifying all 7/8 "consensus critiques", at least partially.
 
--   *Rating divergence despite partial critique overlap (Williams et al. 2024):* Human experts rated this forest regeneration paper at 50th percentile overall while GPT-5 Pro rated it at 87th—a 37-point gap. Interestingly, the LLM's reasoning *does* mention calibration issues and omission errors flagged by humans, but weights them less severely. The LLM achieved 88% critique coverage but the ratings diverged substantially, suggesting the issue is weighting rather than detection.
+    -   Several important critiques appear very similar between the human and LLM. E.g., these seem to align over the limitations of tiny sample of expert forecasters, and the consequently overstated claims (H1/L1). Both expressed concerns over the interpretation of forecasts about *conditional* claims (H3/L9).
 
-These patterns—domain expertise gaps, different methodological emphasis, and severity weighting differences—are precisely what this project aims to characterize systematically.
+    -   Still, a closer inspection reveals the overall agreement may be overstated. E.g., for "H2: Material input-cost framing errors may bias forecasts" the human evaluation identifies an entirely different unit conversion error, while the LLM (L4) refers to the wording of the amino-acids input-cost question, an error already acknowledged by the authors. Nonetheless, GPT-5 pro reports this as a 90% agreement on this critique. *This suggests further human inspection is needed, and/or we need to improve this diagnostic tool.*
 
-**Calibration:** Non-trivial credible intervals. (More detailed analysis needed)
+    -   As GPT notes, at least one critique/suggestion was clearly missed by the LLM (H7, about the design not allowing forecaster discussion and update)
+
+-   *Middling alignment (Peterman et al. 2025):* For a child development meta-analysis, GPT claims the LLM achieved only 40% coverage. Human experts focused on domain-specific issues (ASQ-3 measurement validity in India, CONSORT reporting, clinical cutoffs), while the LLM seemed to focus more on meta-analysis methodology (heterogeneity, RVE implementation). Differences like these would suggest a divergence in taste and prioritization.
+
+-   *Rating divergence despite apparently strong critique overlap (Williams et al. 2024):* Human experts rated this forest regeneration paper at 50th percentile overall while GPT-5 Pro rated it at 87th—a 37-point gap. Still, GPT reports 88% critique coverage. This discrepancy may reflect the relative weights assigned to each issue. More prosaically, this might reflect GPT's misdiagnosis of the critique overlap. While some diagnoses seem correct,[^proposal-9] the very-important H1 ("temporal leakage / contemporaneous predictors in training") does not seem to be captured by the noted LLM critiques (L7 and L8), which seem more about generalizability. Yet GPT reports this as a 75% match.
+
+[^proposal-9]: E.g., for "H3: Socioeconomic confounding", the human reports "the difficulty lies in the fact that biophysical and socioeconomic conditions are deeply interconnected", while the LLM reports (L9) "dropping socioeconomic covariates causes omitted-variable bias, with biophysical variables acting as proxies for governance/pressure", which seems closely related.
+
+    H7 mentions the inclusion of "already-regrown areas", while L2 notes "systematic false negatives"; again this seems to be a very similar point.
+
+As noteed, this is all very preliminary. Our project aims to characterize these patterns (domain expertise gaps, different methodological emphasis, severity weighting differences, etc.) more systematically and reliably, and at a larger scale.
 
 **Methods documentation:** Full pipeline, prompts, and schema documented for reproducibility. [See methods →](methods.qmd)
 
@@ -164,12 +174,13 @@ These patterns—domain expertise gaps, different methodological emphasis, and s
 -   **Valentin Klotzbücher (co-PI)**: Economist and statistician (University of Basel). Applied econometrics, causal inference, and reproducible pipelines.
 -   **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs."
 -   **Lorenzo Pacchiardi (Advisor)**: Research Associate, Leverhulme Centre for the Future of Intelligence, Cambridge. Leads Open Philanthropy–funded project on benchmarking LLM data science tasks.
+-   **Casey Wimsatt (Engineering advisor)**: Senior Data Scientist at Rethink Priorities. Experience building data pipelines and research infrastructure.
 
-**Additional resources**: Unjournal's management team, operations staff, and [evaluator pool](https://coda.io/d/The-Unjournal-Hub-internal_d0KBG3dSZCs/Statistics-Evaluator-pool_suXopY_6) (200+ credentialed researchers).
+**Additional resources**: Unjournal's [management and field specialist team](https://www.unjournal.org/team)s, operations staff, and [evaluator pool](https://coda.io/d/The-Unjournal-Hub-internal_d0KBG3dSZCs/Statistics-Evaluator-pool_suXopY_6) (200+ credentialed researchers).
 
 ## Budget
 
-The interactive budget model below reflects our [detailed cost breakdown](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).
+The interactive budget model below reflects our [detailed cost breakdown](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).^[The grant application form records absolute minimum ($40,000) and maximum ($700,000) budget figures. The scenarios below represent our realistic operating range.]
 
 ```{ojs}
 //| echo: false
@@ -271,30 +282,32 @@ html`<div style="font-size: 0.95em;">
   <th style="text-align: left; padding: 8px;">Item</th>
   <th style="text-align: right; padding: 8px;">Cost</th>
   <th style="text-align: right; padding: 8px;">Subtotal</th>
+  <th style="text-align: right; padding: 8px;">% of Total</th>
 </tr>
 </thead>
 <tbody>
-<tr><td style="padding: 6px;"><strong>People</strong></td><td>Research team (co-PIs) @ ${((p("reinstein_fte")+p("klotz_fte"))*100).toFixed(0)}% FTE combined</td><td style="text-align: right;">${fmt(subtotals.people)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td></tr>
+<tr><td style="padding: 6px;"><strong>People</strong></td><td>Research team (co-PIs) @ ${((p("reinstein_fte")+p("klotz_fte"))*100).toFixed(0)}% FTE combined</td><td style="text-align: right;">${fmt(subtotals.people)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td><td style="text-align: right;">${(100*subtotals.people/grandTotal).toFixed(0)}%</td></tr>
 
-<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Evaluations</strong></td><td>${p("num_eval_packages")} packages @ ${fmt(p("cost_per_eval_package"))}</td><td style="text-align: right;">${fmt(costs.eval_packages)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.evaluations)}</td></tr>
+<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Evaluations</strong></td><td>${p("num_eval_packages")} packages @ ${fmt(p("cost_per_eval_package"))}</td><td style="text-align: right;">${fmt(costs.eval_packages)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.evaluations)}</td><td style="text-align: right;">${(100*subtotals.evaluations/grandTotal).toFixed(0)}%</td></tr>
 
-<tr><td style="padding: 6px;"><strong>Enumerators</strong></td><td>Consensus critiques (${p("num_papers_consensus")} papers x ${p("hours_per_paper_consensus")}h)</td><td style="text-align: right;">${fmt(costs.consensus_critiques)}</td><td></td></tr>
-<tr><td></td><td>LLM eval labeling (${p("num_focal_papers_llm")} papers x ${p("num_models_per_paper")} models x ${p("num_enumerators")} raters)</td><td style="text-align: right;">${fmt(costs.llm_eval_enumerators)}</td><td></td></tr>
-<tr><td></td><td>Senior expert checks (${(p("fraction_evals_senior_check")*100).toFixed(0)}% sample)</td><td style="text-align: right;">${fmt(costs.senior_checks)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.enumerators)}</td></tr>
+<tr><td style="padding: 6px;"><strong>Enumerators</strong></td><td>Consensus critiques (${p("num_papers_consensus")} papers x ${p("hours_per_paper_consensus")}h)</td><td style="text-align: right;">${fmt(costs.consensus_critiques)}</td><td></td><td></td></tr>
+<tr><td></td><td>LLM eval labeling (${p("num_focal_papers_llm")} papers x ${p("num_models_per_paper")} models x ${p("num_enumerators")} raters)</td><td style="text-align: right;">${fmt(costs.llm_eval_enumerators)}</td><td></td><td></td></tr>
+<tr><td></td><td>Senior expert checks (${(p("fraction_evals_senior_check")*100).toFixed(0)}% sample)</td><td style="text-align: right;">${fmt(costs.senior_checks)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.enumerators)}</td><td style="text-align: right;">${(100*subtotals.enumerators/grandTotal).toFixed(0)}%</td></tr>
 
-<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Incentives</strong></td><td>Author response incentives</td><td style="text-align: right;">${fmt(costs.author_incentives)}</td><td></td></tr>
-<tr style="background: #fafafa;"><td></td><td>Crowd/prediction market incentives</td><td style="text-align: right;">${fmt(costs.crowd_incentives)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.incentives)}</td></tr>
+<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Incentives</strong></td><td>Author response incentives</td><td style="text-align: right;">${fmt(costs.author_incentives)}</td><td></td><td></td></tr>
+<tr style="background: #fafafa;"><td></td><td>Crowd/prediction market incentives</td><td style="text-align: right;">${fmt(costs.crowd_incentives)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.incentives)}</td><td style="text-align: right;">${(100*subtotals.incentives/grandTotal).toFixed(0)}%</td></tr>
 
-<tr><td style="padding: 6px;"><strong>Other</strong></td><td>Travel & conferences</td><td style="text-align: right;">${fmt(costs.travel)}</td><td></td></tr>
-<tr><td></td><td>LLM/compute costs</td><td style="text-align: right;">${fmt(costs.computing)}</td><td></td></tr>
-<tr><td></td><td>Additional engineering</td><td style="text-align: right;">${fmt(costs.engineering)}</td><td></td></tr>
-<tr><td></td><td>Software/server overhead</td><td style="text-align: right;">${fmt(costs.software)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.other)}</td></tr>
+<tr><td style="padding: 6px;"><strong>Other</strong></td><td>Travel & conferences</td><td style="text-align: right;">${fmt(costs.travel)}</td><td></td><td></td></tr>
+<tr><td></td><td>LLM/compute costs</td><td style="text-align: right;">${fmt(costs.computing)}</td><td></td><td></td></tr>
+<tr><td></td><td>Additional engineering</td><td style="text-align: right;">${fmt(costs.engineering)}</td><td></td><td></td></tr>
+<tr><td></td><td>Software/server overhead</td><td style="text-align: right;">${fmt(costs.software)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.other)}</td><td style="text-align: right;">${(100*subtotals.other/grandTotal).toFixed(0)}%</td></tr>
 
 <tr style="border-top: 2px solid #333; background: #e8f4e8;">
   <td style="padding: 8px;"><strong>TOTAL</strong></td>
   <td></td>
   <td></td>
   <td style="text-align: right; font-weight: bold; font-size: 1.1em;">${fmt(grandTotal)}</td>
+  <td style="text-align: right; font-weight: bold;">100%</td>
 </tr>
 </tbody>
 </table>
@@ -302,7 +315,7 @@ html`<div style="font-size: 0.95em;">
 ```
 
 ::: {.callout-note collapse="true"}
-## Key parameters driving this budget
+## Key budget parameters / What each scenario buys
 
 ```{ojs}
 //| echo: false
@@ -316,19 +329,21 @@ html`<table style="width: 100%; font-size: 0.9em;">
 <tr><td>Enumerator rate</td><td>$${params.enumerator_hourly_rate[0]}/hr</td><td>$${params.enumerator_hourly_rate[1]}/hr</td><td>$${params.enumerator_hourly_rate[2]}/hr</td><td>Hourly rate for labeling work</td></tr>
 <tr><td>Senior expert rate</td><td>$${params.senior_hourly_rate[0]}/hr</td><td>$${params.senior_hourly_rate[1]}/hr</td><td>$${params.senior_hourly_rate[2]}/hr</td><td>Rate for expert review checks</td></tr>
 <tr><td>Hours per eval unit</td><td>${params.hours_per_eval_unit[0]}</td><td>${params.hours_per_eval_unit[1]}</td><td>${params.hours_per_eval_unit[2]}</td><td>Time to label each LLM evaluation</td></tr>
-</table>`
+</table>
+
+<h4 style="margin-top: 1.5em;">What each scenario buys</h4>
+
+<p><strong>Small (~$193k, 12 months):</strong> Foundational benchmark. Analyze existing 55+ packages plus 30 new, basic multi-model comparison (3 models), limited enumerator validation. Research prioritization pilot comparing AI to human team decisions.</p>
+
+<p><strong>Medium (~$335k, 18 months):</strong> Rigorous benchmark. 50 new evaluation packages, systematic enumerator adjudication with senior expert checks, pre-registered analysis, predictive model training on human evaluations, out-of-time validation on pipeline papers. Extended research prioritization comparison.</p>
+
+<p><strong>Large (~$555k, 24 months):</strong> Comprehensive dataset. 80 new packages including GCR-focused expansion, <a href="https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/pivotal-questions">Pivotal Questions</a> pilot (high-stakes research questions identified by GCR organizations), intensive human-AI collaboration experiments, broader stakeholder engagement and dissemination.</p>
+
+<p><em>All scenarios include research prioritization testing</em>: We compare LLM ability to source and prioritize high-impact research against prioritization decisions made by The Unjournal's internal team.</p>`
 ```
 :::
 
 **Cost categories:** Core team time (co-PIs), payments for human research evaluators (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, engineering and development, and compute/API costs.
-
-::: {.callout-note collapse="true"}
-## Scope extensions in larger scenarios
-
-**Research prioritization (all scenarios):** We test LLM ability to source and prioritize high-impact research, comparing AI recommendations to prioritization decisions made by The Unjournal's internal team.
-
-**Pivotal Questions (Large scenario):** In the larger grant, we extend this to research relevant to specific "[Pivotal Questions](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/pivotal-questions)"—high-stakes research questions identified by GCR-focused organizations where better evidence synthesis could meaningfully inform decisions.
-:::
 
 ## Project Timeline
 
