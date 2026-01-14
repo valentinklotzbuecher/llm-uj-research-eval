@@ -145,12 +145,20 @@ criterion_display <- c(
   "real_world" = "Real-world relevance"
 )
 
+# Normalize paper names for matching (remove underscores, periods, lowercase)
+normalize_paper_name <- function(x) {
+  tolower(gsub("[_.]", " ", gsub("\\s+", " ", x)))
+}
+
 human_ratings <- if (file.exists("data/all_ratings.rds")) {
   readRDS("data/all_ratings.rds") |>
     filter(criteria != "merits_journal", criteria != "journal_predict") |>
-    mutate(criterion_std = criterion_map_human[as.character(criteria)]) |>
+    mutate(
+      criterion_std = criterion_map_human[as.character(criteria)],
+      paper_norm = normalize_paper_name(label_paper)
+    ) |>
     filter(!is.na(criterion_std)) |>
-    group_by(paper = label_paper, criterion = criterion_std) |>
+    group_by(paper = label_paper, paper_norm, criterion = criterion_std) |>
     summarise(human_mean = round(mean(middle_rating, na.rm = TRUE), 0), .groups = "drop")
 } else {
   NULL
@@ -158,19 +166,25 @@ human_ratings <- if (file.exists("data/all_ratings.rds")) {
 
 llm_ratings <- if (file.exists("data/metrics_long_gpt5_pro_jan2026.csv")) {
   read_csv("data/metrics_long_gpt5_pro_jan2026.csv", show_col_types = FALSE) |>
-    select(paper, criterion = metric, llm_rating = midpoint)
+    mutate(paper_norm = normalize_paper_name(paper)) |>
+    select(paper_llm = paper, paper_norm, criterion = metric, llm_rating = midpoint)
 } else if (file.exists("data/metrics_long.csv")) {
   read_csv("data/metrics_long.csv", show_col_types = FALSE) |>
-    select(paper, criterion = metric, llm_rating = midpoint)
+    mutate(paper_norm = normalize_paper_name(paper)) |>
+    select(paper_llm = paper, paper_norm, criterion = metric, llm_rating = midpoint)
 } else {
   NULL
 }
 
-# Combine ratings if both available
+# Combine ratings if both available - join on normalized paper name AND criterion
 if (!is.null(human_ratings) && !is.null(llm_ratings)) {
   combined_ratings <- human_ratings |>
-    full_join(llm_ratings, by = c("paper", "criterion")) |>
-    mutate(display_name = criterion_display[criterion])
+    full_join(llm_ratings, by = c("paper_norm", "criterion")) |>
+    mutate(
+      display_name = criterion_display[criterion],
+      paper_final = coalesce(paper, paper_llm)
+    ) |>
+    select(paper = paper_final, criterion, display_name, human_mean, llm_rating)
 } else {
   combined_ratings <- NULL
 }

@@ -34,7 +34,7 @@ This includes
 
 [^proposal-3]: Human reviews, even from vetted, incentivized experts, are not a ‘ground truth’ about research quality. To the extent we’re aiming at ‘making research assessment more accurate and improving research, and assessing AI’s capacity’, this is a limitation. We address this somewhat by focusing on critiques raised by multiple evaluators particularly where the authors agreed and where we the managers agreed. We also aim measure the ways AI evaluations align with and deviate from expert human researchers. We are confident that Unjournal evaluations represent mainstream research expertise. They often come from world-class experts, they generally have strong credentials, and usually have authored high-status peer-reviewed work related to the papers evaluated. Where they leave their names this can be looked up; for anonymous evaluations we ask them to state their years of experience in the field and number of papers reviewed/evaluated.
 
-While LLM tools are being built and [used](https://openai.com/science/) for [peer-review](https://aclanthology.org/2025.naacl-demo.44/) ([often without permission](https://www.nature.com/articles/d41586-025-04066-5)), [feedback](https://www.refine.ink/), [grant-prioritization](https://www.chemistryworld.com/news/ukri-opens-up-grant-proposal-data-to-explore-using-ai-to-smooth-peer-review/4022597.article), and [scientific ](https://arxiv.org/abs/2511.02824)discovery, we lack detailed evidence comparing their reasoning to human experts. This project aims to understand AI's potential for evaluatinghuman-led research, as well for its potentially transformative role in scientific discovery.[^proposal-4] We seek evidence on AI's reasoning about research: where does it excel, what are its limitations, and what drives the differences from humans?
+While LLM tools are being built and [used](https://openai.com/science/) for [peer-review](https://aclanthology.org/2025.naacl-demo.44/) ([often without permission](https://www.nature.com/articles/d41586-025-04066-5)), [feedback](https://www.refine.ink/), [grant-prioritization](https://www.chemistryworld.com/news/ukri-opens-up-grant-proposal-data-to-explore-using-ai-to-smooth-peer-review/4022597.article), and [scientific](https://arxiv.org/abs/2511.02824)discovery, we lack detailed evidence comparing their reasoning to human experts. This project aims to understand AI's potential for evaluatinghuman-led research, as well for its potentially transformative role in scientific discovery.[^proposal-4] We seek evidence on AI's reasoning about research: where does it excel, what are its limitations, and what drives the differences from humans?
 
 [^proposal-4]: [The leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis” – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Recent EU Union recent guidelines argue that "AI has great potential for accelerating scientific discovery and improving the effectiveness and pace of research and verification processes" (@eger2025).
 
@@ -152,19 +152,13 @@ As noteed, this is all very preliminary. Our project aims to characterize these 
 
 ### Dataset
 
-+--------------------------------------------+------------------------+-----------------+----------------+
-| Component                                  | Current                | Medium Scenario | Large Scenario |
-+============================================+========================+=================+================+
-| Evaluation packages                        | 55+                    | 105+            | 135+           |
-+--------------------------------------------+------------------------+-----------------+----------------+
-| Individual expert evaluations              | 100+                   | 200+            | 270+           |
-+--------------------------------------------+------------------------+-----------------+----------------+
-| Papers with consensus critiques identified | 14 (single enumerator) | 50+             | 80+            |
-+--------------------------------------------+------------------------+-----------------+----------------+
-| Models compared                            | 2                      | 3+              | 5+             |
-+--------------------------------------------+------------------------+-----------------+----------------+
-| Papers with enumerator adjudication        | 0                      | 40              | 60             |
-+--------------------------------------------+------------------------+-----------------+----------------+
+| Component | Current | Medium Scenario | Large Scenario |
+|----|----|----|----|
+| Evaluation packages | 55+ | 105+ | 135+ |
+| Individual expert evaluations | 100+ | 200+ | 270+ |
+| Papers with consensus critiques identified | 14 (single enumerator) | 50+ | 80+ |
+| Models compared | 2 | 3+ | 5+ |
+| Papers with enumerator adjudication | 0 | 40 | 60 |
 
 ## Team
 
@@ -180,7 +174,9 @@ As noteed, this is all very preliminary. Our project aims to characterize these 
 
 ## Budget
 
-The interactive budget model below reflects our [detailed cost breakdown](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).^[The grant application form records absolute minimum ($40,000) and maximum ($700,000) budget figures. The scenarios below represent our realistic operating range.]
+The interactive budget model below reflects our [detailed cost breakdown](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).[^proposal-10]
+
+[^proposal-10]: The grant application form records absolute minimum (\$40,000) and maximum (\$700,000) budget figures. The scenarios below represent our realistic operating range.
 
 ```{ojs}
 //| echo: false
@@ -343,7 +339,15 @@ html`<table style="width: 100%; font-size: 0.9em;">
 ```
 :::
 
-**Cost categories:** Core team time (co-PIs)^[This secures dedicated research time from the PIs, moving from pro-bono/patchwork contributions to focused execution.], payments for human research evaluators^[High-quality human evaluation data is the scarce resource here—we need to pay domain experts to evaluate new papers and to provide the "ground truth" benchmark.] (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, engineering and development^[This could include funding technical contractors to build the pipeline, API integrations, and build/adapt "RoastMyPost"-style feedback agents. However, as AI-powered coding tools develop (e.g., Claude Code), these costs may be reduced.], and compute/API costs^[Covers extensive multi-shot testing and long-context inference on frontier models. These costs are modest relative to human evaluation costs—see [token usage analysis](results_ratings.qmd#token-usage-and-cost).].
+**Cost categories:** Core team time (co-PIs)[^proposal-11], payments for human research evaluators[^proposal-12] (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, engineering and development[^proposal-13], and compute/API costs[^proposal-14].
+
+[^proposal-11]: This secures dedicated research time from the PIs, moving from pro-bono/patchwork contributions to focused execution.
+
+[^proposal-12]: High-quality human evaluation data is the scarce resource here—we need to pay domain experts to evaluate new papers and to provide the "ground truth" benchmark.
+
+[^proposal-13]: This could include funding technical contractors to build the pipeline, API integrations, and build/adapt "RoastMyPost"-style feedback agents. However, as AI-powered coding tools develop (e.g., Claude Code), these costs may be reduced.
+
+[^proposal-14]: Covers extensive multi-shot testing and long-context inference on frontier models. These costs are modest relative to human evaluation costs—see [token usage analysis](results_ratings.qmd#token-usage-and-cost).
 
 ## Project Timeline
 
@@ -450,32 +454,27 @@ html`${predictiveNote}`
 
 **Practical uptake:**
 
--   Unjournal team adapts tools into evaluation pipeline, or finds the results credible for providing guidance on the limitations of AI use[^proposal-10]
+-   Unjournal team adapts tools into evaluation pipeline, or finds the results credible for providing guidance on the limitations of AI use[^proposal-15]
 -   2+ external organizations (GCR funders, journals/evaluation initiatives, research users) engage with research outputs
 -   Curated data and benchmarks used by other researchers, especially in AI safety evaluation
 -   We report findings transparently regardless of whether LLM tools prove practically useful, documenting how they differ from human judgment and what this implies for AI reasoning
 
-[^proposal-10]: Of course this measure is not a neutral one, as we are affiliated with The Unjournal. Nonetheless, outsiders might be able to judge the apparent credibility and success of this \~internal takeup.
+[^proposal-15]: Of course this measure is not a neutral one, as we are affiliated with The Unjournal. Nonetheless, outsiders might be able to judge the apparent credibility and success of this \~internal takeup.
 
 ## Risks and Mitigations
 
-+--------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Risk                                             | Mitigation                                                                                                                                                                                                                                                                                                                                                                                |
-+==================================================+===========================================================================================================================================================================================================================================================================================================================================================================================+
-| LLMs differ substantially from human assessments | This is informative, not a failure. We document how and why AI evaluations diverge, with implications for using them as practical tools and for understanding LLM reasoning capacities.                                                                                                                                                                                                   |
-+--------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Human evaluations are noisy                      | Use adjudication and curated subsets where multiple evaluators agree. Statistical modeling accounts for rater variance.                                                                                                                                                                                                                                                                   |
-+--------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Engineering bottlenecks                          | Modular pipelines, flexible staffing, leverage existing tools (OpenAI API, existing Unjournal infrastructure)                                                                                                                                                                                                                                                                             |
-+--------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Low external uptake                              | We are in contact with researchers/leaders at organizations including GiveWell, Open Philanthropy, and Founders Pledge, who have expressed interest in evaluation quality. We are engaging with research evaluation initiatives (e.g., open science initiatives signatories, preprint review projects) and academic journal editors (Economics Journal, Journal of Development Economic). |
-+--------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Risk | Mitigation |
+|----|----|
+| LLMs differ substantially from human assessments | This is informative, not a failure. We document how and why AI evaluations diverge, with implications for using them as practical tools and for understanding LLM reasoning capacities. |
+| Human evaluations are noisy | Use adjudication and curated subsets where multiple evaluators agree. Statistical modeling accounts for rater variance. |
+| Engineering bottlenecks | Modular pipelines, flexible staffing, leverage existing tools (OpenAI API, existing Unjournal infrastructure) |
+| Low external uptake | We are in contact with researchers/leaders at organizations including GiveWell, Open Philanthropy, and Founders Pledge, who have expressed interest in evaluation quality. We are engaging with research evaluation initiatives (e.g., open science initiatives signatories, preprint review projects) and academic journal editors (Economics Journal, Journal of Development Economic). |
 
 ## Cost Context
 
-Human research evaluation is expensive. The Unjournal's current cost is approximately \$1,700 per evaluation package (2 evaluators at \$350-450 each, plus evaluation management, author incentives, and overhead). If LLM evaluation proved reliable enough to replace some human effort while keeping human prioritization and oversight, costs might drop to \~\$400 per Unjournal package (including actual evaluation compute costs of [only a few dollars](https://llm-uj-research-eval.netlify.app/results_ratings#token-usage-and-cost)). We expect similar or greater cost reduction for more traditional journal processes.[^proposal-11] The key question this project addresses is *whether and when* such replacement is appropriate, and what the implications of it would be.
+Human research evaluation is expensive. The Unjournal's current cost is approximately \$1,700 per evaluation package (2 evaluators at \$350-450 each, plus evaluation management, author incentives, and overhead). If LLM evaluation proved reliable enough to replace some human effort while keeping human prioritization and oversight, costs might drop to \~\$400 per Unjournal package (including actual evaluation compute costs of [only a few dollars](https://llm-uj-research-eval.netlify.app/results_ratings#token-usage-and-cost)). We expect similar or greater cost reduction for more traditional journal processes.[^proposal-16] The key question this project addresses is *whether and when* such replacement is appropriate, and what the implications of it would be.
 
-[^proposal-11]: These require similar human peer-review time per journal, roughly a full day's work per peer review in the relevant domains, but aresearch paper often goes through multiple rounds of review and rejection across multiple journals before finding a "home". These journals do not engage in "prioritization" in the same way The Unjournal does, nor do they provide much editorial discussion and synthesis. However, journal editors sometimes do encourage submissions of promising research, and they engage in "editorial triage", "desk-rejecting" a substantial share of submitted research, based on the assessments of fit and quality. We expect they are likely to increasingly employ AI tools for the latter.
+[^proposal-16]: These require similar human peer-review time per journal, roughly a full day's work per peer review in the relevant domains, but aresearch paper often goes through multiple rounds of review and rejection across multiple journals before finding a "home". These journals do not engage in "prioritization" in the same way The Unjournal does, nor do they provide much editorial discussion and synthesis. However, journal editors sometimes do encourage submissions of promising research, and they engage in "editorial triage", "desk-rejecting" a substantial share of submitted research, based on the assessments of fit and quality. We expect they are likely to increasingly employ AI tools for the latter.
 
 ## Why Now?
 
