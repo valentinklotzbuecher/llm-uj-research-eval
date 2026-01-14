@@ -91,7 +91,7 @@ As noted in the [related literature reviewed in our Introduction](index.qmd#sec-
 
 -   **Agreement:** How closely do LLM ratings correlate with human expert ratings across dimensions? [See preliminary evidence →](results_ratings.qmd)
 -   **Calibration:** Are stated confidence intervals plausible and well-calibrated against outcomes?
--   **Coverage:** Does the LLM identify the methodological issues flagged by human evaluators? [See critique comparison →](results_critiques.qmd)
+-   **Coverage:** Does the LLM identify the methodological issues flagged by human evaluators? [See critique comparison →](results_critiques.qmd) (and the 'illustrative cases' below)
 -   **Precision:** How many LLM-identified issues are valid vs. false positives?
 -   **Bias:** Do ratings vary based on author names, institutions, or other non-content features?
 -   **Taste:** Where do AI and human evaluators systematically diverge?
@@ -124,10 +124,10 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 **Calibration:** Non-trivial credible intervals. (More detailed analysis is needed)
 
-**Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues (and raises a substantial number of additional issues which would need vetting). A very preliminary comparison suggests coverage varies by issue type; methodological concerns seem captured better than domain-specific errors. *However*, this is based on GPT-5 Pro's own comparison and diagnosis of the correspondence between human and LLM critiques; this needs further [human vetting and labeling](https://llm-uj-research-eval.netlify.app/results_critiques#questions-for-manual-review). — [See critique comparison →](results_critiques.qmd)
+**Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues (and raises a substantial number of additional issues which would need vetting). A very preliminary comparison suggests coverage varies by issue type; methodological concerns seem captured better than domain-specific errors. *However*, this is based on GPT-5 Pro's own comparison and diagnosis of the correspondence between human and LLM critiques; this needs further [human vetting and labeling](https://llm-uj-research-eval.netlify.app/results_critiques#questions-for-manual-review). — See the 'illustrative cases' below ([more broadly, see critique comparison) →](results_critiques.qmd)
 
 ::: {.callout-note collapse="true"}
-## Illustrative cases from critique analysis
+## Illustrative cases from critique analysis {#illustrative_critiques}
 
 ([Very preliminary comparison →](results_critiques.qmd))
 
@@ -349,17 +349,17 @@ html`<table style="width: 100%; font-size: 0.9em;">
 ```
 :::
 
-**Cost categories:** Core team time (co-PIs),[^proposal-11] payments for human research evaluators[^proposal-12] (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, incentives for calibration testing,[^proposal-incentives] pipeline and tooling development,[^proposal-13] and compute/API costs.[^proposal-14]
+**Cost categories:** Core team time (co-PIs),[^proposal-11] payments for human research evaluators[^proposal-12] (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, incentives for calibration testing,[^proposal-13] pipeline and tooling development,[^proposal-14] and compute/API costs.[^proposal-15]
 
 [^proposal-11]: This secures dedicated research time from the PIs, moving from pro-bono/patchwork contributions to focused execution.
 
 [^proposal-12]: High-quality human evaluation data is the scarce resource here—we need to pay domain experts to evaluate new papers and to provide the "ground truth" benchmark.
 
-[^proposal-13]: This could include funding technical contractors to build the pipeline, API integrations, and build/adapt "RoastMyPost"-style feedback agents. However, as AI-powered coding tools develop (e.g., Claude Code), these costs may be reduced.
+[^proposal-13]: Crowd/prediction market incentives (\$10–\$20k) support calibration validation by incentivizing forecasts with verifiable outcomes: (1) paying expert forecasters on platforms like Metaculus to predict journal-tier placements and citation outcomes for benchmark papers, creating ground-truth comparison points for LLM calibration; (2) incentivizing human evaluators to make scored predictions using proper scoring rules (e.g., "What will the other evaluator rate this paper?"); and (3) piloting prediction elicitation around [Pivotal Questions](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/pivotal-questions) claims. This directly supports the RFP's emphasis on meta-reasoning—e.g., we can compare the calibration of LLM CIs to incentivized human forecasters.
 
-[^proposal-14]: Covers extensive multi-shot testing and long-context inference on frontier models. These costs are modest relative to human evaluation costs—see [token usage analysis](results_ratings.qmd#token-usage-and-cost).
+[^proposal-14]: This could include funding technical contractors to build the pipeline, API integrations, and build/adapt "RoastMyPost"-style feedback agents. However, as AI-powered coding tools develop (e.g., Claude Code), these costs may be reduced.
 
-[^proposal-incentives]: Crowd/prediction market incentives (\$10–20k) support calibration validation by incentivizing forecasts with verifiable outcomes: (1) paying expert forecasters on platforms like Metaculus to predict journal-tier placements and citation outcomes for benchmark papers, creating ground-truth comparison points for LLM calibration; (2) incentivizing human evaluators to make scored predictions using proper scoring rules (e.g., "What will the other evaluator rate this paper?"); and (3) piloting prediction elicitation around [Pivotal Questions](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/pivotal-questions) claims. This directly supports the RFP's emphasis on meta-reasoning—we can measure whether LLM confidence intervals are better or worse calibrated than incentivized human forecasters.
+[^proposal-15]: Covers extensive multi-shot testing and long-context inference on frontier models. These costs are modest relative to human evaluation costs—see [token usage analysis](results_ratings.qmd#token-usage-and-cost).
 
 ## Project Timeline
 
@@ -466,12 +466,12 @@ html`${predictiveNote}`
 
 **Practical uptake:**
 
--   Unjournal team adapts tools into evaluation pipeline, or finds the results credible for providing guidance on the limitations of AI use[^proposal-15]
+-   Unjournal team adapts tools into evaluation pipeline, or finds the results credible for providing guidance on the limitations of AI use[^proposal-16]
 -   2+ external organizations (GCR funders, journals/evaluation initiatives, research users) engage with research outputs
 -   Curated data and benchmarks used by other researchers, especially in AI safety evaluation
 -   We report findings transparently regardless of whether LLM tools prove practically useful, documenting how they differ from human judgment and what this implies for AI reasoning
 
-[^proposal-15]: Of course this measure is not a neutral one, as we are affiliated with The Unjournal. Nonetheless, outsiders might be able to judge the apparent credibility and success of this \~internal takeup.
+[^proposal-16]: Of course this measure is not a neutral one, as we are affiliated with The Unjournal. Nonetheless, outsiders might be able to judge the apparent credibility and success of this \~internal takeup.
 
 ::: {.callout-note collapse="true"}
 ### Risks and mitigation considerations
@@ -491,9 +491,9 @@ html`${predictiveNote}`
 
 ## Cost Context
 
-Human research evaluation is expensive. The Unjournal's current cost is approximately \$1,700 per evaluation package (2 evaluators at \$350-450 each, plus evaluation management, author incentives, and overhead). If LLM evaluation proved reliable enough to replace some human effort while keeping human prioritization and oversight, costs might drop to \~\$400 per Unjournal package (including actual evaluation compute costs of [only a few dollars](https://llm-uj-research-eval.netlify.app/results_ratings#token-usage-and-cost)). We expect similar or greater cost reduction for more traditional journal processes.[^proposal-16] The key question this project addresses is *whether and when* such replacement is appropriate, and what the implications of it would be.
+Human research evaluation is expensive. The Unjournal's current cost is approximately \$1,700 per evaluation package (2 evaluators at \$350-450 each, plus evaluation management, author incentives, and overhead). If LLM evaluation proved reliable enough to replace some human effort while keeping human prioritization and oversight, costs might drop to \~\$400 per Unjournal package (including actual evaluation compute costs of [only a few dollars](https://llm-uj-research-eval.netlify.app/results_ratings#token-usage-and-cost)). We expect similar or greater cost reduction for more traditional journal processes.[^proposal-17] The key question this project addresses is *whether and when* such replacement is appropriate, and what the implications of it would be.
 
-[^proposal-16]: These require similar human peer-review time per journal, roughly a full day's work per peer review in the relevant domains, but aresearch paper often goes through multiple rounds of review and rejection across multiple journals before finding a "home". These journals do not engage in "prioritization" in the same way The Unjournal does, nor do they provide much editorial discussion and synthesis. However, journal editors sometimes do encourage submissions of promising research, and they engage in "editorial triage", "desk-rejecting" a substantial share of submitted research, based on the assessments of fit and quality. We expect they are likely to increasingly employ AI tools for the latter.
+[^proposal-17]: These require similar human peer-review time per journal, roughly a full day's work per peer review in the relevant domains, but aresearch paper often goes through multiple rounds of review and rejection across multiple journals before finding a "home". These journals do not engage in "prioritization" in the same way The Unjournal does, nor do they provide much editorial discussion and synthesis. However, journal editors sometimes do encourage submissions of promising research, and they engage in "editorial triage", "desk-rejecting" a substantial share of submitted research, based on the assessments of fit and quality. We expect they are likely to increasingly employ AI tools for the latter.
 
 ## Why Now?
 
