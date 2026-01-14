@@ -147,7 +147,9 @@ criterion_display <- c(
 
 # Normalize paper names for matching (remove underscores, periods, lowercase)
 normalize_paper_name <- function(x) {
-  tolower(gsub("[_.]", " ", gsub("\\s+", " ", x)))
+  x <- gsub("[_.]", " ", x)    # Replace underscores and periods with spaces
+  x <- gsub("\\s+", " ", x)    # Collapse multiple spaces
+  trimws(tolower(x))           # Lowercase and trim
 }
 
 human_ratings <- if (file.exists("data/all_ratings.rds")) {
@@ -184,7 +186,7 @@ if (!is.null(human_ratings) && !is.null(llm_ratings)) {
       display_name = criterion_display[criterion],
       paper_final = coalesce(paper, paper_llm)
     ) |>
-    select(paper = paper_final, criterion, display_name, human_mean, llm_rating)
+    select(paper = paper_final, paper_norm, criterion, display_name, human_mean, llm_rating)
 } else {
   combined_ratings <- NULL
 }
@@ -623,10 +625,10 @@ if (!is.null(comparison_data) && n_papers > 0) {
 
     # ---- RATINGS CONTEXT TABLE (collapsible) ----
     if (!is.null(combined_ratings)) {
-      # Match paper name - try exact match first, then partial
+      # Match paper using normalized name for exact matching
+      paper_id_norm <- normalize_paper_name(paper_id)
       paper_ratings <- combined_ratings |>
-        filter(grepl(gsub("_", ".*", paper_id), paper, ignore.case = TRUE) |
-               grepl(paper_id, paper, ignore.case = TRUE)) |>
+        filter(paper_norm == paper_id_norm) |>
         filter(!is.na(display_name)) |>  # Only rows with valid display names
         arrange(criterion != "overall", display_name)  # Overall first, then alphabetical
 
@@ -635,21 +637,15 @@ if (!is.null(comparison_data) && n_papers > 0) {
         cat('<summary style="font-size:0.9em;color:#666;cursor:pointer;">📊 Human vs LLM ratings for this paper</summary>\n')
         cat('<div style="margin-top:0.5em;overflow-x:auto;">\n')
         cat('<table style="font-size:0.85em;border-collapse:collapse;width:100%;">\n')
-        cat('<tr style="background:#f5f5f5;"><th style="padding:4px 8px;text-align:left;">Criterion</th><th style="padding:4px 8px;text-align:center;">Human (avg)</th><th style="padding:4px 8px;text-align:center;">LLM (mid)</th><th style="padding:4px 8px;text-align:center;">Diff</th></tr>\n')
+        cat('<tr style="background:#f5f5f5;"><th style="padding:6px 12px;text-align:left;">Criterion</th><th style="padding:6px 12px;text-align:center;">Human (avg)</th><th style="padding:6px 12px;text-align:center;">LLM (mid)</th></tr>\n')
 
         for (j in 1:nrow(paper_ratings)) {
           r <- paper_ratings[j, ]
           h_val <- if (!is.na(r$human_mean)) as.character(r$human_mean) else "—"
           l_val <- if (!is.na(r$llm_rating)) as.character(round(r$llm_rating, 0)) else "—"
-          diff_val <- if (!is.na(r$human_mean) && !is.na(r$llm_rating)) {
-            d <- round(r$llm_rating - r$human_mean, 0)
-            if (d > 0) sprintf('<span style="color:#27ae60;">+%d</span>', d)
-            else if (d < 0) sprintf('<span style="color:#e74c3c;">%d</span>', d)
-            else "0"
-          } else "—"
           crit_name <- r$display_name
-          cat(sprintf('<tr><td style="padding:4px 8px;">%s</td><td style="padding:4px 8px;text-align:center;">%s</td><td style="padding:4px 8px;text-align:center;">%s</td><td style="padding:4px 8px;text-align:center;">%s</td></tr>\n',
-                      crit_name, h_val, l_val, diff_val))
+          cat(sprintf('<tr><td style="padding:6px 12px;">%s</td><td style="padding:6px 12px;text-align:center;">%s</td><td style="padding:6px 12px;text-align:center;">%s</td></tr>\n',
+                      crit_name, h_val, l_val))
         }
         cat('</table>\n')
         cat('<div style="font-size:0.75em;color:#888;margin-top:0.25em;">Human = avg of evaluator midpoints; LLM = model midpoint rating</div>\n')
