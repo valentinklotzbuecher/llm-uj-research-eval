@@ -126,7 +126,10 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 **Critique coverage (very preliminary):** LLM identifies some but not all human-flagged issues (and raises a substantial number of additional issues which would need vetting). A very preliminary comparison suggests coverage varies by issue type; methodological concerns seem captured better than domain-specific errors. *However*, this is based on GPT-5 Pro's own comparison and diagnosis of the correspondence between human and LLM critiques; this needs further [human vetting and labeling](https://llm-uj-research-eval.netlify.app/results_critiques#questions-for-manual-review). — [See critique comparison →](results_critiques.qmd)
 
-**Illustrative cases from critique analysis** ([very preliminary comparison →](results_critiques.qmd)):
+::: {.callout-note collapse="true"}
+## Illustrative cases from critique analysis
+
+([Very preliminary comparison →](results_critiques.qmd))
 
 -   *Good apparent alignment* (Clancy, 2024)*:* GPT-5 pro claims the LLM achieved 100% coverage—identifying all 3 prioritized "consensus critiques", at least partially. Both seem to raise some concerns about neglecting AI risk while considering *all* the benefits of science (H1 vs L3/L9, although these go in somewhat different directions). Both flag the lack of consistent treatment and justification of the discount rate. Neither are convinced by the privileging of superforecaster estimates over domain experts.
 
@@ -142,23 +145,30 @@ We have completed initial benchmarking with 55 papers (each with 2+ human evalua
 
 -   *Rating divergence despite apparently strong critique overlap (Williams et al. 2024):* Human experts rated this forest regeneration paper at 50th percentile overall while GPT-5 Pro rated it at 87th—a 37-point gap. Still, GPT reports 88% critique coverage. This discrepancy may reflect the relative weights assigned to each issue. More prosaically, this might reflect GPT's misdiagnosis of the critique overlap. While some diagnoses seem correct,[^proposal-9] the very-important H1 ("temporal leakage / contemporaneous predictors in training") does not seem to be captured by the noted LLM critiques (L7 and L8), which seem more about generalizability. Yet GPT reports this as a 75% match.
 
+As noted, this is all very preliminary. Our project aims to characterize these patterns (domain expertise gaps, different methodological emphasis, severity weighting differences, etc.) more systematically and reliably, and at a larger scale.
+:::
+
 [^proposal-9]: E.g., for "H3: Socioeconomic confounding", the human reports "the difficulty lies in the fact that biophysical and socioeconomic conditions are deeply interconnected", while the LLM reports (L9) "dropping socioeconomic covariates causes omitted-variable bias, with biophysical variables acting as proxies for governance/pressure", which seems closely related.
 
     H7 mentions the inclusion of "already-regrown areas", while L2 notes "systematic false negatives"; again this seems to be a very similar point.
-
-As noteed, this is all very preliminary. Our project aims to characterize these patterns (domain expertise gaps, different methodological emphasis, severity weighting differences, etc.) more systematically and reliably, and at a larger scale.
 
 **Methods documentation:** Full pipeline, prompts, and schema documented for reproducibility. [See methods →](methods.qmd)
 
 ### Dataset
 
-| Component | Current | Medium Scenario | Large Scenario |
-|----|----|----|----|
-| Evaluation packages | 55+ | 105+ | 135+ |
-| Individual expert evaluations | 100+ | 200+ | 270+ |
-| Papers with consensus critiques identified | 14 (single enumerator) | 50+ | 80+ |
-| Models compared | 2 | 3+ | 5+ |
-| Papers with enumerator adjudication | 0 | 40 | 60 |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Component                                  | Current                | Medium Scenario | Large Scenario |
++============================================+========================+=================+================+
+| Evaluation packages                        | 55+                    | 105+            | 135+           |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Individual expert evaluations              | 100+                   | 200+            | 270+           |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Papers with consensus critiques identified | 14 (single enumerator) | 50+             | 80+            |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Models compared                            | 2                      | 3+              | 5+             |
++--------------------------------------------+------------------------+-----------------+----------------+
+| Papers with enumerator adjudication        | 0                      | 40              | 60             |
++--------------------------------------------+------------------------+-----------------+----------------+
 
 ## Team
 
@@ -168,7 +178,7 @@ As noteed, this is all very preliminary. Our project aims to characterize these 
 -   **Valentin Klotzbücher (co-PI)**: Economist and statistician (University of Basel). Applied econometrics, causal inference, and reproducible pipelines.
 -   **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs."
 -   **Lorenzo Pacchiardi (Advisor)**: Research Associate, Leverhulme Centre for the Future of Intelligence, Cambridge. Leads Open Philanthropy–funded project on benchmarking LLM data science tasks.
--   **Casey Wimsatt (Engineering advisor)**: Senior Data Scientist at Rethink Priorities. Experience building data pipelines and research infrastructure.
+-   **Casey Wimsatt (Engineering advisor)**: Developer/entrepreneur, Black Spatula Project. Leads automated error-detection tooling.
 
 **Additional resources**: Unjournal's [management and field specialist team](https://www.unjournal.org/team)s, operations staff, and [evaluator pool](https://coda.io/d/The-Unjournal-Hub-internal_d0KBG3dSZCs/Statistics-Evaluator-pool_suXopY_6) (200+ credentialed researchers).
 
@@ -339,7 +349,7 @@ html`<table style="width: 100%; font-size: 0.9em;">
 ```
 :::
 
-**Cost categories:** Core team time (co-PIs)[^proposal-11], payments for human research evaluators[^proposal-12] (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, engineering and development[^proposal-13], and compute/API costs[^proposal-14].
+**Cost categories:** Core team time (co-PIs),[^proposal-11] payments for human research evaluators[^proposal-12] (extending The Unjournal's pipeline), payments for enumerators/experts to label and adjudicate LLM outputs, incentives for calibration testing,[^proposal-incentives] pipeline and tooling development,[^proposal-13] and compute/API costs.[^proposal-14]
 
 [^proposal-11]: This secures dedicated research time from the PIs, moving from pro-bono/patchwork contributions to focused execution.
 
@@ -348,6 +358,8 @@ html`<table style="width: 100%; font-size: 0.9em;">
 [^proposal-13]: This could include funding technical contractors to build the pipeline, API integrations, and build/adapt "RoastMyPost"-style feedback agents. However, as AI-powered coding tools develop (e.g., Claude Code), these costs may be reduced.
 
 [^proposal-14]: Covers extensive multi-shot testing and long-context inference on frontier models. These costs are modest relative to human evaluation costs—see [token usage analysis](results_ratings.qmd#token-usage-and-cost).
+
+[^proposal-incentives]: Crowd/prediction market incentives (\$10–20k) support calibration validation by incentivizing forecasts with verifiable outcomes: (1) paying expert forecasters on platforms like Metaculus to predict journal-tier placements and citation outcomes for benchmark papers, creating ground-truth comparison points for LLM calibration; (2) incentivizing human evaluators to make scored predictions using proper scoring rules (e.g., "What will the other evaluator rate this paper?"); and (3) piloting prediction elicitation around [Pivotal Questions](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/pivotal-questions) claims. This directly supports the RFP's emphasis on meta-reasoning—we can measure whether LLM confidence intervals are better or worse calibrated than incentivized human forecasters.
 
 ## Project Timeline
 
@@ -461,14 +473,21 @@ html`${predictiveNote}`
 
 [^proposal-15]: Of course this measure is not a neutral one, as we are affiliated with The Unjournal. Nonetheless, outsiders might be able to judge the apparent credibility and success of this \~internal takeup.
 
-## Risks and Mitigations
+::: {.callout-note collapse="true"}
+### Risks and mitigation considerations
 
-| Risk | Mitigation |
-|----|----|
-| LLMs differ substantially from human assessments | This is informative, not a failure. We document how and why AI evaluations diverge, with implications for using them as practical tools and for understanding LLM reasoning capacities. |
-| Human evaluations are noisy | Use adjudication and curated subsets where multiple evaluators agree. Statistical modeling accounts for rater variance. |
-| Engineering bottlenecks | Modular pipelines, flexible staffing, leverage existing tools (OpenAI API, existing Unjournal infrastructure) |
-| Low external uptake | We are in contact with researchers/leaders at organizations including GiveWell, Open Philanthropy, and Founders Pledge, who have expressed interest in evaluation quality. We are engaging with research evaluation initiatives (e.g., open science initiatives signatories, preprint review projects) and academic journal editors (Economics Journal, Journal of Development Economic). |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Risk                                             | Mitigation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
++==================================================+======================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================+
+| LLMs differ substantially from human assessments | This is informative, not a failure. We document how and why AI evaluations diverge, with implications for using them as practical tools and for understanding LLM reasoning capacities.                                                                                                                                                                                                                                                                                                              |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Human evaluations are noisy                      | Use adjudication and curated subsets where multiple evaluators agree. Statistical modeling accounts for rater variance.                                                                                                                                                                                                                                                                                                                                                                              |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Engineering bottlenecks                          | Modular pipelines, flexible staffing, leverage existing tools. This document provides a PoC.                                                                                                                                                                                                                                                                                                                                                                                                         |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Low external uptake                              | We're in contact with researchers/leaders at organizations such as Open Philanthropy, Founders Pledge, Rethink Priorities, GiveWell, ALTER, and The AI Futures project, who have expressed interest. The Unjournal is actively engaged and partnering with a cluster of research evaluation initiatives (e.g., open science initiatives and 'preprint review' projects) and has also reached out to academic journal editors (Economic Journal, Journal of Development Economics) for collaboration. |
++--------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+:::
 
 ## Cost Context
 
