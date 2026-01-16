@@ -17,19 +17,24 @@ Pages, metrics, and comparisons are under active development. Expect rough edges
 <!-- [Slides available here](slidesvk/slidesvk.html) -->
 :::
 
+::: {.callout-tip}
+## For Grant Reviewers
+Looking for our funding proposal? Jump directly to the [Proposal chapter](proposal.qmd) for project scope, budget, and deliverables.
+:::
+
 Is AI good at peer-reviewing? Does it offer useful and valid feedback? Can it predict how human experts will rate research across a range of categories? How can it help academics do this "thankless" task better? Is it particularly good at spotting errors? Are there specific categories, e.g. spotting math errors or judging real-world relevance, where it does surprisingly well or poorly? How does its "research taste" compare to humans?
 
 If AI research-evaluation works it could free up a lot of scientific resources -- perhaps \$1.5 billion/year in the US alone [@aczel2021billion] -- and offer more continual and detailed review, helping improve research and address the "[peer-review crisis](https://www.nature.com/articles/d41586-025-02457-2)". Numerous accounts report a system under strain, with widespread difficulty finding human peer reviewers with appropriate expertise willing to put in careful effort. An influx of AI-generated or AI-human hybrid research seems likely to exacerbate this problem.[^index-1] AI research evaluation could also help characterize methodological strengths and weaknesses across papers, aiding research training and research direction-setting.
 
-[^index-1]: E.g., see [anectodal reports](https://www.linkedin.com/feed/update/urn:li:activity:7411759911480524800/). Proposed solutions include a credit or payment-based model. \[add references here\].
+[^index-1]: E.g., see [anectodal reports](https://www.linkedin.com/feed/update/urn:li:activity:7411759911480524800/). Proposed solutions include a credit or payment-based model. (Further references to be added.).
 
-Furthermore, "[the leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis" – e.g., Sam Altman on [cures for cancer](Maybe%20with%2010%20gigawatts%20of%20compute,%20AI%20can%20figure%20out%20how%20to%20cure%20cancer.), etc. Understanding how AI engages with research evaluations may provide a window into its values, abilities, and limitations.[^index-2]
+Furthermore, "[the leaders of the biggest A.I. labs](https://www.nytimes.com/2025/12/26/podcasts/hardfork-ai-science.html) argue that artificial intelligence will usher in a new era of scientific discovery, which will help us cure diseases and accelerate our ability to address the climate crisis" – e.g., Sam Altman on [cures for cancer](https://blog.samaltman.com/abundant-intelligence), etc. Understanding how AI engages with research evaluations may provide a window into its values, abilities, and limitations.[^index-2]
 
 [^index-2]: @eger2025: "When it comes to using AI tools for science, ethics is of overarching importance. This is because the AI tools exhibit various limitations, e.g., they (i) may hallucinate and fabricate content, (ii) exhibit bias, (iii) may have limited reasoning abilities and (iv) sometimes lack suitable evaluation, ... among many other concerns such as risks of fake science, plagiarism, and lack of human authority. Indeed, the European Union has recently released guidelines on the responsible use of AI for science. In it, it points out that, while "\[r\]esearch is one of the sectors that could be most significantly disrupted by generative AI" where "AI has great potential for accelerating scientific discovery and improving the effectiveness and pace of research and verification processes"
 
 In this project, we pilot the use of The Unjournal's evaluations as a benchmark to test the capabilities of current large language models (LLMs) and bespoke agent-based tools, considering how the research evaluations these generate compare to expert human reviews. The Unjournal systematically prioritizes 'impactful' research and pays for high-quality human evaluations, structured quantified ratings, claim identification and assessment, and predictions. They further labeled and classified "major consensus critiques" from a subset of these evaluations.[^index-3]
 
-[^index-3]: An individual rater (David Reinstein, Co-director of The Unjournal) curated a pilot version of this [here](https://coda.io/d/Unjournal-Public-Pages_ddIEzDONWdb/Piloting-a-benchmark-rubric-for-LLM-tools-Public_su7jCZTB#_luqSuSgh), focusing on critiques identified by multiple evaluators and/or confirmed by the author or evaluation manager. We are currently (Jan 5, 2026) comparing this ennumeration to the issues identified by LLM's (see "Results: Critiques" chapter). Future work will systematically employ multiple enumerators with a pre-defined rubric.
+[^index-3]: An individual rater (David Reinstein, Co-director of The Unjournal) curated a pilot version of this [here](https://coda.io/d/Unjournal-Public-Pages_ddIEzDONWdb/Piloting-a-benchmark-rubric-for-LLM-tools-Public_su7jCZTB#_luqSuSgh), focusing on critiques identified by multiple evaluators and/or confirmed by the author or evaluation manager. We are currently (Jan 5, 2026) comparing this enumeration to the issues identified by LLM's (see "Results: Critiques" chapter). Future work will systematically employ multiple enumerators with a pre-defined rubric.
 
 We next prompt several LLMs and agent-based tools[^index-4] to review the same set of quantitative social science research evaluated by The Unjournal's human evaluators, with the same set of criteria and guidelines. Each paper is assessed on specific dimensions – for example, the strength of its evidence, rigor of methods, clarity of communication, openness/reproducibility, relevance to global priorities, and overall quality. The LLM will provide quantitative scores (with uncertainty intervals) on these criteria and produce a written evaluation.
 
@@ -56,11 +61,11 @@ This complements other recent work on AI-evaluation approaches and benchmarks, o
     -   Do we see signs of characteristic preferences that help us understand how AIs are likely to prioritize, conduct, and evaluate research?
 4.  **Hybrid human-AI performance** (future trials)
 
-## Our work in context {#sec-our-work-in-context}[^index-6]
+## Our work in context {#sec-our-work-in-context}
 
 [^index-6]: We maintain a NotebookLM of the most relevant and related research [here](https://notebooklm.google.com/notebook/f4dde07a-a1bc-470d-93b2-052a3c795933).
 
-### AI practical research applications
+### AI practical research applications[^index-6]
 
 @Luo2025 survey LLM roles from idea generation to peer review, including experiment planning and automated scientific writing. They highlight opportunities (productivity, coverage of long documents) alongside governance needs (provenance, detection of LLM-generated content, standardizing tooling) and call for reliable evaluation frameworks.
 
@@ -84,21 +89,15 @@ This complements other recent work on AI-evaluation approaches and benchmarks, o
 
 @Zhang2025 propose deploying LLMs as quality checkers to surface critical problems instead of generating full narrative reviews. Using papers from WITHDRARXIV and an automatic evaluation framework that leverages "LLM-as-judge," they find the best performance from top reasoning models but still recommend human oversight.
 
-@Pataranutaporn2025 asked four nearly state-of-the-art LLM models (GPT-4o mini, Claude 3.5 Haiku, Gemma 3 27B, and LLaMA 3.3 70B) to consider 1220 unique papers "drawn from 110 economics journals excluded from the training data of current LLMs". They prompted the models to act "in your capacity as a reviewer for \[a top-5 economics journal\]" and make a publication recommendation using a 6-point scale ranging from "1 = Definite Reject..." to "6. Accept As Is...". They asked it to evaluate each paper on a 10-point scale for originality, rigor, scope, impact, and whether it was 'written by AI'. They also (separately) had LLMs rate 330 papers with the authors' identities removed, or replacing the names with fake male/female names and real elite or non-elite institutions (check this) or with prominent male or female economists attached.
+@Pataranutaporn2025 asked four nearly state-of-the-art LLM models (GPT-4o mini, Claude 3.5 Haiku, Gemma 3 27B, and LLaMA 3.3 70B) to consider 1220 unique papers "drawn from 110 economics journals excluded from the training data of current LLMs". They prompted the models to act "in your capacity as a reviewer for \[a top-5 economics journal\]" and make a publication recommendation using a 6-point scale ranging from "1 = Definite Reject..." to "6. Accept As Is...". They asked it to evaluate each paper on a 10-point scale for originality, rigor, scope, impact, and whether it was 'written by AI'. They also (separately) had LLMs rate 330 papers with the authors' identities removed, or replacing the names with fake male/female names and real elite or non-elite institutions  or with prominent male or female economists attached.
 
 They compare the LLMs' ratings with the RePEC rankings for the journals the papers were published in, finding general alignment. They find mixed results on detecting AI-generated papers. In the names/institutions comparisons, they also find the LLMs show biases towards named high-prestige male authors relative to high-prestige female authors, as well as biases towards elite institutions and US/UK universities.
 
-There have been several other empirical benchmarking projects, including work covered in LLM4SR: A Survey on Large Language Models for Scientific Research and [Transforming Science with Large Language Models: A Survey on AI-assisted Scientific Discovery, Experimentation, Content Generation, and Evaluation](https://arxiv.org/abs/2502.05151). (*We plan to discuss these further here.*)
+There have been several other empirical benchmarking projects, including work covered in LLM4SR: A Survey on Large Language Models for Scientific Research and [Transforming Science with Large Language Models: A Survey on AI-assisted Scientific Discovery, Experimentation, Content Generation, and Evaluation](https://arxiv.org/abs/2502.05151). (See cited surveys for additional benchmarks.)
 
-@Zhang2025Replication
+@Zhang2025Replication use AI conference paper data and LLM agents for pairwise manuscript comparisons, finding this approach outperforms traditional rating-based methods for identifying high-impact papers by citation metrics, though with some evidence of biases favoring established research institutions.[^index-zhang]
 
--   AI conference paper data
-
--   "employs LLM agents to perform pairwise comparisons among manuscripts"
-
--   "significantly outperforms traditional rating-based methods in identifying high-impact papers" \[by citation metrics\]
-
--   Some evidence of biases/\~statistical discrimination based on characteristics like 'papers from established research institutions'
+[^index-zhang]: Key findings from @Zhang2025Replication: (1) Uses AI conference paper data; (2) Employs LLM agents for pairwise manuscript comparisons; (3) Significantly outperforms traditional rating-based methods in identifying high-impact papers by citation metrics; (4) Shows some evidence of biases/statistical discrimination based on characteristics like 'papers from established research institutions'.
 
 We discuss how our approach differs from prior work [below](#sec-our-present-focus-the-unjournal-opportunity).[^index-8]
 
@@ -128,7 +127,7 @@ Our project distinguishes itself through several unique advantages:
 
 **Ground truth outcomes**: The 'journal tier prediction' outcomes provide an external ground-truth[^index-10] enabling a human-vs-LLM horse race.
 
-[^index-10]: These represent ground trths about verifiable publication outcomes not about the 'true quality' of the paper.
+[^index-10]: These represent ground truths about verifiable publication outcomes, not about the 'true quality' of the paper.
 
 **Prospective pipeline**: The Unjournal's pipeline of future evaluations allows for clean out-of-training-data predictions and evaluation, serving as a "live testing lab" for a new judging panel, enabling out-of-time testing and validation from authors and human evaluators.
 
@@ -454,22 +453,18 @@ predictiveNote = idx >= 1 ? `<p style="margin-top: 0.5em;"><strong>Predictive mo
 html`${predictiveNote}`
 ```
 
-For more details, see [The Unjournal](https://unjournal.org) and our [project repository](https://github.com/daaronr/llm-uj-research-eval).
-
-```{=html}
-<!-- Methodological implications we (will) adopt from the literature:
-
+For more details, see [The Unjournal](https://unjournal.org) and our [project repository](https://github.com/daaronr/llm-uj-research-eval).^[Methodological implications we plan to  adopt from the literature:
 - Report stability (repeat runs / seeds) and calibration diagnostics alongside point scores.
 - Keep error verification distinct from quality scoring; when we do verification, prefer author- or expert-validated ground truth over LLM-as-judge, or clearly disclose the judge and its limits.
-- Track input format effects (PDF vs LaTeX vs extracted text) and costs/latency, since these affect reproducibility and deployment.
+- Track input format effects (PDF vs LaTeX vs extracted text) and costs/latency, since these affect reproducibility and deployment.]
 
+<!-- 
 
 DR @valentin -- did you write this bit? I can't remember?
 I'd like to add that we should also adapt the @Pataranutaporn2025 insights to run one version of the evaluations, clearly stripping identifying information. We could also try to replicate some of what they do by putting in quote" "fake prestigious" close quote names and institutions in one or more treatments.
-
 
 FURTHER motivating examples to integrate
 
 https://www.linkedin.com/feed/update/urn:li:activity:7411759911480524800/
 -->
-```
+
