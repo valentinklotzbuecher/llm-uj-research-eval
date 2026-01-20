@@ -8,6 +8,8 @@ This is a research project that uses LLMs to evaluate academic research papers b
 
 **Live site:** https://llm-uj-research-eval.netlify.app
 
+**Funding context:** The project is actively seeking funding through grant proposals. The `proposal.qmd` chapter contains a detailed proposal for Coefficient Giving's "AI for Forecasting and Sound Reasoning" RFP. Grant reviewers are directed to this chapter via a signpost callout on the landing page.
+
 ## Environment Setup
 
 This project uses **both R and Python** in a mixed environment:
@@ -79,15 +81,21 @@ quarto preview
 
 The Quarto book is organized into chapters:
 
-- **index.qmd**: Introduction, motivation, related work
+- **index.qmd**: Landing page with introduction, motivation, related work, team info, and budget overview. Includes a signpost callout directing grant reviewers to the proposal chapter.
 - **methods.qmd**: Data sources, LLM evaluation pipeline, system prompts, JSON schema
 - **results_ratings.qmd**: Quantitative analysis comparing LLM vs human ratings (correlations, agreement metrics, calibration)
 - **results_critiques.qmd**: Qualitative comparison of LLM key issues vs human expert critiques (side-by-side display)
+- **proposal.qmd**: Grant proposal for Coefficient Giving's "AI for Forecasting and Sound Reasoning" RFP. Contains project scope, methodology, team details, budget scenarios, timeline, and deliverables. This is the primary document for grant reviewers.
 - **references.qmd**: Bibliography
 
 **Appendices:**
 - **appendix_llm_traces.qmd**: Full assessment summaries and reasoning traces from LLM evaluations
 - **paper_response_analysis.qmd**: Separate analysis tracking whether authors updated papers in response to Unjournal evaluations (not part of main LLM evaluation discussion)
+
+**UI Conventions:**
+- Use `::: {.callout-note collapse="true"}` for secondary content that should be collapsed by default (e.g., detailed parameter tables, risk assessments, advisor lists)
+- Use `::: {.callout-tip}` for navigation signposts (e.g., directing grant reviewers to the proposal)
+- Use `::: {.callout-warning}` for work-in-progress notices
 
 Configuration: `_quarto.yml`
 
@@ -503,6 +511,11 @@ When committing:
 The site is hosted on Netlify. The deployment process:
 1. Push to main branch on GitHub
 2. Netlify automatically runs `quarto render` and deploys `_book/` contents
+
+**Configuration notes:**
+- `embed-resources: true` in `_quarto.yml` embeds all assets (CSS, JS, images) as base64 in HTML files. This creates larger but self-contained files.
+- `hypothesis: true` enables Hypothes.is annotation overlay for visitor comments. Note: Hypothesis requires external scripts from hypothes.is CDN, which may conflict with `embed-resources: true` in some browsers.
+- Large HTML files (>100MB) cannot be pushed to GitHub. If full-book renders produce oversized files, commit only source `.qmd` files and let Netlify render from source.
 
 ## Automated Data Sync
 
