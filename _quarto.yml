@@ -1,8 +1,6 @@
 project:
   type: book
   output-dir: _book
-  resources:
-    - tools/issue_annotation_ui/**
 
 python:
   executable: .venv/bin/python
@@ -39,7 +37,6 @@ book:
   appendices:
     - appendix_llm_traces.qmd
     # - paper_response_analysis.qmd
-    - proposal.qmd  # Grant proposal (at very end)
   date: last-modified
   abstract: |
     We benchmark how frontier LLMs critique, rate, and prioritize research, comparing AI-generated evaluations to human expert assessments from The Unjournal. Human ratings serve as a reference signal—the core goal is measuring and diagnosing AI reasoning quality: understanding calibration, failure modes, and systematic "taste" differences between AI and human evaluators.
@@ -65,8 +62,9 @@ link-citations: true
 
 format:
   html:
-    theme: [journal, theme-light.scss]
-    hypothesis: true
+    theme:
+      dark: [darkly, theme-dark.scss]
+      light: [journal, theme-light.scss]
     mainfont: Inter
     googlefonts:
       - Inter:400,400i,500,600,700
@@ -75,7 +73,6 @@ format:
     number-sections: false
     citations-hover: true
     footnotes-hover: true
-    embed-resources: true
     smooth-scroll: true
     code-fold: true
     code-tools: true
@@ -83,7 +80,6 @@ format:
     code-overflow: wrap
     fig-cap-location: bottom
     fig-align: left
-    lightbox: true
     df-print: paged
     execute:
       warning: false
@@ -91,34 +87,22 @@ format:
       freeze: false
       cache: false
       python: "python3"
-
-  # pdf:
-  #   documentclass: scrreprt
-  #   fontsize: 11pt
-  #   geometry: margin=1in
-  #   toc: true
-  #   number-sections: true
-  #   link-citations: true
-  #   keep-tex: true
-  #   fig-cap-location: top
-  #   fig-align: left
-  #   df-print: kable
-  #   latex-engine: xelatex
-  #   execute:
-  #     warning: false
-  #     message: false
-  #     freeze: auto
-  #     cache: true
-  #     prefer-html: true
-  #     echo: false
-  # docx:
-  #   toc: true
-  #   number-sections: true
-  #   link-citations: true
-  #   execute:
-  #     warning: false
-  #     message: false
-  #     freeze: auto
-  #     cache: true
-  #     prefer-html: true
-  #     echo: false
+  pdf:
+    documentclass: scrreprt
+    fontsize: 11pt
+    geometry: margin=1in
+    toc: true
+    number-sections: true
+    link-citations: true
+    keep-tex: true
+    fig-cap-location: top
+    fig-align: left
+    df-print: kable
+    pdf-engine: xelatex
+    execute:
+      warning: false
+      message: false
+      freeze: auto
+      cache: true
+      prefer-html: true
+      echo: false

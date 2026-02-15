@@ -9,17 +9,10 @@
 source("setup_params.R")
 ```
 
-::: callout-warning
-# Work in progress
+::: callout-note
+# Working paper
 
-Pages, metrics, and comparisons are under active development. Expect rough edges and frequent updates.
-
-<!-- [Slides available here](slidesvk/slidesvk.html) -->
-:::
-
-::: {.callout-tip}
-## For Grant Reviewers
-Looking for our funding proposal? Jump directly to the [Proposal chapter](proposal.qmd) for project scope, budget, and deliverables.
+This is an evolving working paper. Analysis, metrics, and comparisons are under active development.
 :::
 
 Is AI good at peer-reviewing? Does it offer useful and valid feedback? Can it predict how human experts will rate research across a range of categories? How can it help academics do this "thankless" task better? Is it particularly good at spotting errors? Are there specific categories, e.g. spotting math errors or judging real-world relevance, where it does surprisingly well or poorly? How does its "research taste" compare to humans?
@@ -135,336 +128,33 @@ Our project distinguishes itself through several unique advantages:
 
 The economics, social science, and global-impact policy context provides a unique high-value and nuanced setting to measure and understand AI tendencies and capabilities. According to @korinek2025ai "economists have a special responsibility. We understand incentives, market dynamics, and resource allocation. We grasp the subtleties of human behavior and social coordination. These insights will be crucial for the transition to an AI-augmented research".
 
-## Next steps and future directions
+## Future work
 
-<!-- Make this a folding box or something ... readers don't need to see it right away, it's a bit of an inside thing -->
+Several extensions of this research are natural next steps:
 
-This project is ongoing. Our planned next steps include:
+1.  **Further statistical analyses**: Information-theoretic and Bayesian measures; multi-level modeling with random and mixed effects for raters, papers, and rating categories
 
-1.  **Further statistical analyses**: Intuitive information theoretic and Bayesian measures and tests; multi-level modeling (random and mixed effects for raters, paper, rating category, etc.)
+2.  **Content-swap bias tests**: Following @Pataranutaporn2025, testing whether LLMs show systematic biases based on author names, institutional affiliations, or other non-content features
 
-2.  **Content-swap 'bias tests'**: Following [@Pataranutaporn2025], test whether LLMs show systematic biases based on author names, institutional affiliations, or other non-content features
+3.  **Journal-outcome prediction horse-race**: Comparing human vs. LLM predictions against actual publication outcomes and bibliometrics
 
-3.  **Predict journal-outcome/bibliometrics horse-race**: Compare human vs. LLM predictions against actual publication outcomes
+4.  **Systematic model and prompt comparison**: Evaluating how different prompting strategies, models, and agent-based approaches affect evaluation quality
 
-4.  **Refine LLM model, compare dimensions, test**: Systematic comparison of prompts, models, and approaches
+5.  **Qualitative evaluation content analysis**: Deeper analysis of LLM-generated written evaluations and reasoning traces
 
-5.  **Explore/analyze descriptive evaluation content**: Qualitative analysis of LLM-generated evaluations
+6.  **Human enumerator validation**: Employing trained raters to systematically assess whether LLMs identify the same consensus critiques as human experts
 
-6.  **Human enumerators**: Employ human raters to assess whether LLMs identify consensus critiques
+7.  **Out-of-time validation**: Training predictive models on accumulated evaluations and pre-registering tests on papers entering The Unjournal's pipeline
 
-7.  **Train 'predict human evaluations' model, preregister for future evaluations**: Out-of-time validation with clean test set
+8.  **Hybrid human-AI trials**: Testing whether human-AI collaboration improves evaluation quality beyond either alone
 
-8.  **Possible hybrid human-AI trials**: Test whether human-AI collaboration improves on either alone
+9.  **Decision criteria for deployment**: Developing policy-relevant metrics for when AI evaluation is reliable enough to supplement or replace human review
 
-9.  **Policy measures and decision criteria**: How do we decide and agree upon whether AI, Human, or Hybrid are 'better' at this?
+10. **Implications for evaluation systems**: Drawing lessons for The Unjournal and peer review more broadly
 
-10. **Implications for The Unjournal/evaluation processes**: What can we learn to improve evaluation systems?
+## Acknowledgements
 
-## Project planning, funding, status
+This work is a collaboration with [The Unjournal](https://unjournal.org), which has published 55+ detailed evaluation packages building open, quantitative evaluation infrastructure for global-priorities-relevant research in economics, policy, and social science. We thank The Unjournal's evaluation community for generating the structured human assessments that make this benchmarking possible.
 
-This benchmarking project is a collaboration with [The Unjournal](https://unjournal.org), a grant-funded nonprofit[^index-11] that has published 55+ detailed evaluation packages to build open, quantitative evaluation infrastructure and processes, focusing on global-priorities-relevant research in economics, policy, and social science.[^index-12]
-
-[^index-11]: Funders include the Survival and Flourishing Fund, the Long Term Future Fund, and EA Funds; they make all grant information public [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/grants-and-proposals).
-
-[^index-12]: This section was drafted with AI assistance and reviewed by the authors.
-
-### Team
-
-**Core team:**
-
--   **David Reinstein (PI)**: Economist, founder/director of The Unjournal. 25+ years research experience (UC Berkeley, Essex, Exeter, Rethink Priorities). Track record of building evaluation infrastructure and working with impact-focused organizations.
--   **Valentin Klotzbücher (Co-lead)**: Economist and statistician (University of Basel). Applied econometrics, causal inference, and reproducible pipelines (R/Quarto). Co-leads current LLM–Unjournal benchmarking work.
--   **Tianmai Michael Zhang (Technical collaborator)**: PhD student, University of Washington. Co-author of "Reviewing Scientific Papers for Critical Problems With Reasoning LLMs." Active contributor to the Black Spatula Project.
--   **Lorenzo Pacchiardi (Advisor)**: Research Associate, Leverhulme Centre for the Future of Intelligence, Cambridge. Leads Open Philanthropy–funded project on benchmarking LLM data science tasks. Unjournal advisory board.
-
-<!-- DR: cut for now **Casey Wimsatt (Engineering)**: Developer/entrepreneur, Black Spatula Project. Leads automated error-detection tooling. -->
-
-We plan to leverage additional support from Unjournal's management team, operations staff, and [evaluator pool](https://coda.io/d/The-Unjournal-Hub-internal_d0KBG3dSZCs/Statistics-Evaluator-pool_suXopY_6) (200+ credentialed researchers).
-
-### Funding and budget
-
-We are actively seeking funding, in conjunction with The Unjournal, to expand this work beyond the pilot scale to a more robust and rigorous scientific benchmark. The interactive budget model below is linked to [this Google Sheet](https://docs.google.com/spreadsheets/d/1I15NnYceXMbyOcS68jqaa_eLmRpHh_lgVp-ODnPMJ-g/edit?gid=1413476177#gid=1413476177).
-
-```{ojs}
-//| echo: false
-
-// Parameters by scenario: [Small, Medium, Large]
-params = ({
-  duration_months: [12, 18, 24],
-  reinstein_fte: [0.3, 0.5, 0.7],
-  reinstein_annual_salary: [120000, 120000, 120000],
-  klotz_fte: [0.15, 0.2, 0.3],
-  klotz_annual_salary: [120000, 120000, 120000],
-  num_eval_packages: [30, 50, 80],
-  cost_per_eval_package: [1750, 1750, 1750],
-  enumerator_hourly_rate: [50, 50, 50],
-  senior_hourly_rate: [100, 100, 100],
-  num_papers_consensus: [30, 40, 60],
-  hours_per_paper_consensus: [6, 6, 6],
-  num_focal_papers_llm: [30, 40, 60],
-  num_models_per_paper: [3, 3, 3],
-  num_enumerators: [2, 2, 2],
-  hours_per_eval_unit: [1.33, 1.33, 1.33],
-  fraction_evals_senior_check: [0.33, 0.33, 0.33],
-  author_response_incentives: [8000, 10000, 15000],
-  crowd_incentives: [10000, 15000, 20000],
-  travel_support: [5000, 10000, 15000],
-  computing_costs: [15000, 20000, 30000],
-  additional_engineering: [20000, 30000, 40000],
-  software_server_costs: [5000, 5000, 7000]
-})
-
-// Scenario labels
-scenarioLabels = ["Small", "Medium", "Large"]
-```
-
-```{ojs}
-//| echo: false
-viewof scenario = Inputs.radio(scenarioLabels, {value: "Medium", label: "Budget scenario"})
-```
-
-```{ojs}
-//| echo: false
-
-// Get scenario index
-idx = scenarioLabels.indexOf(scenario)
-
-// Helper to get param value for current scenario
-p = (name) => params[name][idx]
-
-// Computed costs (matching Google Sheet formulas)
-costs = ({
-  // People
-  reinstein_cost: p("duration_months") * p("reinstein_fte") * p("reinstein_annual_salary") / 12,
-  klotz_cost: p("duration_months") * p("klotz_fte") * p("klotz_annual_salary") / 12,
-
-  // Evaluations
-  eval_packages: p("num_eval_packages") * p("cost_per_eval_package"),
-
-  // Enumerators
-  consensus_critiques: p("num_papers_consensus") * p("hours_per_paper_consensus") * p("enumerator_hourly_rate"),
-  llm_eval_enumerators: p("num_focal_papers_llm") * p("num_models_per_paper") * p("num_enumerators") * p("hours_per_eval_unit") * p("enumerator_hourly_rate"),
-  senior_checks: p("num_focal_papers_llm") * p("num_models_per_paper") * p("fraction_evals_senior_check") * p("senior_hourly_rate"),
-
-  // Incentives
-  author_incentives: p("author_response_incentives"),
-  crowd_incentives: p("crowd_incentives"),
-
-  // Other
-  travel: p("travel_support"),
-  computing: p("computing_costs"),
-  engineering: p("additional_engineering"),
-  software: p("software_server_costs")
-})
-
-// Subtotals
-subtotals = ({
-  people: costs.reinstein_cost + costs.klotz_cost,
-  evaluations: costs.eval_packages,
-  enumerators: costs.consensus_critiques + costs.llm_eval_enumerators + costs.senior_checks,
-  incentives: costs.author_incentives + costs.crowd_incentives,
-  other: costs.travel + costs.computing + costs.engineering + costs.software
-})
-
-grandTotal = subtotals.people + subtotals.evaluations + subtotals.enumerators + subtotals.incentives + subtotals.other
-
-// Currency formatter
-fmt = d3.format("$,.0f")
-```
-
-```{ojs}
-//| echo: false
-
-html`<div style="font-size: 0.95em;">
-<p><strong>Scenario: ${scenario}</strong> - Duration: ${p("duration_months")} months, ${p("num_eval_packages")} evaluation packages, ${p("num_focal_papers_llm")} focal papers for LLM comparison</p>
-
-<table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
-<thead>
-<tr style="background: #f0f0f0; border-bottom: 2px solid #333;">
-  <th style="text-align: left; padding: 8px;">Section</th>
-  <th style="text-align: left; padding: 8px;">Item</th>
-  <th style="text-align: right; padding: 8px;">Cost</th>
-  <th style="text-align: right; padding: 8px;">Subtotal</th>
-</tr>
-</thead>
-<tbody>
-<tr><td style="padding: 6px;"><strong>People</strong></td><td>Research team (co-PIs) @ ${((p("reinstein_fte")+p("klotz_fte"))*100).toFixed(0)}% FTE combined</td><td style="text-align: right;">${fmt(subtotals.people)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.people)}</td></tr>
-
-<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Evaluations</strong></td><td>${p("num_eval_packages")} packages @ ${fmt(p("cost_per_eval_package"))}</td><td style="text-align: right;">${fmt(costs.eval_packages)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.evaluations)}</td></tr>
-
-<tr><td style="padding: 6px;"><strong>Enumerators</strong></td><td>Consensus critiques (${p("num_papers_consensus")} papers x ${p("hours_per_paper_consensus")}h)</td><td style="text-align: right;">${fmt(costs.consensus_critiques)}</td><td></td></tr>
-<tr><td></td><td>LLM eval labeling (${p("num_focal_papers_llm")} papers x ${p("num_models_per_paper")} models x ${p("num_enumerators")} raters)</td><td style="text-align: right;">${fmt(costs.llm_eval_enumerators)}</td><td></td></tr>
-<tr><td></td><td>Senior expert checks (${(p("fraction_evals_senior_check")*100).toFixed(0)}% sample)</td><td style="text-align: right;">${fmt(costs.senior_checks)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.enumerators)}</td></tr>
-
-<tr style="background: #fafafa;"><td style="padding: 6px;"><strong>Incentives</strong></td><td>Author response incentives</td><td style="text-align: right;">${fmt(costs.author_incentives)}</td><td></td></tr>
-<tr style="background: #fafafa;"><td></td><td>Crowd/prediction market incentives</td><td style="text-align: right;">${fmt(costs.crowd_incentives)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.incentives)}</td></tr>
-
-<tr><td style="padding: 6px;"><strong>Other</strong></td><td>Travel & conferences</td><td style="text-align: right;">${fmt(costs.travel)}</td><td></td></tr>
-<tr><td></td><td>LLM/compute costs</td><td style="text-align: right;">${fmt(costs.computing)}</td><td></td></tr>
-<tr><td></td><td>Additional engineering</td><td style="text-align: right;">${fmt(costs.engineering)}</td><td></td></tr>
-<tr><td></td><td>Software/server overhead</td><td style="text-align: right;">${fmt(costs.software)}</td><td style="text-align: right; font-weight: bold;">${fmt(subtotals.other)}</td></tr>
-
-<tr style="border-top: 2px solid #333; background: #e8f4e8;">
-  <td style="padding: 8px;"><strong>TOTAL</strong></td>
-  <td></td>
-  <td></td>
-  <td style="text-align: right; font-weight: bold; font-size: 1.1em;">${fmt(grandTotal)}</td>
-</tr>
-</tbody>
-</table>
-</div>`
-```
-
-::: {.callout-note collapse="true"}
-## Key parameters driving this budget
-
-```{ojs}
-//| echo: false
-html`<table style="width: 100%; font-size: 0.9em;">
-<tr><th style="text-align: left;">Parameter</th><th>Small</th><th>Medium</th><th>Large</th><th style="text-align: left;">Description</th></tr>
-<tr><td>Duration</td><td>${params.duration_months[0]} mo</td><td>${params.duration_months[1]} mo</td><td>${params.duration_months[2]} mo</td><td>Project duration</td></tr>
-<tr><td>Research team FTE</td><td>${(params.reinstein_fte[0]+params.klotz_fte[0]).toFixed(2)}</td><td>${(params.reinstein_fte[1]+params.klotz_fte[1]).toFixed(2)}</td><td>${(params.reinstein_fte[2]+params.klotz_fte[2]).toFixed(2)}</td><td>Combined co-PI effort allocation</td></tr>
-<tr><td>Eval packages</td><td>${params.num_eval_packages[0]}</td><td>${params.num_eval_packages[1]}</td><td>${params.num_eval_packages[2]}</td><td>New Unjournal evaluation packages</td></tr>
-<tr><td>Focal papers</td><td>${params.num_focal_papers_llm[0]}</td><td>${params.num_focal_papers_llm[1]}</td><td>${params.num_focal_papers_llm[2]}</td><td>Papers for detailed LLM comparison</td></tr>
-<tr style="background: #f9f9f9;"><td colspan="5"><em>Enumerator costs</em></td></tr>
-<tr><td>Enumerator rate</td><td>$${params.enumerator_hourly_rate[0]}/hr</td><td>$${params.enumerator_hourly_rate[1]}/hr</td><td>$${params.enumerator_hourly_rate[2]}/hr</td><td>Hourly rate for labeling work</td></tr>
-<tr><td>Senior expert rate</td><td>$${params.senior_hourly_rate[0]}/hr</td><td>$${params.senior_hourly_rate[1]}/hr</td><td>$${params.senior_hourly_rate[2]}/hr</td><td>Rate for expert review checks</td></tr>
-<tr><td>Hours per eval unit</td><td>${params.hours_per_eval_unit[0]}</td><td>${params.hours_per_eval_unit[1]}</td><td>${params.hours_per_eval_unit[2]}</td><td>Time to label each LLM evaluation</td></tr>
-</table>`
-```
-:::
-
-*Key cost categories include*: Core team time (PI + co-lead), engineering and development, payments for human research evaluators (extending The Unjournal's pipeline), payments for enumerators/experts to label and provide human feedback on LLM evaluator claims and critiques, and compute/API costs. No model training or large-compute capabilities work—all spending focuses on evaluation, tooling, and human experimentation.
-
-### Deliverables
-
-1.  **Living benchmark dataset**: Continuously updated papers + human evaluations + LLM outputs + adjudication scores, openly available throughout the project
-2.  **Public dashboard**: Updatable website where new models can be compared against evolving benchmarks
-3.  **Open-source codebase**: Pipelines for running AI evaluations and computing metrics
-4.  **Failure-mode taxonomy**: Documented patterns of AI reasoning failures
-5.  **"Taste/alignment" analysis**: Quantitative comparison of human vs. AI research preferences
-6.  **Academic paper(s)**: Targeting venues like Nature Human Behaviour, Science, or field-relevant journals
-7.  **Practical guidance**: Playbook for when AI peer review helps and where it fails
-
-::: {.callout-note collapse="true"}
-## Success metrics
-
-**Benchmark quality:**
-
--   80+ papers with complete paired human/LLM evaluations
--   3+ model families systematically compared
--   Dataset and code publicly released with documentation
-
-**Informative results:**
-
--   Pre-registered quantitative metrics with adequate statistical power
--   At least one publishable paper or equivalent preprint
--   Clear evidence of specific failure modes (or their absence)
-
-**Practical uptake:**
-
--   Unjournal team finds tools useful for triage and evaluation
--   2+ external organizations (GCR funders, journals, research users) engage with outputs
--   If tools prove not useful, we report this explicitly as a negative result
-:::
-
-::: {.callout-note collapse="true"}
-## Risks and mitigations
-
-| Risk | Mitigation |
-|-------------------------|-----------------------------------------------|
-| LLMs perform poorly | Negative results are valuable; focus on taxonomy and practical guidance |
-| Human evaluations are noisy | Use adjudication, curated subsets, pre-registration |
-| Engineering bottlenecks | Modular pipelines, flexible staffing, leverage existing tools |
-| Low external uptake | Build relationships with GCR organizations early; design for usability |
-:::
-
-::: {.callout-note collapse="true"}
-## Why now?
-
-LLMs are only now sophisticated enough to plausibly conduct research evaluation--but the window to understand their failure modes *before* widespread adoption is closing. The Unjournal's structured evaluations provide a unique "ground truth" for benchmarking AI reasoning in economics and policy research; no comparable dataset exists. If AI research evaluation becomes reliable, it could reduce costs and accelerate evidence synthesis for time-sensitive decisions. If it remains unreliable, decision-makers need to know.
-:::
-
-### Project timeline
-
-The project follows an iterative, overlapping structure rather than sequential phases. Human evaluations flow continuously from The Unjournal's pipeline, analysis proceeds alongside data collection, and outputs are shared as living documents throughout.
-
-```{ojs}
-//| echo: false
-
-// Timeline visualization showing overlapping activities
-timelineData = [
-  {activity: "Pre-analysis plan & registration", start: 1, end: 3, row: 0, color: "#6b7280"},
-  {activity: "Pipeline & tooling development", start: 1, end: 6, row: 1, color: "#3b82f6"},
-  {activity: "Baseline LLM runs (existing evals)", start: 2, end: 5, row: 2, color: "#8b5cf6"},
-  {activity: "Human evaluations (ongoing intake)", start: 1, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 3, color: "#10b981"},
-  {activity: "LLM evaluation of new papers", start: 4, end: idx === 0 ? 10 : idx === 1 ? 15 : 21, row: 4, color: "#8b5cf6"},
-  {activity: "Enumerator labeling & adjudication", start: 5, end: idx === 0 ? 11 : idx === 1 ? 16 : 22, row: 5, color: "#f59e0b"},
-  {activity: "Analysis & model refinement", start: 3, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 6, color: "#ef4444"},
-  {activity: "Training predictive models", start: idx === 0 ? 6 : idx === 1 ? 8 : 10, end: idx === 0 ? 10 : idx === 1 ? 15 : 20, row: 7, color: "#ec4899", show: idx >= 1},
-  {activity: "Out-of-time validation (pipeline)", start: idx === 0 ? 9 : idx === 1 ? 13 : 17, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 8, color: "#06b6d4", show: idx >= 1},
-  {activity: "Dashboard & data releases", start: 4, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 9, color: "#84cc16"},
-  {activity: "Publications & dissemination", start: idx === 0 ? 8 : idx === 1 ? 12 : 16, end: idx === 0 ? 12 : idx === 1 ? 18 : 24, row: 10, color: "#6b7280"}
-]
-
-maxMonth = idx === 0 ? 12 : idx === 1 ? 18 : 24
-filteredTimeline = timelineData.filter(d => d.show !== false)
-```
-
-```{ojs}
-//| echo: false
-
-html`<div style="font-size: 0.9em; overflow-x: auto;">
-<p><strong>${scenario} scenario timeline (${maxMonth} months)</strong></p>
-<svg width="${Math.max(700, maxMonth * 35 + 250)}" height="${filteredTimeline.length * 28 + 40}">
-  <!-- Month labels -->
-  ${Array.from({length: maxMonth}, (_, i) => i + 1).map(m =>
-    `<text x="${250 + (m - 0.5) * 35}" y="15" text-anchor="middle" font-size="11" fill="#666">${m}</text>`
-  ).join('')}
-
-  <!-- Grid lines -->
-  ${Array.from({length: maxMonth + 1}, (_, i) => i).map(m =>
-    `<line x1="${250 + m * 35}" y1="20" x2="${250 + m * 35}" y2="${filteredTimeline.length * 28 + 30}" stroke="#e5e7eb" stroke-width="1"/>`
-  ).join('')}
-
-  <!-- Activity bars -->
-  ${filteredTimeline.map((d, i) => `
-    <g transform="translate(0, ${25 + i * 28})">
-      <text x="245" y="14" text-anchor="end" font-size="11" fill="#333">${d.activity}</text>
-      <rect x="${250 + (d.start - 1) * 35}" y="2" width="${(d.end - d.start + 1) * 35 - 4}" height="18" rx="3" fill="${d.color}" opacity="0.8"/>
-    </g>
-  `).join('')}
-</svg>
-</div>`
-```
-
-**Key timeline principles:**
-
--   **Pre-registration early**: We specify and register a general pre-analysis plan in months 1–3 to constrain researcher degrees of freedom, with amendments documented as the project evolves.
--   **Continuous human evaluations**: New Unjournal evaluation packages arrive throughout the project, feeding both the benchmark dataset and (in larger scenarios) model training.
--   **Analysis throughout**: Statistical analysis and model refinement proceed iteratively as data accumulates—we don't wait for "all data" before analyzing.
--   **Living research**: Data and results are openly available and updated continuously; there is no "final dataset," only versioned releases with clear provenance.
-
-```{ojs}
-//| echo: false
-// Predictive modeling note (only shown for Medium/Large)
-predictiveNote = idx >= 1 ? `<p style="margin-top: 0.5em;"><strong>Predictive modeling</strong> (Medium/Large): In months ${idx === 1 ? '8-15' : '10-20'}, we train models on accumulated human evaluations to predict ratings for papers entering The Unjournal pipeline, enabling out-of-time validation in the final phase.</p>` : ''
-html`${predictiveNote}`
-```
-
-For more details, see [The Unjournal](https://unjournal.org) and our [project repository](https://github.com/daaronr/llm-uj-research-eval).^[Methodological implications we plan to  adopt from the literature:
-- Report stability (repeat runs / seeds) and calibration diagnostics alongside point scores.
-- Keep error verification distinct from quality scoring; when we do verification, prefer author- or expert-validated ground truth over LLM-as-judge, or clearly disclose the judge and its limits.
-- Track input format effects (PDF vs LaTeX vs extracted text) and costs/latency, since these affect reproducibility and deployment.]
-
-<!-- 
-
-DR @valentin -- did you write this bit? I can't remember?
-I'd like to add that we should also adapt the @Pataranutaporn2025 insights to run one version of the evaluations, clearly stripping identifying information. We could also try to replicate some of what they do by putting in quote" "fake prestigious" close quote names and institutions in one or more treatments.
-
-FURTHER motivating examples to integrate
-
-https://www.linkedin.com/feed/update/urn:li:activity:7411759911480524800/
--->
+Funding for The Unjournal has been provided by the Survival and Flourishing Fund, the Long Term Future Fund, and EA Funds. Portions of this manuscript were drafted with AI assistance and reviewed by the authors.
 

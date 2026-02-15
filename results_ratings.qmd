@@ -1,7 +1,5 @@
 ---
 title: "Results: Ratings"
-format:
-  html: default
 engine: knitr
 ---
 
@@ -25,7 +23,7 @@ library("scales")
 library("jsonlite")
 library("purrr")
 library("tibble")
-library("plotly")
+# library("plotly")  # removed: all figures are now static ggplot
 
 # Theme and colors
 UJ_ORANGE <- "#f19e4b"   # LLM primary
@@ -316,12 +314,12 @@ Each numeric field carries a midpoint (model’s 50% belief) and a 90% credible 
 ::: callout-note
 ## Future Models
 
-We are working to extend this comparison to newer frontier models as they become available and our funding permits, as well as adapting these to bespoke agent-based tools such as Refine.ink.
+We are working to extend this comparison to newer frontier models as they become available, as well as adapting these to bespoke agent-based tools such as Refine.ink.
 :::
 
 ### Token Usage and Cost
 
-Token costs are computed from API-reported input/output tokens (GPT-5 Pro runs with `reasoning` = high). Use the boxplot log scale to compare efficiency frontiers; reasoning tokens are reported when available.
+Token costs are computed from API-reported input/output tokens (GPT-5 Pro runs with `reasoning` = high).
 
 ```{r}
 #| label: tbl-cost-overview
@@ -351,6 +349,7 @@ Total cost across all `r total_evaluations` LLM evaluations: **`r scales::dollar
 ```{r}
 #| label: fig-cost-box
 #| fig-cap: "Cost per paper by model (log scale)"
+#| eval: false
 #| fig-width: 9
 #| fig-height: 5
 
@@ -371,17 +370,12 @@ if (nrow(cost_data) > 0) {
 
 ------------------------------------------------------------------------
 
-## Interactive Forest Plot: Human vs LLM Ratings
-
-The forest plot below shows **overall percentile ratings** for each of the `r n_matched` papers with matched human and LLM evaluations. Human evaluator ratings are shown in green (individual evaluators as small dots, mean as diamond). LLM ratings from different models are shown with distinct colors.
-
-Interpretation: points are midpoints, horizontal bars are the model’s 90% credible interval.
-
-Hover over any point to see details. Click legend items to show/hide models.
+<!-- Forest plot hidden for working-paper layout; see online HTML version for the full interactive figure. -->
 
 ```{r}
 #| label: fig-forest-plotly
 #| fig-cap: "Interactive forest plot: Human and LLM overall ratings by paper"
+#| eval: false
 #| fig-width: 12
 #| fig-height: 15
 
@@ -495,8 +489,8 @@ Each point represents a paper, with human mean rating on the x-axis and LLM rati
 Note: human means carry their own variance; correlations here are bounded by human inter-rater noise.
 
 ```{r}
-#| label: fig-scatter-interactive
-#| fig-cap: "Interactive scatter: Human vs LLM overall ratings"
+#| label: fig-scatter
+#| fig-cap: "Human vs LLM overall ratings"
 #| fig-width: 10
 #| fig-height: 8
 
@@ -506,7 +500,6 @@ scatter_data <- llm_metrics |>
   mutate(
     diff = midpoint - human_mid,
     paper_short = str_trunc(paper, 25),
-    # Ensure no NA values break ggplotly
     human_lo = coalesce(human_lo, human_mid),
     human_hi = coalesce(human_hi, human_mid),
     lower_bound = coalesce(lower_bound, midpoint),
@@ -516,34 +509,15 @@ scatter_data <- llm_metrics |>
 
 if (nrow(scatter_data) > 0) {
 
-  p <- ggplot(scatter_data, aes(
-    x = human_mid, y = midpoint, color = model,
-    text = paste0(
-      "<b>", paper, "</b><br>",
-      "Human: ", round(human_mid, 1), " [", round(human_lo, 1), "–", round(human_hi, 1), "]<br>",
-      "LLM: ", round(midpoint, 1), " [", round(lower_bound, 1), "–", round(upper_bound, 1), "]<br>",
-      "Diff: ", sprintf("%+.1f", diff)
-    )
-  )) +
+  ggplot(scatter_data, aes(x = human_mid, y = midpoint, color = model)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
     geom_point(size = 3.5, alpha = 0.7) +
+    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.2, max.overlaps = 8, show.legend = FALSE) +
     scale_color_manual(values = MODEL_COLORS) +
     coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
     labs(x = "Human mean rating (0–100)", y = "LLM rating (0–100)", color = "Model") +
     theme_uj()
 
-  # Use tryCatch to handle ggplotly errors gracefully
-  tryCatch({
-    ggplotly(p, tooltip = "text") |>
-      layout(
-        legend = list(orientation = "h", y = -0.12, x = 0.5, xanchor = "center"),
-        hoverlabel = list(bgcolor = "white")
-      )
-  }, error = function(e) {
-    # Fallback to static plot if ggplotly fails
-    print(p)
-    message("Note: Interactive plot unavailable, showing static version.")
-  })
 } else {
   cat("No matching data for scatter plot.\n")
 }
@@ -1076,11 +1050,12 @@ if (nrow(criterion_agreement) > 0) {
 }
 ```
 
-## Rating Distribution by Model
+<!-- Rating distribution density hidden for working-paper layout -->
 
 ```{r}
 #| label: fig-rating-distribution
 #| fig-cap: "Distribution of overall ratings by evaluator type"
+#| eval: false
 #| fig-width: 10
 #| fig-height: 6
 
@@ -1137,6 +1112,14 @@ if (nrow(criteria_means) > 0) {
     theme_uj() +
     theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 10), panel.grid = element_blank())
 }
+```
+
+```{r}
+#| label: set-primary-model
+#| include: false
+
+# Define primary model for use across subsequent chunks
+primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
 ```
 
 <!-- CLAUDE GENERATED: Tier correlation dumbbell plot -->
@@ -1526,6 +1509,7 @@ We matched `r n_matched_papers` papers across both runs.
 ```{r}
 #| label: fig-prompt-scatter
 #| fig-cap: "Legacy vs Updated GPT-5 Pro ratings (overall metric)"
+#| eval: false
 #| fig-width: 8
 #| fig-height: 7
 
@@ -1555,6 +1539,7 @@ if (nrow(overall_comp) > 0) {
 ```{r}
 #| label: fig-prompt-diff-by-metric
 #| fig-cap: "Rating difference (Updated - Legacy) by criterion"
+#| eval: false
 #| fig-width: 10
 #| fig-height: 5
 
@@ -1600,4 +1585,4 @@ if (nrow(prompt_comparison) > 0) {
 }
 ```
 
-The updated prompt with explicit diagnostic assessment appears to produce systematically different ratings. The correlation between prompt versions indicates the degree of consistency across the prompt change.
+The updated prompt with explicit diagnostic assessment appears to produce systematically different ratings. The summary table above quantifies the shift; scatter and boxplot visualizations of the prompt comparison are available in the full online version.

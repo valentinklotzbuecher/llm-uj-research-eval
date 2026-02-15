@@ -1,8 +1,5 @@
 ---
 title: "LLM Evaluation Details"
-format:
-  html:
-    code-fold: true
 ---
 
 This appendix presents detailed LLM evaluations for each paper, including:
@@ -427,14 +424,20 @@ for (paper in c(focal_in_corpus, other_papers)) {
   }
 
   # --- Reasoning Trace (Collapsible, GPT-5 Pro only) ---
+  # Reasoning traces contain raw LLM "thinking" text with special characters
+  # (e.g., literal \n references) that break LaTeX. Show in HTML only.
 
   if (!is.na(llm_data$reasoning) && nchar(llm_data$reasoning) > 50) {
-    cat("::: {.callout-tip collapse=\"true\"}\n")
-    cat("## GPT-5 Pro Reasoning Trace\n\n")
-    cat("::: {.small}\n")
-    cat(llm_data$reasoning, "\n")
-    cat(":::\n")
-    cat(":::\n\n")
+    if (knitr::is_html_output()) {
+      cat("::: {.callout-tip collapse=\"true\"}\n")
+      cat("## GPT-5 Pro Reasoning Trace\n\n")
+      cat("::: {.small}\n")
+      cat(llm_data$reasoning, "\n")
+      cat(":::\n")
+      cat(":::\n\n")
+    } else {
+      cat("*GPT-5 Pro reasoning trace available in the [online HTML version](https://llm-uj-research-eval.netlify.app/appendix_llm_traces.html).*\n\n")
+    }
   }
 
   cat("\n---\n\n")
