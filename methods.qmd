@@ -166,7 +166,14 @@ def call_with_retries(fn, max_tries: int = 6, base_delay: float = 0.8, max_delay
             return fn()
         except (openai.RateLimitError, openai.APIError, openai.APIConnectionError, openai.APITimeoutError, Exception) as e:
             ex = e
-            sleep = min(max_delay, base_delay * (1.8 ** (attempt - 1))) * (1 + 0.25 * random.random())
+            # Anthropic rate-limit errors need much longer backoff (large PDFs burn ~100k tokens)
+            is_rate_limit = "rate_limit" in str(type(e)).lower() or "rate" in str(e).lower()
+            if is_rate_limit:
+                sleep = min(300, 60 * (1.5 ** (attempt - 1)))
+            else:
+                sleep = min(max_delay, base_delay * (1.8 ** (attempt - 1)))
+            sleep *= (1 + 0.25 * random.random())
+            print(f"  Retry {attempt}/{max_tries} after {sleep:.0f}s: {e}")
             time.sleep(sleep)
     raise ex
 
@@ -807,7 +814,8 @@ if ANTHROPIC_KEY_PATH.exists():
 anthropic_client = anthropic.Anthropic()
 
 ANTHROPIC_MODELS = [
-    "claude-sonnet-4-20250514",
+    # "claude-sonnet-4-20250514",
+    "claude-opus-4-6",
     # "claude-3-5-haiku-20241022",  # faster, cheaper
 ]
 
@@ -863,7 +871,12 @@ def run_anthropic_models(pdfs: list, models: list = ANTHROPIC_MODELS, out_dir: p
                 with open(out_file, "w") as f:
                     json.dump(result, f, ensure_ascii=False, indent=2)
                 results.append({"paper": paper, "model": model, "status": "completed"})
-                time.sleep(2)
+                # Wait based on actual token usage to respect TPM limits
+                input_toks = result.get("input_tokens", 100_000)
+                ANTHROPIC_TPM = 30_000  # tokens-per-minute limit for Opus 4.6
+                wait_secs = max(10, (input_toks / ANTHROPIC_TPM) * 60 + 5)  # +5s safety margin
+                print(f"  Rate-limit pause: {wait_secs:.0f}s ({input_toks:,} input tokens, {ANTHROPIC_TPM:,} TPM limit)")
+                time.sleep(wait_secs)
             except Exception as e:
                 print(f"Error {paper} ({model}): {e}")
                 results.append({"paper": paper, "model": model, "status": "failed", "error": str(e)})
