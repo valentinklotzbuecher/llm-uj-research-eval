@@ -35,6 +35,7 @@ We captured the versions of each paper that was evaluated by The Unjournal's hum
 
 We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.
 
+### SI: Evaluation Pipeline Code
 
 ```{python}
 #| label: llm-setup-all
@@ -248,6 +249,7 @@ def read_csv_or_empty(path, columns=None, **kwargs):
     
 ```
 
+### SI: JSON Schema & System Prompt
 
 ### JSON Schema
 
@@ -721,6 +723,8 @@ else:
     print(f"Progress: {counts.get('completed', 0)}/{len(idx)} completed")
 
 ```
+
+### SI: Multi-Model Evaluation & Focal Runs
 
 ### Multi-Model Evaluation
 
@@ -1220,9 +1224,11 @@ print(f"\nStatus: {counts}")
 
 ### Key Issues Comparison with Human Critiques
 
-To validate how well the LLM identifies substantive issues, we compare its `key_issues` output against human expert critiques from The Unjournal's Coda database. These human critiques were written by domain experts during the standard evaluation process, providing a ground-truth benchmark for issue identification.
+To validate how well the LLM identifies substantive issues, we compare its `key_issues` output against human expert critiques from The Unjournal's Coda database. Human expert critiques provide a high-quality reference standard for issue identification: they are produced by paid domain experts and synthesized by evaluation managers, but remain noisy and incomplete, so we treat them as a comparative signal rather than ground truth.
 
 The comparison proceeds in two stages: first, we extract and align the data sources; then, optionally, we use an LLM to systematically assess the degree of alignment between machine-generated and human-identified issues.
+
+### SI: Key Issues Comparison Pipeline
 
 ```{python}
 #| label: key-issues-comparison
@@ -1544,4 +1550,3 @@ The comparison pipeline uses a manually curated input and produces structured ou
 - **`results/key_issues_comparison_results.json`**: LLM-assessed alignment metrics including coverage, precision, missed issues, and overall ratings.
 
 The coverage metric estimates what fraction of human-identified issues the LLM captured; precision estimates what fraction of LLM issues are genuinely relevant. Together with the qualitative ratings, these provide a structured assessment of how well the LLM's issue identification aligns with expert judgment.
-

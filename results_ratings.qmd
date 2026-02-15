@@ -35,6 +35,7 @@ MODEL_COLORS <- c(
   "GPT-5.2 Pro" = "#c9302c",
   "GPT-4o-mini" = "#74aa9c",
   "Claude Sonnet 4" = "#d4a574",
+  "Claude Opus 4.6" = "#8b5cf6",
   "Gemini 2.0 Flash" = "#7986cb",
   "Human" = "#99bb66"
 )
@@ -67,6 +68,7 @@ pricing <- tribble(
   "GPT-5.2 Pro",       15.00,        60.00,
   "GPT-4o-mini",       0.15,         0.60,
   "Claude Sonnet 4",   3.00,         15.00,
+  "Claude Opus 4.6",   15.00,        75.00,
   "Gemini 2.0 Flash",  0.075,        0.30
 )
 ```
@@ -157,6 +159,7 @@ model_dirs <- list(
   "gpt52_pro_focal_jan2026" = "GPT-5.2 Pro",
   "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
   "claude_sonnet_4_20250514" = "Claude Sonnet 4",
+  "claude_opus_4_6" = "Claude Opus 4.6",
   "gemini_2.0_flash" = "Gemini 2.0 Flash"
 )
 
@@ -168,10 +171,14 @@ parse_response <- function(path, model_name) {
       str_replace_all("_", " ")
 
     parsed <- NULL
-    if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
-      parsed <- jsonlite::fromJSON(r$output_text, simplifyVector = TRUE)
-    } else if (!is.null(r$parsed)) {
+    if (!is.null(r$parsed) && length(r$parsed) > 0) {
       parsed <- r$parsed
+    } else if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
+      # Strip markdown code fences if present
+      txt <- r$output_text
+      txt <- sub("^\\s*```[a-z]*\\s*\n?", "", txt)
+      txt <- sub("\\s*```\\s*$", "", txt)
+      parsed <- jsonlite::fromJSON(txt, simplifyVector = TRUE)
     } else if (!is.null(r$output)) {
       msg <- purrr::detect(r$output, ~ .x$type == "message", .default = NULL)
       if (!is.null(msg) && length(msg$content) > 0) {
@@ -185,10 +192,14 @@ parse_response <- function(path, model_name) {
     metric_rows <- list()
     tier_rows <- list()
 
+    tier_names <- c("tier_should", "tier_will", "journal_should", "journal_will")
+
     for (nm in names(metrics)) {
-      if (nm %in% c("tier_should", "tier_will")) {
+      if (nm %in% tier_names) {
+        # Normalise journal_should/journal_will → tier_should/tier_will
+        tier_kind <- sub("^journal_", "tier_", nm)
         tier_rows[[length(tier_rows) + 1]] <- tibble(
-          paper = paper, model = model_name, tier_kind = nm,
+          paper = paper, model = model_name, tier_kind = tier_kind,
           score = metrics[[nm]]$score,
           ci_lower = metrics[[nm]]$ci_lower,
           ci_upper = metrics[[nm]]$ci_upper
@@ -311,11 +322,9 @@ The previous [Methods](methods.qmd)) chapter explains our process and pipeline.[
 
 Each numeric field carries a midpoint (model’s 50% belief) and a 90% credible interval; wide intervals indicate acknowledged uncertainty.
 
-::: callout-note
-## Future Models
+### SI: Future Models
 
 We are working to extend this comparison to newer frontier models as they become available, as well as adapting these to bespoke agent-based tools such as Refine.ink.
-:::
 
 ### Token Usage and Cost
 
@@ -345,6 +354,8 @@ if (nrow(llm_tokens) > 0) {
 ```
 
 Total cost across all `r total_evaluations` LLM evaluations: **`r scales::dollar(total_cost, accuracy = 0.01)`**.
+
+### SI: Additional Cost & Overview Figures
 
 ```{r}
 #| label: fig-cost-box
@@ -555,7 +566,7 @@ if (nrow(scatter_data) > 0) {
 }
 ```
 
-### Inter-Rater Agreement (Krippendorff's Alpha)
+### SI: Inter-Rater Agreement (Krippendorff's Alpha)
 
 Krippendorff's alpha measures agreement among multiple raters, accounting for chance agreement. Values above 0.8 indicate good agreement; 0.67–0.8 is acceptable for exploratory research. Ceiling effects apply because human evaluators are not perfectly aligned.
 
@@ -728,6 +739,8 @@ if (requireNamespace("irr", quietly = TRUE)) {
 **Interpretation**: If α~HL~ approaches or exceeds α~HH~, the LLM is performing at or above the level of agreement humans achieve with each other—a meaningful benchmark for "human-level" evaluation consistency.
 
 <!-- END CLAUDE GENERATED -->
+
+### SI: Extended Agreement Analysis (Calibration, Bootstrap, MI, Per-Criterion)
 
 <!-- CLAUDE GENERATED: Calibration analysis -->
 
@@ -1122,6 +1135,8 @@ if (nrow(criteria_means) > 0) {
 primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
 ```
 
+### SI: Evaluation Priorities & Tier Correlations
+
 <!-- CLAUDE GENERATED: Tier correlation dumbbell plot -->
 
 ## Evaluation Priorities: What Predicts Journal Tier Judgments?[^results_ratings-6]
@@ -1369,6 +1384,8 @@ if (length(ord_p) > 0 && nrow(Ddiff) > 0) {
 This visualization helps identify: (1) papers with systematic disagreement across all criteria, (2) criteria where humans and LLMs consistently diverge, and (3) potential patterns related to paper characteristics.
 
 <!-- END CLAUDE GENERATED -->
+
+### SI: Top Disagreement Cases & Prompt Comparison
 
 <!-- CLAUDE GENERATED: Top disagreement cases -->
 

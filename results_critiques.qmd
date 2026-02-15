@@ -63,6 +63,8 @@ This chapter compares *qualitative critiques*: the key methodological and interp
 
 We first assess alignment using LLM-based comparison: GPT-5.2 Pro evaluates coverage (what proportion of human concerns GPT identified) and precision (whether GPT issues are substantive). Human-checks on this alignment are underway. See [LLM-Based Assessment](#sec-llm-assessment) for aggregate metrics.
 
+### SI: Data Sources & Overview
+
 ## Data Sources
 
 **GPT-5.2 Pro Key Issues**: Structured output from the focal evaluation run (January 2026), where the model was prompted to identify 5-15 key issues per paper, ordered from most to least important.
@@ -545,19 +547,25 @@ if (!is.null(comparison_data) && n_papers > 0) {
 }
 ```
 
+```{r}
+#| label: bridge-py-objects
+#| include: false
+
+# Pull Python-parsed objects into R for use in summary chunks below
+parsed_issues_list <- py$parsed_issues
+comparison_results_list <- py$comparison_results
+```
+
+### SI: Paper-by-Paper Issue Comparisons
+
 ## Paper-by-Paper Comparison {#sec-paper-comparison}
 
-Each paper section shows:
-
--   **Assessment badge**: Coverage and precision metrics with overall rating
--   **LLM Assessment Summary**: GPT-5.2 Pro's justification of the comparison
--   **Missed Issues**: Human expert issues that GPT failed to capture
--   **Extra Issues**: GPT issues not present in human critique
--   **Full texts**: Expandable sections with complete human critique and GPT issues
+Paper-by-paper comparisons with interactive collapsible panels are available in the [online HTML version](https://llm-uj-research-eval.netlify.app/results_critiques.html#sec-paper-comparison).
 
 ```{r}
 #| label: render-comparisons
 #| results: asis
+#| eval: false
 #| code-fold: true
 #| code-summary: "Render paper comparisons"
 
@@ -565,9 +573,7 @@ Each paper section shows:
 parsed_issues_list <- py$parsed_issues
 comparison_results_list <- py$comparison_results
 
-if (!knitr::is_html_output()) {
-  cat("\n*Paper-by-paper comparisons with interactive collapsible panels are available in the [online HTML version](https://llm-uj-research-eval.netlify.app/results_critiques.html#sec-paper-comparison).*\n\n")
-} else if (!is.null(comparison_data) && n_papers > 0) {
+if (!is.null(comparison_data) && n_papers > 0) {
 
   for (i in 1:nrow(comparison_data)) {
     row <- comparison_data[i, ]
@@ -969,6 +975,8 @@ if (has_llm_results) {
     theme_uj()
 }
 ```
+
+### SI: Extended Critique Analysis & Annotation Tools
 
 ```{r}
 #| label: tbl-paper-ratings
