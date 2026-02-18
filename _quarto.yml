@@ -28,15 +28,14 @@ book:
     # - name: "Lorenzo Pacchiardi"
   chapters:
     - index.qmd
-    - methods.qmd #Puts papers data together, calls the LLM runs, has python code
-    - results_ratings.qmd #Matches LLM output to Unjournal rating data, analysis of differences and performance, R code
-    - results_critiques.qmd #Compares GPT key issues vs human expert critiques from Coda
-    # - questions_answers.qmd
-    # - discussion.qmd
+    - results.qmd
+    - discussion.qmd
     - references.qmd
   appendices:
+    - methods.qmd
+    - results_ratings.qmd
+    - results_critiques.qmd
     - appendix_llm_traces.qmd
-    # - paper_response_analysis.qmd
   date: last-modified
   abstract: |
     We benchmark how frontier LLMs critique, rate, and prioritize research, comparing AI-generated evaluations to human expert assessments from The Unjournal. Human ratings serve as a reference signal—the core goal is measuring and diagnosing AI reasoning quality: understanding calibration, failure modes, and systematic "taste" differences between AI and human evaluators.
@@ -88,11 +87,15 @@ format:
       cache: false
       python: "python3"
   pdf:
-    documentclass: scrreprt
+    documentclass: article
+    top-level-division: section
     fontsize: 11pt
-    geometry: margin=1in
-    toc: true
-    number-sections: true
+    geometry:
+      - margin=1in
+      - headheight=14pt
+    toc: false
+    number-sections: false
+    include-in-header: preamble.tex
     link-citations: true
     keep-tex: true
     fig-cap-location: top

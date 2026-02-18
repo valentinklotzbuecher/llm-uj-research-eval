@@ -12,10 +12,7 @@ source("setup_params.R")
 
 ```
 
-We draw on two main sources:
-
-1) Human evaluations from [The Unjournal’s public evaluation data](https://unjournal.github.io/unjournaldata/index.html) <!-- I think these come from (PubPub reports and the Coda evaluation form export), but we're moving to use a more systematic sql-lite database -->
-2) LLM‑generated evaluations using a structured JSON‑schema prompt resembling The Unjournal's guidelines, comparing several models including gpt-5-pro-2025-10-06 (knowledge cut-off: 30 September 2024).
+We draw on two sources: human evaluations from [The Unjournal's public evaluation data](https://unjournal.github.io/unjournaldata/index.html), and LLM-generated evaluations produced by prompting frontier models with The Unjournal's rubric and requiring structured JSON output. We compare six models spanning three providers: GPT-5 Pro, GPT-5.2 Pro, and GPT-4o-mini (OpenAI); Claude Sonnet 4 and Claude Opus 4.6 (Anthropic); and Gemini 2.0 Flash (Google). Each model returns a midpoint rating and 90% credible interval for every metric, enforced by a strict JSON Schema.
 
 ## Unjournal.org evaluations
 
@@ -34,8 +31,6 @@ For the journal rankings measure, we ask both "what journal ranking tier should 
 We captured the versions of each paper that was evaluated by The Unjournal's human evaluators, downloading from the links provided in The Unjournal's Coda database. <!-- Add link to this -- is it correct? Are we sure these are the ones evaluated? --> 
 
 We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.
-
-### SI: Evaluation Pipeline Code
 
 ```{python}
 #| label: llm-setup-all
@@ -248,8 +243,6 @@ def read_csv_or_empty(path, columns=None, **kwargs):
         return pd.DataFrame(columns=columns or [])    
     
 ```
-
-### SI: JSON Schema & System Prompt
 
 ### JSON Schema
 
@@ -723,8 +716,6 @@ else:
     print(f"Progress: {counts.get('completed', 0)}/{len(idx)} completed")
 
 ```
-
-### SI: Multi-Model Evaluation & Focal Runs
 
 ### Multi-Model Evaluation
 
@@ -1227,8 +1218,6 @@ print(f"\nStatus: {counts}")
 To validate how well the LLM identifies substantive issues, we compare its `key_issues` output against human expert critiques from The Unjournal's Coda database. Human expert critiques provide a high-quality reference standard for issue identification: they are produced by paid domain experts and synthesized by evaluation managers, but remain noisy and incomplete, so we treat them as a comparative signal rather than ground truth.
 
 The comparison proceeds in two stages: first, we extract and align the data sources; then, optionally, we use an LLM to systematically assess the degree of alignment between machine-generated and human-identified issues.
-
-### SI: Key Issues Comparison Pipeline
 
 ```{python}
 #| label: key-issues-comparison
