@@ -256,6 +256,8 @@ matched_papers <- intersect(
   unique(llm_metrics$paper)
 )
 n_matched <- length(matched_papers)
+
+primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
 ```
 
 We evaluate `r n_llm_models` frontier LLMs against human expert reviews from [The Unjournal](https://unjournal.pubpub.org) for `r n_matched` papers with both human and LLM evaluations. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in [Appendix: Data and methods](methods.qmd).
@@ -300,45 +302,103 @@ if (nrow(scatter_data) > 0) {
 
 Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in @tbl-agreement.
 
-**Criteria-level patterns.** @fig-criteria-heatmap-main displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge suggest robust agreement on that dimension; divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.
+**Rank comparison.** @fig-rankslope-main contrasts the relative *ranking* of papers under human and LLM scoring. Each paper is a curve connecting its human rank (left) to its GPT-5 Pro rank (right). Horizontal lines indicate agreement; orange curves slope upward where the LLM ranks a paper higher than humans did, and green curves slope downward where humans rank it higher.
 
 ```{r}
-#| label: fig-criteria-heatmap-main
-#| fig-cap: "Mean rating by model and criterion"
-#| fig-width: 11
-#| fig-height: 6
+#| label: fig-rankslope-main
+#| fig-cap: "Relative ranking (overall) by GPT-5 Pro and Human evaluators"
+#| fig-height: 10
+#| fig-width: 9
+#| code-fold: true
 
-metric_labels <- c(
-  overall = "Overall", claims = "Claims", methods = "Methods",
-  adv_knowledge = "Adv. Knowledge", logic_comms = "Logic & Comms",
-  open_sci = "Open Science", gp_relevance = "Global Relevance"
-)
+library("ggforce")
 
-criteria_means <- bind_rows(
-  metrics_human |>
-    filter(criteria %in% names(metric_labels), paper %in% matched_papers) |>
-    group_by(criteria) |>
-    summarise(mean_rating = mean(mid, na.rm = TRUE), .groups = "drop") |>
-    mutate(model = "Human"),
-  llm_metrics |>
-    filter(criteria %in% names(metric_labels), paper %in% matched_papers) |>
-    group_by(model, criteria) |>
-    summarise(mean_rating = mean(midpoint, na.rm = TRUE), .groups = "drop")
-) |>
-  mutate(criteria_label = factor(metric_labels[criteria], levels = metric_labels))
+# Build merged data for the primary model
+rank_data <- llm_metrics |>
+  filter(criteria == "overall", model == primary_model, paper %in% matched_papers) |>
+  select(paper, midpoint) |>
+  inner_join(human_avg, by = "paper") |>
+  transmute(
+    label_use = str_trunc(paper, 30),
+    midpoint_human = human_mid,
+    midpoint_llm = midpoint
+  )
 
-if (nrow(criteria_means) > 0) {
-  ggplot(criteria_means, aes(x = criteria_label, y = model, fill = mean_rating)) +
-    geom_tile(color = "white", linewidth = 0.5) +
-    geom_text(aes(label = round(mean_rating, 0)), size = 4, color = "white", fontface = "bold") +
-    scale_fill_gradient(low = "#f0f0f0", high = UJ_ORANGE, limits = c(40, 80), name = "Mean") +
+# Compute ranks
+rank_left <- rank_data |> arrange(desc(midpoint_human), label_use) |> mutate(pos_left = row_number())
+rank_right <- rank_data |> arrange(desc(midpoint_llm), label_use) |> mutate(pos_right = row_number())
+
+rank_pos <- rank_data |>
+  left_join(rank_left |> select(label_use, pos_left), by = "label_use") |>
+  left_join(rank_right |> select(label_use, pos_right), by = "label_use") |>
+  mutate(
+    d_rank = pos_left - pos_right,
+    right_lab = sprintf("LLM #%d | H #%d | \u0394r=%+d", pos_right, pos_left, d_rank)
+  )
+
+# S-shaped bezier curves
+make_s_bezier <- function(D, dx_base = 0.33, dx_min = 0.08) {
+  dy <- abs(D$pos_right - D$pos_left)
+  k  <- max(2, stats::quantile(dy, 0.75, na.rm = TRUE))
+  dx_i <- pmax(dx_min, dx_base * exp(-dy / k))
+
+  purrr::map_dfr(seq_len(nrow(D)), function(i) {
+    dr_i <- D$pos_left[i] - D$pos_right[i]
+    tibble(
+      group = i,
+      x = c(0, dx_i[i], 1 - dx_i[i], 1),
+      y = c(D$pos_left[i], D$pos_left[i], D$pos_right[i], D$pos_right[i]),
+      dr  = dr_i,
+      mag = abs(dr_i)
+    )
+  })
+}
+
+soft_thresh <- 5
+B <- make_s_bezier(rank_pos) |>
+  mutate(alpha_by = pmin(mag / soft_thresh, 1))
+
+if (nrow(rank_pos) > 0) {
+  ggplot() +
+    ggforce::geom_bezier(
+      data = B,
+      aes(x = x, y = y, group = group, colour = dr, alpha = alpha_by),
+      linewidth = 0.9
+    ) +
+    scale_color_gradient2(
+      low = UJ_GREEN, mid = "grey90", high = UJ_ORANGE, midpoint = 0,
+      name = "\u0394rank (H \u2212 LLM)"
+    ) +
+    guides(colour = guide_colourbar(title.position = "top")) +
+    scale_alpha(range = c(0.45, 1), guide = "none") +
+    geom_point(data = rank_pos, aes(x = 0, y = pos_left),
+               color = UJ_GREEN, size = 2.2) +
+    geom_point(data = rank_pos, aes(x = 1, y = pos_right),
+               color = UJ_ORANGE, shape = 18, size = 2.4) +
+    geom_text(data = rank_pos, aes(x = 0, y = pos_left, label = label_use),
+              hjust = 1.05, size = 2.8, color = "grey20") +
+    geom_text(data = rank_pos, aes(x = 1, y = pos_right, label = right_lab),
+              hjust = -0.05, size = 2.8, color = "grey20") +
+    scale_x_continuous(limits = c(-0.7, 1.35),
+                       breaks = c(0, 1), labels = c("Human", "LLM"),
+                       expand = expansion(mult = 0)) +
+    scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
+    coord_cartesian(clip = "off") +
     labs(x = NULL, y = NULL) +
     theme_uj() +
-    theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 10), panel.grid = element_blank())
+    theme(
+      axis.text.y  = element_blank(),
+      axis.ticks.y = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      plot.margin = margin(t = 10, r = 190, b = 10, l = 140)
+    )
+} else {
+  cat("Insufficient data for rank slope graph.\n")
 }
 ```
 
-LLMs and humans generally agree on which criteria receive higher or lower mean scores, but LLMs tend to rate more uniformly across criteria while human evaluators show sharper differentiation---particularly for open science and global relevance, where human scores are often lower. The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
+Many papers sit close to horizontal, indicating broad agreement on relative quality. However, several show pronounced rank shifts---orange curves mark papers the LLM considers top-tier that humans placed lower, while green curves highlight the reverse. These rank swaps suggest characteristic "taste" differences rather than random noise, since they persist across criteria (see the gap heatmap below). The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
 
 **Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage (what fraction of human concerns the LLM also identified) against precision (what fraction of LLM-raised issues correspond to human concerns) for each paper, as assessed by GPT-5.2 Pro acting as judge.
 
@@ -432,8 +492,6 @@ metric_lab <- c(
   open_sci = "Open Science",
   gp_relevance = "Global Relevance"
 )
-
-primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
 
 H_mean <- metrics_human |>
   filter(criteria %in% metric_order, paper %in% matched_papers) |>

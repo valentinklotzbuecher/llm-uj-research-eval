@@ -159,6 +159,20 @@
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{0.8ex plus 0.2ex}
 \titlespacing*{\subsection}{0pt}{1.2ex plus 0.3ex minus 0.2ex}{0.5ex plus 0.1ex}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
 \makeatletter
 \@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
 \@ifpackageloaded{fontawesome5}{}{\usepackage{fontawesome5}}
@@ -253,7 +267,7 @@ AI and human evaluators.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, colframe=quarto-callout-note-color-frame, bottomtitle=1mm, colbacktitle=quarto-callout-note-color!10!white, opacitybacktitle=0.6, toprule=.15mm, rightrule=.15mm, arc=.35mm, titlerule=0mm, toptitle=1mm, breakable, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, colback=white, coltitle=black, bottomrule=.15mm, left=2mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-note-color!10!white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-note-color-frame]
 
 This is an evolving working paper. Analysis, metrics, and comparisons
 are under active development.
@@ -356,26 +370,29 @@ typically pulls toward the middle. Full agreement metrics including
 Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and RMSE for all six
 models appear in Table~\ref{tbl-agreement}.
 
-\textbf{Criteria-level patterns.} Figure~\ref{fig-criteria-heatmap-main}
-displays the mean rating each evaluator type assigns across the seven
-criteria. Criteria where all models and humans converge suggest robust
-agreement on that dimension; divergent columns indicate systematic
-differences in how humans and LLMs weigh that aspect of quality.
+\textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} contrasts the
+relative \emph{ranking} of papers under human and LLM scoring. Each
+paper is a curve connecting its human rank (left) to its GPT-5 Pro rank
+(right). Horizontal lines indicate agreement; orange curves slope upward
+where the LLM ranks a paper higher than humans did, and green curves
+slope downward where humans rank it higher.
 
 \begin{figure}
 
-\caption{\label{fig-criteria-heatmap-main}Mean rating by model and
-criterion}
+\caption{\label{fig-rankslope-main}Relative ranking (overall) by GPT-5
+Pro and Human evaluators}
 
-\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-criteria-heatmap-main-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-rankslope-main-1.pdf}}
 
 \end{figure}%
 
-LLMs and humans generally agree on which criteria receive higher or
-lower mean scores, but LLMs tend to rate more uniformly across criteria
-while human evaluators show sharper differentiation---particularly for
-open science and global relevance, where human scores are often lower.
-The criteria-level Krippendorff's alpha analysis in
+Many papers sit close to horizontal, indicating broad agreement on
+relative quality. However, several show pronounced rank shifts---orange
+curves mark papers the LLM considers top-tier that humans placed lower,
+while green curves highlight the reverse. These rank swaps suggest
+characteristic ``taste'' differences rather than random noise, since
+they persist across criteria (see the gap heatmap below). The
+criteria-level Krippendorff's alpha analysis in
 Table~\ref{tbl-human-baseline} quantifies where human--LLM agreement
 approaches the ceiling set by human inter-rater variability.
 
@@ -1198,7 +1215,7 @@ key issues against human expert critiques. The analysis uses LLM-based
 assessment (GPT-5.2 Pro as judge) to measure coverage and precision;
 human validation of these alignment scores is underway.
 
-\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, colframe=quarto-callout-warning-color-frame, bottomtitle=1mm, colbacktitle=quarto-callout-warning-color!10!white, opacitybacktitle=0.6, toprule=.15mm, rightrule=.15mm, arc=.35mm, titlerule=0mm, toptitle=1mm, breakable, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, colback=white, coltitle=black, bottomrule=.15mm, left=2mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-warning-color!10!white, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-warning-color-frame]
 
 This section is under active development. Coverage and precision metrics
 below are LLM-assessed; manual annotation is in progress.
@@ -1231,7 +1248,7 @@ identified) and precision (whether GPT issues are substantive).
   concern
 \end{itemize}
 
-\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, colframe=quarto-callout-note-color-frame, bottomtitle=1mm, colbacktitle=quarto-callout-note-color!10!white, opacitybacktitle=0.6, toprule=.15mm, rightrule=.15mm, arc=.35mm, titlerule=0mm, toptitle=1mm, breakable, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, colback=white, coltitle=black, bottomrule=.15mm, left=2mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-note-color!10!white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-note-color-frame]
 
 ``Precision'' only reflects whether LLM issues match the
 \emph{consensus} human issues curated in Coda---those prioritized by
@@ -1243,7 +1260,7 @@ reflect issues that weren't prioritized in the consensus summary.
 
 \end{tcolorbox}
 
-\begin{tcolorbox}[enhanced jigsaw, leftrule=.75mm, colframe=quarto-callout-note-color-frame, bottomtitle=1mm, colbacktitle=quarto-callout-note-color!10!white, opacitybacktitle=0.6, toprule=.15mm, rightrule=.15mm, arc=.35mm, titlerule=0mm, toptitle=1mm, breakable, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, colback=white, coltitle=black, bottomrule=.15mm, left=2mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-note-color!10!white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-note-color-frame]
 
 \begin{itemize}
 \tightlist

@@ -638,7 +638,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>(metrics_human<span class="sc">$</span>paper),</span>
 <span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>paper)</span>
 <span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>n_matched <span class="ot">&lt;-</span> <span class="fu">length</span>(matched_papers)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>n_matched <span class="ot">&lt;-</span> <span class="fu">length</span>(matched_papers)</span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>primary_model <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="st">"GPT-5 Pro"</span> <span class="sc">%in%</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)) <span class="st">"GPT-5 Pro"</span> <span class="cf">else</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)[<span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We evaluate 6 frontier LLMs against human expert reviews from <a href="https://unjournal.pubpub.org">The Unjournal</a> for 45 papers with both human and LLM evaluations. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in <a href="./methods.html">Appendix: Data and methods</a>.</p>
@@ -689,53 +691,110 @@ Figure&nbsp;2.1: Human vs LLM overall ratings: GPT-5 Pro and Claude Opus 4.6
 </div>
 </div>
 <p>Both models cluster around the identity line in the 40–80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread—a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson <em>r</em>, Spearman <em>ρ</em>, mean bias, and RMSE for all six models appear in <a href="results_ratings.html#tbl-agreement" class="quarto-xref">Table&nbsp;<span>B.2</span></a>.</p>
-<p><strong>Criteria-level patterns.</strong> <a href="#fig-criteria-heatmap-main" class="quarto-xref">Figure&nbsp;<span>2.2</span></a> displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge suggest robust agreement on that dimension; divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.</p>
+<p><strong>Rank comparison.</strong> <a href="#fig-rankslope-main" class="quarto-xref">Figure&nbsp;<span>2.2</span></a> contrasts the relative <em>ranking</em> of papers under human and LLM scoring. Each paper is a curve connecting its human rank (left) to its GPT-5 Pro rank (right). Horizontal lines indicate agreement; orange curves slope upward where the LLM ranks a paper higher than humans did, and green curves slope downward where humans rank it higher.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>metric_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall =</span> <span class="st">"Overall"</span>, <span class="at">claims =</span> <span class="st">"Claims"</span>, <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>, <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci =</span> <span class="st">"Open Science"</span>, <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>criteria_means <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Human"</span>),</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(model, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">criteria_label =</span> <span class="fu">factor</span>(metric_labels[criteria], <span class="at">levels =</span> metric_labels))</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(criteria_means) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(criteria_means, <span class="fu">aes</span>(<span class="at">x =</span> criteria_label, <span class="at">y =</span> model, <span class="at">fill =</span> mean_rating)) <span class="sc">+</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(mean_rating, <span class="dv">0</span>)), <span class="at">size =</span> <span class="dv">4</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#f0f0f0"</span>, <span class="at">high =</span> UJ_ORANGE, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">80</span>), <span class="at">name =</span> <span class="st">"Mean"</span>) <span class="sc">+</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">30</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">10</span>), <span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"ggforce"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Build merged data for the primary model</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>rank_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, model <span class="sc">==</span> primary_model, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(paper, midpoint) <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_avg, <span class="at">by =</span> <span class="st">"paper"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">label_use =</span> <span class="fu">str_trunc</span>(paper, <span class="dv">30</span>),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint_human =</span> human_mid,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint_llm =</span> midpoint</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute ranks</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>rank_left <span class="ot">&lt;-</span> rank_data <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(midpoint_human), label_use) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">pos_left =</span> <span class="fu">row_number</span>())</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>rank_right <span class="ot">&lt;-</span> rank_data <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(midpoint_llm), label_use) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">pos_right =</span> <span class="fu">row_number</span>())</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>rank_pos <span class="ot">&lt;-</span> rank_data <span class="sc">|&gt;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rank_left <span class="sc">|&gt;</span> <span class="fu">select</span>(label_use, pos_left), <span class="at">by =</span> <span class="st">"label_use"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rank_right <span class="sc">|&gt;</span> <span class="fu">select</span>(label_use, pos_right), <span class="at">by =</span> <span class="st">"label_use"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">d_rank =</span> pos_left <span class="sc">-</span> pos_right,</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">right_lab =</span> <span class="fu">sprintf</span>(<span class="st">"LLM #%d | H #%d | \u0394r=%+d"</span>, pos_right, pos_left, d_rank)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># S-shaped bezier curves</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>make_s_bezier <span class="ot">&lt;-</span> <span class="cf">function</span>(D, <span class="at">dx_base =</span> <span class="fl">0.33</span>, <span class="at">dx_min =</span> <span class="fl">0.08</span>) {</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  dy <span class="ot">&lt;-</span> <span class="fu">abs</span>(D<span class="sc">$</span>pos_right <span class="sc">-</span> D<span class="sc">$</span>pos_left)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  k  <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="dv">2</span>, stats<span class="sc">::</span><span class="fu">quantile</span>(dy, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  dx_i <span class="ot">&lt;-</span> <span class="fu">pmax</span>(dx_min, dx_base <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>dy <span class="sc">/</span> k))</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  purrr<span class="sc">::</span><span class="fu">map_dfr</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(D)), <span class="cf">function</span>(i) {</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    dr_i <span class="ot">&lt;-</span> D<span class="sc">$</span>pos_left[i] <span class="sc">-</span> D<span class="sc">$</span>pos_right[i]</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>      <span class="at">group =</span> i,</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fu">c</span>(<span class="dv">0</span>, dx_i[i], <span class="dv">1</span> <span class="sc">-</span> dx_i[i], <span class="dv">1</span>),</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="fu">c</span>(D<span class="sc">$</span>pos_left[i], D<span class="sc">$</span>pos_left[i], D<span class="sc">$</span>pos_right[i], D<span class="sc">$</span>pos_right[i]),</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">dr  =</span> dr_i,</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">mag =</span> <span class="fu">abs</span>(dr_i)</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>soft_thresh <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">make_s_bezier</span>(rank_pos) <span class="sc">|&gt;</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">alpha_by =</span> <span class="fu">pmin</span>(mag <span class="sc">/</span> soft_thresh, <span class="dv">1</span>))</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(rank_pos) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    ggforce<span class="sc">::</span><span class="fu">geom_bezier</span>(</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> B,</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">group =</span> group, <span class="at">colour =</span> dr, <span class="at">alpha =</span> alpha_by),</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>      <span class="at">linewidth =</span> <span class="fl">0.9</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_gradient2</span>(</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">low =</span> UJ_GREEN, <span class="at">mid =</span> <span class="st">"grey90"</span>, <span class="at">high =</span> UJ_ORANGE, <span class="at">midpoint =</span> <span class="dv">0</span>,</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"\u0394rank (H \u2212 LLM)"</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">colour =</span> <span class="fu">guide_colourbar</span>(<span class="at">title.position =</span> <span class="st">"top"</span>)) <span class="sc">+</span></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_alpha</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.45</span>, <span class="dv">1</span>), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> pos_left),</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>               <span class="at">color =</span> UJ_GREEN, <span class="at">size =</span> <span class="fl">2.2</span>) <span class="sc">+</span></span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">y =</span> pos_right),</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>               <span class="at">color =</span> UJ_ORANGE, <span class="at">shape =</span> <span class="dv">18</span>, <span class="at">size =</span> <span class="fl">2.4</span>) <span class="sc">+</span></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> pos_left, <span class="at">label =</span> label_use),</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="fl">1.05</span>, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"grey20"</span>) <span class="sc">+</span></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">y =</span> pos_right, <span class="at">label =</span> right_lab),</span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.05</span>, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"grey20"</span>) <span class="sc">+</span></span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.7</span>, <span class="fl">1.35</span>),</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>                       <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Human"</span>, <span class="st">"LLM"</span>),</span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>                       <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_reverse</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.06</span>))) <span class="sc">+</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.y  =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">190</span>, <span class="at">b =</span> <span class="dv">10</span>, <span class="at">l =</span> <span class="dv">140</span>)</span>
+<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Insufficient data for rank slope graph.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb5-85"><a href="#cb5-85" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-criteria-heatmap-main" class="quarto-float quarto-figure quarto-figure-left anchored">
+<div id="fig-rankslope-main" class="quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-criteria-heatmap-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="results_files/figure-html/fig-criteria-heatmap-main-1.png" class="img-fluid figure-img" width="1056">
+<div aria-describedby="fig-rankslope-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="results_files/figure-html/fig-rankslope-main-1.png" class="img-fluid figure-img" width="864">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-criteria-heatmap-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.2: Mean rating by model and criterion
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rankslope-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.2: Relative ranking (overall) by GPT-5 Pro and Human evaluators
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>LLMs and humans generally agree on which criteria receive higher or lower mean scores, but LLMs tend to rate more uniformly across criteria while human evaluators show sharper differentiation—particularly for open science and global relevance, where human scores are often lower. The criteria-level Krippendorff’s alpha analysis in <a href="results_ratings.html#tbl-human-baseline" class="quarto-xref">Table&nbsp;<span>B.3</span></a> quantifies where human–LLM agreement approaches the ceiling set by human inter-rater variability.</p>
+<p>Many papers sit close to horizontal, indicating broad agreement on relative quality. However, several show pronounced rank shifts—orange curves mark papers the LLM considers top-tier that humans placed lower, while green curves highlight the reverse. These rank swaps suggest characteristic “taste” differences rather than random noise, since they persist across criteria (see the gap heatmap below). The criteria-level Krippendorff’s alpha analysis in <a href="results_ratings.html#tbl-human-baseline" class="quarto-xref">Table&nbsp;<span>B.3</span></a> quantifies where human–LLM agreement approaches the ceiling set by human inter-rater variability.</p>
 <p><strong>Qualitative critique comparison.</strong> Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage (what fraction of human concerns the LLM also identified) against precision (what fraction of LLM-raised issues correspond to human concerns) for each paper, as assessed by GPT-5.2 Pro acting as judge.</p>
 <div class="cell">
 <details class="code-fold">
@@ -816,47 +875,45 @@ Figure&nbsp;2.2: Mean rating by model and criterion
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>primary_model <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="st">"GPT-5 Pro"</span> <span class="sc">%in%</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)) <span class="st">"GPT-5 Pro"</span> <span class="cf">else</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)[<span class="dv">1</span>]</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>H_mean <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">h =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>L_mean <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, model <span class="sc">==</span> primary_model, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">l =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>Ddiff <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(H_mean, L_mean, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"paper"</span>, <span class="st">"criteria"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> h <span class="sc">-</span> l) <span class="sc">|&gt;</span></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crit =</span> <span class="fu">factor</span>(criteria, <span class="at">levels =</span> metric_order, <span class="at">labels =</span> metric_lab[metric_order]))</span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>ord_p <span class="ot">&lt;-</span> Ddiff <span class="sc">|&gt;</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(diff)) <span class="sc">|&gt;</span></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(paper)</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(ord_p) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">nrow</span>(Ddiff) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(Ddiff, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(paper, <span class="at">levels =</span> ord_p), <span class="at">y =</span> crit, <span class="at">fill =</span> diff)) <span class="sc">+</span></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient2</span>(</span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">low =</span> UJ_ORANGE, <span class="at">mid =</span> <span class="st">"grey95"</span>, <span class="at">high =</span> UJ_GREEN, <span class="at">midpoint =</span> <span class="dv">0</span>,</span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"Human − LLM"</span>,</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">30</span>),</span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>      <span class="at">oob =</span> scales<span class="sc">::</span>squish</span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Primary model: "</span>, primary_model)) <span class="sc">+</span></span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
-<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">60</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">7</span>),</span>
-<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
-<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Insufficient data for gap heatmap.</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>H_mean <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">h =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>L_mean <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, model <span class="sc">==</span> primary_model, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">l =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>Ddiff <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(H_mean, L_mean, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"paper"</span>, <span class="st">"criteria"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> h <span class="sc">-</span> l) <span class="sc">|&gt;</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crit =</span> <span class="fu">factor</span>(criteria, <span class="at">levels =</span> metric_order, <span class="at">labels =</span> metric_lab[metric_order]))</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>ord_p <span class="ot">&lt;-</span> Ddiff <span class="sc">|&gt;</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(diff)) <span class="sc">|&gt;</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(paper)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(ord_p) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">nrow</span>(Ddiff) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(Ddiff, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(paper, <span class="at">levels =</span> ord_p), <span class="at">y =</span> crit, <span class="at">fill =</span> diff)) <span class="sc">+</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient2</span>(</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">low =</span> UJ_ORANGE, <span class="at">mid =</span> <span class="st">"grey95"</span>, <span class="at">high =</span> UJ_GREEN, <span class="at">midpoint =</span> <span class="dv">0</span>,</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"Human − LLM"</span>,</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">30</span>),</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">oob =</span> scales<span class="sc">::</span>squish</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Primary model: "</span>, primary_model)) <span class="sc">+</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">60</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">7</span>),</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Insufficient data for gap heatmap.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-gap-heatmap-main" class="quarto-float quarto-figure quarto-figure-left anchored">
@@ -1612,227 +1669,285 @@ Figure&nbsp;2.3: Human − LLM rating differences by paper and criterion (GPT-5 
 <span id="cb9-262"><a href="#cb9-262" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>paper)</span>
 <span id="cb9-263"><a href="#cb9-263" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb9-264"><a href="#cb9-264" aria-hidden="true" tabindex="-1"></a>n_matched <span class="ot">&lt;-</span> <span class="fu">length</span>(matched_papers)</span>
-<span id="cb9-265"><a href="#cb9-265" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-266"><a href="#cb9-266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-267"><a href="#cb9-267" aria-hidden="true" tabindex="-1"></a>We evaluate <span class="in">`r n_llm_models`</span> frontier LLMs against human expert reviews from <span class="co">[</span><span class="ot">The Unjournal</span><span class="co">](https://unjournal.pubpub.org)</span> for <span class="in">`r n_matched`</span> papers with both human and LLM evaluations. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in <span class="co">[</span><span class="ot">Appendix: Data and methods</span><span class="co">](methods.qmd)</span>.</span>
+<span id="cb9-265"><a href="#cb9-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-266"><a href="#cb9-266" aria-hidden="true" tabindex="-1"></a>primary_model <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="st">"GPT-5 Pro"</span> <span class="sc">%in%</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)) <span class="st">"GPT-5 Pro"</span> <span class="cf">else</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)[<span class="dv">1</span>]</span>
+<span id="cb9-267"><a href="#cb9-267" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-268"><a href="#cb9-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-269"><a href="#cb9-269" aria-hidden="true" tabindex="-1"></a>**Overall ratings.** @fig-scatter-focal compares overall ratings from GPT-5 Pro and Claude Opus 4.6---the two highest-performing reasoning models---against human mean ratings. Points on the diagonal indicate perfect agreement; distance from the line reflects disagreement.</span>
+<span id="cb9-269"><a href="#cb9-269" aria-hidden="true" tabindex="-1"></a>We evaluate <span class="in">`r n_llm_models`</span> frontier LLMs against human expert reviews from <span class="co">[</span><span class="ot">The Unjournal</span><span class="co">](https://unjournal.pubpub.org)</span> for <span class="in">`r n_matched`</span> papers with both human and LLM evaluations. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in <span class="co">[</span><span class="ot">Appendix: Data and methods</span><span class="co">](methods.qmd)</span>.</span>
 <span id="cb9-270"><a href="#cb9-270" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-273"><a href="#cb9-273" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-274"><a href="#cb9-274" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-scatter-focal</span></span>
-<span id="cb9-275"><a href="#cb9-275" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Human vs LLM overall ratings: GPT-5 Pro and Claude Opus 4.6"</span></span>
-<span id="cb9-276"><a href="#cb9-276" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
-<span id="cb9-277"><a href="#cb9-277" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5.5</span></span>
-<span id="cb9-278"><a href="#cb9-278" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-279"><a href="#cb9-279" aria-hidden="true" tabindex="-1"></a>focal_models <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"GPT-5 Pro"</span>, <span class="st">"Claude Opus 4.6"</span>)</span>
+<span id="cb9-271"><a href="#cb9-271" aria-hidden="true" tabindex="-1"></a>**Overall ratings.** @fig-scatter-focal compares overall ratings from GPT-5 Pro and Claude Opus 4.6---the two highest-performing reasoning models---against human mean ratings. Points on the diagonal indicate perfect agreement; distance from the line reflects disagreement.</span>
+<span id="cb9-272"><a href="#cb9-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-275"><a href="#cb9-275" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-276"><a href="#cb9-276" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-scatter-focal</span></span>
+<span id="cb9-277"><a href="#cb9-277" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Human vs LLM overall ratings: GPT-5 Pro and Claude Opus 4.6"</span></span>
+<span id="cb9-278"><a href="#cb9-278" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
+<span id="cb9-279"><a href="#cb9-279" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5.5</span></span>
 <span id="cb9-280"><a href="#cb9-280" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-281"><a href="#cb9-281" aria-hidden="true" tabindex="-1"></a>scatter_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb9-282"><a href="#cb9-282" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, model <span class="sc">%in%</span> focal_models) <span class="sc">|&gt;</span></span>
-<span id="cb9-283"><a href="#cb9-283" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_avg, <span class="at">by =</span> <span class="st">"paper"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-284"><a href="#cb9-284" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-285"><a href="#cb9-285" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> midpoint <span class="sc">-</span> human_mid,</span>
-<span id="cb9-286"><a href="#cb9-286" aria-hidden="true" tabindex="-1"></a>    <span class="at">paper_short =</span> <span class="fu">str_trunc</span>(paper, <span class="dv">25</span>),</span>
-<span id="cb9-287"><a href="#cb9-287" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_lo =</span> <span class="fu">coalesce</span>(human_lo, human_mid),</span>
-<span id="cb9-288"><a href="#cb9-288" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_hi =</span> <span class="fu">coalesce</span>(human_hi, human_mid),</span>
-<span id="cb9-289"><a href="#cb9-289" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower_bound =</span> <span class="fu">coalesce</span>(lower_bound, midpoint),</span>
-<span id="cb9-290"><a href="#cb9-290" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper_bound =</span> <span class="fu">coalesce</span>(upper_bound, midpoint)</span>
-<span id="cb9-291"><a href="#cb9-291" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-292"><a href="#cb9-292" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid), <span class="sc">!</span><span class="fu">is.na</span>(midpoint))</span>
-<span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(scatter_data, <span class="fu">aes</span>(<span class="at">x =</span> human_mid, <span class="at">y =</span> midpoint, <span class="at">color =</span> model)) <span class="sc">+</span></span>
-<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
-<span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>    ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">max.overlaps =</span> <span class="dv">8</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> MODEL_COLORS) <span class="sc">+</span></span>
-<span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">+</span></span>
-<span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>model, <span class="at">ncol =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb9-302"><a href="#cb9-302" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Human mean rating (0–100)"</span>, <span class="at">y =</span> <span class="st">"LLM rating (0–100)"</span>, <span class="at">color =</span> <span class="st">"Model"</span>) <span class="sc">+</span></span>
-<span id="cb9-303"><a href="#cb9-303" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
-<span id="cb9-304"><a href="#cb9-304" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb9-305"><a href="#cb9-305" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"No matching data for scatter plot.</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb9-306"><a href="#cb9-306" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-307"><a href="#cb9-307" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-308"><a href="#cb9-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-309"><a href="#cb9-309" aria-hidden="true" tabindex="-1"></a>Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in @tbl-agreement.</span>
+<span id="cb9-281"><a href="#cb9-281" aria-hidden="true" tabindex="-1"></a>focal_models <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"GPT-5 Pro"</span>, <span class="st">"Claude Opus 4.6"</span>)</span>
+<span id="cb9-282"><a href="#cb9-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-283"><a href="#cb9-283" aria-hidden="true" tabindex="-1"></a>scatter_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb9-284"><a href="#cb9-284" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, model <span class="sc">%in%</span> focal_models) <span class="sc">|&gt;</span></span>
+<span id="cb9-285"><a href="#cb9-285" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_avg, <span class="at">by =</span> <span class="st">"paper"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-286"><a href="#cb9-286" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-287"><a href="#cb9-287" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> midpoint <span class="sc">-</span> human_mid,</span>
+<span id="cb9-288"><a href="#cb9-288" aria-hidden="true" tabindex="-1"></a>    <span class="at">paper_short =</span> <span class="fu">str_trunc</span>(paper, <span class="dv">25</span>),</span>
+<span id="cb9-289"><a href="#cb9-289" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_lo =</span> <span class="fu">coalesce</span>(human_lo, human_mid),</span>
+<span id="cb9-290"><a href="#cb9-290" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_hi =</span> <span class="fu">coalesce</span>(human_hi, human_mid),</span>
+<span id="cb9-291"><a href="#cb9-291" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower_bound =</span> <span class="fu">coalesce</span>(lower_bound, midpoint),</span>
+<span id="cb9-292"><a href="#cb9-292" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper_bound =</span> <span class="fu">coalesce</span>(upper_bound, midpoint)</span>
+<span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid), <span class="sc">!</span><span class="fu">is.na</span>(midpoint))</span>
+<span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(scatter_data, <span class="fu">aes</span>(<span class="at">x =</span> human_mid, <span class="at">y =</span> midpoint, <span class="at">color =</span> model)) <span class="sc">+</span></span>
+<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a>    ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">max.overlaps =</span> <span class="dv">8</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> MODEL_COLORS) <span class="sc">+</span></span>
+<span id="cb9-302"><a href="#cb9-302" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">+</span></span>
+<span id="cb9-303"><a href="#cb9-303" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>model, <span class="at">ncol =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb9-304"><a href="#cb9-304" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Human mean rating (0–100)"</span>, <span class="at">y =</span> <span class="st">"LLM rating (0–100)"</span>, <span class="at">color =</span> <span class="st">"Model"</span>) <span class="sc">+</span></span>
+<span id="cb9-305"><a href="#cb9-305" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
+<span id="cb9-306"><a href="#cb9-306" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb9-307"><a href="#cb9-307" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"No matching data for scatter plot.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-308"><a href="#cb9-308" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-309"><a href="#cb9-309" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-310"><a href="#cb9-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-311"><a href="#cb9-311" aria-hidden="true" tabindex="-1"></a>**Criteria-level patterns.** @fig-criteria-heatmap-main displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge suggest robust agreement on that dimension; divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.</span>
+<span id="cb9-311"><a href="#cb9-311" aria-hidden="true" tabindex="-1"></a>Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in @tbl-agreement.</span>
 <span id="cb9-312"><a href="#cb9-312" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-315"><a href="#cb9-315" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-316"><a href="#cb9-316" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-criteria-heatmap-main</span></span>
-<span id="cb9-317"><a href="#cb9-317" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Mean rating by model and criterion"</span></span>
-<span id="cb9-318"><a href="#cb9-318" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
-<span id="cb9-319"><a href="#cb9-319" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 6</span></span>
-<span id="cb9-320"><a href="#cb9-320" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-321"><a href="#cb9-321" aria-hidden="true" tabindex="-1"></a>metric_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-322"><a href="#cb9-322" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall =</span> <span class="st">"Overall"</span>, <span class="at">claims =</span> <span class="st">"Claims"</span>, <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
-<span id="cb9-323"><a href="#cb9-323" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>, <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
-<span id="cb9-324"><a href="#cb9-324" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci =</span> <span class="st">"Open Science"</span>, <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
-<span id="cb9-325"><a href="#cb9-325" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-326"><a href="#cb9-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-327"><a href="#cb9-327" aria-hidden="true" tabindex="-1"></a>criteria_means <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb9-328"><a href="#cb9-328" aria-hidden="true" tabindex="-1"></a>  metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb9-329"><a href="#cb9-329" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-330"><a href="#cb9-330" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
-<span id="cb9-331"><a href="#cb9-331" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-332"><a href="#cb9-332" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Human"</span>),</span>
-<span id="cb9-333"><a href="#cb9-333" aria-hidden="true" tabindex="-1"></a>  llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb9-334"><a href="#cb9-334" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-335"><a href="#cb9-335" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(model, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb9-336"><a href="#cb9-336" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb9-337"><a href="#cb9-337" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb9-338"><a href="#cb9-338" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">criteria_label =</span> <span class="fu">factor</span>(metric_labels[criteria], <span class="at">levels =</span> metric_labels))</span>
-<span id="cb9-339"><a href="#cb9-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-340"><a href="#cb9-340" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(criteria_means) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb9-341"><a href="#cb9-341" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(criteria_means, <span class="fu">aes</span>(<span class="at">x =</span> criteria_label, <span class="at">y =</span> model, <span class="at">fill =</span> mean_rating)) <span class="sc">+</span></span>
-<span id="cb9-342"><a href="#cb9-342" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb9-343"><a href="#cb9-343" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(mean_rating, <span class="dv">0</span>)), <span class="at">size =</span> <span class="dv">4</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
-<span id="cb9-344"><a href="#cb9-344" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#f0f0f0"</span>, <span class="at">high =</span> UJ_ORANGE, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">80</span>), <span class="at">name =</span> <span class="st">"Mean"</span>) <span class="sc">+</span></span>
-<span id="cb9-345"><a href="#cb9-345" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb9-346"><a href="#cb9-346" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
-<span id="cb9-347"><a href="#cb9-347" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">30</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">10</span>), <span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
-<span id="cb9-348"><a href="#cb9-348" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-349"><a href="#cb9-349" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-350"><a href="#cb9-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-351"><a href="#cb9-351" aria-hidden="true" tabindex="-1"></a>LLMs and humans generally agree on which criteria receive higher or lower mean scores, but LLMs tend to rate more uniformly across criteria while human evaluators show sharper differentiation---particularly for open science and global relevance, where human scores are often lower. The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.</span>
-<span id="cb9-352"><a href="#cb9-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-353"><a href="#cb9-353" aria-hidden="true" tabindex="-1"></a>**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage (what fraction of human concerns the LLM also identified) against precision (what fraction of LLM-raised issues correspond to human concerns) for each paper, as assessed by GPT-5.2 Pro acting as judge.</span>
+<span id="cb9-313"><a href="#cb9-313" aria-hidden="true" tabindex="-1"></a>**Rank comparison.** @fig-rankslope-main contrasts the relative *ranking* of papers under human and LLM scoring. Each paper is a curve connecting its human rank (left) to its GPT-5 Pro rank (right). Horizontal lines indicate agreement; orange curves slope upward where the LLM ranks a paper higher than humans did, and green curves slope downward where humans rank it higher.</span>
+<span id="cb9-314"><a href="#cb9-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-317"><a href="#cb9-317" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-318"><a href="#cb9-318" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-rankslope-main</span></span>
+<span id="cb9-319"><a href="#cb9-319" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Relative ranking (overall) by GPT-5 Pro and Human evaluators"</span></span>
+<span id="cb9-320"><a href="#cb9-320" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 10</span></span>
+<span id="cb9-321"><a href="#cb9-321" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 9</span></span>
+<span id="cb9-322"><a href="#cb9-322" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-323"><a href="#cb9-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-324"><a href="#cb9-324" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"ggforce"</span>)</span>
+<span id="cb9-325"><a href="#cb9-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-326"><a href="#cb9-326" aria-hidden="true" tabindex="-1"></a><span class="co"># Build merged data for the primary model</span></span>
+<span id="cb9-327"><a href="#cb9-327" aria-hidden="true" tabindex="-1"></a>rank_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb9-328"><a href="#cb9-328" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, model <span class="sc">==</span> primary_model, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-329"><a href="#cb9-329" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(paper, midpoint) <span class="sc">|&gt;</span></span>
+<span id="cb9-330"><a href="#cb9-330" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_avg, <span class="at">by =</span> <span class="st">"paper"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-331"><a href="#cb9-331" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb9-332"><a href="#cb9-332" aria-hidden="true" tabindex="-1"></a>    <span class="at">label_use =</span> <span class="fu">str_trunc</span>(paper, <span class="dv">30</span>),</span>
+<span id="cb9-333"><a href="#cb9-333" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint_human =</span> human_mid,</span>
+<span id="cb9-334"><a href="#cb9-334" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint_llm =</span> midpoint</span>
+<span id="cb9-335"><a href="#cb9-335" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-336"><a href="#cb9-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-337"><a href="#cb9-337" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute ranks</span></span>
+<span id="cb9-338"><a href="#cb9-338" aria-hidden="true" tabindex="-1"></a>rank_left <span class="ot">&lt;-</span> rank_data <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(midpoint_human), label_use) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">pos_left =</span> <span class="fu">row_number</span>())</span>
+<span id="cb9-339"><a href="#cb9-339" aria-hidden="true" tabindex="-1"></a>rank_right <span class="ot">&lt;-</span> rank_data <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(midpoint_llm), label_use) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">pos_right =</span> <span class="fu">row_number</span>())</span>
+<span id="cb9-340"><a href="#cb9-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-341"><a href="#cb9-341" aria-hidden="true" tabindex="-1"></a>rank_pos <span class="ot">&lt;-</span> rank_data <span class="sc">|&gt;</span></span>
+<span id="cb9-342"><a href="#cb9-342" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rank_left <span class="sc">|&gt;</span> <span class="fu">select</span>(label_use, pos_left), <span class="at">by =</span> <span class="st">"label_use"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-343"><a href="#cb9-343" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(rank_right <span class="sc">|&gt;</span> <span class="fu">select</span>(label_use, pos_right), <span class="at">by =</span> <span class="st">"label_use"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-344"><a href="#cb9-344" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-345"><a href="#cb9-345" aria-hidden="true" tabindex="-1"></a>    <span class="at">d_rank =</span> pos_left <span class="sc">-</span> pos_right,</span>
+<span id="cb9-346"><a href="#cb9-346" aria-hidden="true" tabindex="-1"></a>    <span class="at">right_lab =</span> <span class="fu">sprintf</span>(<span class="st">"LLM #%d | H #%d | \u0394r=%+d"</span>, pos_right, pos_left, d_rank)</span>
+<span id="cb9-347"><a href="#cb9-347" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-348"><a href="#cb9-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-349"><a href="#cb9-349" aria-hidden="true" tabindex="-1"></a><span class="co"># S-shaped bezier curves</span></span>
+<span id="cb9-350"><a href="#cb9-350" aria-hidden="true" tabindex="-1"></a>make_s_bezier <span class="ot">&lt;-</span> <span class="cf">function</span>(D, <span class="at">dx_base =</span> <span class="fl">0.33</span>, <span class="at">dx_min =</span> <span class="fl">0.08</span>) {</span>
+<span id="cb9-351"><a href="#cb9-351" aria-hidden="true" tabindex="-1"></a>  dy <span class="ot">&lt;-</span> <span class="fu">abs</span>(D<span class="sc">$</span>pos_right <span class="sc">-</span> D<span class="sc">$</span>pos_left)</span>
+<span id="cb9-352"><a href="#cb9-352" aria-hidden="true" tabindex="-1"></a>  k  <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="dv">2</span>, stats<span class="sc">::</span><span class="fu">quantile</span>(dy, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb9-353"><a href="#cb9-353" aria-hidden="true" tabindex="-1"></a>  dx_i <span class="ot">&lt;-</span> <span class="fu">pmax</span>(dx_min, dx_base <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>dy <span class="sc">/</span> k))</span>
 <span id="cb9-354"><a href="#cb9-354" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-357"><a href="#cb9-357" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-358"><a href="#cb9-358" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load-critique-data</span></span>
-<span id="cb9-359"><a href="#cb9-359" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-360"><a href="#cb9-360" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Load critique comparison data"</span></span>
-<span id="cb9-361"><a href="#cb9-361" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb9-362"><a href="#cb9-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-363"><a href="#cb9-363" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-364"><a href="#cb9-364" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issue_comp_results.json"</span>,</span>
-<span id="cb9-365"><a href="#cb9-365" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issues_comparison_results.json"</span></span>
-<span id="cb9-366"><a href="#cb9-366" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-367"><a href="#cb9-367" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> comparison_results_file[<span class="fu">file.exists</span>(comparison_results_file)][<span class="dv">1</span>]</span>
-<span id="cb9-368"><a href="#cb9-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-369"><a href="#cb9-369" aria-hidden="true" tabindex="-1"></a>has_critique_data <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb9-355"><a href="#cb9-355" aria-hidden="true" tabindex="-1"></a>  purrr<span class="sc">::</span><span class="fu">map_dfr</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(D)), <span class="cf">function</span>(i) {</span>
+<span id="cb9-356"><a href="#cb9-356" aria-hidden="true" tabindex="-1"></a>    dr_i <span class="ot">&lt;-</span> D<span class="sc">$</span>pos_left[i] <span class="sc">-</span> D<span class="sc">$</span>pos_right[i]</span>
+<span id="cb9-357"><a href="#cb9-357" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb9-358"><a href="#cb9-358" aria-hidden="true" tabindex="-1"></a>      <span class="at">group =</span> i,</span>
+<span id="cb9-359"><a href="#cb9-359" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fu">c</span>(<span class="dv">0</span>, dx_i[i], <span class="dv">1</span> <span class="sc">-</span> dx_i[i], <span class="dv">1</span>),</span>
+<span id="cb9-360"><a href="#cb9-360" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="fu">c</span>(D<span class="sc">$</span>pos_left[i], D<span class="sc">$</span>pos_left[i], D<span class="sc">$</span>pos_right[i], D<span class="sc">$</span>pos_right[i]),</span>
+<span id="cb9-361"><a href="#cb9-361" aria-hidden="true" tabindex="-1"></a>      <span class="at">dr  =</span> dr_i,</span>
+<span id="cb9-362"><a href="#cb9-362" aria-hidden="true" tabindex="-1"></a>      <span class="at">mag =</span> <span class="fu">abs</span>(dr_i)</span>
+<span id="cb9-363"><a href="#cb9-363" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-364"><a href="#cb9-364" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb9-365"><a href="#cb9-365" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-366"><a href="#cb9-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-367"><a href="#cb9-367" aria-hidden="true" tabindex="-1"></a>soft_thresh <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb9-368"><a href="#cb9-368" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">make_s_bezier</span>(rank_pos) <span class="sc">|&gt;</span></span>
+<span id="cb9-369"><a href="#cb9-369" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">alpha_by =</span> <span class="fu">pmin</span>(mag <span class="sc">/</span> soft_thresh, <span class="dv">1</span>))</span>
 <span id="cb9-370"><a href="#cb9-370" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-371"><a href="#cb9-371" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(comparison_results_file)) {</span>
-<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a>  comparison_file <span class="ot">&lt;-</span> <span class="st">"results/key_issues_comparison.json"</span></span>
-<span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file.exists</span>(comparison_file)) {</span>
-<span id="cb9-374"><a href="#cb9-374" aria-hidden="true" tabindex="-1"></a>    comparison_data <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(comparison_file)</span>
-<span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a>    llm_results_raw <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(comparison_results_file)</span>
-<span id="cb9-376"><a href="#cb9-376" aria-hidden="true" tabindex="-1"></a>    llm_results <span class="ot">&lt;-</span> llm_results_raw <span class="sc">|&gt;</span></span>
-<span id="cb9-377"><a href="#cb9-377" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-378"><a href="#cb9-378" aria-hidden="true" tabindex="-1"></a>      <span class="fu">unnest_wider</span>(comparison) <span class="sc">|&gt;</span></span>
-<span id="cb9-379"><a href="#cb9-379" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(</span>
-<span id="cb9-380"><a href="#cb9-380" aria-hidden="true" tabindex="-1"></a>        gpt_paper,</span>
-<span id="cb9-381"><a href="#cb9-381" aria-hidden="true" tabindex="-1"></a>        coverage_pct,</span>
-<span id="cb9-382"><a href="#cb9-382" aria-hidden="true" tabindex="-1"></a>        precision_pct,</span>
-<span id="cb9-383"><a href="#cb9-383" aria-hidden="true" tabindex="-1"></a>        <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"matched_pairs"</span>, <span class="st">"unmatched_human"</span>, <span class="st">"unmatched_llm"</span>)),</span>
-<span id="cb9-384"><a href="#cb9-384" aria-hidden="true" tabindex="-1"></a>        <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"missed_issues"</span>, <span class="st">"extra_issues"</span>)),</span>
-<span id="cb9-385"><a href="#cb9-385" aria-hidden="true" tabindex="-1"></a>        overall_rating,</span>
-<span id="cb9-386"><a href="#cb9-386" aria-hidden="true" tabindex="-1"></a>        overall_justification,</span>
-<span id="cb9-387"><a href="#cb9-387" aria-hidden="true" tabindex="-1"></a>        detailed_notes</span>
-<span id="cb9-388"><a href="#cb9-388" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a>    comparison_data <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
-<span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a>      <span class="fu">left_join</span>(llm_results, <span class="at">by =</span> <span class="st">"gpt_paper"</span>)</span>
-<span id="cb9-391"><a href="#cb9-391" aria-hidden="true" tabindex="-1"></a>    has_critique_data <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comparison_data) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span></span>
-<span id="cb9-392"><a href="#cb9-392" aria-hidden="true" tabindex="-1"></a>      <span class="st">"coverage_pct"</span> <span class="sc">%in%</span> <span class="fu">names</span>(comparison_data) <span class="sc">&amp;&amp;</span></span>
-<span id="cb9-393"><a href="#cb9-393" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any</span>(<span class="sc">!</span><span class="fu">is.na</span>(comparison_data<span class="sc">$</span>coverage_pct))</span>
-<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-coverage-precision-main</span></span>
-<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Coverage vs Precision across papers (LLM-assessed)"</span></span>
-<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 9</span></span>
-<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
-<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (has_critique_data) {</span>
-<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>  crit_results <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
-<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coverage_pct) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(precision_pct)) <span class="sc">|&gt;</span></span>
-<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">paper_short =</span> <span class="fu">str_trunc</span>(gpt_paper, <span class="dv">25</span>))</span>
+<span id="cb9-371"><a href="#cb9-371" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(rank_pos) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a>    ggforce<span class="sc">::</span><span class="fu">geom_bezier</span>(</span>
+<span id="cb9-374"><a href="#cb9-374" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> B,</span>
+<span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">group =</span> group, <span class="at">colour =</span> dr, <span class="at">alpha =</span> alpha_by),</span>
+<span id="cb9-376"><a href="#cb9-376" aria-hidden="true" tabindex="-1"></a>      <span class="at">linewidth =</span> <span class="fl">0.9</span></span>
+<span id="cb9-377"><a href="#cb9-377" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb9-378"><a href="#cb9-378" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_gradient2</span>(</span>
+<span id="cb9-379"><a href="#cb9-379" aria-hidden="true" tabindex="-1"></a>      <span class="at">low =</span> UJ_GREEN, <span class="at">mid =</span> <span class="st">"grey90"</span>, <span class="at">high =</span> UJ_ORANGE, <span class="at">midpoint =</span> <span class="dv">0</span>,</span>
+<span id="cb9-380"><a href="#cb9-380" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"\u0394rank (H \u2212 LLM)"</span></span>
+<span id="cb9-381"><a href="#cb9-381" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb9-382"><a href="#cb9-382" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">colour =</span> <span class="fu">guide_colourbar</span>(<span class="at">title.position =</span> <span class="st">"top"</span>)) <span class="sc">+</span></span>
+<span id="cb9-383"><a href="#cb9-383" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_alpha</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.45</span>, <span class="dv">1</span>), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb9-384"><a href="#cb9-384" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> pos_left),</span>
+<span id="cb9-385"><a href="#cb9-385" aria-hidden="true" tabindex="-1"></a>               <span class="at">color =</span> UJ_GREEN, <span class="at">size =</span> <span class="fl">2.2</span>) <span class="sc">+</span></span>
+<span id="cb9-386"><a href="#cb9-386" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">y =</span> pos_right),</span>
+<span id="cb9-387"><a href="#cb9-387" aria-hidden="true" tabindex="-1"></a>               <span class="at">color =</span> UJ_ORANGE, <span class="at">shape =</span> <span class="dv">18</span>, <span class="at">size =</span> <span class="fl">2.4</span>) <span class="sc">+</span></span>
+<span id="cb9-388"><a href="#cb9-388" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> pos_left, <span class="at">label =</span> label_use),</span>
+<span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="fl">1.05</span>, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"grey20"</span>) <span class="sc">+</span></span>
+<span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> rank_pos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">y =</span> pos_right, <span class="at">label =</span> right_lab),</span>
+<span id="cb9-391"><a href="#cb9-391" aria-hidden="true" tabindex="-1"></a>              <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.05</span>, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"grey20"</span>) <span class="sc">+</span></span>
+<span id="cb9-392"><a href="#cb9-392" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.7</span>, <span class="fl">1.35</span>),</span>
+<span id="cb9-393"><a href="#cb9-393" aria-hidden="true" tabindex="-1"></a>                       <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Human"</span>, <span class="st">"LLM"</span>),</span>
+<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a>                       <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_reverse</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.06</span>))) <span class="sc">+</span></span>
+<span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
+<span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
+<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.y  =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">190</span>, <span class="at">b =</span> <span class="dv">10</span>, <span class="at">l =</span> <span class="dv">140</span>)</span>
+<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Insufficient data for rank slope graph.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(crit_results, <span class="fu">aes</span>(<span class="at">x =</span> coverage_pct, <span class="at">y =</span> precision_pct)) <span class="sc">+</span></span>
-<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">4</span>, <span class="at">color =</span> UJ_ORANGE, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">2.5</span>, <span class="at">check_overlap =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">mean</span>(crit_results<span class="sc">$</span>coverage_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE) <span class="sc">+</span></span>
-<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(crit_results<span class="sc">$</span>precision_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE) <span class="sc">+</span></span>
-<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
-<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
-<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Coverage (%): Human issues captured by LLM"</span>,</span>
-<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Precision (%): LLM issues that are substantive"</span>,</span>
-<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="st">"Dashed lines = means"</span></span>
-<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
-<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. These metrics are themselves LLM-assessed (GPT-5.2 Pro as judge); human validation through manual annotation is underway. Detailed paper-by-paper comparisons with matched issue pairs appear in <span class="co">[</span><span class="ot">Appendix: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>.</span>
+<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>Many papers sit close to horizontal, indicating broad agreement on relative quality. However, several show pronounced rank shifts---orange curves mark papers the LLM considers top-tier that humans placed lower, while green curves highlight the reverse. These rank swaps suggest characteristic "taste" differences rather than random noise, since they persist across criteria (see the gap heatmap below). The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.</span>
+<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage (what fraction of human concerns the LLM also identified) against precision (what fraction of LLM-raised issues correspond to human concerns) for each paper, as assessed by GPT-5.2 Pro acting as judge.</span>
+<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load-critique-data</span></span>
+<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Load critique comparison data"</span></span>
+<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issue_comp_results.json"</span>,</span>
+<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issues_comparison_results.json"</span></span>
+<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> comparison_results_file[<span class="fu">file.exists</span>(comparison_results_file)][<span class="dv">1</span>]</span>
 <span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>**Rating differences by paper.** @fig-gap-heatmap-main shows Human − LLM differences for each paper and criterion using GPT-5 Pro as the focal model. Green tiles indicate humans rated higher; orange indicates the LLM rated higher. Papers are ordered by their overall rating difference, revealing which papers drive the largest disagreements and whether those disagreements are concentrated on particular criteria or spread across the board.</span>
+<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>has_critique_data <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
 <span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-gap-heatmap-main</span></span>
-<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Human − LLM rating differences by paper and criterion (GPT-5 Pro)"</span></span>
-<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 14</span></span>
-<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 8</span></span>
-<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a>metric_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"overall"</span>, <span class="st">"claims"</span>, <span class="st">"methods"</span>, <span class="st">"adv_knowledge"</span>,</span>
-<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"logic_comms"</span>, <span class="st">"open_sci"</span>, <span class="st">"gp_relevance"</span>)</span>
-<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>metric_lab <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall =</span> <span class="st">"Overall"</span>,</span>
-<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a>  <span class="at">claims =</span> <span class="st">"Claims &amp; Evidence"</span>,</span>
-<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>  <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
-<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>,</span>
-<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>  <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
-<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci =</span> <span class="st">"Open Science"</span>,</span>
-<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
-<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>primary_model <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="st">"GPT-5 Pro"</span> <span class="sc">%in%</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)) <span class="st">"GPT-5 Pro"</span> <span class="cf">else</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)[<span class="dv">1</span>]</span>
-<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>H_mean <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">h =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>L_mean <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, model <span class="sc">==</span> primary_model, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">l =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>Ddiff <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(H_mean, L_mean, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"paper"</span>, <span class="st">"criteria"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> h <span class="sc">-</span> l) <span class="sc">|&gt;</span></span>
-<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crit =</span> <span class="fu">factor</span>(criteria, <span class="at">levels =</span> metric_order, <span class="at">labels =</span> metric_lab[metric_order]))</span>
-<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>ord_p <span class="ot">&lt;-</span> Ddiff <span class="sc">|&gt;</span></span>
-<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(diff)) <span class="sc">|&gt;</span></span>
-<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(paper)</span>
-<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(ord_p) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">nrow</span>(Ddiff) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(Ddiff, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(paper, <span class="at">levels =</span> ord_p), <span class="at">y =</span> crit, <span class="at">fill =</span> diff)) <span class="sc">+</span></span>
-<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
-<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient2</span>(</span>
-<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a>      <span class="at">low =</span> UJ_ORANGE, <span class="at">mid =</span> <span class="st">"grey95"</span>, <span class="at">high =</span> UJ_GREEN, <span class="at">midpoint =</span> <span class="dv">0</span>,</span>
-<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"Human − LLM"</span>,</span>
-<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a>      <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">30</span>),</span>
-<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a>      <span class="at">oob =</span> scales<span class="sc">::</span>squish</span>
-<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Primary model: "</span>, primary_model)) <span class="sc">+</span></span>
-<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
-<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
-<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">60</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">7</span>),</span>
-<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
-<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Insufficient data for gap heatmap.</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a>Rows with uniformly green or orange tiles indicate papers where humans and the LLM disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases. Extended statistical analysis---including Krippendorff's alpha, bootstrap confidence intervals, mutual information, tier correlations, and top disagreement cases---is available in <span class="co">[</span><span class="ot">Appendix: Results Ratings</span><span class="co">](results_ratings.qmd)</span>.</span>
+<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(comparison_results_file)) {</span>
+<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>  comparison_file <span class="ot">&lt;-</span> <span class="st">"results/key_issues_comparison.json"</span></span>
+<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file.exists</span>(comparison_file)) {</span>
+<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a>    comparison_data <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(comparison_file)</span>
+<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a>    llm_results_raw <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(comparison_results_file)</span>
+<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a>    llm_results <span class="ot">&lt;-</span> llm_results_raw <span class="sc">|&gt;</span></span>
+<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a>      <span class="fu">unnest_wider</span>(comparison) <span class="sc">|&gt;</span></span>
+<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(</span>
+<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a>        gpt_paper,</span>
+<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>        coverage_pct,</span>
+<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>        precision_pct,</span>
+<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a>        <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"matched_pairs"</span>, <span class="st">"unmatched_human"</span>, <span class="st">"unmatched_llm"</span>)),</span>
+<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a>        <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"missed_issues"</span>, <span class="st">"extra_issues"</span>)),</span>
+<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>        overall_rating,</span>
+<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>        overall_justification,</span>
+<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>        detailed_notes</span>
+<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>    comparison_data <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
+<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>      <span class="fu">left_join</span>(llm_results, <span class="at">by =</span> <span class="st">"gpt_paper"</span>)</span>
+<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a>    has_critique_data <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comparison_data) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span></span>
+<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>      <span class="st">"coverage_pct"</span> <span class="sc">%in%</span> <span class="fu">names</span>(comparison_data) <span class="sc">&amp;&amp;</span></span>
+<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any</span>(<span class="sc">!</span><span class="fu">is.na</span>(comparison_data<span class="sc">$</span>coverage_pct))</span>
+<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-coverage-precision-main</span></span>
+<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Coverage vs Precision across papers (LLM-assessed)"</span></span>
+<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 9</span></span>
+<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
+<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (has_critique_data) {</span>
+<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>  crit_results <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
+<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coverage_pct) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(precision_pct)) <span class="sc">|&gt;</span></span>
+<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">paper_short =</span> <span class="fu">str_trunc</span>(gpt_paper, <span class="dv">25</span>))</span>
+<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(crit_results, <span class="fu">aes</span>(<span class="at">x =</span> coverage_pct, <span class="at">y =</span> precision_pct)) <span class="sc">+</span></span>
+<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">4</span>, <span class="at">color =</span> UJ_ORANGE, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">2.5</span>, <span class="at">check_overlap =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">mean</span>(crit_results<span class="sc">$</span>coverage_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE) <span class="sc">+</span></span>
+<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(crit_results<span class="sc">$</span>precision_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE) <span class="sc">+</span></span>
+<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
+<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
+<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Coverage (%): Human issues captured by LLM"</span>,</span>
+<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Precision (%): LLM issues that are substantive"</span>,</span>
+<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="st">"Dashed lines = means"</span></span>
+<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
+<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. These metrics are themselves LLM-assessed (GPT-5.2 Pro as judge); human validation through manual annotation is underway. Detailed paper-by-paper comparisons with matched issue pairs appear in <span class="co">[</span><span class="ot">Appendix: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>.</span>
+<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>**Rating differences by paper.** @fig-gap-heatmap-main shows Human − LLM differences for each paper and criterion using GPT-5 Pro as the focal model. Green tiles indicate humans rated higher; orange indicates the LLM rated higher. Papers are ordered by their overall rating difference, revealing which papers drive the largest disagreements and whether those disagreements are concentrated on particular criteria or spread across the board.</span>
+<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-gap-heatmap-main</span></span>
+<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Human − LLM rating differences by paper and criterion (GPT-5 Pro)"</span></span>
+<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 14</span></span>
+<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 8</span></span>
+<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>metric_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"overall"</span>, <span class="st">"claims"</span>, <span class="st">"methods"</span>, <span class="st">"adv_knowledge"</span>,</span>
+<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>                  <span class="st">"logic_comms"</span>, <span class="st">"open_sci"</span>, <span class="st">"gp_relevance"</span>)</span>
+<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>metric_lab <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall =</span> <span class="st">"Overall"</span>,</span>
+<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>  <span class="at">claims =</span> <span class="st">"Claims &amp; Evidence"</span>,</span>
+<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>  <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
+<span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>,</span>
+<span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a>  <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
+<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci =</span> <span class="st">"Open Science"</span>,</span>
+<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
+<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a>H_mean <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">h =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>L_mean <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> metric_order, model <span class="sc">==</span> primary_model, paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">l =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a>Ddiff <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(H_mean, L_mean, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"paper"</span>, <span class="st">"criteria"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> h <span class="sc">-</span> l) <span class="sc">|&gt;</span></span>
+<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">crit =</span> <span class="fu">factor</span>(criteria, <span class="at">levels =</span> metric_order, <span class="at">labels =</span> metric_lab[metric_order]))</span>
+<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a>ord_p <span class="ot">&lt;-</span> Ddiff <span class="sc">|&gt;</span></span>
+<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(diff)) <span class="sc">|&gt;</span></span>
+<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(paper)</span>
+<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(ord_p) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">nrow</span>(Ddiff) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(Ddiff, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(paper, <span class="at">levels =</span> ord_p), <span class="at">y =</span> crit, <span class="at">fill =</span> diff)) <span class="sc">+</span></span>
+<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient2</span>(</span>
+<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a>      <span class="at">low =</span> UJ_ORANGE, <span class="at">mid =</span> <span class="st">"grey95"</span>, <span class="at">high =</span> UJ_GREEN, <span class="at">midpoint =</span> <span class="dv">0</span>,</span>
+<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="st">"Human − LLM"</span>,</span>
+<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a>      <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">30</span>),</span>
+<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a>      <span class="at">oob =</span> scales<span class="sc">::</span>squish</span>
+<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>,</span>
+<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Primary model: "</span>, primary_model)) <span class="sc">+</span></span>
+<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
+<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">60</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">7</span>),</span>
+<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
+<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Insufficient data for gap heatmap.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a>Rows with uniformly green or orange tiles indicate papers where humans and the LLM disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases. Extended statistical analysis---including Krippendorff's alpha, bootstrap confidence intervals, mutual information, tier correlations, and top disagreement cases---is available in <span class="co">[</span><span class="ot">Appendix: Results Ratings</span><span class="co">](results_ratings.qmd)</span>.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
