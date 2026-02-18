@@ -25,27 +25,36 @@ library("jsonlite")
 library("purrr")
 library("tibble")
 
-# Theme and colors — refreshed palette (crisper, higher contrast)
-UJ_ORANGE <- "#e8863a"   # warmer, saturated amber
-UJ_GREEN  <- "#5a9e3c"   # deeper leaf green
-UJ_BLUE   <- "#3b6d9c"   # slightly deeper steel
+# Theme and colors — crisp palette (high saturation, maximum separation)
+UJ_ORANGE <- "#E8722A"   # vivid saffron orange
+UJ_GREEN  <- "#2D9D5E"   # rich emerald green
+UJ_BLUE   <- "#2B7CE9"   # clear azure blue
 
 MODEL_COLORS <- c(
-  "GPT-5 Pro"        = "#e8863a",   # warm amber (focal)
-  "GPT-5.2 Pro"      = "#c9302c",   # red
-  "GPT-4o-mini"      = "#2da882",   # teal green
-  "Claude Sonnet 4"  = "#b07ce8",   # lighter purple
-  "Claude Opus 4.6"  = "#7c3aed",   # vivid purple
-  "Gemini 2.0 Flash" = "#5471b0",   # clear blue
-  "Human"            = "#5a9e3c"    # leaf green
+  "GPT-5 Pro"        = "#E8722A",   # saffron orange (focal)
+  "GPT-5.2 Pro"      = "#D62839",   # bright crimson
+  "GPT-4o-mini"      = "#17B890",   # vivid teal
+  "Claude Sonnet 4"  = "#A855F7",   # vivid purple
+  "Claude Opus 4.6"  = "#7C3AED",   # deep violet
+  "Gemini 2.0 Flash" = "#2B7CE9",   # clear azure
+  "Human"            = "#2D9D5E"    # emerald green
 )
 
-theme_uj <- function(base_size = 11) {
+theme_uj <- function(base_size = 12) {
   theme_minimal(base_size = base_size) +
     theme(
-      panel.grid.minor = element_blank(),
+      panel.grid.minor   = element_blank(),
+      panel.grid.major   = element_line(linewidth = 0.3, color = "grey88"),
+      plot.title          = element_text(face = "bold", size = rel(1.1)),
       plot.title.position = "plot",
-      legend.position = "bottom"
+      plot.subtitle       = element_text(color = "grey40", size = rel(0.9)),
+      plot.caption        = element_text(color = "grey50", size = rel(0.8), hjust = 0),
+      axis.title          = element_text(size = rel(0.95)),
+      axis.text           = element_text(size = rel(0.88)),
+      legend.position     = "bottom",
+      legend.text         = element_text(size = rel(0.88)),
+      legend.title        = element_text(size = rel(0.9), face = "bold"),
+      strip.text          = element_text(face = "bold", size = rel(0.95))
     )
 }
 
@@ -266,9 +275,9 @@ We evaluate `r n_llm_models` frontier LLMs against human expert reviews from [Th
 
 ```{r}
 #| label: fig-forest-overall
-#| fig-cap: "Per-paper overall ratings: individual human evaluators (green) vs GPT-5 Pro (orange)"
+#| fig-cap: "Per-paper overall ratings (0\u2013100 percentile). Green circles show individual human evaluator midpoints with 90% credible intervals; the orange diamond shows the GPT-5 Pro rating with its CI. Papers are sorted left-to-right by descending human mean. Dotted lines mark grand means for each evaluator type."
 #| fig-width: 14
-#| fig-height: 6
+#| fig-height: 7
 #| code-fold: true
 
 H_ind <- metrics_human |>
@@ -334,9 +343,10 @@ if (nrow(L_c) > 0) {
     theme_uj() +
     annotate("text", x = 4, y = 40,
              label = sprintf("Means \u2014 Human: %.1f   LLM: %.1f", hbar, lbar),
-             hjust = 0, size = 4) +
+             hjust = 0, size = 4.2, fontface = "italic") +
     theme(
-      axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 8),
+      axis.text.x = element_text(angle = 55, hjust = 1, vjust = 1, size = 9),
+      axis.title.y = element_text(size = 12),
       panel.grid.major.x = element_blank(),
       plot.margin = margin(5, 40, 5, 5)
     )
@@ -351,9 +361,9 @@ The spread of green circles within each paper column illustrates substantial hum
 
 ```{r}
 #| label: fig-scatter-focal
-#| fig-cap: "Human vs LLM overall ratings: GPT-5 Pro and Claude Opus 4.6"
+#| fig-cap: "Human mean overall rating (x-axis) vs LLM overall rating (y-axis) for GPT-5 Pro and Claude Opus 4.6. Each point is one paper; the dashed diagonal is the identity line (perfect agreement). Points above the line indicate the LLM rated the paper higher than humans; points below indicate harsher LLM ratings. Paper labels are truncated for readability."
 #| fig-width: 11
-#| fig-height: 5.5
+#| fig-height: 6
 
 focal_models <- c("GPT-5 Pro", "Claude Opus 4.6")
 
@@ -374,12 +384,13 @@ if (nrow(scatter_data) > 0) {
   ggplot(scatter_data, aes(x = human_mid, y = midpoint, color = model)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
     geom_point(size = 3.5, alpha = 0.7) +
-    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.2, max.overlaps = 8, show.legend = FALSE) +
+    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.4, max.overlaps = 8, show.legend = FALSE) +
     scale_color_manual(values = MODEL_COLORS) +
     coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
     facet_wrap(~model, ncol = 2) +
-    labs(x = "Human mean rating (0–100)", y = "LLM rating (0–100)", color = "Model") +
-    theme_uj()
+    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = NULL) +
+    theme_uj() +
+    theme(strip.text = element_text(size = 13, face = "bold"))
 } else {
   cat("No matching data for scatter plot.\n")
 }
@@ -387,190 +398,145 @@ if (nrow(scatter_data) > 0) {
 
 Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in @tbl-agreement.
 
-**Rank comparison.** @fig-rankslope-main contrasts the relative *ranking* of papers under human vs LLM scoring for GPT-5 Pro (left) and Claude Opus 4.6 (right). Each paper is a curve connecting its human rank (left axis) to its LLM rank (right axis). Horizontal lines indicate agreement; orange curves slope upward where the LLM ranks a paper higher than humans did, and green curves slope downward where humans rank it higher.
+**Rank comparison.** @fig-rankslope-main places human rankings in the centre column with GPT-5 Pro on the left and Claude Opus 4.6 on the right. Each paper appears as a pair of S-curves connecting its human rank to its rank under each LLM. Horizontal curves indicate agreement; curves that climb toward the top indicate the LLM ranked the paper higher (better) than humans did. Colour encodes the rank shift: green when humans rank it higher, orange/purple when the LLM does. The triptych layout makes it easy to spot papers where both LLMs agree with each other but disagree with humans (both curves slope the same way), versus papers where the two LLMs diverge.
 
 ```{r}
 #| label: fig-rankslope-main
-#| fig-cap: "Relative ranking (overall): GPT-5 Pro (left) and Claude Opus 4.6 (right) vs Human evaluators"
-#| fig-height: 10
-#| fig-width: 16
+#| fig-cap: "Triptych slopegraph of paper rankings (overall criterion). Centre column shows human mean ranking; left and right columns show GPT-5 Pro and Claude Opus 4.6 rankings respectively. Each paper is connected by S-shaped curves; colour intensity encodes the magnitude of rank shift (\u0394rank). Green = humans rank it higher; warm colour = LLM ranks it higher. Horizontal curves indicate agreement."
+#| fig-height: 12
+#| fig-width: 14
 #| code-fold: true
 
 library("ggforce")
-library("patchwork")
 
-# S-shaped bezier curves helper
-make_s_bezier <- function(D, dx_base = 0.33, dx_min = 0.08) {
-  dy <- abs(D$pos_right - D$pos_left)
-  k  <- max(2, stats::quantile(dy, 0.75, na.rm = TRUE))
-  dx_i <- pmax(dx_min, dx_base * exp(-dy / k))
+# --- Prepare ranking data for all three sources ---
+rank_human <- human_avg |>
+  filter(paper %in% matched_papers) |>
+  arrange(desc(human_mid)) |>
+  mutate(rank_h = row_number(), label_use = str_trunc(paper, 28)) |>
+  select(paper, label_use, human_mid, rank_h)
 
-  purrr::map_dfr(seq_len(nrow(D)), function(i) {
-    dr_i <- D$pos_left[i] - D$pos_right[i]
-    tibble(
-      group = i,
-      x = c(0, dx_i[i], 1 - dx_i[i], 1),
-      y = c(D$pos_left[i], D$pos_left[i], D$pos_right[i], D$pos_right[i]),
-      dr  = dr_i,
-      mag = abs(dr_i)
-    )
-  })
-}
+rank_gpt <- llm_metrics |>
+  filter(criteria == "overall", model == "GPT-5 Pro", paper %in% matched_papers) |>
+  arrange(desc(midpoint)) |>
+  mutate(rank_gpt = row_number()) |>
+  select(paper, rank_gpt)
 
-build_slope_panel <- function(model_name, show_left_labels = TRUE) {
-  rank_data <- llm_metrics |>
-    filter(criteria == "overall", model == model_name, paper %in% matched_papers) |>
-    select(paper, midpoint) |>
-    inner_join(human_avg, by = "paper") |>
-    transmute(
-      label_use = str_trunc(paper, 30),
-      midpoint_human = human_mid,
-      midpoint_llm = midpoint
-    )
+rank_claude <- llm_metrics |>
+  filter(criteria == "overall", model == "Claude Opus 4.6", paper %in% matched_papers) |>
+  arrange(desc(midpoint)) |>
+  mutate(rank_claude = row_number()) |>
+  select(paper, rank_claude)
 
-  rank_left  <- rank_data |> arrange(desc(midpoint_human), label_use) |> mutate(pos_left = row_number())
-  rank_right <- rank_data |> arrange(desc(midpoint_llm), label_use) |> mutate(pos_right = row_number())
+rank_all <- rank_human |>
+  inner_join(rank_gpt, by = "paper") |>
+  inner_join(rank_claude, by = "paper") |>
+  mutate(
+    d_left  = rank_h - rank_gpt,    # positive = GPT ranks it higher
+    d_right = rank_h - rank_claude   # positive = Claude ranks it higher
+  )
 
-  rank_pos <- rank_data |>
-    left_join(rank_left  |> select(label_use, pos_left),  by = "label_use") |>
-    left_join(rank_right |> select(label_use, pos_right), by = "label_use") |>
-    mutate(
-      d_rank = pos_left - pos_right,
-      right_lab = sprintf("LLM #%d | H #%d | \u0394r=%+d", pos_right, pos_left, d_rank)
-    )
+n_papers_slope <- nrow(rank_all)
 
-  soft_thresh <- 5
-  B <- make_s_bezier(rank_pos) |>
-    mutate(alpha_by = pmin(mag / soft_thresh, 1))
+# --- Build bezier curves: Human (center, x=0.5) <-> GPT-5 Pro (left, x=0) ---
+left_curves <- purrr::map_dfr(seq_len(n_papers_slope), function(i) {
+  tibble(
+    group = paste0("L", i),
+    side  = "GPT-5 Pro",
+    x = c(0.5, 0.35, 0.15, 0),
+    y = c(rank_all$rank_h[i], rank_all$rank_h[i],
+          rank_all$rank_gpt[i], rank_all$rank_gpt[i]),
+    dr  = rank_all$d_left[i],
+    mag = abs(rank_all$d_left[i])
+  )
+})
 
-  left_margin <- if (show_left_labels) 140 else 10
+# --- Build bezier curves: Human (center, x=0.5) <-> Claude (right, x=1) ---
+right_curves <- purrr::map_dfr(seq_len(n_papers_slope), function(i) {
+  tibble(
+    group = paste0("R", i),
+    side  = "Claude Opus 4.6",
+    x = c(0.5, 0.65, 0.85, 1),
+    y = c(rank_all$rank_h[i], rank_all$rank_h[i],
+          rank_all$rank_claude[i], rank_all$rank_claude[i]),
+    dr  = rank_all$d_right[i],
+    mag = abs(rank_all$d_right[i])
+  )
+})
 
-  p <- ggplot() +
+all_curves <- bind_rows(left_curves, right_curves) |>
+  mutate(alpha_val = pmin(mag / 5, 1))
+
+if (n_papers_slope > 0) {
+  ggplot() +
+    # --- Bezier curves ---
     ggforce::geom_bezier(
-      data = B,
-      aes(x = x, y = y, group = group, colour = dr, alpha = alpha_by),
-      linewidth = 0.9
+      data = all_curves,
+      aes(x = x, y = y, group = group, colour = dr, alpha = alpha_val),
+      linewidth = 0.85
     ) +
     scale_color_gradient2(
-      low = UJ_GREEN, mid = "grey90", high = UJ_ORANGE, midpoint = 0,
-      name = "\u0394rank (H \u2212 LLM)"
+      low = UJ_GREEN, mid = "grey88", high = UJ_ORANGE, midpoint = 0,
+      name = "\u0394 rank  (Human \u2212 LLM)",
+      breaks = c(-10, -5, 0, 5, 10),
+      labels = c("\u221210", "\u22125", "0", "+5", "+10")
     ) +
-    guides(colour = guide_colourbar(title.position = "top")) +
-    scale_alpha(range = c(0.45, 1), guide = "none") +
-    geom_point(data = rank_pos, aes(x = 0, y = pos_left),
-               color = UJ_GREEN, size = 2.2) +
-    geom_point(data = rank_pos, aes(x = 1, y = pos_right),
-               color = UJ_ORANGE, shape = 18, size = 2.4) +
-    geom_text(data = rank_pos, aes(x = 1, y = pos_right, label = right_lab),
-              hjust = -0.05, size = 2.8, color = "grey20") +
-    scale_x_continuous(limits = c(if (show_left_labels) -0.7 else -0.05, 1.35),
-                       breaks = c(0, 1), labels = c("Human", "LLM"),
-                       expand = expansion(mult = 0)) +
-    scale_y_reverse(expand = expansion(mult = c(0.02, 0.06))) +
+    scale_alpha(range = c(0.30, 1), guide = "none") +
+
+    # --- Column dots ---
+    geom_point(data = rank_all, aes(x = 0,   y = rank_gpt),
+               color = MODEL_COLORS["GPT-5 Pro"], size = 2.2) +
+    geom_point(data = rank_all, aes(x = 0.5, y = rank_h),
+               color = MODEL_COLORS["Human"], size = 2.6, shape = 16) +
+    geom_point(data = rank_all, aes(x = 1,   y = rank_claude),
+               color = MODEL_COLORS["Claude Opus 4.6"], size = 2.2) +
+
+    # --- Paper labels (left side, next to GPT column) ---
+    geom_text(data = rank_all,
+              aes(x = 0, y = rank_gpt, label = label_use),
+              hjust = 1.08, size = 2.6, color = "grey25") +
+
+    # --- Rank numbers (right side, next to Claude column) ---
+    geom_text(data = rank_all,
+              aes(x = 1, y = rank_claude,
+                  label = sprintf("H #%d  |  \u0394G %+d  |  \u0394C %+d",
+                                  rank_h, d_left, d_right)),
+              hjust = -0.06, size = 2.4, color = "grey35") +
+
+    # --- Axes ---
+    scale_x_continuous(
+      breaks = c(0, 0.5, 1),
+      labels = c("GPT-5 Pro", "Human", "Claude Opus 4.6"),
+      limits = c(-0.65, 1.55),
+      expand = expansion(mult = 0)
+    ) +
+    scale_y_reverse(expand = expansion(mult = c(0.02, 0.04))) +
     coord_cartesian(clip = "off") +
-    labs(x = NULL, y = NULL, title = model_name) +
+    labs(x = NULL, y = NULL) +
     theme_uj() +
     theme(
-      axis.text.y  = element_blank(),
-      axis.ticks.y = element_blank(),
+      axis.text.x      = element_text(size = 13, face = "bold"),
+      axis.text.y       = element_blank(),
+      axis.ticks.y      = element_blank(),
       panel.grid.major.y = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      plot.margin = margin(t = 10, r = 190, b = 10, l = left_margin)
-    )
-
-  if (show_left_labels) {
-    p <- p + geom_text(data = rank_pos, aes(x = 0, y = pos_left, label = label_use),
-                       hjust = 1.05, size = 2.8, color = "grey20")
-  }
-
-  p
-}
-
-p_left  <- build_slope_panel("GPT-5 Pro", show_left_labels = TRUE)
-p_right <- build_slope_panel("Claude Opus 4.6", show_left_labels = FALSE)
-
-p_left + p_right + plot_layout(guides = "collect") & theme(legend.position = "bottom")
-```
-
-Many papers sit close to horizontal, indicating broad agreement on relative quality. However, several show pronounced rank shifts---orange curves mark papers the LLM considers top-tier that humans placed lower, while green curves highlight the reverse. Comparing the two panels reveals whether rank disagreements are idiosyncratic to a single model or reflect systematic "taste" differences shared across LLMs. The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
-
-**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage (what fraction of human concerns the LLM also identified) against precision (what fraction of LLM-raised issues correspond to human concerns) for each paper, as assessed by GPT-5.2 Pro acting as judge.
-
-```{r}
-#| label: load-critique-data
-#| code-fold: true
-#| code-summary: "Load critique comparison data"
-#| message: false
-
-comparison_results_file <- c(
-  "results/key_issue_comp_results.json",
-  "results/key_issues_comparison_results.json"
-)
-comparison_results_file <- comparison_results_file[file.exists(comparison_results_file)][1]
-
-has_critique_data <- FALSE
-
-if (!is.na(comparison_results_file)) {
-  comparison_file <- "results/key_issues_comparison.json"
-  if (file.exists(comparison_file)) {
-    comparison_data <- fromJSON(comparison_file)
-    llm_results_raw <- fromJSON(comparison_results_file)
-    llm_results <- llm_results_raw |>
-      as_tibble() |>
-      unnest_wider(comparison) |>
-      select(
-        gpt_paper,
-        coverage_pct,
-        precision_pct,
-        any_of(c("matched_pairs", "unmatched_human", "unmatched_llm")),
-        any_of(c("missed_issues", "extra_issues")),
-        overall_rating,
-        overall_justification,
-        detailed_notes
-      )
-    comparison_data <- comparison_data |>
-      left_join(llm_results, by = "gpt_paper")
-    has_critique_data <- nrow(comparison_data) > 0 &&
-      "coverage_pct" %in% names(comparison_data) &&
-      any(!is.na(comparison_data$coverage_pct))
-  }
-}
-```
-
-```{r}
-#| label: fig-coverage-precision-main
-#| fig-cap: "Coverage vs Precision across papers (LLM-assessed)"
-#| fig-width: 9
-#| fig-height: 7
-
-if (has_critique_data) {
-  crit_results <- comparison_data |>
-    filter(!is.na(coverage_pct) & !is.na(precision_pct)) |>
-    mutate(paper_short = str_trunc(gpt_paper, 25))
-
-  ggplot(crit_results, aes(x = coverage_pct, y = precision_pct)) +
-    geom_point(size = 4, color = UJ_ORANGE, alpha = 0.8) +
-    geom_text(aes(label = paper_short), hjust = -0.1, vjust = 0.5, size = 2.5, check_overlap = TRUE) +
-    geom_vline(xintercept = mean(crit_results$coverage_pct), linetype = "dashed", color = UJ_BLUE) +
-    geom_hline(yintercept = mean(crit_results$precision_pct), linetype = "dashed", color = UJ_BLUE) +
-    scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
-    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
-    labs(
-      x = "Coverage (%): Human issues captured by LLM",
-      y = "Precision (%): LLM issues that are substantive",
-      subtitle = "Dashed lines = means"
+      panel.grid.major.x = element_line(linewidth = 0.35, color = "grey82"),
+      plot.margin       = margin(t = 8, r = 180, b = 8, l = 140)
     ) +
-    theme_uj()
+    guides(colour = guide_colourbar(
+      title.position = "top", barwidth = 14, barheight = 0.6
+    ))
+} else {
+  cat("Insufficient data for triptych slopegraph.\\n")
 }
 ```
 
-Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. These metrics are themselves LLM-assessed (GPT-5.2 Pro as judge); human validation through manual annotation is underway. Detailed paper-by-paper comparisons with matched issue pairs appear in [Appendix: Critiques & Key Issues](results_critiques.qmd).
+Papers where both curves slope the same direction indicate systematic human--LLM disagreement; papers where the two curves diverge indicate model-specific "taste" differences. The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline (a chance-corrected reliability coefficient that generalises across varying numbers of raters, missing data, and any measurement level; see [Methods](methods.qmd) for a formal definition) quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
 
-**Rating differences by paper.** @fig-gap-heatmap-main shows Human − LLM differences for each paper and criterion for GPT-5 Pro (left) and Claude Opus 4.6 (right). Green tiles indicate humans rated higher; orange indicates the LLM rated higher. Papers are ordered by GPT-5 Pro's overall rating difference so the two panels are directly comparable.
+**Rating differences by paper and criterion.** While the scatter plots and slopegraph summarise agreement on a single dimension, @fig-gap-heatmap-main unpacks Human − LLM differences across all seven criteria simultaneously. Each column is a paper, each row a criterion, and tile colour encodes the signed difference (human mean minus LLM midpoint). Green tiles indicate the human panel rated the paper higher; orange tiles indicate the LLM was more generous. Papers are sorted by GPT-5 Pro's overall difference so that both panels share the same column order, making model-specific patterns immediately visible.
 
 ```{r}
 #| label: fig-gap-heatmap-main
-#| fig-cap: "Human − LLM rating differences by paper and criterion (GPT-5 Pro and Claude Opus 4.6)"
+#| fig-cap: "Human minus LLM rating difference for every paper (columns) and criterion (rows), comparing GPT-5 Pro (left panel) and Claude Opus 4.6 (right panel). Green tiles indicate the human mean was higher; orange tiles indicate the LLM rated the paper higher. Colour is clamped to \u00b130 percentile points. Papers are sorted by GPT-5 Pro overall difference so the two panels are directly comparable."
 #| fig-width: 16
 #| fig-height: 8
 #| code-fold: true
@@ -631,7 +597,7 @@ build_gap_panel <- function(model_name, show_y_labels = TRUE) {
     labs(x = NULL, y = NULL, title = model_name) +
     theme_uj() +
     theme(
-      axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 7),
+      axis.text.x = element_text(angle = 55, hjust = 1, vjust = 1, size = 8),
       panel.grid = element_blank()
     )
 
@@ -654,4 +620,77 @@ if (length(ord_p) > 0) {
 }
 ```
 
-Rows with uniformly green or orange tiles indicate papers where humans and the LLM disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases. Comparing the two panels reveals whether disagreement patterns are model-specific or shared across frontier LLMs---tiles that change colour between panels highlight papers where the models diverge from each other, not just from humans. Extended statistical analysis---including Krippendorff's alpha, bootstrap confidence intervals, mutual information, tier correlations, and top disagreement cases---is available in [Appendix A: Results Ratings](results_ratings.qmd).
+Rows with uniformly green or orange tiles indicate papers where humans and the LLM disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases---for instance, if "Open Science" is green across nearly all papers, humans may systematically reward data-sharing practices more than the LLM does. Comparing the two panels reveals whether disagreement patterns are model-specific or shared across frontier LLMs; tiles that change colour between panels highlight papers where the models diverge from each other, not just from humans.
+
+**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. @fig-coverage-precision-main plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against precision---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see [Methods](methods.qmd) for the judging protocol).
+
+```{r}
+#| label: load-critique-data
+#| code-fold: true
+#| code-summary: "Load critique comparison data"
+#| message: false
+
+comparison_results_file <- c(
+  "results/key_issue_comp_results.json",
+  "results/key_issues_comparison_results.json"
+)
+comparison_results_file <- comparison_results_file[file.exists(comparison_results_file)][1]
+
+has_critique_data <- FALSE
+
+if (!is.na(comparison_results_file)) {
+  comparison_file <- "results/key_issues_comparison.json"
+  if (file.exists(comparison_file)) {
+    comparison_data <- fromJSON(comparison_file)
+    llm_results_raw <- fromJSON(comparison_results_file)
+    llm_results <- llm_results_raw |>
+      as_tibble() |>
+      unnest_wider(comparison) |>
+      select(
+        gpt_paper,
+        coverage_pct,
+        precision_pct,
+        any_of(c("matched_pairs", "unmatched_human", "unmatched_llm")),
+        any_of(c("missed_issues", "extra_issues")),
+        overall_rating,
+        overall_justification,
+        detailed_notes
+      )
+    comparison_data <- comparison_data |>
+      left_join(llm_results, by = "gpt_paper")
+    has_critique_data <- nrow(comparison_data) > 0 &&
+      "coverage_pct" %in% names(comparison_data) &&
+      any(!is.na(comparison_data$coverage_pct))
+  }
+}
+```
+
+```{r}
+#| label: fig-coverage-precision-main
+#| fig-cap: "Coverage (% of human-identified issues that the LLM also raised) vs Precision (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques."
+#| fig-width: 10
+#| fig-height: 7
+
+if (has_critique_data) {
+  crit_results <- comparison_data |>
+    filter(!is.na(coverage_pct) & !is.na(precision_pct)) |>
+    mutate(paper_short = str_trunc(gpt_paper, 25))
+
+  ggplot(crit_results, aes(x = coverage_pct, y = precision_pct)) +
+    geom_point(size = 4.5, color = UJ_ORANGE, alpha = 0.85) +
+    geom_text(aes(label = paper_short), hjust = -0.1, vjust = 0.5, size = 2.6, check_overlap = TRUE) +
+    geom_vline(xintercept = mean(crit_results$coverage_pct), linetype = "dashed", color = UJ_BLUE, linewidth = 0.6) +
+    geom_hline(yintercept = mean(crit_results$precision_pct), linetype = "dashed", color = UJ_BLUE, linewidth = 0.6) +
+    scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+    labs(
+      x = "Coverage (%) \u2014 Human issues captured by LLM",
+      y = "Precision (%) \u2014 LLM issues that are substantive"
+    ) +
+    theme_uj()
+}
+```
+
+Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; manual validation through our annotation tool is underway and preliminary results are consistent with the automated scores.
+
+Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis, including per-criterion correlations, bootstrap confidence intervals, mutual information, tier prediction accuracy, cost-quality trade-offs across all six models, and top disagreement cases, is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).

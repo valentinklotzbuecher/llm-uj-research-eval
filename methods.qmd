@@ -1,5 +1,5 @@
 ---
-title: "Data and methods"
+title: "Methods"
 ---
 
 ```{=latex}
@@ -16,25 +16,17 @@ source("setup_params.R")
 
 ```
 
-We draw on two sources: human evaluations from [The Unjournal's public evaluation data](https://unjournal.github.io/unjournaldata/index.html), and LLM-generated evaluations produced by prompting frontier models with The Unjournal's rubric and requiring structured JSON output. We compare six models spanning three providers: GPT-5 Pro, GPT-5.2 Pro, and GPT-4o-mini (OpenAI); Claude Sonnet 4 and Claude Opus 4.6 (Anthropic); and Gemini 2.0 Flash (Google). Each model returns a midpoint rating and 90% credible interval for every metric, enforced by a strict JSON Schema.
+This chapter describes the data sources, evaluation pipeline, prompt design, and statistical methods used throughout. All Python code underlying the pipeline is preserved in the collapsible blocks below and can be executed to reproduce the evaluation runs.
 
-## Unjournal.org evaluations
+**Sample and human reference data.** We draw on published evaluations from [The Unjournal](https://unjournal.github.io/unjournaldata/index.html), an open-access platform that commissions expert reviews of policy-relevant research without requiring journal submission. Each paper is typically assessed by two independent evaluators (occasionally one or three), who provide a written critique resembling a referee report together with quantitative ratings on seven criteria scored as percentiles (0--100) relative to "all serious research in the same area encountered in the last three years."^[The seven criteria are: *overall assessment*, *claims and evidence*, *methods*, *advancing knowledge and practice*, *logic and communication*, *open and collaborative science*, and *relevance to global priorities*. Full definitions are given in The Unjournal's [guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators).] Evaluators additionally predict the journal tier in which the work "should" and "will" publish, using a 0--5 continuous scale anchored to familiar venue categories (0 = unpublishable, 5 = top-5 journal). For each metric, evaluators report a midpoint (median of their belief distribution) and a 90% credible interval that expresses their epistemic uncertainty.
 
-We use The Unjournal's public data for a baseline comparison. At The Unjournal each paper is typically evaluated (aka 'reviewed') by two expert evaluators^[Occasionally they use 1 or 3 evaluators.] who provide quantitative ratings on a 0–100 percentile scale for each of seven criteria (with 90% credible intervals),^[See their guidelines [here](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators#quantitative-metrics); these criteria include "Overall assessment", "Claims, strength and characterization of evidence", "Methods: Justification, reasonableness, validity, robustness", "Advancing knowledge and practice", "Logic and communication", "Open, collaborative, replicable science", and "Relevance to global priorities, usefulness for practitioners"] two "journal tier" ratings on a 0.0 - 5.0 scale,^["a normative judgment about 'how well the research should publish'" and "a prediction about where the research will be published"] a written evaluation (resembling a referee report for a journal), and identification and assessment of the paper's "main claim". For our initial analysis, we extracted these human ratings and aggregated them, taking the average score per criterion across evaluators (and noting the range of individual scores). 
+The sample comprises working papers spanning 2017--2025 in development economics, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. All papers have completed The Unjournal's full evaluation process, meaning the authors received evaluations that have been publicly posted. For our analysis we extracted the individual evaluator scores, aggregated them by taking the arithmetic mean per paper per criterion, and retained the range of individual scores to characterise inter-rater spread.
 
-All papers have completed The Unjournal's evaluation process (meaning the authors received a full evaluation on the Unjournal platform, which has been publicly posted at unjournal.pubpub.org). The sample includes papers spanning 2017–2025 working papers in development economics, growth, health policy, environmental economics, and related fields that The Unjournal identified as high-impact. Each of these papers has quantitative scores from at least one human evaluator, and many have multiple (2-3) human ratings.
+**LLM evaluation pipeline.** We evaluate six frontier models spanning three providers: GPT-5 Pro and GPT-5.2 Pro (OpenAI, reasoning-capable), GPT-4o-mini (OpenAI, lightweight), Claude Sonnet 4 and Claude Opus 4.6 (Anthropic), and Gemini 2.0 Flash (Google). Each model receives the identical PDF file, system prompt, and output schema. We pass the PDF directly to the model's native multimodal input rather than extracting text, preserving tables, figures, equations, and layout cues that ad-hoc scraping could mangle. A single API call per paper avoids hand-offs and summary loss from multi-stage pipelines.
 
-## LLM-based evaluation
+The output is constrained by a strict JSON Schema enforcing the same nine fields that human evaluators complete: seven percentile metrics (each with `midpoint`, `lower_bound`, `upper_bound`) and two journal-tier predictions (each with `score`, `ci_lower`, `ci_upper`). Additionally, the model produces an `assessment_summary` of approximately 1,000 words that must precede scoring---a "think first, score second" protocol designed to ground numeric ratings in specific textual evidence. The extended schema used for our GPT-5.2 Pro focal run adds a `key_issues` array of concise, ranked issue statements for downstream critique comparison.
 
-
-Following The Unjournal's [standard guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators) and their [academic evaluation form](https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME), evaluators are asked to consider each paper along the following dimensions: **claims & evidence**, **methods**, **logic & communication**, **open science**, **global relevance**, and an **overall** assessment. Ratings are interpreted as percentiles relative to serious recent work in the same area. For each metric, evaluators are asked for the midpoint of their beliefs and their 90% credible interval, to communicate their uncertainty.
-For the journal rankings measure, we ask both "what journal ranking tier should this work be published in? (0.0-5.0)" and "what journal ranking tier will this work be published in? (0.0-5.0)", with some further explanation.The full prompt can be seen in the code below -- essentially copied from the Unjournal's guidelines page.
-
-<!-- *Internal note: The Python content below must be run externally* -->
-
-We captured the versions of each paper that was evaluated by The Unjournal's human evaluators, downloading from the links provided in The Unjournal's Coda database. <!-- Add link to this -- is it correct? Are we sure these are the ones evaluated? --> 
-
-We evaluate each paper by passing the PDF directly to the model and requiring a strict, machine‑readable JSON output. This keeps the assessment tied to the document the authors wrote. Direct ingestion preserves tables, figures, equations, and sectioning, which ad‑hoc text scraping can mangle. It also avoids silent trimming or segmentation choices that would bias what the model sees.
+**Agreement and reliability statistics.** We quantify human--LLM agreement using several complementary measures. *Pearson's r* captures linear association between paired ratings and is sensitive to proportional biases but not to constant offsets. *Spearman's ρ* measures rank-order agreement and is robust to outliers and non-linear monotone relationships. *Mean bias* (LLM minus human) indicates the direction and magnitude of any systematic offset. *Root mean squared error* (RMSE) and *mean absolute error* (MAE) measure typical prediction error in the original scale units; RMSE penalises large deviations more heavily. To contextualise human--LLM agreement we report *Krippendorff's alpha* ($\alpha$), a chance-corrected reliability coefficient that generalises across varying numbers of raters, accommodates missing data, and applies to any measurement level (nominal, ordinal, interval, or ratio). An $\alpha$ of 1 indicates perfect agreement, 0 indicates agreement no better than chance, and values below 0 indicate systematic disagreement. We compute $\alpha_{\text{HH}}$ (among human evaluators only) as a ceiling: if human evaluators agree with each other at only $\alpha = 0.5$ on a given criterion, expecting an LLM to exceed that level would be unrealistic. We then report $\alpha_{\text{HL}}$ (between the human mean and each LLM) to assess how close machine ratings come to this ceiling. For the qualitative key-issue comparison, *coverage* denotes the fraction of human-identified issues that received a match score $\geq 30\%$ from the LLM judge, and *precision* denotes the fraction of LLM-generated issues that matched at least one human issue.
 
 ```{python}
 #| label: llm-setup-all
@@ -248,9 +240,7 @@ def read_csv_or_empty(path, columns=None, **kwargs):
     
 ```
 
-### JSON Schema
-
-We enforce a strict JSON Schema for the output. The model must return one object for each metric, including a midpoint rating and a 90% credible interval. This guarantees that every paper is scored on the same fields with the same types and bounds. We request credible intervals (as we do for human evaluators) to allow the model to communicate its uncertainty rather than suggest false precision.
+**JSON Schema.** The output schema enforces that every paper is scored on identical fields with identical types and bounds. Credible intervals are required (paralleling the human protocol) so that the model can express genuine uncertainty rather than suggest false precision.
 
 ```{python}
 #| label: schema-definition
@@ -317,9 +307,7 @@ TEXT_FORMAT_COMBINED = {
 }
 ```
 
-### System Prompt
-
-The system prompt is built from modular sections and concatenated before each API call. We instruct the model to act as an expert evaluator, explicitly blocking the use of author reputation, publication venue, or prior knowledge of the paper's reception. Before scoring, the prompt requires a ~1,000-word diagnostic summary ("think first, score second") that identifies methodological issues and guides subsequent ratings.
+**System prompt design.** The system prompt is assembled from modular components and concatenated before each API call. It opens with a role definition instructing the model to act as an expert research evaluator, followed by a debiasing block that explicitly prohibits use of author identity, institutional prestige, publication venue, or any extrinsic information---the model must base all judgments on the PDF content alone. A diagnostic-summary instruction requires the model to produce a roughly 1,000-word assessment identifying methodological, evidential, and interpretive issues *before* any scoring, implementing a "think first, score second" protocol intended to anchor numeric ratings in specific textual evidence.
 
 ```{python}
 #| label: prompt-role
@@ -341,7 +329,7 @@ Provide a compact paragraph that identifies the most important issues you detect
 """
 ```
 
-Percentile ratings are anchored to the reference group "all serious research in the same area encountered in the last three years." The prompt defines each of the seven criteria following The Unjournal's [guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators), with emphasis on global priorities and practical relevance over pure academic novelty.
+Percentile ratings are anchored to the reference group "all serious research in the same area encountered in the last three years," following The Unjournal's [guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators). The prompt defines each of the seven criteria with emphasis on global priorities and practical relevance over pure academic novelty, mirroring the weight structure that human Unjournal evaluators are asked to apply.
 
 ```{python}
 #| label: prompt-percentile
@@ -399,7 +387,7 @@ Midpoint rating and credible intervals: For each metric, we ask you to provide a
 """
 ```
 
-The prompt also explains how to construct 90% credible intervals (to encourage calibrated uncertainty rather than artificially narrow intervals), requests journal tier predictions on a 0--5 scale (providing an external benchmark for papers that eventually publish), and includes self-consistency checks requiring numeric scores to align with the written assessment.
+Subsequent prompt components instruct the model on constructing 90% credible intervals---the smallest interval the evaluator believes is 90% likely to contain the true value---encouraging calibrated uncertainty rather than artificially narrow bounds. The prompt requests journal-tier predictions on a 0--5 continuous scale anchored to familiar venue categories (0 = unpublishable through 5 = top-5 journal), providing an externally verifiable benchmark for papers that eventually publish. A validation block then requires the model to verify internal consistency: numeric scores must align with the written assessment, credible intervals must be non-degenerate, and high or low ratings must be explicitly justified in the assessment summary.
 
 ```{python}
 #| label: prompt-uncertainty
@@ -471,7 +459,7 @@ Return STRICT JSON matching the supplied schema. No preamble. No markdown. No ex
 """
 ```
 
-These sections are concatenated to form the complete system prompt:
+The components above are concatenated into a single system prompt string before each API call:
 
 ```{python}
 #| label: prompt-assembly
@@ -493,7 +481,7 @@ SYSTEM_PROMPT_COMBINED = "\n".join([
 ]).strip()
 ```
 
-The `evaluate_paper` function uploads a PDF to the API and submits a background job for evaluation:
+**Submission and collection.** The `evaluate_paper` function uploads a PDF to the API and submits a background job for evaluation. File IDs are cached by path, size, and modification time so that re-running on the same PDF reuses the previously uploaded file.
 
 ```{python}
 #| label: evaluate-paper-fn
@@ -540,9 +528,7 @@ def evaluate_paper(pdf_path: Union[str, pathlib.Path],
 ```
 
 
-Relying on GPT-5 Pro, we use a single‑step call with a reasoning model that supports file input. One step avoids hand‑offs and summary loss from a separate "ingestion" stage. The model reads the whole PDF and produces the JSON defined above. We do not retrieve external sources or cross‑paper material for these scores; the evaluation is anchored in the manuscript itself.
-
-The Python pipeline uploads each PDF once and caches the returned file id keyed by path, size, and modification time. We submit one background job per PDF to the OpenAI Responses API with “high” reasoning effort and server‑side JSON‑Schema enforcement. Submissions record the response id, model id, file id, status, and timestamps. 
+Each model receives the full PDF in a single reasoning call, avoiding hand-offs and summary loss from multi-stage ingestion. We submit one background job per paper to the OpenAI Responses API with "high" reasoning effort and server-side JSON-Schema enforcement, recording the response ID, model, file ID, status, and timestamps in a jobs index. No external sources or cross-paper material are retrieved; the evaluation is anchored entirely in the manuscript itself.
 
 
 ```{python}
@@ -600,7 +586,7 @@ else:
     print("No new jobs started.")
 ```
 
-We then polls job status and, for each completed job, retrieve the raw JSON object, and write the responses to disk.
+A polling loop then checks each job's status and, for completed jobs, retrieves the raw JSON response object and writes it to disk alongside reasoning-trace metadata (token counts, reasoning summary).
 
 
 ```{python}
@@ -690,11 +676,7 @@ else:
 
 ```
 
-### Multi-Model Evaluation
-
-To compare model performance, we collect evaluations from multiple providers. This allows us to assess whether different models exhibit systematic biases or calibration differences.
-
-For OpenAI models without reasoning (e.g., GPT-4o), we use a simpler synchronous call:
+**Multi-model evaluation.** To assess whether systematic biases or calibration differences emerge across architectures, we collect evaluations from six models spanning three providers. For OpenAI models that lack background-job or extended-reasoning support (e.g., GPT-4o-mini), we use a synchronous call variant:
 
 ```{python}
 #| label: openai-multimodel
@@ -764,7 +746,7 @@ def run_openai_models(pdfs: list, models: list = OPENAI_MODELS, out_dir: pathlib
     return pd.DataFrame(results)
 ```
 
-Anthropic's API differs from OpenAI: PDFs are passed as base64-encoded content, and calls are synchronous (no background jobs). We use Claude's native PDF support.
+**Anthropic.** Anthropic's API accepts PDFs as base64-encoded document content rather than uploaded file IDs, and all calls are synchronous. We use Claude's native PDF support to preserve the same multimodal evaluation approach:
 
 ```{python}
 #| label: anthropic-eval
@@ -852,7 +834,7 @@ def run_anthropic_models(pdfs: list, models: list = ANTHROPIC_MODELS, out_dir: p
     return pd.DataFrame(results)
 ```
 
-Google's Gemini API supports PDF via file upload:
+**Google.** Google's Gemini API accepts PDFs via a file-upload endpoint with MIME-type tagging:
 
 ```{python}
 #| label: google-eval
@@ -925,7 +907,7 @@ def run_google_models(pdfs: list, models: list = GOOGLE_MODELS, out_dir: pathlib
     return pd.DataFrame(results)
 ```
 
-A unified runner collects evaluations from all providers:
+A unified runner dispatches evaluations across all configured providers and writes per-model output directories:
 
 ```{python}
 #| label: run-all-models
@@ -962,9 +944,7 @@ run_all_models()
 
 ```
 
-### GPT-5.2 Pro Focal Run (with Key Issues)
-
-This section evaluates 14 focal papers using GPT-5.2 Pro with an extended schema that outputs a numbered list of key issues alongside the standard metrics.
+**Focal run with key-issue extraction.** For a subset of 14 papers with rich human critiques, we ran an extended evaluation using GPT-5.2 Pro. The schema for this focal run adds a `key_issues` array---a ranked list of concise issue statements identifying the most important methodological, interpretive, or evidential concerns---alongside the standard metrics. This structured output enables direct comparison between machine-generated and human-identified issues.
 
 ```{python}
 #| label: focal-config
@@ -1186,11 +1166,9 @@ counts = idx["status"].value_counts().to_dict()
 print(f"\nStatus: {counts}")
 ```
 
-### Key Issues Comparison with Human Critiques
+**Key-issue comparison with human critiques.** To validate how well the LLM identifies substantive concerns, we compare its `key_issues` output against human expert critiques drawn from The Unjournal's Coda database. These human critiques---produced by paid domain experts and synthesized by evaluation managers---provide a high-quality but noisy reference standard for issue identification; accordingly, we treat them as a comparative signal rather than ground truth.
 
-To validate how well the LLM identifies substantive issues, we compare its `key_issues` output against human expert critiques from The Unjournal's Coda database. Human expert critiques provide a high-quality reference standard for issue identification: they are produced by paid domain experts and synthesized by evaluation managers, but remain noisy and incomplete, so we treat them as a comparative signal rather than ground truth.
-
-The comparison proceeds in two stages: first, we extract and align the data sources; then, optionally, we use an LLM to systematically assess the degree of alignment between machine-generated and human-identified issues.
+The comparison proceeds in two stages. First, we parse and align the data sources: LLM key issues are extracted from the focal-run JSON responses, while human critiques are drawn from a manually curated markdown document pairing each paper's machine and expert assessments. Second, we use an LLM judge (GPT-5.2 Pro with schema-enforced structured output) to systematically assess the degree of alignment between each human-identified issue and the set of machine-generated issues, producing issue-by-issue match scores, coverage estimates (fraction of human issues captured), and precision estimates (fraction of LLM issues that are genuinely substantive).
 
 ```{python}
 #| label: key-issues-comparison
@@ -1502,16 +1480,7 @@ else:
     print("\nNo valid comparison results to summarize.")
 ```
 
-The comparison pipeline uses a manually curated input and produces structured outputs:
-
-**Input:**
-- **`results/key_issues_comparison.md`**: A manually curated markdown document pairing GPT-identified issues with human expert critiques for each paper.
-
-**Outputs:**
-- **`results/key_issues_comparison.json`**: Parsed data in JSON format for programmatic use.
-- **`results/key_issues_comparison_results.json`**: LLM-assessed alignment metrics including coverage, precision, missed issues, and overall ratings.
-
-The coverage metric estimates what fraction of human-identified issues the LLM captured; precision estimates what fraction of LLM issues are genuinely relevant. Together with the qualitative ratings, these provide a structured assessment of how well the LLM's issue identification aligns with expert judgment.
+The comparison pipeline takes a manually curated markdown file pairing each paper's LLM issues with human critiques and produces two structured outputs: a parsed JSON dataset (`key_issues_comparison.json`) and an LLM-assessed alignment report (`key_issues_comparison_results.json`) containing per-paper coverage, precision, matched-pair explanations, and an overall quality rating. Together, these outputs feed the qualitative analysis presented in @sec-results-critiques.
 
 ```{=latex}
 \normalsize

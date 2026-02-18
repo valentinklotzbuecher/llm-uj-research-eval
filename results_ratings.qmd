@@ -25,27 +25,36 @@ library("purrr")
 library("tibble")
 # library("plotly")  # removed: all figures are now static ggplot
 
-# Theme and colors — refreshed palette (crisper, higher contrast)
-UJ_ORANGE <- "#e8863a"   # warmer, saturated amber
-UJ_GREEN  <- "#5a9e3c"   # deeper leaf green
-UJ_BLUE   <- "#3b6d9c"   # slightly deeper steel
+# Theme and colors — crisp palette (high saturation, maximum separation)
+UJ_ORANGE <- "#E8722A"   # vivid saffron orange
+UJ_GREEN  <- "#2D9D5E"   # rich emerald green
+UJ_BLUE   <- "#2B7CE9"   # clear azure blue
 
 MODEL_COLORS <- c(
-  "GPT-5 Pro"        = "#e8863a",   # warm amber (focal)
-  "GPT-5.2 Pro"      = "#c9302c",   # red
-  "GPT-4o-mini"      = "#2da882",   # teal green
-  "Claude Sonnet 4"  = "#b07ce8",   # lighter purple
-  "Claude Opus 4.6"  = "#7c3aed",   # vivid purple
-  "Gemini 2.0 Flash" = "#5471b0",   # clear blue
-  "Human"            = "#5a9e3c"    # leaf green
+  "GPT-5 Pro"        = "#E8722A",   # saffron orange (focal)
+  "GPT-5.2 Pro"      = "#D62839",   # bright crimson
+  "GPT-4o-mini"      = "#17B890",   # vivid teal
+  "Claude Sonnet 4"  = "#A855F7",   # vivid purple
+  "Claude Opus 4.6"  = "#7C3AED",   # deep violet
+  "Gemini 2.0 Flash" = "#2B7CE9",   # clear azure
+  "Human"            = "#2D9D5E"    # emerald green
 )
 
-theme_uj <- function(base_size = 11) {
+theme_uj <- function(base_size = 12) {
   theme_minimal(base_size = base_size) +
     theme(
-      panel.grid.minor = element_blank(),
+      panel.grid.minor   = element_blank(),
+      panel.grid.major   = element_line(linewidth = 0.3, color = "grey88"),
+      plot.title          = element_text(face = "bold", size = rel(1.1)),
       plot.title.position = "plot",
-      legend.position = "bottom"
+      plot.subtitle       = element_text(color = "grey40", size = rel(0.9)),
+      plot.caption        = element_text(color = "grey50", size = rel(0.8), hjust = 0),
+      axis.title          = element_text(size = rel(0.95)),
+      axis.text           = element_text(size = rel(0.88)),
+      legend.position     = "bottom",
+      legend.text         = element_text(size = rel(0.88)),
+      legend.title        = element_text(size = rel(0.9), face = "bold"),
+      strip.text          = element_text(face = "bold", size = rel(0.95))
     )
 }
 
@@ -362,7 +371,7 @@ scatter_data <- llm_metrics |>
   filter(!is.na(human_mid), !is.na(midpoint))
 ```
 
-**Agreement metrics.** We assess agreement using Pearson *r* (linear correlation), Spearman *ρ* (rank-based, robust to outliers), mean bias (LLM − Human; positive = LLM rates higher), and RMSE/MAE (error magnitude).
+**Agreement metrics.** We assess agreement using Pearson *r* (linear correlation), Spearman *ρ* (rank-based, robust to outliers), mean bias (LLM − Human; positive = LLM rates higher), and RMSE/MAE (error magnitude). Full definitions of all statistics appear in [Methods](methods.qmd).
 
 ```{r}
 #| label: tbl-agreement
@@ -482,9 +491,9 @@ Where α~HL~ approaches α~HH~, the LLM is performing at or near the ceiling set
 
 ```{r}
 #| label: fig-criteria-heatmap
-#| fig-cap: "Mean rating by model and criterion"
+#| fig-cap: "Mean rating by evaluator type (rows) and criterion (columns), averaged across all matched papers. Tile colour scales from light (lower mean) to vivid orange (higher mean), clamped to 40\u201380. Criteria where all rows show similar colour intensity indicate broad agreement; divergent columns flag criteria-level systematic differences."
 #| fig-width: 11
-#| fig-height: 6
+#| fig-height: 6.5
 
 metric_labels <- c(
   overall = "Overall", claims = "Claims", methods = "Methods",
@@ -508,11 +517,13 @@ criteria_means <- bind_rows(
 if (nrow(criteria_means) > 0) {
   ggplot(criteria_means, aes(x = criteria_label, y = model, fill = mean_rating)) +
     geom_tile(color = "white", linewidth = 0.5) +
-    geom_text(aes(label = round(mean_rating, 0)), size = 4, color = "white", fontface = "bold") +
-    scale_fill_gradient(low = "#f0f0f0", high = UJ_ORANGE, limits = c(40, 80), name = "Mean") +
+    geom_text(aes(label = round(mean_rating, 0)), size = 4.2, color = "white", fontface = "bold") +
+    scale_fill_gradient(low = "#f0f0f0", high = UJ_ORANGE, limits = c(40, 80), name = "Mean rating") +
     labs(x = NULL, y = NULL) +
     theme_uj() +
-    theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 10), panel.grid = element_blank())
+    theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 11),
+          axis.text.y = element_text(size = 11),
+          panel.grid = element_blank())
 }
 ```
 
@@ -520,9 +531,9 @@ if (nrow(criteria_means) > 0) {
 
 ```{r}
 #| label: fig-scatter-other
-#| fig-cap: "Human vs LLM overall ratings: GPT-4o-mini and Gemini 2.0 Flash"
+#| fig-cap: "Human mean overall rating (x-axis) vs LLM overall rating (y-axis) for the two lightweight models GPT-4o-mini and Gemini 2.0 Flash. Each point is one paper; the dashed diagonal is the identity line. These models cost 50\u2013200\u00d7 less per paper than reasoning-capable models (see cost table above)."
 #| fig-width: 11
-#| fig-height: 5.5
+#| fig-height: 6
 
 other_models <- c("GPT-4o-mini", "Gemini 2.0 Flash")
 
@@ -543,12 +554,13 @@ if (nrow(scatter_other) > 0) {
   ggplot(scatter_other, aes(x = human_mid, y = midpoint, color = model)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
     geom_point(size = 3.5, alpha = 0.7) +
-    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.2, max.overlaps = 8, show.legend = FALSE) +
+    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.4, max.overlaps = 8, show.legend = FALSE) +
     scale_color_manual(values = MODEL_COLORS) +
     coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
     facet_wrap(~model, ncol = 2) +
-    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = "Model") +
-    theme_uj()
+    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = NULL) +
+    theme_uj() +
+    theme(strip.text = element_text(size = 13, face = "bold"))
 } else {
   cat("No matching data for lightweight model scatter plot.\n")
 }

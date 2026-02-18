@@ -82,7 +82,7 @@ quarto preview
 The Quarto book is organized into chapters:
 
 - **index.qmd**: Landing page with introduction, motivation, related work, team info, and budget overview. Includes a signpost callout directing grant reviewers to the proposal chapter.
-- **methods.qmd**: Data sources, LLM evaluation pipeline, system prompts, JSON schema
+- **methods.qmd**: Methods chapter written in Nature/medical-journal style (flowing prose, bold inline headings, no bullet lists). Contains data sources, LLM evaluation pipeline, prompt design, JSON schema, multi-model setup, focal run, key-issue comparison, and formal definitions of all statistical measures (Pearson r, Spearman ρ, Krippendorff's α, RMSE, MAE, coverage, precision). All Python code is preserved in collapsible blocks.
 - **results_ratings.qmd**: Quantitative analysis comparing LLM vs human ratings (correlations, agreement metrics, calibration)
 - **results_critiques.qmd**: Qualitative comparison of LLM key issues vs human expert critiques (side-by-side display)
 - **proposal.qmd**: Grant proposal for Coefficient Giving's "AI for Forecasting and Sound Reasoning" RFP. Contains project scope, methodology, team details, budget scenarios, timeline, and deliverables. This is the primary document for grant reviewers.
@@ -533,16 +533,53 @@ The site is hosted on Netlify. The deployment process:
 
 This keeps the evaluation data fresh for the paper response analysis and other uses.
 
+## Visual Design and Theming
+
+### Color Palette
+
+The project uses a unified color scheme across all figures and themes:
+
+- **UJ_GREEN**: `#2D9D5E` (light) / `#5AE08A` (dark) — primary Unjournal brand
+- **UJ_ORANGE**: `#E8722A` (light) / `#F5A05C` (dark) — accent
+- **UJ_BLUE**: `#2B7CE9` (light) / `#5DA3F5` (dark) — accent
+
+Model-specific colors for multi-model figures:
+```r
+MODEL_COLORS <- c(
+  "GPT-5 Pro" = "#2B7CE9", "GPT-5.2 Pro" = "#1B5EB8",
+  "Claude Opus 4.6" = "#E8722A", "Claude Sonnet 4" = "#C45A1E",
+  "Gemini 2.0 Flash" = "#7C3AED", "GPT-4o-mini" = "#64748B",
+  "Human" = "#2D9D5E"
+)
+```
+
+These are defined in `results.qmd`, `results_ratings.qmd`, and `results_critiques.qmd` (each file has its own copy). SCSS themes are in `theme-light.scss` and `theme-dark.scss`. PDF link colors are set in `preamble.tex` (all use `unjournalgreen`).
+
+### Figure Standards
+
+All R figures use `theme_uj()` (defined in each results file) with:
+- `base_size = 12`, clean minimal theme
+- Consistent axis text sizes (≥8pt), readable legends
+- Descriptive captions that fully explain what the figure shows
+- Green/orange color mapping: green = human higher, orange = LLM higher
+
+### Writing Style
+
+- **methods.qmd**: Nature/medical journal style — flowing paragraphs with bold inline headings (e.g., `**Sample and human reference data.**`), no `###` subsection headers, no bullet lists in prose. All statistical methods formally defined.
+- **results.qmd**: Concise analytical prose with cross-references to appendix sections.
+- **results_ratings.qmd / results_critiques.qmd**: Appendix style with brief analytical commentary per figure/table.
+
 ## Key Dependencies
 
-**Python:** openai, pdfplumber, pandas, numpy, tiktoken, jupyter-cache
-**R:** tidyverse ecosystem, renv for package management
+**Python:** openai, anthropic, google-generativeai, pdfplumber, pandas, numpy, tiktoken, jupyter-cache
+**R:** tidyverse ecosystem (ggplot2, dplyr, tidyr), ggforce, patchwork, ggrepel, irr (Krippendorff's alpha), scales, kableExtra, janitor, jsonlite, renv for package management
 **Build:** Quarto (requires recent version with multi-engine support)
 
 ## Architecture Insights
 
 - **Two-language architecture**: Python handles API calls and structured data extraction; R handles statistical analysis and visualization. This is bridged via CSV files.
 - **Structured outputs**: The JSON Schema approach ensures every paper gets rated on identical metrics with enforced types and bounds, making comparisons clean.
+- **Multi-provider evaluation**: Six models across three providers (OpenAI, Anthropic, Google) all receive identical prompts and schemas. Provider-specific API differences (file upload vs base64, sync vs background jobs) are abstracted in `methods.qmd`.
 - **Rate limiting design**: The `TokenPacer` class proactively sleeps before calls based on token history, avoiding 429 errors rather than just reacting to them.
 - **Credible intervals**: Both LLM and human evaluators provide 90% credible intervals (lower_bound, midpoint, upper_bound) to quantify uncertainty.
 - **Ground truth**: Journal tier predictions have verifiable outcomes (where the paper actually publishes), enabling model calibration analysis.

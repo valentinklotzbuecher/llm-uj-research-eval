@@ -17,22 +17,31 @@ library("kableExtra")
 library("DT")
 library("reticulate")
 
-# Theme colors (matching results_ratings.qmd)
-UJ_ORANGE <- "#f19e4b"
-UJ_GREEN  <- "#99bb66"
-UJ_BLUE   <- "#4e79a7"
+# Theme colors — crisp palette (matching results.qmd)
+UJ_ORANGE <- "#E8722A"   # vivid saffron orange
+UJ_GREEN  <- "#2D9D5E"   # rich emerald green
+UJ_BLUE   <- "#2B7CE9"   # clear azure blue
 
 # Severity colors for badges
-SEV_NECESSARY <- "#e74c3c"   # Red
-SEV_OPTIONAL  <- "#f39c12"   # Orange
-SEV_UNSURE    <- "#95a5a6"   # Gray
+SEV_NECESSARY <- "#D62839"   # Bright crimson
+SEV_OPTIONAL  <- "#E8722A"   # Saffron orange
+SEV_UNSURE    <- "#8B95A2"   # Cool grey
 
-theme_uj <- function(base_size = 11) {
+theme_uj <- function(base_size = 12) {
   theme_minimal(base_size = base_size) +
     theme(
-      panel.grid.minor = element_blank(),
+      panel.grid.minor   = element_blank(),
+      panel.grid.major   = element_line(linewidth = 0.3, color = "grey88"),
+      plot.title          = element_text(face = "bold", size = rel(1.1)),
       plot.title.position = "plot",
-      legend.position = "bottom"
+      plot.subtitle       = element_text(color = "grey40", size = rel(0.9)),
+      plot.caption        = element_text(color = "grey50", size = rel(0.8), hjust = 0),
+      axis.title          = element_text(size = rel(0.95)),
+      axis.text           = element_text(size = rel(0.88)),
+      legend.position     = "bottom",
+      legend.text         = element_text(size = rel(0.88)),
+      legend.title        = element_text(size = rel(0.9), face = "bold"),
+      strip.text          = element_text(face = "bold", size = rel(0.95))
     )
 }
 
@@ -40,13 +49,13 @@ theme_uj <- function(base_size = 11) {
 severity_badge <- function(severity) {
   sev <- tolower(trimws(severity))
   if (grepl("necessary", sev)) {
-    return('<span style="background-color:#e74c3c;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">🔴 Necessary</span>')
+    return('<span style="background-color:#D62839;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">Necessary</span>')
   } else if (grepl("optional", sev)) {
-    return('<span style="background-color:#f39c12;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">🟠 Optional</span>')
+    return('<span style="background-color:#E8722A;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">Optional</span>')
   } else if (sev != "") {
-    return('<span style="background-color:#95a5a6;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">⚪ Unsure</span>')
+    return('<span style="background-color:#8B95A2;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">Unsure</span>')
   }
-  return('<span style="background-color:#bdc3c7;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">—</span>')
+  return('<span style="background-color:#bdc3c7;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;">\u2014</span>')
 }
 
 # Function to truncate text for table display
@@ -168,8 +177,8 @@ if (has_llm_results) {
 
 ```{r}
 #| label: fig-coverage-precision
-#| fig-cap: "Coverage vs Precision across papers (LLM-assessed)"
-#| fig-width: 9
+#| fig-cap: "Coverage (% of human-identified issues captured by the LLM) vs Precision (% of LLM-raised issues matching a substantive human concern), as assessed by GPT-5.2 Pro acting as judge. Each point is one paper. Dashed blue lines mark cross-paper means. Papers in the upper-right show strong human\u2013LLM critique alignment."
+#| fig-width: 10
 #| fig-height: 7
 
 if (has_llm_results) {
@@ -178,16 +187,15 @@ if (has_llm_results) {
     mutate(paper_short = str_trunc(gpt_paper, 25))
 
   ggplot(llm_results, aes(x = coverage_pct, y = precision_pct)) +
-    geom_point(size = 4, color = UJ_ORANGE, alpha = 0.8) +
-    geom_text(aes(label = paper_short), hjust = -0.1, vjust = 0.5, size = 2.5, check_overlap = TRUE) +
-    geom_vline(xintercept = mean(llm_results$coverage_pct), linetype = "dashed", color = UJ_BLUE) +
-    geom_hline(yintercept = mean(llm_results$precision_pct), linetype = "dashed", color = UJ_BLUE) +
+    geom_point(size = 4.5, color = UJ_ORANGE, alpha = 0.85) +
+    geom_text(aes(label = paper_short), hjust = -0.1, vjust = 0.5, size = 2.6, check_overlap = TRUE) +
+    geom_vline(xintercept = mean(llm_results$coverage_pct), linetype = "dashed", color = UJ_BLUE, linewidth = 0.6) +
+    geom_hline(yintercept = mean(llm_results$precision_pct), linetype = "dashed", color = UJ_BLUE, linewidth = 0.6) +
     scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
     scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
     labs(
-      x = "Coverage (%): Human issues captured by GPT",
-      y = "Precision (%): GPT issues that are substantive",
-      subtitle = "Dashed lines = means"
+      x = "Coverage (%) \u2014 Human issues captured by LLM",
+      y = "Precision (%) \u2014 LLM issues that are substantive"
     ) +
     theme_uj()
 }

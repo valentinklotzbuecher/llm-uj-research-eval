@@ -267,7 +267,7 @@ AI and human evaluators.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-note-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, rightrule=.15mm]
+\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
 
 This is an evolving working paper. Analysis, metrics, and comparisons
 are under active development.
@@ -436,17 +436,16 @@ paper-by-paper comparisons with matched issue pairs appear in
 \href{results_critiques.qmd}{Appendix: Critiques \& Key Issues}.
 
 \textbf{Rating differences by paper.} Figure~\ref{fig-gap-heatmap-main}
-shows Human − LLM differences for each paper and criterion using GPT-5
-Pro as the focal model. Green tiles indicate humans rated higher; orange
-indicates the LLM rated higher. Papers are ordered by their overall
-rating difference, revealing which papers drive the largest
-disagreements and whether those disagreements are concentrated on
-particular criteria or spread across the board.
+shows Human − LLM differences for each paper and criterion for GPT-5 Pro
+(left) and Claude Opus 4.6 (right). Green tiles indicate humans rated
+higher; orange indicates the LLM rated higher. Papers are ordered by
+GPT-5 Pro's overall rating difference so the two panels are directly
+comparable.
 
 \begin{figure}
 
 \caption{\label{fig-gap-heatmap-main}Human − LLM rating differences by
-paper and criterion (GPT-5 Pro)}
+paper and criterion (GPT-5 Pro and Claude Opus 4.6)}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-gap-heatmap-main-1.pdf}}
 
@@ -455,10 +454,13 @@ paper and criterion (GPT-5 Pro)}
 Rows with uniformly green or orange tiles indicate papers where humans
 and the LLM disagree systematically across all criteria, not just on one
 dimension. Columns with consistent colour suggest criteria-level biases.
-Extended statistical analysis---including Krippendorff's alpha,
-bootstrap confidence intervals, mutual information, tier correlations,
-and top disagreement cases---is available in
-\href{results_ratings.qmd}{Appendix A: Results Ratings}.
+Comparing the two panels reveals whether disagreement patterns are
+model-specific or shared across frontier LLMs---tiles that change colour
+between panels highlight papers where the models diverge from each
+other, not just from humans. Extended statistical analysis---including
+Krippendorff's alpha, bootstrap confidence intervals, mutual
+information, tier correlations, and top disagreement cases---is
+available in \href{results_ratings.qmd}{Appendix A: Results Ratings}.
 
 \bookmarksetup{startatroot}
 
@@ -995,6 +997,21 @@ weigh that aspect of quality.
 
 \end{figure}%
 
+\textbf{Additional models.} Figure~\ref{fig-scatter-other} shows overall
+ratings for the two lightweight models---GPT-4o-mini and Gemini 2.0
+Flash---against human mean ratings. These models cost 50--200× less per
+paper than reasoning-capable models (see Table~\ref{tbl-cost-overview})
+but may sacrifice rating accuracy.
+
+\begin{figure}
+
+\caption{\label{fig-scatter-other}Human vs LLM overall ratings:
+GPT-4o-mini and Gemini 2.0 Flash}
+
+\pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-scatter-other-1.pdf}}
+
+\end{figure}%
+
 For per-paper scatter plots, rank comparisons, and the gap heatmap
 showing Human − LLM differences by paper and criterion, see the
 \hyperref[results]{main Results chapter}. Extended reasoning traces are
@@ -1008,7 +1025,7 @@ key issues against human expert critiques. The analysis uses LLM-based
 assessment (GPT-5.2 Pro as judge) to measure coverage and precision;
 human validation of these alignment scores is underway.
 
-\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-warning-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-warning-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, rightrule=.15mm]
+\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-warning-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-warning-color-frame, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
 
 This section is under active development. Coverage and precision metrics
 below are LLM-assessed; manual annotation is in progress.
@@ -1041,7 +1058,7 @@ identified) and precision (whether GPT issues are substantive).
   concern
 \end{itemize}
 
-\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-note-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, rightrule=.15mm]
+\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
 
 ``Precision'' only reflects whether LLM issues match the
 \emph{consensus} human issues curated in Coda---those prioritized by
@@ -1053,7 +1070,7 @@ reflect issues that weren't prioritized in the consensus summary.
 
 \end{tcolorbox}
 
-\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-note-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, rightrule=.15mm]
+\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
 
 \begin{itemize}
 \tightlist
