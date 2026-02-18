@@ -6,7 +6,7 @@ python:
   executable: .venv/bin/python
 
 book:
-  title: "Limits of AI peer review on real expert review data"
+  title: "How Well Do Frontier LLMs Evaluate Research? Evidence from Structured Expert Peer Review"
   author:
     - name: "Valentin Klotzbücher"
       orcid: 0000-0001-9382-6757
@@ -24,8 +24,6 @@ book:
       orcid: 0000-0001-5108-9250
       email: tianmai@uw.edu
       affiliation: "University of Washington"
-    # - name: "Casey Wimsatt"
-    # - name: "Lorenzo Pacchiardi"
   chapters:
     - index.qmd
     - results.qmd
@@ -38,7 +36,7 @@ book:
     - appendix_llm_traces.qmd
   date: last-modified
   abstract: |
-    We benchmark how frontier LLMs critique, rate, and prioritize research, comparing AI-generated evaluations to human expert assessments from The Unjournal. Human ratings serve as a reference signal—the core goal is measuring and diagnosing AI reasoning quality: understanding calibration, failure modes, and systematic "taste" differences between AI and human evaluators.
+    We evaluate how well frontier large language models (LLMs) can critique, rate, and prioritise research when constrained to the same structured rubric used in paid expert peer review. Using published evaluation packages from The Unjournal, we compare LLM-generated quantitative ratings (percentile scores with 90% credible intervals across seven criteria) and qualitative critiques to expert assessments for economics and social-science working papers. Human evaluations serve as a high-quality but noisy reference signal, allowing us to assess agreement while accounting for substantial inter-rater variability. Across models, we find moderate agreement with expert mean ratings, with the strongest-performing reasoning models approaching---though not reaching---the ceiling implied by human--human agreement. A consistent pattern is central compression: LLMs shrink extreme ratings toward the middle and often report narrower uncertainty than experts. On qualitative critique alignment, LLMs sometimes capture much of the expert-identified concern set but performance varies widely by paper, with frequent omissions of key issues and occasional emphasis on concerns not prioritised in expert syntheses. Cost differences across models are large, suggesting a practical tiered use: inexpensive models for rapid screening and stronger reasoners for deeper assessment, while retaining human oversight for high-stakes decisions. Overall, frontier LLMs can provide fast, structured evaluative signals, but systematic calibration and coverage gaps argue against fully automated peer review.
   repo-url: https://github.com/valentinklotzbuecher/llm-uj-research-eval
   downloads: [pdf]
   sidebar:
@@ -95,6 +93,7 @@ format:
     toc: false
     number-sections: false
     include-in-header: preamble.tex
+    latex-max-runs: 5
     link-citations: true
     keep-tex: true
     fig-cap-location: top

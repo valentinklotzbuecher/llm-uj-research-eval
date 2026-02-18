@@ -143,6 +143,7 @@
 % hyperref-colors.tex
 \usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage{caption}
 
 % Unjournal colours
 \definecolor{unjournalgreen}{HTML}{2D9D5E}
@@ -153,27 +154,17 @@
   colorlinks = true,
   linkcolor  = unjournalgreen,   % internal links (TOC, sections, refs)
   citecolor  = unjournalgreen,   % citations
-  urlcolor   = unjournalgreen    % URLs
+  urlcolor   = unjournalgreen,   % URLs
+  pdfpagelabels = false          % suppress PageLabels rerun loop
 }
+
+% Smaller figure/table captions
+\captionsetup{font=small, labelfont=bf}
 
 % --- Compact spacing for working paper ---
 \usepackage{titlesec}
 \titlespacing*{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{0.8ex plus 0.2ex}
 \titlespacing*{\subsection}{0pt}{1.2ex plus 0.3ex minus 0.2ex}{0.5ex plus 0.1ex}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
-\usepackage{xcolor}
 \makeatletter
 \@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
 \@ifpackageloaded{fontawesome5}{}{\usepackage{fontawesome5}}
@@ -238,7 +229,7 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={Limits of AI peer review on real expert review data},
+  pdftitle={How Well Do Frontier LLMs Evaluate Research? Evidence from Structured Expert Peer Review},
   pdfauthor={Valentin Klotzbücher; David Reinstein; Lorenzo Pacchiardi; Tianmai Michael Zhang},
   colorlinks=true,
   linkcolor={blue},
@@ -248,19 +239,37 @@
   pdfcreator={LaTeX via pandoc}}
 
 
-\title{Limits of AI peer review on real expert review data}
+\title{How Well Do Frontier LLMs Evaluate Research? Evidence from
+Structured Expert Peer Review}
 \author{Valentin Klotzbücher \and David Reinstein \and Lorenzo
 Pacchiardi \and Tianmai Michael Zhang}
 \date{2026-02-18}
 \begin{document}
 \maketitle
 \begin{abstract}
-We benchmark how frontier LLMs critique, rate, and prioritize research,
-comparing AI-generated evaluations to human expert assessments from The
-Unjournal. Human ratings serve as a reference signal---the core goal is
-measuring and diagnosing AI reasoning quality: understanding
-calibration, failure modes, and systematic ``taste'' differences between
-AI and human evaluators.
+We evaluate how well frontier large language models (LLMs) can critique,
+rate, and prioritise research when constrained to the same structured
+rubric used in paid expert peer review. Using published evaluation
+packages from The Unjournal, we compare LLM-generated quantitative
+ratings (percentile scores with 90\% credible intervals across seven
+criteria) and qualitative critiques to expert assessments for economics
+and social-science working papers. Human evaluations serve as a
+high-quality but noisy reference signal, allowing us to assess agreement
+while accounting for substantial inter-rater variability. Across models,
+we find moderate agreement with expert mean ratings, with the
+strongest-performing reasoning models approaching---though not
+reaching---the ceiling implied by human--human agreement. A consistent
+pattern is central compression: LLMs shrink extreme ratings toward the
+middle and often report narrower uncertainty than experts. On
+qualitative critique alignment, LLMs sometimes capture much of the
+expert-identified concern set but performance varies widely by paper,
+with frequent omissions of key issues and occasional emphasis on
+concerns not prioritised in expert syntheses. Cost differences across
+models are large, suggesting a practical tiered use: inexpensive models
+for rapid screening and stronger reasoners for deeper assessment, while
+retaining human oversight for high-stakes decisions. Overall, frontier
+LLMs can provide fast, structured evaluative signals, but systematic
+calibration and coverage gaps argue against fully automated peer review.
 \end{abstract}
 
 
@@ -268,7 +277,7 @@ AI and human evaluators.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-note-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, toprule=.15mm, left=2mm]
+\begin{tcolorbox}[enhanced jigsaw, colback=white, rightrule=.15mm, opacitybacktitle=0.6, toptitle=1mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, bottomtitle=1mm, toprule=.15mm, colbacktitle=quarto-callout-note-color!10!white, breakable, left=2mm, opacityback=0, coltitle=black, colframe=quarto-callout-note-color-frame, bottomrule=.15mm, arc=.35mm, leftrule=.75mm]
 
 This is an evolving working paper. Analysis, metrics, and comparisons
 are under active development.
@@ -316,10 +325,10 @@ as a live testing lab for prospective validation.
 
 A growing literature examines LLM-assisted peer review, error detection,
 and AI research evaluation; we survey this work in
-Section~\ref{sec-related-work}. Our approach differs from prior work by
-focusing on structured, percentile-based quantitative ratings with
-credible intervals, comparing against published human evaluations rather
-than using LLM-as-judge, and curating contamination-aware inputs.
+\hyperref[sec-related-work]{Appendix C}. Our approach differs from prior
+work by focusing on structured, percentile-based quantitative ratings
+with credible intervals, comparing against published human evaluations
+rather than using LLM-as-judge, and curating contamination-aware inputs.
 
 \textbf{Acknowledgements.}
 
@@ -345,48 +354,31 @@ both human and LLM evaluations. Each model receives the same PDF, system
 prompt mirroring The Unjournal rubric, and JSON schema requiring a
 diagnostic summary plus numeric midpoints and 90\% credible intervals
 for every metric. Full methodological details appear in
-\href{methods.qmd}{Data and Methods}.
+\href{methods.qmd}{Methods}.
 
-\textbf{Per-paper overview.} Figure~\ref{fig-forest-overall} displays
-individual human evaluator ratings (green circles with 90\% CIs)
-alongside the GPT-5 Pro LLM rating (orange diamond with CI) for each
-paper's overall score. Papers are ordered by human mean rating. Dotted
-lines mark grand means.
-
-\begin{figure}
-
-\caption{\label{fig-forest-overall}Per-paper overall ratings (0--100
-percentile). Green circles show individual human evaluator midpoints
-with 90\% credible intervals; the orange diamond shows the GPT-5 Pro
-rating with its CI. Papers are sorted left-to-right by descending human
-mean. Dotted lines mark grand means for each evaluator type.}
-
-\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-forest-overall-1.pdf}}
-
-\end{figure}%
-
-The spread of green circles within each paper column illustrates
-substantial human inter-rater variability---CIs often span 20--40
-points. In most cases the LLM diamond sits comfortably within the range
-of human opinions, though several papers show the LLM falling outside
-the human consensus.
-
-\textbf{Overall ratings.} Figure~\ref{fig-scatter-focal} compares
-overall ratings from GPT-5 Pro and Claude Opus 4.6---the two
-highest-performing reasoning models---against human mean ratings. Points
-on the diagonal indicate perfect agreement; distance from the line
-reflects disagreement.
+\textbf{Per-paper overview and model comparison.}
+Figure~\ref{fig-overview-combined} presents two complementary views of
+overall (0--100 percentile) ratings. Panel (a) displays individual human
+evaluator ratings alongside the GPT-5 Pro LLM rating for each paper,
+revealing inter-rater variability---CIs often span
+20--40\textasciitilde points. In most cases the LLM falls within the
+range of human opinions, though several papers show substantial
+divergence. Panel (b) compares the two highest-performing reasoning
+models directly against human mean ratings; points on the diagonal
+indicate perfect agreement.
 
 \begin{figure}
 
-\caption{\label{fig-scatter-focal}Human mean overall rating (x-axis) vs
-LLM overall rating (y-axis) for GPT-5 Pro and Claude Opus 4.6. Each
-point is one paper; the dashed diagonal is the identity line (perfect
-agreement). Points above the line indicate the LLM rated the paper
-higher than humans; points below indicate harsher LLM ratings. Paper
-labels are truncated for readability.}
+\caption{\label{fig-overview-combined}Per-paper overall ratings (0--100
+percentile). \textbf{(a)} Individual human evaluator midpoints (green
+circles) with 90\% credible intervals and GPT-5 Pro rating (orange
+diamond with CI) for each paper, sorted by descending human mean. Dotted
+lines mark grand means. \textbf{(b)} Human mean vs LLM overall rating
+for GPT-5 Pro and Claude Opus 4.6. Dashed diagonal is the identity line
+(perfect agreement); points above it indicate the LLM rated the paper
+higher.}
 
-\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-scatter-focal-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-overview-combined-1.pdf}}
 
 \end{figure}%
 
@@ -397,7 +389,8 @@ pattern consistent with alignment training that discourages extreme
 outputs. Where humans rate a paper very highly or very harshly, the LLM
 typically pulls toward the middle. Full agreement metrics including
 Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and RMSE for all six
-models appear in Table~\ref{tbl-agreement}.
+models appear in the \href{results_ratings.qmd}{agreement table in
+Appendix A}.
 
 \textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} places human
 rankings in the centre column with GPT-5 Pro on the left and Claude Opus
@@ -426,12 +419,12 @@ colour = LLM ranks it higher. Horizontal curves indicate agreement.}
 Papers where both curves slope the same direction indicate systematic
 human--LLM disagreement; papers where the two curves diverge indicate
 model-specific ``taste'' differences. The criteria-level Krippendorff's
-alpha analysis in Table~\ref{tbl-human-baseline} (a chance-corrected
-reliability coefficient that generalises across varying numbers of
-raters, missing data, and any measurement level; see
-\href{methods.qmd}{Methods} for a formal definition) quantifies where
-human--LLM agreement approaches the ceiling set by human inter-rater
-variability.
+alpha analysis in the \href{results_ratings.qmd}{human baseline table in
+Appendix A} (a chance-corrected reliability coefficient that generalises
+across varying numbers of raters, missing data, and any measurement
+level; see \href{methods.qmd}{Methods} for a formal definition)
+quantifies where human--LLM agreement approaches the ceiling set by
+human inter-rater variability.
 
 \textbf{Rating differences by paper and criterion.} While the scatter
 plots and slopegraph summarise agreement on a single dimension,
@@ -469,12 +462,11 @@ from each other, not just from humans.
 
 \textbf{Qualitative critique comparison.} Beyond numeric ratings, we
 compare the substantive critiques each model raises against the
-consensus issues identified by human experts.
-\textbf{?@fig-coverage-precision-main} plots coverage---the fraction of
-human-identified concerns that the LLM also raised in some
-form---against precision---the fraction of LLM-raised issues that
-correspond to a substantive human concern. These metrics are assessed by
-GPT-5.2 Pro acting as an independent judge (see
+consensus issues identified by human experts. The figure below plots
+coverage---the fraction of human-identified concerns that the LLM also
+raised in some form---against precision---the fraction of LLM-raised
+issues that correspond to a substantive human concern. These metrics are
+assessed by GPT-5.2 Pro acting as an independent judge (see
 \href{methods.qmd}{Methods} for the judging protocol).
 
 Coverage and precision vary substantially across papers. Some papers
@@ -497,6 +489,11 @@ all six models, and top disagreement cases, is reported in
 \href{results_ratings.qmd}{Appendix A: Results Ratings}. The full LLM
 reasoning traces and assessment summaries are available in
 \href{appendix_llm_traces.qmd}{Appendix C: LLM Traces}.
+
+All appendices, interactive figures, and full code are available at the
+companion website: \url{https://llm-uj-research-eval.netlify.app}.
+Source code and data are hosted at
+\url{https://github.com/valentinklotzbuecher/llm-uj-research-eval}.
 
 \bookmarksetup{startatroot}
 
@@ -762,7 +759,7 @@ and an LLM-assessed alignment report
 (\texttt{key\_issues\_comparison\_results.json}) containing per-paper
 coverage, precision, matched-pair explanations, and an overall quality
 rating. Together, these outputs feed the qualitative analysis presented
-in \textbf{?@sec-results-critiques}.
+in \href{results_critiques.qmd}{Appendix B: Critiques \& Key Issues}.
 
 \normalsize
 
@@ -781,19 +778,6 @@ donation: Estimating the cost of researchers' time spent on peer
 review,''} \emph{Research integrity and peer review}, 6 (2021), 1--8
 (Springer).
 
-\bibitem[\citeproctext]{ref-clancy2023returns}
-Clancy, Matt, {``\href{https://arxiv.org/abs/2312.14289}{The returns to
-science in the presence of technological risk},''} \emph{arXiv preprint
-arXiv:2312.14289}, (2023).
-
-\bibitem[\citeproctext]{ref-dycke2023}
-Dycke, Nils, Ilia Kuznetsov, and Iryna Gurevych,
-{``\href{https://aclanthology.org/2023.acl-long.277/}{{NLP}eer: A
-unified resource for the computational study of peer review},''} in
-\emph{Proceedings of the 61st annual meeting of the association for
-computational linguistics (volume 1: Long papers)}, Anna Rogers, Jordan
-Boyd-Graber, and Naoaki Okazaki, eds., 2023.
-
 \bibitem[\citeproctext]{ref-eger2025}
 Eger, Steffen, Yong Cao, Jennifer D'Souza, Andreas Geiger, Christian
 Greisinger, Stephanie Gross, Yufang Hou, Brigitte Krenn, Anne Lauscher,
@@ -803,23 +787,6 @@ with large language models: A survey on AI-assisted scientific
 discovery, experimentation, content generation, and evaluation},''}
 \emph{arXiv preprint arXiv:2505.05151}, (2025).
 
-\bibitem[\citeproctext]{ref-korinek2025ai}
-Korinek, Anton,
-{``\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5455842}{AI
-agents for economic research},''} \emph{SSRN Working Paper}, (2025).
-
-\bibitem[\citeproctext]{ref-Luo2025}
-Luo, Ziming, Zonglin Yang, Zexin Xu, Wei Yang, and Xinya Du,
-{``\href{https://arxiv.org/abs/2501.04306}{LLM4SR: A survey on large
-language models for scientific research},''} \emph{arXiv preprint
-arXiv:2501.04306}, (2025).
-
-\bibitem[\citeproctext]{ref-mitchener2025kosmos}
-Mitchener, Ludovico, Ethan Yiu, and others,
-{``\href{https://arxiv.org/abs/2511.02824}{Kosmos: An AI scientist for
-autonomous discovery},''} \emph{arXiv preprint arXiv:2511.02824},
-(2025).
-
 \bibitem[\citeproctext]{ref-Pataranutaporn2025}
 Pataranutaporn, Pat, Nattavudh Powdthavee, Chayapatr Achiwaranguprok,
 and Pattie Maes,
@@ -827,26 +794,6 @@ and Pattie Maes,
 solve the peer review crisis? A large scale cross model experiment of
 LLMs' performance and biases in evaluating over 1000 economics
 papers},''} 2025.
-
-\bibitem[\citeproctext]{ref-son2025flaws}
-Son, Jaeho, and others,
-{``\href{https://arxiv.org/abs/2511.21843}{FLAWS: A benchmark for error
-identification and localization in scientific papers},''} \emph{arXiv
-preprint arXiv:2511.21843}, (2025).
-
-\bibitem[\citeproctext]{ref-Zhang2025}
-Zhang, Tianmai M, and Neil F Abernethy,
-{``\href{https://arxiv.org/abs/2505.23824v2}{Reviewing scientific papers
-for critical problems with reasoning LLMs: Baseline approaches and
-automatic evaluation},''} \emph{arXiv preprint arXiv:2505.23824},
-(2025).
-
-\bibitem[\citeproctext]{ref-Zhang2025Replication}
-Zhang, Yaohui, Haijing Zhang, Wenlong Ji, Tianyu Hua, Nick Haber,
-Hancheng Cao, and Weixin Liang,
-{``\href{https://arxiv.org/abs/2506.11343v1}{From replication to
-redesign: Exploring pairwise comparisons for LLM-based peer review},''}
-\emph{arXiv preprint arXiv:2506.11343}, (2025).
 
 \end{CSLReferences}
 
@@ -857,464 +804,24 @@ redesign: Exploring pairwise comparisons for LLM-based peer review},''}
 
 \section{Results: Ratings}\label{results-ratings}
 
-We compare quantitative ratings from 6 frontier LLMs (GPT-5 Pro, GPT-5.2
-Pro, GPT-4o-mini, Claude Sonnet 4, Claude Opus 4.6, Gemini 2.0 Flash)
-against human expert reviews from
-\href{https://unjournal.pubpub.org}{The Unjournal}. 45 papers have both
-human and LLM evaluations, enabling direct comparison across all seven
-percentile criteria and two journal-tier predictions.
-
-We submit each PDF through a single, schema-enforced API call. The
-system prompt mirrors The Unjournal rubric, blocks extrinsic priors
-(authors, venue, web context), and requires strict JSON: a
-\textasciitilde1k-word diagnostic summary plus numeric midpoints and
-90\% credible intervals for every metric.\footnote{0--100 percentiles
-  relative to a reference group of \textasciitilde{}`all serious work
-  you have read in this area in the last three years', overall (global
-  quality/impact), claims\_evidence (claim clarity/support), methods
-  (design/identification/robustness), advancing\_knowledge (contribution
-  to field/practice), logic\_communication (internal consistency and
-  exposition), open\_science (reproducibility, data/code availability),
-  and global\_relevance (decision and priority usefulness). Journal
-  tiers: (0--5, continuous) capture where the work should publish
-  vs.~will publish.} Each numeric field carries a midpoint (model's 50\%
-belief) and a 90\% credible interval; wide intervals indicate
-acknowledged uncertainty.
-
-\textbf{Cost and token usage.} Token costs are computed from
-API-reported input/output tokens (GPT-5 Pro runs with \texttt{reasoning}
-= high).
-
-\begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2099}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.0864}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1235}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1358}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1728}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1358}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1358}}@{}}
-
-\caption{\label{tbl-cost-overview}Token usage and estimated cost per
-model}
-
-\tabularnewline
-
-\toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedright
-Model
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Papers
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Avg input
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Avg output
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Avg reasoning
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Total cost
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Cost/paper
-\end{minipage} \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Claude Opus 4.6 & 45 & 116,930 & 1,509 & --- & \$84.02 & \$1.867 \\
-GPT-5 Pro & 60 & 38,516 & 6,400 & 4,717 & \$57.71 & \$0.962 \\
-GPT-5.2 Pro & 14 & 45,143 & 2,889 & 707 & \$11.91 & \$0.850 \\
-Claude Sonnet 4 & 16 & 113,798 & 727 & --- & \$5.64 & \$0.352 \\
-GPT-4o-mini & 60 & 71,581 & 470 & --- & \$0.66 & \$0.011 \\
-Gemini 2.0 Flash & 60 & 18,084 & 1,024 & --- & \$0.10 & \$0.002 \\
-
-\end{longtable}
-
-Total cost across all 255 LLM evaluations: \textbf{\$160.03}.
-Reasoning-capable models (GPT-5 Pro, GPT-5.2 Pro, Claude Opus 4.6) cost
-substantially more per paper than their lighter counterparts
-(GPT-4o-mini, Gemini 2.0 Flash), raising practical questions about
-cost-quality trade-offs for deployment at scale.
-
-\textbf{Agreement metrics.} We assess agreement using Pearson \emph{r}
-(linear correlation), Spearman \emph{ρ} (rank-based, robust to
-outliers), mean bias (LLM − Human; positive = LLM rates higher), and
-RMSE/MAE (error magnitude). Full definitions of all statistics appear in
-\hyperref[methods]{Methods}.
-
-\begin{longtable}[]{@{}lrrrrrr@{}}
-
-\caption{\label{tbl-agreement}Agreement between each LLM and human mean
-ratings (overall criterion)}
-
-\tabularnewline
-
-\toprule\noalign{}
-Model & N & Pearson r & Spearman ρ & Mean bias & RMSE & MAE \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Claude Opus 4.6 & 33 & 0.567 & 0.477 & -7.6 & 17.2 & 12.4 \\
-GPT-5 Pro & 45 & 0.342 & 0.517 & +6.4 & 15.4 & 10.3 \\
-Gemini 2.0 Flash & 45 & 0.342 & 0.313 & -5.3 & 14.5 & 11.7 \\
-GPT-5.2 Pro & 9 & 0.333 & 0.471 & -2.7 & 19.0 & 14.7 \\
-GPT-4o-mini & 45 & 0.135 & 0.116 & +0.0 & 20.2 & 13.1 \\
-Claude Sonnet 4 & 11 & 0.020 & 0.055 & +0.2 & 9.5 & 6.9 \\
-
-\end{longtable}
-
-Table~\ref{tbl-agreement} reports correlation and error metrics between
-each LLM and the human mean overall rating. Positive mean bias indicates
-the model rates papers higher than humans on average; negative bias
-indicates harsher ratings. These correlations are bounded above by human
-inter-rater noise---since the human ``mean'' is itself noisy, no model
-can achieve a perfect correlation.
-
-\textbf{Human baseline context.} To interpret human-LLM agreement, we
-compare against human-human agreement as an upper bound. If human
-evaluators only agree with each other at α = 0.5, expecting LLMs to
-exceed that would be unrealistic. Table~\ref{tbl-human-baseline} shows
-α\textsubscript{HH} (Krippendorff's alpha among human evaluators)
-alongside α\textsubscript{HL} (between the human mean and each LLM).
-
-\begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1156}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.0340}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1156}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1293}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1293}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1565}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1565}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1633}}@{}}
-
-\caption{\label{tbl-human-baseline}Human-human vs Human-LLM agreement by
-criterion (Krippendorff's α)}
-
-\tabularnewline
-
-\toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedright
-Criterion
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HH
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HL (GPT-5 Pro)
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HL (GPT-5.2 Pro)
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HL (GPT-4o-mini)
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HL (Claude Sonnet 4)
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HL (Claude Opus 4.6)
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-α\_HL (Gemini 2.0 Flash)
-\end{minipage} \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Overall & 0.55 & 0.25 & 0.36 & 0.14 & 0.06 & 0.47 & 0.25 \\
-Claims & 0.42 & 0.20 & 0.26 & 0.19 & 0.21 & 0.26 & 0.18 \\
-Methods & 0.54 & 0.29 & 0.07 & 0.03 & -0.22 & 0.39 & 0.16 \\
-Adv. Knowledge & 0.20 & 0.18 & 0.20 & 0.13 & 0.06 & 0.32 & 0.07 \\
-Logic \& Comms & 0.33 & -0.04 & -0.19 & -0.00 & 0.26 & 0.09 & -0.03 \\
-Open Science & 0.03 & -0.06 & -0.61 & -0.16 & 0.25 & -0.18 & 0.03 \\
-Global Relevance & 0.33 & 0.25 & 0.51 & 0.04 & 0.06 & 0.18 & 0.17 \\
-
-\end{longtable}
-
-Where α\textsubscript{HL} approaches α\textsubscript{HH}, the LLM is
-performing at or near the ceiling set by human inter-rater variability.
-Criteria where α\textsubscript{HH} is already low (indicating genuine
-evaluator disagreement) naturally cap how well any model can do.
-Extended agreement analysis---including CI coverage, bootstrap
-confidence intervals, mutual information, and per-criterion
-correlations---is available in the supplementary material.
-
-\textbf{Criteria-level patterns.} Figure~\ref{fig-criteria-heatmap}
-displays the mean rating each evaluator type assigns across the seven
-criteria. Criteria where all models and humans converge (similar colour
-intensity) suggest robust agreement on that dimension; criteria with
-divergent columns indicate systematic differences in how humans and LLMs
-weigh that aspect of quality.
-
-\begin{figure}
-
-\caption{\label{fig-criteria-heatmap}Mean rating by evaluator type
-(rows) and criterion (columns), averaged across all matched papers. Tile
-colour scales from light (lower mean) to vivid orange (higher mean),
-clamped to 40--80. Criteria where all rows show similar colour intensity
-indicate broad agreement; divergent columns flag criteria-level
-systematic differences.}
-
-\pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-criteria-heatmap-1.pdf}}
-
-\end{figure}%
-
-\textbf{Additional models.} Figure~\ref{fig-scatter-other} shows overall
-ratings for the two lightweight models---GPT-4o-mini and Gemini 2.0
-Flash---against human mean ratings. These models cost 50--200× less per
-paper than reasoning-capable models (see Table~\ref{tbl-cost-overview})
-but may sacrifice rating accuracy.
-
-\begin{figure}
-
-\caption{\label{fig-scatter-other}Human mean overall rating (x-axis) vs
-LLM overall rating (y-axis) for the two lightweight models GPT-4o-mini
-and Gemini 2.0 Flash. Each point is one paper; the dashed diagonal is
-the identity line. These models cost 50--200× less per paper than
-reasoning-capable models (see cost table above).}
-
-\pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-scatter-other-1.pdf}}
-
-\end{figure}%
-
-For per-paper scatter plots, rank comparisons, and the gap heatmap
-showing Human − LLM differences by paper and criterion, see the
-\hyperref[results]{main Results chapter}. Extended reasoning traces are
-available in \href{appendix_llm_traces.qmd}{Appendix C: LLM Traces}.
+Extended ratings analysis (per-criterion correlations, agreement
+metrics, human baseline, cost--quality trade-offs) is available in the
+online supplement at
+\url{https://llm-uj-research-eval.netlify.app/results_ratings.html}.
 
 \section{Results: Critiques \& Key
 Issues}\label{results-critiques-key-issues}
 
-This chapter reports preliminary results from comparing LLM-identified
-key issues against human expert critiques. The analysis uses LLM-based
-assessment (GPT-5.2 Pro as judge) to measure coverage and precision;
-human validation of these alignment scores is underway.
-
-\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-warning-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-warning-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, toprule=.15mm, left=2mm]
-
-This section is under active development. Coverage and precision metrics
-below are LLM-assessed; manual annotation is in progress.
-
-\end{tcolorbox}
-
-\textbf{Data sources.} We compare GPT-5.2 Pro key issues (structured
-output from the focal evaluation run, January 2026) against human expert
-critiques curated from The Unjournal's internal tracking database, where
-evaluation managers synthesize evaluator feedback using severity labels
-(``Necessary'', ``Optional but important'', ``Unsure'').
-
-We matched \textbf{14 papers} with both GPT-5.2 Pro key issues and human
-expert critiques.
-
-\textbf{LLM-based assessment.} The comparison was assessed using GPT-5.2
-Pro, which evaluated coverage (what proportion of human concerns GPT
-identified) and precision (whether GPT issues are substantive).
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Coverage}: Proportion of \emph{consensus} human issues that
-  have any LLM match (match quality \textgreater= 30\%)
-\item
-  \textbf{Weighted Coverage}: Mean match quality across all human issues
-  (treating unmatched issues as 0\%)
-\item
-  \textbf{Precision}: Proportion of LLM issues that match a human
-  concern
-\end{itemize}
-
-\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-note-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, toprule=.15mm, left=2mm]
-
-``Precision'' only reflects whether LLM issues match the
-\emph{consensus} human issues curated in Coda---those prioritized by
-evaluation managers as the most important concerns. Many LLM-identified
-issues may have been noted by one or more individual human evaluators
-but were not included in this curated set. A low precision score does
-not necessarily mean the LLM raised irrelevant concerns; it may simply
-reflect issues that weren't prioritized in the consensus summary.
-
-\end{tcolorbox}
-
-\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-note-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, toprule=.15mm, left=2mm]
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Coverage}: Percentage of human-identified issues that GPT also
-  captured (in some form). Higher = GPT missed fewer human concerns.
-\item
-  \textbf{Precision}: Percentage of GPT issues that are substantive
-  rather than generic or spurious. Higher = GPT's critiques are more
-  targeted.
-\item
-  \textbf{Overall Rating}: Qualitative assessment
-  (Excellent/Good/Moderate/Poor) based on both coverage and precision
-  metrics.
-\end{itemize}
-
-\end{tcolorbox}
-
-The coverage-precision figure above shows substantial variation across
-papers: some papers achieve high coverage and precision, while others
-show the LLM missing key human concerns or raising issues not in the
-expert consensus. Paper-by-paper comparisons with matched issue pairs,
-structural difference tables, and the manual annotation tool are
-available in the
-\href{https://llm-uj-research-eval.netlify.app/results_critiques.html}{full
-online version}.
+Detailed paper-by-paper critique comparisons (matched issue pairs,
+severity labels, structural differences) are available in the online
+supplement at
+\url{https://llm-uj-research-eval.netlify.app/results_critiques.html}.
 
 \section{Supplementary Material}\label{supplementary-material}
 
-\subsection{Related Work}\label{sec-related-work}
-
-\subsubsection{AI practical research
-applications}\label{ai-practical-research-applications}
-
-Luo et al. (\citeproc{ref-Luo2025}{2025}) survey LLM roles from idea
-generation to peer review, including experiment planning and automated
-scientific writing. They highlight opportunities (productivity, coverage
-of long documents) alongside governance needs (provenance, detection of
-LLM-generated content, standardizing tooling) and call for reliable
-evaluation frameworks.
-
-Korinek (\citeproc{ref-korinek2025ai}{2025}) considers the specific
-potential for using AI in economic research, offering ``working examples
-and step-by-step code'' to help economists use agents for literature
-reviews, econometric code, fetching and analyzing economic data, and
-coordinate complex research workflows. He advocates economists using AI
-tools to boost productivity and ``to understand {[}these tools'{]}
-capabilities and limitations.'' He calls for human researcher oversight
-``to ensure {[}these tools{]} pursue the right objectives and maintain
-research integrity''. He outlines a range of current limitations and
-open questions (outlined
-\href{https://docs.google.com/document/d/1CVNnG6Jw3gr1sbI9Z_vIIJ1BI9O-8-Eev6D2j22vaeg/edit?tab=t.0\#heading=h.9pcc2azfjlro}{here}),
-including hallucinations, mistakes compounding through multi-agent
-workflows and ``brittleness to small variations in prompts''. At the
-higher level, he argues ``the questions that will matter most---what
-problems deserve investigation, how should we evaluate trade-offs, what
-constitutes progress---will remain irreducibly human.''
-
-Mitchener, Yiu, et al. (\citeproc{ref-mitchener2025kosmos}{2025})
-present Kosmos, ``an AI scientist for autonomous discovery''. However,
-evaluations reveal important limitations: Kosmos was found to be only
-57\% accurate in statements that required interpretation of results, and
-``identifying valuable discoveries Kosmos made is a time-intensive
-process that relies on human scientists with significant domain
-expertise.''
-
-\subsubsection{AI peer review, error detection, and research
-evaluation}\label{ai-peer-review-error-detection-and-research-evaluation}
-
-Son et al. (\citeproc{ref-son2025flaws}{2025}) evaluates LLMs on 83
-papers paired with 91 confirmed significant scientific errors. Their
-strongest (OpenAI o3) model identified only 21.1\% of these errors, with
-only 6.1\% precision---domain experts found most false positives were
-hallucinations or student-level misconceptions.
-
-Eger et al. (\citeproc{ref-eger2025}{2025}) provide a broad review of
-LLMs in science and a focused discussion of AI-assisted peer review.
-They argue: (i) peer-review data is scarce and concentrated in
-CS/OpenReview venues; (ii) targeted assistance that preserves human
-autonomy is preferable to end-to-end reviewing; and (iii) ethics and
-governance (bias, provenance, detection of AI-generated text) are
-first-class constraints.
-
-Dycke, Kuznetsov, and Gurevych (\citeproc{ref-dycke2023}{2023}) present
-NLPEER, a ``multidomain corpus'' of more than 5000 papers and 11k review
-reports from 2012 to 2022 from five different venues.
-
-Zhang and Abernethy (\citeproc{ref-Zhang2025}{2025}) propose deploying
-LLMs as quality checkers to surface critical problems instead of
-generating full narrative reviews. Using papers from WITHDRARXIV and an
-automatic evaluation framework that leverages ``LLM-as-judge,'' they
-find the best performance from top reasoning models but still recommend
-human oversight.
-
-Pataranutaporn et al. (\citeproc{ref-Pataranutaporn2025}{2025}) asked
-four nearly state-of-the-art LLM models to consider 1220 unique papers
-drawn from 110 economics journals excluded from the training data of
-current LLMs. They find general alignment between LLM ratings and RePEC
-journal rankings, mixed results on detecting AI-generated papers, and
-evidence that LLMs show biases towards named high-prestige male authors
-and elite institutions.
-
-Zhang et al. (\citeproc{ref-Zhang2025Replication}{2025}) use AI
-conference paper data and LLM agents for pairwise manuscript
-comparisons, finding this approach outperforms traditional rating-based
-methods for identifying high-impact papers by citation metrics, though
-with some evidence of biases favoring established research institutions.
-
-\subsubsection{AI research taste and potential to guide
-research}\label{ai-research-taste-and-potential-to-guide-research}
-
-A key motivation for this work stems from broader claims about AI's
-potential to accelerate scientific discovery. If AI systems are to
-contribute meaningfully to research---not just as tools but as
-evaluators and potential collaborators---we need to understand their
-``taste'': what they value, what they miss, and whether their priorities
-align with human expert judgment and real-world research impact. This
-connects to broader debates about the returns to science in the presence
-of technological risk (\citeproc{ref-clancy2023returns}{Clancy 2023}).
-
-\subsection{Extended Rating Analysis}\label{extended-rating-analysis}
-
-The main text reports six core exhibits: cost overview, human-vs-LLM
-scatter plot, agreement metrics, human baseline (Krippendorff's alpha),
-criteria-level heatmap, and gap heatmap. The following extended analyses
-are preserved in the project's git history and available in earlier
-rendered versions:
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Krippendorff's alpha by criterion}: Inter-rater agreement
-  treating human mean and each LLM as separate raters
-\item
-  \textbf{CI coverage analysis}: Share of human mean ratings falling
-  within LLM 90\% credible intervals
-\item
-  \textbf{Bootstrap 95\% CIs}: Nonparametric confidence intervals for
-  Pearson correlations
-\item
-  \textbf{Mutual information}: Information-theoretic measure of
-  human-LLM rating dependence
-\item
-  \textbf{Per-criterion correlations}: Pearson and Spearman by
-  evaluation criterion and model
-\item
-  \textbf{Tier correlation dumbbell plot}: How criteria predict journal
-  tier judgments for humans vs.~LLMs
-\item
-  \textbf{Top disagreement cases}: Papers with largest human-LLM rating
-  differences
-\item
-  \textbf{Prompt comparison}: Legacy vs.~updated GPT-5 Pro prompt effect
-  on ratings
-\end{itemize}
-
-\subsection{Extended Critique
-Analysis}\label{extended-critique-analysis}
-
-The main text reports coverage-precision scatter and summary statistics.
-The following extended analyses are available in the
-\href{https://llm-uj-research-eval.netlify.app/results_critiques.html}{full
-online version}:
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Paper-by-paper issue comparisons}: Interactive collapsible
-  panels showing matched issue pairs, unmatched human/LLM issues, and
-  detailed discussion for each paper
-\item
-  \textbf{Aggregate statistics}: Total issue counts by severity, human
-  vs.~LLM issue distributions
-\item
-  \textbf{Observable structural differences}: Format, structure,
-  attribution, and length comparisons
-\item
-  \textbf{Manual annotation tool}: Browser-based UI for systematic
-  concordance labeling
-\end{itemize}
-
-\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
-
-\emph{The per-paper LLM evaluation traces below are only available in
-the
-\href{https://llm-uj-research-eval.netlify.app/appendix_llm_traces.html}{online
-HTML version}.}
+Full LLM reasoning traces, assessment summaries, related work, and
+extended analyses are available in the online supplement at
+\url{https://llm-uj-research-eval.netlify.app/appendix_llm_traces.html}.
 
 
 

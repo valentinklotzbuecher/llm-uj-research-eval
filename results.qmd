@@ -396,7 +396,7 @@ p_scatter <- if (nrow(scatter_data) > 0) {
 p_forest / p_scatter + plot_layout(heights = c(1, 0.85))
 ```
 
-Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in @tbl-agreement.
+Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in the [agreement table in Appendix A](results_ratings.qmd).
 
 **Rank comparison.** @fig-rankslope-main places human rankings in the centre column with GPT-5 Pro on the left and Claude Opus 4.6 on the right. Each paper appears as a pair of S-curves connecting its human rank to its rank under each LLM. Horizontal curves indicate agreement; curves that climb toward the top indicate the LLM ranked the paper higher (better) than humans did. Colour encodes the rank shift: green when humans rank it higher, orange/purple when the LLM does. The triptych layout makes it easy to spot papers where both LLMs agree with each other but disagree with humans (both curves slope the same way), versus papers where the two LLMs diverge.
 
@@ -530,7 +530,7 @@ if (n_papers_slope > 0) {
 }
 ```
 
-Papers where both curves slope the same direction indicate systematic human--LLM disagreement; papers where the two curves diverge indicate model-specific "taste" differences. The criteria-level Krippendorff's alpha analysis in @tbl-human-baseline (a chance-corrected reliability coefficient that generalises across varying numbers of raters, missing data, and any measurement level; see [Methods](methods.qmd) for a formal definition) quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
+Papers where both curves slope the same direction indicate systematic human--LLM disagreement; papers where the two curves diverge indicate model-specific "taste" differences. The criteria-level Krippendorff's alpha analysis in the [human baseline table in Appendix A](results_ratings.qmd) (a chance-corrected reliability coefficient that generalises across varying numbers of raters, missing data, and any measurement level; see [Methods](methods.qmd) for a formal definition) quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
 
 **Rating differences by paper and criterion.** While the scatter plots and slopegraph summarise agreement on a single dimension, @fig-gap-heatmap-main unpacks Human − LLM differences across all seven criteria simultaneously. Each column is a paper, each row a criterion, and tile colour encodes the signed difference (human mean minus LLM midpoint). Green tiles indicate the human panel rated the paper higher; orange tiles indicate the LLM was more generous. Papers are sorted by GPT-5 Pro's overall difference so that both panels share the same column order, making model-specific patterns immediately visible.
 
@@ -622,7 +622,7 @@ if (length(ord_p) > 0) {
 
 Rows with uniformly green or orange tiles indicate papers where humans and the LLM disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases---for instance, if "Open Science" is green across nearly all papers, humans may systematically reward data-sharing practices more than the LLM does. Comparing the two panels reveals whether disagreement patterns are model-specific or shared across frontier LLMs; tiles that change colour between panels highlight papers where the models diverge from each other, not just from humans.
 
-**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. @fig-coverage-precision-main plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against precision---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see [Methods](methods.qmd) for the judging protocol).
+**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against precision---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see [Methods](methods.qmd) for the judging protocol).
 
 ```{r}
 #| label: load-critique-data
