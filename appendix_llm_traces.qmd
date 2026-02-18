@@ -1,7 +1,66 @@
 ---
-title: "LLM Evaluation Details"
+title: "Supplementary Material"
+execute:
+  eval: !expr knitr::is_html_output()
 ---
 
+## Related Work {#sec-related-work}
+
+### AI practical research applications
+
+@Luo2025 survey LLM roles from idea generation to peer review, including experiment planning and automated scientific writing. They highlight opportunities (productivity, coverage of long documents) alongside governance needs (provenance, detection of LLM-generated content, standardizing tooling) and call for reliable evaluation frameworks.
+
+@korinek2025ai considers the specific potential for using AI in economic research, offering "working examples and step-by-step code" to help economists use agents for literature reviews, econometric code, fetching and analyzing economic data, and coordinate complex research workflows. He advocates economists using AI tools to boost productivity and "to understand \[these tools'\] capabilities and limitations." He calls for human researcher oversight "to ensure \[these tools\] pursue the right objectives and maintain research integrity". He outlines a range of current limitations and open questions (outlined [here](https://docs.google.com/document/d/1CVNnG6Jw3gr1sbI9Z_vIIJ1BI9O-8-Eev6D2j22vaeg/edit?tab=t.0#heading=h.9pcc2azfjlro)), including hallucinations, mistakes compounding through multi-agent workflows and "brittleness to small variations in prompts". At the higher level, he argues "the questions that will matter most---what problems deserve investigation, how should we evaluate trade-offs, what constitutes progress---will remain irreducibly human."
+
+@mitchener2025kosmos present Kosmos, "an AI scientist for autonomous discovery". However, evaluations reveal important limitations: Kosmos was found to be only 57% accurate in statements that required interpretation of results, and "identifying valuable discoveries Kosmos made is a time-intensive process that relies on human scientists with significant domain expertise."
+
+### AI peer review, error detection, and research evaluation
+
+@son2025flaws evaluates LLMs on 83 papers paired with 91 confirmed significant scientific errors. Their strongest (OpenAI o3) model identified only 21.1% of these errors, with only 6.1% precision---domain experts found most false positives were hallucinations or student-level misconceptions.
+
+@eger2025 provide a broad review of LLMs in science and a focused discussion of AI-assisted peer review. They argue: (i) peer-review data is scarce and concentrated in CS/OpenReview venues; (ii) targeted assistance that preserves human autonomy is preferable to end-to-end reviewing; and (iii) ethics and governance (bias, provenance, detection of AI-generated text) are first-class constraints.
+
+@dycke2023 present NLPEER, a "multidomain corpus" of more than 5000 papers and 11k review reports from 2012 to 2022 from five different venues.
+
+@Zhang2025 propose deploying LLMs as quality checkers to surface critical problems instead of generating full narrative reviews. Using papers from WITHDRARXIV and an automatic evaluation framework that leverages "LLM-as-judge," they find the best performance from top reasoning models but still recommend human oversight.
+
+@Pataranutaporn2025 asked four nearly state-of-the-art LLM models to consider 1220 unique papers drawn from 110 economics journals excluded from the training data of current LLMs. They find general alignment between LLM ratings and RePEC journal rankings, mixed results on detecting AI-generated papers, and evidence that LLMs show biases towards named high-prestige male authors and elite institutions.
+
+@Zhang2025Replication use AI conference paper data and LLM agents for pairwise manuscript comparisons, finding this approach outperforms traditional rating-based methods for identifying high-impact papers by citation metrics, though with some evidence of biases favoring established research institutions.
+
+### AI research taste and potential to guide research
+
+A key motivation for this work stems from broader claims about AI's potential to accelerate scientific discovery. If AI systems are to contribute meaningfully to research---not just as tools but as evaluators and potential collaborators---we need to understand their "taste": what they value, what they miss, and whether their priorities align with human expert judgment and real-world research impact. This connects to broader debates about the returns to science in the presence of technological risk [@clancy2023returns].
+
+## Extended Rating Analysis
+
+The main text reports six core exhibits: cost overview, human-vs-LLM scatter plot, agreement metrics, human baseline (Krippendorff's alpha), criteria-level heatmap, and gap heatmap. The following extended analyses are preserved in the project's git history and available in earlier rendered versions:
+
+- **Krippendorff's alpha by criterion**: Inter-rater agreement treating human mean and each LLM as separate raters
+- **CI coverage analysis**: Share of human mean ratings falling within LLM 90% credible intervals
+- **Bootstrap 95% CIs**: Nonparametric confidence intervals for Pearson correlations
+- **Mutual information**: Information-theoretic measure of human-LLM rating dependence
+- **Per-criterion correlations**: Pearson and Spearman by evaluation criterion and model
+- **Tier correlation dumbbell plot**: How criteria predict journal tier judgments for humans vs. LLMs
+- **Top disagreement cases**: Papers with largest human-LLM rating differences
+- **Prompt comparison**: Legacy vs. updated GPT-5 Pro prompt effect on ratings
+
+## Extended Critique Analysis
+
+The main text reports coverage-precision scatter and summary statistics. The following extended analyses are available in the [full online version](https://llm-uj-research-eval.netlify.app/results_critiques.html):
+
+- **Paper-by-paper issue comparisons**: Interactive collapsible panels showing matched issue pairs, unmatched human/LLM issues, and detailed discussion for each paper
+- **Aggregate statistics**: Total issue counts by severity, human vs. LLM issue distributions
+- **Observable structural differences**: Format, structure, attribution, and length comparisons
+- **Manual annotation tool**: Browser-based UI for systematic concordance labeling
+
+---
+
+::: {.content-visible when-format="pdf"}
+*The per-paper LLM evaluation traces below are only available in the [online HTML version](https://llm-uj-research-eval.netlify.app/appendix_llm_traces.html).*
+:::
+
+::: {.content-visible when-format="html"}
 This appendix presents detailed LLM evaluations for each paper, including:
 
 - **Numerical ratings** from all available models and human evaluators
@@ -38,6 +97,7 @@ MODEL_DIRS <- list(
   "gpt52_pro_focal_jan2026" = "GPT-5.2 Pro",
   "gpt_4o_mini_2024_07_18" = "GPT-4o-mini",
   "claude_sonnet_4_20250514" = "Claude Sonnet 4",
+  "claude_opus_4_6" = "Claude Opus 4.6",
   "gemini_2.0_flash" = "Gemini 2.0 Flash"
 )
 
@@ -83,12 +143,15 @@ parse_paper_json <- function(path, model_name) {
   tryCatch({
     r <- jsonlite::fromJSON(path, simplifyVector = FALSE)
 
-    # Extract parsed metrics
+    # Extract parsed metrics (check r$parsed first, then output_text)
     parsed <- NULL
-    if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
-      parsed <- jsonlite::fromJSON(r$output_text, simplifyVector = TRUE)
-    } else if (!is.null(r$parsed)) {
+    if (!is.null(r$parsed) && length(r$parsed) > 0) {
       parsed <- r$parsed
+    } else if (!is.null(r$output_text) && nchar(r$output_text) > 0) {
+      txt <- r$output_text
+      txt <- sub("^\\s*```[a-z]*\\s*\n?", "", txt)
+      txt <- sub("\\s*```\\s*$", "", txt)
+      parsed <- jsonlite::fromJSON(txt, simplifyVector = TRUE)
     } else if (!is.null(r$output)) {
       msg <- purrr::detect(r$output, ~ .x$type == "message", .default = NULL)
       if (!is.null(msg) && length(msg$content) > 0) {
@@ -102,7 +165,7 @@ parse_paper_json <- function(path, model_name) {
       rows <- list()
       for (nm in names(parsed$metrics)) {
         m <- parsed$metrics[[nm]]
-        if (nm %in% c("tier_should", "tier_will")) {
+        if (nm %in% c("tier_should", "tier_will", "journal_should", "journal_will")) {
           rows[[length(rows) + 1]] <- tibble(
             metric = nm,
             midpoint = m$score,
@@ -443,3 +506,5 @@ for (paper in c(focal_in_corpus, other_papers)) {
   cat("\n---\n\n")
 }
 ```
+
+:::
