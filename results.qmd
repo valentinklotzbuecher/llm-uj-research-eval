@@ -269,17 +269,20 @@ n_matched <- length(matched_papers)
 primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
 ```
 
-We evaluate `r n_llm_models` frontier LLMs against human expert reviews from [The Unjournal](https://unjournal.pubpub.org) for `r n_matched` papers with both human and LLM evaluations. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in [Data and Methods](methods.qmd).
+We evaluate `r n_llm_models` frontier LLMs against human expert reviews from [The Unjournal](https://unjournal.pubpub.org) for `r n_matched` papers with both human and LLM evaluations. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in [Methods](methods.qmd).
 
-**Per-paper overview.** @fig-forest-overall displays individual human evaluator ratings (green circles with 90% CIs) alongside the GPT-5 Pro LLM rating (orange diamond with CI) for each paper's overall score. Papers are ordered by human mean rating. Dotted lines mark grand means.
+**Per-paper overview and model comparison.** @fig-overview-combined presents two complementary views of overall (0--100 percentile) ratings. Panel (a) displays individual human evaluator ratings alongside the GPT-5 Pro LLM rating for each paper, revealing inter-rater variability---CIs often span 20--40~points. In most cases the LLM falls within the range of human opinions, though several papers show substantial divergence. Panel (b) compares the two highest-performing reasoning models directly against human mean ratings; points on the diagonal indicate perfect agreement.
 
 ```{r}
-#| label: fig-forest-overall
-#| fig-cap: "Per-paper overall ratings (0\u2013100 percentile). Green circles show individual human evaluator midpoints with 90% credible intervals; the orange diamond shows the GPT-5 Pro rating with its CI. Papers are sorted left-to-right by descending human mean. Dotted lines mark grand means for each evaluator type."
+#| label: fig-overview-combined
+#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with 90% credible intervals and GPT-5 Pro rating (orange diamond with CI) for each paper, sorted by descending human mean. Dotted lines mark grand means. **(b)** Human mean vs LLM overall rating for GPT-5 Pro and Claude Opus 4.6. Dashed diagonal is the identity line (perfect agreement); points above it indicate the LLM rated the paper higher."
 #| fig-width: 14
-#| fig-height: 7
+#| fig-height: 12
 #| code-fold: true
 
+library("patchwork")
+
+# ── Panel (a): Forest plot ──
 H_ind <- metrics_human |>
   filter(criteria == "overall", paper %in% matched_papers) |>
   mutate(
@@ -317,7 +320,7 @@ L_c <- llm_metrics |>
 hbar <- mean(ord$h_mean, na.rm = TRUE)
 lbar <- mean(L_c$mid, na.rm = TRUE)
 
-if (nrow(L_c) > 0) {
+p_forest <- if (nrow(L_c) > 0) {
   ggplot() +
     geom_vline(data = ord, aes(xintercept = pos), color = "grey92", linewidth = 0.3) +
     geom_hline(yintercept = hbar, color = UJ_GREEN, linetype = "dotted", linewidth = 0.8) +
@@ -339,7 +342,7 @@ if (nrow(L_c) > 0) {
       expand = expansion(mult = c(0.01, 0.03))
     ) +
     coord_cartesian(ylim = c(0, 100), clip = "off") +
-    labs(x = NULL, y = "Percentile (0\u2013100)") +
+    labs(x = NULL, y = "Percentile (0\u2013100)", tag = "(a)") +
     theme_uj() +
     annotate("text", x = 4, y = 40,
              label = sprintf("Means \u2014 Human: %.1f   LLM: %.1f", hbar, lbar),
@@ -348,23 +351,14 @@ if (nrow(L_c) > 0) {
       axis.text.x = element_text(angle = 55, hjust = 1, vjust = 1, size = 9),
       axis.title.y = element_text(size = 12),
       panel.grid.major.x = element_blank(),
-      plot.margin = margin(5, 40, 5, 5)
+      plot.margin = margin(5, 40, 5, 5),
+      plot.tag = element_text(face = "bold", size = 14)
     )
 } else {
-  cat("Insufficient data for forest plot.\n")
+  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Insufficient data") + theme_void()
 }
-```
 
-The spread of green circles within each paper column illustrates substantial human inter-rater variability---CIs often span 20--40 points. In most cases the LLM diamond sits comfortably within the range of human opinions, though several papers show the LLM falling outside the human consensus.
-
-**Overall ratings.** @fig-scatter-focal compares overall ratings from GPT-5 Pro and Claude Opus 4.6---the two highest-performing reasoning models---against human mean ratings. Points on the diagonal indicate perfect agreement; distance from the line reflects disagreement.
-
-```{r}
-#| label: fig-scatter-focal
-#| fig-cap: "Human mean overall rating (x-axis) vs LLM overall rating (y-axis) for GPT-5 Pro and Claude Opus 4.6. Each point is one paper; the dashed diagonal is the identity line (perfect agreement). Points above the line indicate the LLM rated the paper higher than humans; points below indicate harsher LLM ratings. Paper labels are truncated for readability."
-#| fig-width: 11
-#| fig-height: 6
-
+# ── Panel (b): Scatter plot ──
 focal_models <- c("GPT-5 Pro", "Claude Opus 4.6")
 
 scatter_data <- llm_metrics |>
@@ -380,7 +374,7 @@ scatter_data <- llm_metrics |>
   ) |>
   filter(!is.na(human_mid), !is.na(midpoint))
 
-if (nrow(scatter_data) > 0) {
+p_scatter <- if (nrow(scatter_data) > 0) {
   ggplot(scatter_data, aes(x = human_mid, y = midpoint, color = model)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
     geom_point(size = 3.5, alpha = 0.7) +
@@ -388,12 +382,18 @@ if (nrow(scatter_data) > 0) {
     scale_color_manual(values = MODEL_COLORS) +
     coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
     facet_wrap(~model, ncol = 2) +
-    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = NULL) +
+    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = NULL, tag = "(b)") +
     theme_uj() +
-    theme(strip.text = element_text(size = 13, face = "bold"))
+    theme(
+      strip.text = element_text(size = 13, face = "bold"),
+      plot.tag = element_text(face = "bold", size = 14)
+    )
 } else {
-  cat("No matching data for scatter plot.\n")
+  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "No matching data") + theme_void()
 }
+
+# ── Combine ──
+p_forest / p_scatter + plot_layout(heights = c(1, 0.85))
 ```
 
 Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in @tbl-agreement.
@@ -694,3 +694,7 @@ if (has_critique_data) {
 Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; manual validation through our annotation tool is underway and preliminary results are consistent with the automated scores.
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis, including per-criterion correlations, bootstrap confidence intervals, mutual information, tier prediction accuracy, cost-quality trade-offs across all six models, and top disagreement cases, is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
+
+::: {.content-visible when-format="pdf"}
+All appendices, interactive figures, and full code are available at the companion website: <https://llm-uj-research-eval.netlify.app>. Source code and data are hosted at <https://github.com/valentinklotzbuecher/llm-uj-research-eval>.
+:::

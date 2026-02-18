@@ -145,14 +145,15 @@
 \usepackage{hyperref}
 
 % Unjournal colours
-\definecolor{unjournalgreen}{HTML}{99BB66}
-\definecolor{unjournalorange}{HTML}{F19E4B}
+\definecolor{unjournalgreen}{HTML}{2D9D5E}
+\definecolor{unjournalorange}{HTML}{E8722A}
+\definecolor{unjournalblue}{HTML}{2B7CE9}
 
 \hypersetup{
   colorlinks = true,
   linkcolor  = unjournalgreen,   % internal links (TOC, sections, refs)
-  citecolor  = unjournalorange,  % citations
-  urlcolor   = unjournalorange   % URLs
+  citecolor  = unjournalgreen,   % citations
+  urlcolor   = unjournalgreen    % URLs
 }
 
 % --- Compact spacing for working paper ---
@@ -267,7 +268,7 @@ AI and human evaluators.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-note-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, toprule=.15mm, left=2mm]
 
 This is an evolving working paper. Analysis, metrics, and comparisons
 are under active development.
@@ -354,8 +355,11 @@ lines mark grand means.
 
 \begin{figure}
 
-\caption{\label{fig-forest-overall}Per-paper overall ratings: individual
-human evaluators (green) vs GPT-5 Pro (orange)}
+\caption{\label{fig-forest-overall}Per-paper overall ratings (0--100
+percentile). Green circles show individual human evaluator midpoints
+with 90\% credible intervals; the orange diamond shows the GPT-5 Pro
+rating with its CI. Papers are sorted left-to-right by descending human
+mean. Dotted lines mark grand means for each evaluator type.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-forest-overall-1.pdf}}
 
@@ -375,8 +379,12 @@ reflects disagreement.
 
 \begin{figure}
 
-\caption{\label{fig-scatter-focal}Human vs LLM overall ratings: GPT-5
-Pro and Claude Opus 4.6}
+\caption{\label{fig-scatter-focal}Human mean overall rating (x-axis) vs
+LLM overall rating (y-axis) for GPT-5 Pro and Claude Opus 4.6. Each
+point is one paper; the dashed diagonal is the identity line (perfect
+agreement). Points above the line indicate the LLM rated the paper
+higher than humans; points below indicate harsher LLM ratings. Paper
+labels are truncated for readability.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-scatter-focal-1.pdf}}
 
@@ -391,61 +399,59 @@ typically pulls toward the middle. Full agreement metrics including
 Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and RMSE for all six
 models appear in Table~\ref{tbl-agreement}.
 
-\textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} contrasts the
-relative \emph{ranking} of papers under human vs LLM scoring for GPT-5
-Pro (left) and Claude Opus 4.6 (right). Each paper is a curve connecting
-its human rank (left axis) to its LLM rank (right axis). Horizontal
-lines indicate agreement; orange curves slope upward where the LLM ranks
-a paper higher than humans did, and green curves slope downward where
-humans rank it higher.
+\textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} places human
+rankings in the centre column with GPT-5 Pro on the left and Claude Opus
+4.6 on the right. Each paper appears as a pair of S-curves connecting
+its human rank to its rank under each LLM. Horizontal curves indicate
+agreement; curves that climb toward the top indicate the LLM ranked the
+paper higher (better) than humans did. Colour encodes the rank shift:
+green when humans rank it higher, orange/purple when the LLM does. The
+triptych layout makes it easy to spot papers where both LLMs agree with
+each other but disagree with humans (both curves slope the same way),
+versus papers where the two LLMs diverge.
 
 \begin{figure}
 
-\caption{\label{fig-rankslope-main}Relative ranking (overall): GPT-5 Pro
-(left) and Claude Opus 4.6 (right) vs Human evaluators}
+\caption{\label{fig-rankslope-main}Triptych slopegraph of paper rankings
+(overall criterion). Centre column shows human mean ranking; left and
+right columns show GPT-5 Pro and Claude Opus 4.6 rankings respectively.
+Each paper is connected by S-shaped curves; colour intensity encodes the
+magnitude of rank shift (Δrank). Green = humans rank it higher; warm
+colour = LLM ranks it higher. Horizontal curves indicate agreement.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-rankslope-main-1.pdf}}
 
 \end{figure}%
 
-Many papers sit close to horizontal, indicating broad agreement on
-relative quality. However, several show pronounced rank shifts---orange
-curves mark papers the LLM considers top-tier that humans placed lower,
-while green curves highlight the reverse. Comparing the two panels
-reveals whether rank disagreements are idiosyncratic to a single model
-or reflect systematic ``taste'' differences shared across LLMs. The
-criteria-level Krippendorff's alpha analysis in
-Table~\ref{tbl-human-baseline} quantifies where human--LLM agreement
-approaches the ceiling set by human inter-rater variability.
+Papers where both curves slope the same direction indicate systematic
+human--LLM disagreement; papers where the two curves diverge indicate
+model-specific ``taste'' differences. The criteria-level Krippendorff's
+alpha analysis in Table~\ref{tbl-human-baseline} (a chance-corrected
+reliability coefficient that generalises across varying numbers of
+raters, missing data, and any measurement level; see
+\href{methods.qmd}{Methods} for a formal definition) quantifies where
+human--LLM agreement approaches the ceiling set by human inter-rater
+variability.
 
-\textbf{Qualitative critique comparison.} Beyond numeric ratings, we
-compare the substantive critiques each model raises against the
-consensus issues identified by human experts. The figure below plots
-coverage (what fraction of human concerns the LLM also identified)
-against precision (what fraction of LLM-raised issues correspond to
-human concerns) for each paper, as assessed by GPT-5.2 Pro acting as
-judge.
-
-Coverage and precision vary substantially across papers. Some papers
-achieve high scores on both dimensions, indicating strong alignment
-between human and LLM critiques, while others reveal the LLM missing key
-human concerns or raising issues absent from the expert consensus. These
-metrics are themselves LLM-assessed (GPT-5.2 Pro as judge); human
-validation through manual annotation is underway. Detailed
-paper-by-paper comparisons with matched issue pairs appear in
-\href{results_critiques.qmd}{Appendix: Critiques \& Key Issues}.
-
-\textbf{Rating differences by paper.} Figure~\ref{fig-gap-heatmap-main}
-shows Human − LLM differences for each paper and criterion for GPT-5 Pro
-(left) and Claude Opus 4.6 (right). Green tiles indicate humans rated
-higher; orange indicates the LLM rated higher. Papers are ordered by
-GPT-5 Pro's overall rating difference so the two panels are directly
-comparable.
+\textbf{Rating differences by paper and criterion.} While the scatter
+plots and slopegraph summarise agreement on a single dimension,
+Figure~\ref{fig-gap-heatmap-main} unpacks Human − LLM differences across
+all seven criteria simultaneously. Each column is a paper, each row a
+criterion, and tile colour encodes the signed difference (human mean
+minus LLM midpoint). Green tiles indicate the human panel rated the
+paper higher; orange tiles indicate the LLM was more generous. Papers
+are sorted by GPT-5 Pro's overall difference so that both panels share
+the same column order, making model-specific patterns immediately
+visible.
 
 \begin{figure}
 
-\caption{\label{fig-gap-heatmap-main}Human − LLM rating differences by
-paper and criterion (GPT-5 Pro and Claude Opus 4.6)}
+\caption{\label{fig-gap-heatmap-main}Human minus LLM rating difference
+for every paper (columns) and criterion (rows), comparing GPT-5 Pro
+(left panel) and Claude Opus 4.6 (right panel). Green tiles indicate the
+human mean was higher; orange tiles indicate the LLM rated the paper
+higher. Colour is clamped to ±30 percentile points. Papers are sorted by
+GPT-5 Pro overall difference so the two panels are directly comparable.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-gap-heatmap-main-1.pdf}}
 
@@ -453,14 +459,44 @@ paper and criterion (GPT-5 Pro and Claude Opus 4.6)}
 
 Rows with uniformly green or orange tiles indicate papers where humans
 and the LLM disagree systematically across all criteria, not just on one
-dimension. Columns with consistent colour suggest criteria-level biases.
-Comparing the two panels reveals whether disagreement patterns are
-model-specific or shared across frontier LLMs---tiles that change colour
-between panels highlight papers where the models diverge from each
-other, not just from humans. Extended statistical analysis---including
-Krippendorff's alpha, bootstrap confidence intervals, mutual
-information, tier correlations, and top disagreement cases---is
-available in \href{results_ratings.qmd}{Appendix A: Results Ratings}.
+dimension. Columns with consistent colour suggest criteria-level
+biases---for instance, if ``Open Science'' is green across nearly all
+papers, humans may systematically reward data-sharing practices more
+than the LLM does. Comparing the two panels reveals whether disagreement
+patterns are model-specific or shared across frontier LLMs; tiles that
+change colour between panels highlight papers where the models diverge
+from each other, not just from humans.
+
+\textbf{Qualitative critique comparison.} Beyond numeric ratings, we
+compare the substantive critiques each model raises against the
+consensus issues identified by human experts.
+\textbf{?@fig-coverage-precision-main} plots coverage---the fraction of
+human-identified concerns that the LLM also raised in some
+form---against precision---the fraction of LLM-raised issues that
+correspond to a substantive human concern. These metrics are assessed by
+GPT-5.2 Pro acting as an independent judge (see
+\href{methods.qmd}{Methods} for the judging protocol).
+
+Coverage and precision vary substantially across papers. Some papers
+achieve high scores on both dimensions, indicating strong alignment
+between human and LLM critiques, while others reveal the LLM missing key
+human concerns or raising issues absent from the expert consensus.
+Because these metrics are themselves LLM-assessed, they should be
+interpreted with the caveat that an LLM judge may systematically over-
+or under-credit matches relative to a human annotator; manual validation
+through our annotation tool is underway and preliminary results are
+consistent with the automated scores.
+
+Detailed paper-by-paper comparisons---including matched issue pairs with
+severity labels, structural difference tables, and per-evaluator
+breakdowns---appear in \href{results_critiques.qmd}{Appendix B:
+Critiques \& Key Issues}. Extended quantitative analysis, including
+per-criterion correlations, bootstrap confidence intervals, mutual
+information, tier prediction accuracy, cost-quality trade-offs across
+all six models, and top disagreement cases, is reported in
+\href{results_ratings.qmd}{Appendix A: Results Ratings}. The full LLM
+reasoning traces and assessment summaries are available in
+\href{appendix_llm_traces.qmd}{Appendix C: LLM Traces}.
 
 \bookmarksetup{startatroot}
 
@@ -526,195 +562,207 @@ evaluation quality beyond either alone.
 
 \bookmarksetup{startatroot}
 
-\section{Data and methods}\label{data-and-methods}
+\section{Methods}\label{methods}
 
 \small
 
-We draw on two sources: human evaluations from
+This chapter describes the data sources, evaluation pipeline, prompt
+design, and statistical methods used throughout. All Python code
+underlying the pipeline is preserved in the collapsible blocks below and
+can be executed to reproduce the evaluation runs.
+
+\textbf{Sample and human reference data.} We draw on published
+evaluations from
 \href{https://unjournal.github.io/unjournaldata/index.html}{The
-Unjournal's public evaluation data}, and LLM-generated evaluations
-produced by prompting frontier models with The Unjournal's rubric and
-requiring structured JSON output. We compare six models spanning three
-providers: GPT-5 Pro, GPT-5.2 Pro, and GPT-4o-mini (OpenAI); Claude
-Sonnet 4 and Claude Opus 4.6 (Anthropic); and Gemini 2.0 Flash (Google).
-Each model returns a midpoint rating and 90\% credible interval for
-every metric, enforced by a strict JSON Schema.
+Unjournal}, an open-access platform that commissions expert reviews of
+policy-relevant research without requiring journal submission. Each
+paper is typically assessed by two independent evaluators (occasionally
+one or three), who provide a written critique resembling a referee
+report together with quantitative ratings on seven criteria scored as
+percentiles (0--100) relative to ``all serious research in the same area
+encountered in the last three years.''\footnote{The seven criteria are:
+  \emph{overall assessment}, \emph{claims and evidence}, \emph{methods},
+  \emph{advancing knowledge and practice}, \emph{logic and
+  communication}, \emph{open and collaborative science}, and
+  \emph{relevance to global priorities}. Full definitions are given in
+  The Unjournal's
+  \href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators}{guidelines
+  for evaluators}.} Evaluators additionally predict the journal tier in
+which the work ``should'' and ``will'' publish, using a 0--5 continuous
+scale anchored to familiar venue categories (0 = unpublishable, 5 =
+top-5 journal). For each metric, evaluators report a midpoint (median of
+their belief distribution) and a 90\% credible interval that expresses
+their epistemic uncertainty.
 
-\subsection{Unjournal.org evaluations}\label{unjournal.org-evaluations}
+The sample comprises working papers spanning 2017--2025 in development
+economics, health policy, environmental economics, and related fields
+that The Unjournal identified as high-impact. All papers have completed
+The Unjournal's full evaluation process, meaning the authors received
+evaluations that have been publicly posted. For our analysis we
+extracted the individual evaluator scores, aggregated them by taking the
+arithmetic mean per paper per criterion, and retained the range of
+individual scores to characterise inter-rater spread.
 
-We use The Unjournal's public data for a baseline comparison. At The
-Unjournal each paper is typically evaluated (aka `reviewed') by two
-expert evaluators\footnote{Occasionally they use 1 or 3 evaluators.} who
-provide quantitative ratings on a 0--100 percentile scale for each of
-seven criteria (with 90\% credible intervals),\footnote{See their
-  guidelines
-  \href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators\#quantitative-metrics}{here};
-  these criteria include ``Overall assessment'', ``Claims, strength and
-  characterization of evidence'', ``Methods: Justification,
-  reasonableness, validity, robustness'', ``Advancing knowledge and
-  practice'', ``Logic and communication'', ``Open, collaborative,
-  replicable science'', and ``Relevance to global priorities, usefulness
-  for practitioners''} two ``journal tier'' ratings on a 0.0 - 5.0
-scale,\footnote{``a normative judgment about `how well the research
-  should publish'\,'' and ``a prediction about where the research will
-  be published''} a written evaluation (resembling a referee report for
-a journal), and identification and assessment of the paper's ``main
-claim''. For our initial analysis, we extracted these human ratings and
-aggregated them, taking the average score per criterion across
-evaluators (and noting the range of individual scores).
+\textbf{LLM evaluation pipeline.} We evaluate six frontier models
+spanning three providers: GPT-5 Pro and GPT-5.2 Pro (OpenAI,
+reasoning-capable), GPT-4o-mini (OpenAI, lightweight), Claude Sonnet 4
+and Claude Opus 4.6 (Anthropic), and Gemini 2.0 Flash (Google). Each
+model receives the identical PDF file, system prompt, and output schema.
+We pass the PDF directly to the model's native multimodal input rather
+than extracting text, preserving tables, figures, equations, and layout
+cues that ad-hoc scraping could mangle. A single API call per paper
+avoids hand-offs and summary loss from multi-stage pipelines.
 
-All papers have completed The Unjournal's evaluation process (meaning
-the authors received a full evaluation on the Unjournal platform, which
-has been publicly posted at unjournal.pubpub.org). The sample includes
-papers spanning 2017--2025 working papers in development economics,
-growth, health policy, environmental economics, and related fields that
-The Unjournal identified as high-impact. Each of these papers has
-quantitative scores from at least one human evaluator, and many have
-multiple (2-3) human ratings.
+The output is constrained by a strict JSON Schema enforcing the same
+nine fields that human evaluators complete: seven percentile metrics
+(each with \texttt{midpoint}, \texttt{lower\_bound},
+\texttt{upper\_bound}) and two journal-tier predictions (each with
+\texttt{score}, \texttt{ci\_lower}, \texttt{ci\_upper}). Additionally,
+the model produces an \texttt{assessment\_summary} of approximately
+1,000 words that must precede scoring---a ``think first, score second''
+protocol designed to ground numeric ratings in specific textual
+evidence. The extended schema used for our GPT-5.2 Pro focal run adds a
+\texttt{key\_issues} array of concise, ranked issue statements for
+downstream critique comparison.
 
-\subsection{LLM-based evaluation}\label{llm-based-evaluation}
+\textbf{Agreement and reliability statistics.} We quantify human--LLM
+agreement using several complementary measures. \emph{Pearson's r}
+captures linear association between paired ratings and is sensitive to
+proportional biases but not to constant offsets. \emph{Spearman's ρ}
+measures rank-order agreement and is robust to outliers and non-linear
+monotone relationships. \emph{Mean bias} (LLM minus human) indicates the
+direction and magnitude of any systematic offset. \emph{Root mean
+squared error} (RMSE) and \emph{mean absolute error} (MAE) measure
+typical prediction error in the original scale units; RMSE penalises
+large deviations more heavily. To contextualise human--LLM agreement we
+report \emph{Krippendorff's alpha} (\(\alpha\)), a chance-corrected
+reliability coefficient that generalises across varying numbers of
+raters, accommodates missing data, and applies to any measurement level
+(nominal, ordinal, interval, or ratio). An \(\alpha\) of 1 indicates
+perfect agreement, 0 indicates agreement no better than chance, and
+values below 0 indicate systematic disagreement. We compute
+\(\alpha_{\text{HH}}\) (among human evaluators only) as a ceiling: if
+human evaluators agree with each other at only \(\alpha = 0.5\) on a
+given criterion, expecting an LLM to exceed that level would be
+unrealistic. We then report \(\alpha_{\text{HL}}\) (between the human
+mean and each LLM) to assess how close machine ratings come to this
+ceiling. For the qualitative key-issue comparison, \emph{coverage}
+denotes the fraction of human-identified issues that received a match
+score \(\geq 30\%\) from the LLM judge, and \emph{precision} denotes the
+fraction of LLM-generated issues that matched at least one human issue.
 
-Following The Unjournal's
-\href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators}{standard
-guidelines for evaluators} and their
-\href{https://coda.io/form/Unjournal-Evaluation-form-academic-stream-Coda-updated-version_dGjfMZ1yXME}{academic
-evaluation form}, evaluators are asked to consider each paper along the
-following dimensions: \textbf{claims \& evidence}, \textbf{methods},
-\textbf{logic \& communication}, \textbf{open science}, \textbf{global
-relevance}, and an \textbf{overall} assessment. Ratings are interpreted
-as percentiles relative to serious recent work in the same area. For
-each metric, evaluators are asked for the midpoint of their beliefs and
-their 90\% credible interval, to communicate their uncertainty. For the
-journal rankings measure, we ask both ``what journal ranking tier should
-this work be published in? (0.0-5.0)'' and ``what journal ranking tier
-will this work be published in? (0.0-5.0)'', with some further
-explanation.The full prompt can be seen in the code below -- essentially
-copied from the Unjournal's guidelines page.
+\textbf{JSON Schema.} The output schema enforces that every paper is
+scored on identical fields with identical types and bounds. Credible
+intervals are required (paralleling the human protocol) so that the
+model can express genuine uncertainty rather than suggest false
+precision.
 
-We captured the versions of each paper that was evaluated by The
-Unjournal's human evaluators, downloading from the links provided in The
-Unjournal's Coda database.
-
-We evaluate each paper by passing the PDF directly to the model and
-requiring a strict, machine‑readable JSON output. This keeps the
-assessment tied to the document the authors wrote. Direct ingestion
-preserves tables, figures, equations, and sectioning, which ad‑hoc text
-scraping can mangle. It also avoids silent trimming or segmentation
-choices that would bias what the model sees.
-
-\subsubsection{JSON Schema}\label{json-schema}
-
-We enforce a strict JSON Schema for the output. The model must return
-one object for each metric, including a midpoint rating and a 90\%
-credible interval. This guarantees that every paper is scored on the
-same fields with the same types and bounds. We request credible
-intervals (as we do for human evaluators) to allow the model to
-communicate its uncertainty rather than suggest false precision.
-
-\subsubsection{System Prompt}\label{system-prompt}
-
-The system prompt is built from modular sections and concatenated before
-each API call. We instruct the model to act as an expert evaluator,
-explicitly blocking the use of author reputation, publication venue, or
-prior knowledge of the paper's reception. Before scoring, the prompt
-requires a \textasciitilde1,000-word diagnostic summary (``think first,
-score second'') that identifies methodological issues and guides
-subsequent ratings.
+\textbf{System prompt design.} The system prompt is assembled from
+modular components and concatenated before each API call. It opens with
+a role definition instructing the model to act as an expert research
+evaluator, followed by a debiasing block that explicitly prohibits use
+of author identity, institutional prestige, publication venue, or any
+extrinsic information---the model must base all judgments on the PDF
+content alone. A diagnostic-summary instruction requires the model to
+produce a roughly 1,000-word assessment identifying methodological,
+evidential, and interpretive issues \emph{before} any scoring,
+implementing a ``think first, score second'' protocol intended to anchor
+numeric ratings in specific textual evidence.
 
 Percentile ratings are anchored to the reference group ``all serious
-research in the same area encountered in the last three years.'' The
-prompt defines each of the seven criteria following The Unjournal's
+research in the same area encountered in the last three years,''
+following The Unjournal's
 \href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators}{guidelines
-for evaluators}, with emphasis on global priorities and practical
-relevance over pure academic novelty.
+for evaluators}. The prompt defines each of the seven criteria with
+emphasis on global priorities and practical relevance over pure academic
+novelty, mirroring the weight structure that human Unjournal evaluators
+are asked to apply.
 
-The prompt also explains how to construct 90\% credible intervals (to
-encourage calibrated uncertainty rather than artificially narrow
-intervals), requests journal tier predictions on a 0--5 scale (providing
-an external benchmark for papers that eventually publish), and includes
-self-consistency checks requiring numeric scores to align with the
-written assessment.
+Subsequent prompt components instruct the model on constructing 90\%
+credible intervals---the smallest interval the evaluator believes is
+90\% likely to contain the true value---encouraging calibrated
+uncertainty rather than artificially narrow bounds. The prompt requests
+journal-tier predictions on a 0--5 continuous scale anchored to familiar
+venue categories (0 = unpublishable through 5 = top-5 journal),
+providing an externally verifiable benchmark for papers that eventually
+publish. A validation block then requires the model to verify internal
+consistency: numeric scores must align with the written assessment,
+credible intervals must be non-degenerate, and high or low ratings must
+be explicitly justified in the assessment summary.
 
-These sections are concatenated to form the complete system prompt:
+The components above are concatenated into a single system prompt string
+before each API call:
 
-The \texttt{evaluate\_paper} function uploads a PDF to the API and
-submits a background job for evaluation:
+\textbf{Submission and collection.} The \texttt{evaluate\_paper}
+function uploads a PDF to the API and submits a background job for
+evaluation. File IDs are cached by path, size, and modification time so
+that re-running on the same PDF reuses the previously uploaded file.
 
-Relying on GPT-5 Pro, we use a single‑step call with a reasoning model
-that supports file input. One step avoids hand‑offs and summary loss
-from a separate ``ingestion'' stage. The model reads the whole PDF and
-produces the JSON defined above. We do not retrieve external sources or
-cross‑paper material for these scores; the evaluation is anchored in the
-manuscript itself.
+Each model receives the full PDF in a single reasoning call, avoiding
+hand-offs and summary loss from multi-stage ingestion. We submit one
+background job per paper to the OpenAI Responses API with ``high''
+reasoning effort and server-side JSON-Schema enforcement, recording the
+response ID, model, file ID, status, and timestamps in a jobs index. No
+external sources or cross-paper material are retrieved; the evaluation
+is anchored entirely in the manuscript itself.
 
-The Python pipeline uploads each PDF once and caches the returned file
-id keyed by path, size, and modification time. We submit one background
-job per PDF to the OpenAI Responses API with ``high'' reasoning effort
-and server‑side JSON‑Schema enforcement. Submissions record the response
-id, model id, file id, status, and timestamps.
+A polling loop then checks each job's status and, for completed jobs,
+retrieves the raw JSON response object and writes it to disk alongside
+reasoning-trace metadata (token counts, reasoning summary).
 
-We then polls job status and, for each completed job, retrieve the raw
-JSON object, and write the responses to disk.
+\textbf{Multi-model evaluation.} To assess whether systematic biases or
+calibration differences emerge across architectures, we collect
+evaluations from six models spanning three providers. For OpenAI models
+that lack background-job or extended-reasoning support (e.g.,
+GPT-4o-mini), we use a synchronous call variant:
 
-\subsubsection{Multi-Model Evaluation}\label{multi-model-evaluation}
+\textbf{Anthropic.} Anthropic's API accepts PDFs as base64-encoded
+document content rather than uploaded file IDs, and all calls are
+synchronous. We use Claude's native PDF support to preserve the same
+multimodal evaluation approach:
 
-To compare model performance, we collect evaluations from multiple
-providers. This allows us to assess whether different models exhibit
-systematic biases or calibration differences.
+\textbf{Google.} Google's Gemini API accepts PDFs via a file-upload
+endpoint with MIME-type tagging:
 
-For OpenAI models without reasoning (e.g., GPT-4o), we use a simpler
-synchronous call:
+A unified runner dispatches evaluations across all configured providers
+and writes per-model output directories:
 
-Anthropic's API differs from OpenAI: PDFs are passed as base64-encoded
-content, and calls are synchronous (no background jobs). We use Claude's
-native PDF support.
+\textbf{Focal run with key-issue extraction.} For a subset of 14 papers
+with rich human critiques, we ran an extended evaluation using GPT-5.2
+Pro. The schema for this focal run adds a \texttt{key\_issues} array---a
+ranked list of concise issue statements identifying the most important
+methodological, interpretive, or evidential concerns---alongside the
+standard metrics. This structured output enables direct comparison
+between machine-generated and human-identified issues.
 
-Google's Gemini API supports PDF via file upload:
+\textbf{Key-issue comparison with human critiques.} To validate how well
+the LLM identifies substantive concerns, we compare its
+\texttt{key\_issues} output against human expert critiques drawn from
+The Unjournal's Coda database. These human critiques---produced by paid
+domain experts and synthesized by evaluation managers---provide a
+high-quality but noisy reference standard for issue identification;
+accordingly, we treat them as a comparative signal rather than ground
+truth.
 
-A unified runner collects evaluations from all providers:
+The comparison proceeds in two stages. First, we parse and align the
+data sources: LLM key issues are extracted from the focal-run JSON
+responses, while human critiques are drawn from a manually curated
+markdown document pairing each paper's machine and expert assessments.
+Second, we use an LLM judge (GPT-5.2 Pro with schema-enforced structured
+output) to systematically assess the degree of alignment between each
+human-identified issue and the set of machine-generated issues,
+producing issue-by-issue match scores, coverage estimates (fraction of
+human issues captured), and precision estimates (fraction of LLM issues
+that are genuinely substantive).
 
-\subsubsection{GPT-5.2 Pro Focal Run (with Key
-Issues)}\label{gpt-5.2-pro-focal-run-with-key-issues}
-
-This section evaluates 14 focal papers using GPT-5.2 Pro with an
-extended schema that outputs a numbered list of key issues alongside the
-standard metrics.
-
-\subsubsection{Key Issues Comparison with Human
-Critiques}\label{key-issues-comparison-with-human-critiques}
-
-To validate how well the LLM identifies substantive issues, we compare
-its \texttt{key\_issues} output against human expert critiques from The
-Unjournal's Coda database. Human expert critiques provide a high-quality
-reference standard for issue identification: they are produced by paid
-domain experts and synthesized by evaluation managers, but remain noisy
-and incomplete, so we treat them as a comparative signal rather than
-ground truth.
-
-The comparison proceeds in two stages: first, we extract and align the
-data sources; then, optionally, we use an LLM to systematically assess
-the degree of alignment between machine-generated and human-identified
-issues.
-
-The comparison pipeline uses a manually curated input and produces
-structured outputs:
-
-\textbf{Input:} - \textbf{\texttt{results/key\_issues\_comparison.md}}:
-A manually curated markdown document pairing GPT-identified issues with
-human expert critiques for each paper.
-
-\textbf{Outputs:} -
-\textbf{\texttt{results/key\_issues\_comparison.json}}: Parsed data in
-JSON format for programmatic use. -
-\textbf{\texttt{results/key\_issues\_comparison\_results.json}}:
-LLM-assessed alignment metrics including coverage, precision, missed
-issues, and overall ratings.
-
-The coverage metric estimates what fraction of human-identified issues
-the LLM captured; precision estimates what fraction of LLM issues are
-genuinely relevant. Together with the qualitative ratings, these provide
-a structured assessment of how well the LLM's issue identification
-aligns with expert judgment.
+The comparison pipeline takes a manually curated markdown file pairing
+each paper's LLM issues with human critiques and produces two structured
+outputs: a parsed JSON dataset (\texttt{key\_issues\_comparison.json})
+and an LLM-assessed alignment report
+(\texttt{key\_issues\_comparison\_results.json}) containing per-paper
+coverage, precision, matched-pair explanations, and an overall quality
+rating. Together, these outputs feed the qualitative analysis presented
+in \textbf{?@sec-results-critiques}.
 
 \normalsize
 
@@ -889,7 +937,8 @@ cost-quality trade-offs for deployment at scale.
 \textbf{Agreement metrics.} We assess agreement using Pearson \emph{r}
 (linear correlation), Spearman \emph{ρ} (rank-based, robust to
 outliers), mean bias (LLM − Human; positive = LLM rates higher), and
-RMSE/MAE (error magnitude).
+RMSE/MAE (error magnitude). Full definitions of all statistics appear in
+\hyperref[methods]{Methods}.
 
 \begin{longtable}[]{@{}lrrrrrr@{}}
 
@@ -991,7 +1040,12 @@ weigh that aspect of quality.
 
 \begin{figure}
 
-\caption{\label{fig-criteria-heatmap}Mean rating by model and criterion}
+\caption{\label{fig-criteria-heatmap}Mean rating by evaluator type
+(rows) and criterion (columns), averaged across all matched papers. Tile
+colour scales from light (lower mean) to vivid orange (higher mean),
+clamped to 40--80. Criteria where all rows show similar colour intensity
+indicate broad agreement; divergent columns flag criteria-level
+systematic differences.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-criteria-heatmap-1.pdf}}
 
@@ -1005,8 +1059,11 @@ but may sacrifice rating accuracy.
 
 \begin{figure}
 
-\caption{\label{fig-scatter-other}Human vs LLM overall ratings:
-GPT-4o-mini and Gemini 2.0 Flash}
+\caption{\label{fig-scatter-other}Human mean overall rating (x-axis) vs
+LLM overall rating (y-axis) for the two lightweight models GPT-4o-mini
+and Gemini 2.0 Flash. Each point is one paper; the dashed diagonal is
+the identity line. These models cost 50--200× less per paper than
+reasoning-capable models (see cost table above).}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-scatter-other-1.pdf}}
 
@@ -1025,7 +1082,7 @@ key issues against human expert critiques. The analysis uses LLM-based
 assessment (GPT-5.2 Pro as judge) to measure coverage and precision;
 human validation of these alignment scores is underway.
 
-\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-warning-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-warning-color-frame, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-warning-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-warning-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, toprule=.15mm, left=2mm]
 
 This section is under active development. Coverage and precision metrics
 below are LLM-assessed; manual annotation is in progress.
@@ -1058,7 +1115,7 @@ identified) and precision (whether GPT issues are substantive).
   concern
 \end{itemize}
 
-\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-note-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, toprule=.15mm, left=2mm]
 
 ``Precision'' only reflects whether LLM issues match the
 \emph{consensus} human issues curated in Coda---those prioritized by
@@ -1070,7 +1127,7 @@ reflect issues that weren't prioritized in the consensus summary.
 
 \end{tcolorbox}
 
-\begin{tcolorbox}[enhanced jigsaw, bottomtitle=1mm, left=2mm, colback=white, breakable, rightrule=.15mm, bottomrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, titlerule=0mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, toptitle=1mm, leftrule=.75mm, coltitle=black, toprule=.15mm, arc=.35mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, toptitle=1mm, breakable, opacityback=0, colback=white, rightrule=.15mm, opacitybacktitle=0.6, colbacktitle=quarto-callout-note-color!10!white, bottomrule=.15mm, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, bottomtitle=1mm, titlerule=0mm, arc=.35mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, toprule=.15mm, left=2mm]
 
 \begin{itemize}
 \tightlist
