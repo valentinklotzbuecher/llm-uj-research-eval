@@ -25,19 +25,19 @@ library("purrr")
 library("tibble")
 # library("plotly")  # removed: all figures are now static ggplot
 
-# Theme and colors
-UJ_ORANGE <- "#f19e4b"   # LLM primary
-UJ_GREEN  <- "#99bb66"   # Human
-UJ_BLUE   <- "#4e79a7"
+# Theme and colors — refreshed palette (crisper, higher contrast)
+UJ_ORANGE <- "#e8863a"   # warmer, saturated amber
+UJ_GREEN  <- "#5a9e3c"   # deeper leaf green
+UJ_BLUE   <- "#3b6d9c"   # slightly deeper steel
 
 MODEL_COLORS <- c(
-  "GPT-5 Pro" = "#f19e4b",
-  "GPT-5.2 Pro" = "#c9302c",
-  "GPT-4o-mini" = "#74aa9c",
-  "Claude Sonnet 4" = "#d4a574",
-  "Claude Opus 4.6" = "#8b5cf6",
-  "Gemini 2.0 Flash" = "#7986cb",
-  "Human" = "#99bb66"
+  "GPT-5 Pro"        = "#e8863a",   # warm amber (focal)
+  "GPT-5.2 Pro"      = "#c9302c",   # red
+  "GPT-4o-mini"      = "#2da882",   # teal green
+  "Claude Sonnet 4"  = "#b07ce8",   # lighter purple
+  "Claude Opus 4.6"  = "#7c3aed",   # vivid purple
+  "Gemini 2.0 Flash" = "#5471b0",   # clear blue
+  "Human"            = "#5a9e3c"    # leaf green
 )
 
 theme_uj <- function(base_size = 11) {
@@ -343,14 +343,11 @@ if (nrow(llm_tokens) > 0) {
 
 Total cost across all `r total_evaluations` LLM evaluations: **`r scales::dollar(total_cost, accuracy = 0.01)`**. Reasoning-capable models (GPT-5 Pro, GPT-5.2 Pro, Claude Opus 4.6) cost substantially more per paper than their lighter counterparts (GPT-4o-mini, Gemini 2.0 Flash), raising practical questions about cost-quality trade-offs for deployment at scale.
 
-**Overall ratings.** Each point in @fig-scatter represents a paper, with human mean rating on the x-axis and LLM rating on the y-axis. Points on the diagonal indicate perfect agreement. Human means carry their own variance; correlations are bounded by human inter-rater noise.
-
 ```{r}
-#| label: fig-scatter
-#| fig-cap: "Human vs LLM overall ratings"
-#| fig-width: 10
-#| fig-height: 8
+#| label: scatter-data-prep
+#| include: false
 
+# Prepare scatter_data for tbl-agreement (figure in main Results chapter)
 scatter_data <- llm_metrics |>
   filter(criteria == "overall") |>
   inner_join(human_avg, by = "paper") |>
@@ -363,24 +360,7 @@ scatter_data <- llm_metrics |>
     upper_bound = coalesce(upper_bound, midpoint)
   ) |>
   filter(!is.na(human_mid), !is.na(midpoint))
-
-if (nrow(scatter_data) > 0) {
-
-  ggplot(scatter_data, aes(x = human_mid, y = midpoint, color = model)) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-    geom_point(size = 3.5, alpha = 0.7) +
-    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.2, max.overlaps = 8, show.legend = FALSE) +
-    scale_color_manual(values = MODEL_COLORS) +
-    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
-    labs(x = "Human mean rating (0–100)", y = "LLM rating (0–100)", color = "Model") +
-    theme_uj()
-
-} else {
-  cat("No matching data for scatter plot.\n")
-}
 ```
-
-Most models cluster around the identity line in the 40--80 range, but diverge more at the extremes---LLMs tend to compress ratings toward the centre of the scale relative to humans, producing smaller spread. Outlier papers (those far from the diagonal) merit qualitative investigation; we flag the largest disagreements in the supplementary material.
 
 **Agreement metrics.** We assess agreement using Pearson *r* (linear correlation), Spearman *ρ* (rank-based, robust to outliers), mean bias (LLM − Human; positive = LLM rates higher), and RMSE/MAE (error magnitude).
 
@@ -536,80 +516,42 @@ if (nrow(criteria_means) > 0) {
 }
 ```
 
-```{r}
-#| label: set-primary-model
-#| include: false
-
-# Define primary model for use across subsequent chunks
-primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
-```
-
-**Systematic rating differences.** @fig-gap-heatmap shows Human − LLM differences for each paper and criterion (primary model: GPT-5 Pro). Green indicates humans rated higher; orange indicates the LLM rated higher. Papers are ordered by their overall rating difference.
+**Additional models.** @fig-scatter-other shows overall ratings for the two lightweight models---GPT-4o-mini and Gemini 2.0 Flash---against human mean ratings. These models cost 50--200× less per paper than reasoning-capable models (see @tbl-cost-overview) but may sacrifice rating accuracy.
 
 ```{r}
-#| label: fig-gap-heatmap
-#| fig-cap: "Human − LLM rating differences by paper and criterion"
-#| fig-width: 14
-#| fig-height: 8
-#| code-fold: true
+#| label: fig-scatter-other
+#| fig-cap: "Human vs LLM overall ratings: GPT-4o-mini and Gemini 2.0 Flash"
+#| fig-width: 11
+#| fig-height: 5.5
 
-metric_order <- c("overall", "claims", "methods", "adv_knowledge",
-                  "logic_comms", "open_sci", "gp_relevance")
-metric_lab <- c(
-  overall = "Overall",
-  claims = "Claims & Evidence",
-  methods = "Methods",
-  adv_knowledge = "Adv. Knowledge",
-  logic_comms = "Logic & Comms",
-  open_sci = "Open Science",
-  gp_relevance = "Global Relevance"
-)
+other_models <- c("GPT-4o-mini", "Gemini 2.0 Flash")
 
-# Use the first/primary LLM model for comparison (GPT-5 Pro if available)
-primary_model <- if ("GPT-5 Pro" %in% unique(llm_metrics$model)) "GPT-5 Pro" else unique(llm_metrics$model)[1]
+scatter_other <- llm_metrics |>
+  filter(criteria == "overall", model %in% other_models) |>
+  inner_join(human_avg, by = "paper") |>
+  mutate(
+    diff = midpoint - human_mid,
+    paper_short = str_trunc(paper, 25),
+    human_lo = coalesce(human_lo, human_mid),
+    human_hi = coalesce(human_hi, human_mid),
+    lower_bound = coalesce(lower_bound, midpoint),
+    upper_bound = coalesce(upper_bound, midpoint)
+  ) |>
+  filter(!is.na(human_mid), !is.na(midpoint))
 
-H_mean <- metrics_human |>
-  filter(criteria %in% metric_order, paper %in% matched_papers) |>
-  group_by(paper, criteria) |>
-  summarise(h = mean(mid, na.rm = TRUE), .groups = "drop")
-
-L_mean <- llm_metrics |>
-  filter(criteria %in% metric_order, model == primary_model, paper %in% matched_papers) |>
-  group_by(paper, criteria) |>
-  summarise(l = mean(midpoint, na.rm = TRUE), .groups = "drop")
-
-Ddiff <- inner_join(H_mean, L_mean, by = c("paper", "criteria")) |>
-  mutate(diff = h - l) |>
-  mutate(crit = factor(criteria, levels = metric_order, labels = metric_lab[metric_order]))
-
-# Order papers by overall difference (Human−LLM)
-ord_p <- Ddiff |>
-  filter(criteria == "overall") |>
-  arrange(desc(diff)) |>
-  pull(paper)
-
-if (length(ord_p) > 0 && nrow(Ddiff) > 0) {
-  ggplot(Ddiff, aes(x = factor(paper, levels = ord_p), y = crit, fill = diff)) +
-    geom_tile(color = "white", linewidth = 0.25) +
-    scale_fill_gradient2(
-      low = UJ_ORANGE, mid = "grey95", high = UJ_GREEN, midpoint = 0,
-      name = "Human − LLM",
-      limits = c(-30, 30),
-      oob = scales::squish
-    ) +
-    labs(x = NULL, y = NULL,
-         subtitle = paste0("Primary model: ", primary_model)) +
-    theme_uj() +
-    theme(
-      axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1, size = 7),
-      axis.text.y = element_text(size = 11),
-      panel.grid = element_blank()
-    )
+if (nrow(scatter_other) > 0) {
+  ggplot(scatter_other, aes(x = human_mid, y = midpoint, color = model)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    geom_point(size = 3.5, alpha = 0.7) +
+    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.2, max.overlaps = 8, show.legend = FALSE) +
+    scale_color_manual(values = MODEL_COLORS) +
+    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
+    facet_wrap(~model, ncol = 2) +
+    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = "Model") +
+    theme_uj()
 } else {
-  cat("Insufficient data for gap heatmap.\n")
+  cat("No matching data for lightweight model scatter plot.\n")
 }
 ```
 
-Rows with uniformly green or orange tiles indicate papers where humans and the LLM disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases (e.g., if the LLM consistently rates "open science" higher than humans).
-
-*GPT-5 Pro evaluations include extended reasoning traces. See the [Appendix](appendix_llm_traces.qmd) for full assessment summaries, reasoning traces, and extended statistical analysis (Krippendorff's alpha, bootstrap CIs, mutual information, tier correlations, top disagreement cases, and prompt comparison).*
+For per-paper scatter plots, rank comparisons, and the gap heatmap showing Human − LLM differences by paper and criterion, see the [main Results chapter](results.qmd). Extended reasoning traces are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).

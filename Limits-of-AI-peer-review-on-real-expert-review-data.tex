@@ -267,7 +267,7 @@ AI and human evaluators.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-note-color!10!white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-note-color-frame]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-note-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Working paper}, rightrule=.15mm]
 
 This is an evolving working paper. Analysis, metrics, and comparisons
 are under active development.
@@ -344,7 +344,28 @@ both human and LLM evaluations. Each model receives the same PDF, system
 prompt mirroring The Unjournal rubric, and JSON schema requiring a
 diagnostic summary plus numeric midpoints and 90\% credible intervals
 for every metric. Full methodological details appear in
-\href{methods.qmd}{Appendix: Data and methods}.
+\href{methods.qmd}{Data and Methods}.
+
+\textbf{Per-paper overview.} Figure~\ref{fig-forest-overall} displays
+individual human evaluator ratings (green circles with 90\% CIs)
+alongside the GPT-5 Pro LLM rating (orange diamond with CI) for each
+paper's overall score. Papers are ordered by human mean rating. Dotted
+lines mark grand means.
+
+\begin{figure}
+
+\caption{\label{fig-forest-overall}Per-paper overall ratings: individual
+human evaluators (green) vs GPT-5 Pro (orange)}
+
+\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-forest-overall-1.pdf}}
+
+\end{figure}%
+
+The spread of green circles within each paper column illustrates
+substantial human inter-rater variability---CIs often span 20--40
+points. In most cases the LLM diamond sits comfortably within the range
+of human opinions, though several papers show the LLM falling outside
+the human consensus.
 
 \textbf{Overall ratings.} Figure~\ref{fig-scatter-focal} compares
 overall ratings from GPT-5 Pro and Claude Opus 4.6---the two
@@ -371,16 +392,17 @@ Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and RMSE for all six
 models appear in Table~\ref{tbl-agreement}.
 
 \textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} contrasts the
-relative \emph{ranking} of papers under human and LLM scoring. Each
-paper is a curve connecting its human rank (left) to its GPT-5 Pro rank
-(right). Horizontal lines indicate agreement; orange curves slope upward
-where the LLM ranks a paper higher than humans did, and green curves
-slope downward where humans rank it higher.
+relative \emph{ranking} of papers under human vs LLM scoring for GPT-5
+Pro (left) and Claude Opus 4.6 (right). Each paper is a curve connecting
+its human rank (left axis) to its LLM rank (right axis). Horizontal
+lines indicate agreement; orange curves slope upward where the LLM ranks
+a paper higher than humans did, and green curves slope downward where
+humans rank it higher.
 
 \begin{figure}
 
-\caption{\label{fig-rankslope-main}Relative ranking (overall) by GPT-5
-Pro and Human evaluators}
+\caption{\label{fig-rankslope-main}Relative ranking (overall): GPT-5 Pro
+(left) and Claude Opus 4.6 (right) vs Human evaluators}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-rankslope-main-1.pdf}}
 
@@ -389,9 +411,9 @@ Pro and Human evaluators}
 Many papers sit close to horizontal, indicating broad agreement on
 relative quality. However, several show pronounced rank shifts---orange
 curves mark papers the LLM considers top-tier that humans placed lower,
-while green curves highlight the reverse. These rank swaps suggest
-characteristic ``taste'' differences rather than random noise, since
-they persist across criteria (see the gap heatmap below). The
+while green curves highlight the reverse. Comparing the two panels
+reveals whether rank disagreements are idiosyncratic to a single model
+or reflect systematic ``taste'' differences shared across LLMs. The
 criteria-level Krippendorff's alpha analysis in
 Table~\ref{tbl-human-baseline} quantifies where human--LLM agreement
 approaches the ceiling set by human inter-rater variability.
@@ -436,7 +458,7 @@ dimension. Columns with consistent colour suggest criteria-level biases.
 Extended statistical analysis---including Krippendorff's alpha,
 bootstrap confidence intervals, mutual information, tier correlations,
 and top disagreement cases---is available in
-\href{results_ratings.qmd}{Appendix: Results Ratings}.
+\href{results_ratings.qmd}{Appendix A: Results Ratings}.
 
 \bookmarksetup{startatroot}
 
@@ -502,274 +524,9 @@ evaluation quality beyond either alone.
 
 \bookmarksetup{startatroot}
 
-\section*{References}\label{references}
-\addcontentsline{toc}{section}{References}
-
-\markboth{References}{References}
-
-\begin{verbatim}
-WARNING: One or more problems were discovered while enumerating dependencies.
-
-# /Users/valik/repos/llm-uj-research-eval/results_ratings.qmd ----------------
-Error: <text>:9:1: unexpected '/'
-8: scales::dollar(total_cost, accuracy = 0.01)
-9: /
-   ^
-
-# /Users/valik/repos/llm-uj-research-eval/slides_vk/index.qmd ----------------
-Error: Parser error: while parsing a block mapping at line 8, column 7 did not find expected key at line 11, column 21
-
-Please see `?renv::dependencies` for more information.
-\end{verbatim}
-
-We used R v. 4.5.2 (\citeproc{ref-base}{R Core Team 2025}) and the
-following R packages: DT v. 0.34.0 (\citeproc{ref-DT}{Xie et al. 2025}),
-ggalluvial v. 0.12.5 (\citeproc{ref-ggalluvial2020}{Brunson 2020};
-\citeproc{ref-ggalluvial2023}{Brunson and Read 2023}), ggbreak v. 0.1.6
-(\citeproc{ref-ggbreak}{Shuangbin Xu et al. 2021}), ggforce v. 0.5.0
-(\citeproc{ref-ggforce}{Pedersen 2025a}), ggrepel v. 0.9.6
-(\citeproc{ref-ggrepel}{Slowikowski 2024}), glue v. 1.8.0
-(\citeproc{ref-glue}{Hester and Bryan 2024}), here v. 1.0.2
-(\citeproc{ref-here}{Müller 2025}), irr v. 0.84.1
-(\citeproc{ref-irr}{Gamer, Lemon, and
-\textless puspendra.pusp22@gmail.com\textgreater{} 2019}), janitor v.
-2.2.1 (\citeproc{ref-janitor}{Firke 2024}), kableExtra v. 1.4.0
-(\citeproc{ref-kableExtra}{Zhu 2024}), knitr v. 1.51
-(\citeproc{ref-knitr2014}{Xie 2014}, \citeproc{ref-knitr2015}{2015},
-\citeproc{ref-knitr2025}{2025}), patchwork v. 1.3.2
-(\citeproc{ref-patchwork}{Pedersen 2025b}), plotly v. 4.11.0
-(\citeproc{ref-plotly}{Sievert 2020}), renv v. 1.0.0
-(\citeproc{ref-renv}{Ushey and Wickham 2023}), reticulate v. 1.44.1
-(\citeproc{ref-reticulate}{Ushey, Allaire, and Tang 2025}), rmarkdown v.
-2.30 (\citeproc{ref-rmarkdown2018}{Xie, Allaire, and Grolemund 2018};
-\citeproc{ref-rmarkdown2020}{Xie, Dervieux, and Riederer 2020};
-\citeproc{ref-rmarkdown2025}{Allaire et al. 2025}), scales v. 1.4.0
-(\citeproc{ref-scales}{Wickham, Pedersen, and Seidel 2025}), stringi v.
-1.8.7 (\citeproc{ref-stringi}{Gagolewski 2022}), tidyverse v. 2.0.0
-(\citeproc{ref-tidyverse}{Wickham et al. 2019}), viridis v. 0.6.5
-(\citeproc{ref-viridis}{Garnier et al. 2024}).
-
-\phantomsection\label{refs}
-\begin{CSLReferences}{1}{0}
-\bibitem[\citeproctext]{ref-aczel2021billion}
-Aczel, Balazs, Barnabas Szaszi, and Alex O Holcombe, {``A billion-dollar
-donation: Estimating the cost of researchers' time spent on peer
-review,''} \emph{Research integrity and peer review}, 6 (2021), 1--8
-(Springer).
-
-\bibitem[\citeproctext]{ref-rmarkdown2025}
-Allaire, JJ, Yihui Xie, Christophe Dervieux, Jonathan McPherson, Javier
-Luraschi, Kevin Ushey, Aron Atkins, Hadley Wickham, Joe Cheng, Winston
-Chang, and Richard Iannone,
-{``\href{https://github.com/rstudio/rmarkdown}{{rmarkdown}: Dynamic
-documents for r},''} (2025).
-
-\bibitem[\citeproctext]{ref-ggalluvial2020}
-Brunson, Jason Cory,
-{``\href{https://doi.org/10.21105/joss.02017}{{ggalluvial}: Layered
-grammar for alluvial plots},''} \emph{Journal of Open Source Software},
-5 (2020), 2017.
-
-\bibitem[\citeproctext]{ref-ggalluvial2023}
-Brunson, Jason Cory, and Quentin D. Read,
-{``\href{http://corybrunson.github.io/ggalluvial/}{{ggalluvial}:
-Alluvial plots in {`{ggplot2}'}},''} 2023.
-
-\bibitem[\citeproctext]{ref-clancy2023returns}
-Clancy, Matt, {``\href{https://arxiv.org/abs/2312.14289}{The returns to
-science in the presence of technological risk},''} \emph{arXiv preprint
-arXiv:2312.14289}, (2023).
-
-\bibitem[\citeproctext]{ref-dycke2023}
-Dycke, Nils, Ilia Kuznetsov, and Iryna Gurevych,
-{``\href{https://aclanthology.org/2023.acl-long.277/}{{NLP}eer: A
-unified resource for the computational study of peer review},''} in
-\emph{Proceedings of the 61st annual meeting of the association for
-computational linguistics (volume 1: Long papers)}, Anna Rogers, Jordan
-Boyd-Graber, and Naoaki Okazaki, eds., 2023.
-
-\bibitem[\citeproctext]{ref-eger2025}
-Eger, Steffen, Yong Cao, Jennifer D'Souza, Andreas Geiger, Christian
-Greisinger, Stephanie Gross, Yufang Hou, Brigitte Krenn, Anne Lauscher,
-Yizhi Li, Chenghua Lin, Nafise Sadat Moosavi, Wei Zhao, and Tristan
-Miller, {``\href{https://arxiv.org/abs/2502.05151}{Transforming science
-with large language models: A survey on AI-assisted scientific
-discovery, experimentation, content generation, and evaluation},''}
-\emph{arXiv preprint arXiv:2505.05151}, (2025).
-
-\bibitem[\citeproctext]{ref-janitor}
-Firke, Sam, {``\href{https://github.com/sfirke/janitor}{{janitor}:
-Simple tools for examining and cleaning dirty data},''} (2024).
-
-\bibitem[\citeproctext]{ref-stringi}
-Gagolewski, Marek,
-{``\href{https://doi.org/10.18637/jss.v103.i02}{{stringi}: {F}ast and
-portable character string processing in {R}},''} \emph{Journal of
-Statistical Software}, 103 (2022), 1--59.
-
-\bibitem[\citeproctext]{ref-irr}
-Gamer, Matthias, Jim Lemon, and Ian Fellows Puspendra Singh
-\textless puspendra.pusp22@gmail.com\textgreater,
-{``\href{https://www.r-project.org}{{irr}: Various coefficients of
-interrater reliability and agreement},''} (2019).
-
-\bibitem[\citeproctext]{ref-viridis}
-Garnier, Simon, Ross, Noam, Rudis, Robert, Camargo, Antônio Pedro,
-Sciaini, Marco, Scherer, and Cédric,
-{``\href{https://doi.org/10.5281/zenodo.4679423}{{viridis(Lite)} -
-colorblind-friendly color maps for r},''} (2024).
-
-\bibitem[\citeproctext]{ref-glue}
-Hester, Jim, and Jennifer Bryan,
-{``\href{https://glue.tidyverse.org/}{{glue}: Interpreted string
-literals},''} (2024).
-
-\bibitem[\citeproctext]{ref-korinek2025ai}
-Korinek, Anton,
-{``\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5455842}{AI
-agents for economic research},''} \emph{SSRN Working Paper}, (2025).
-
-\bibitem[\citeproctext]{ref-Luo2025}
-Luo, Ziming, Zonglin Yang, Zexin Xu, Wei Yang, and Xinya Du,
-{``\href{https://arxiv.org/abs/2501.04306}{LLM4SR: A survey on large
-language models for scientific research},''} \emph{arXiv preprint
-arXiv:2501.04306}, (2025).
-
-\bibitem[\citeproctext]{ref-mitchener2025kosmos}
-Mitchener, Ludovico, Ethan Yiu, and others,
-{``\href{https://arxiv.org/abs/2511.02824}{Kosmos: An AI scientist for
-autonomous discovery},''} \emph{arXiv preprint arXiv:2511.02824},
-(2025).
-
-\bibitem[\citeproctext]{ref-here}
-Müller, Kirill, {``\href{https://here.r-lib.org/}{{here}: A simpler way
-to find your files},''} (2025).
-
-\bibitem[\citeproctext]{ref-Pataranutaporn2025}
-Pataranutaporn, Pat, Nattavudh Powdthavee, Chayapatr Achiwaranguprok,
-and Pattie Maes,
-{``\href{https://api.semanticscholar.org/CorpusID:277510314}{Can AI
-solve the peer review crisis? A large scale cross model experiment of
-LLMs' performance and biases in evaluating over 1000 economics
-papers},''} 2025.
-
-\bibitem[\citeproctext]{ref-ggforce}
-Pedersen, Thomas Lin,
-{``\href{https://ggforce.data-imaginist.com}{{ggforce}: Accelerating
-{`{ggplot2}'}},''} (2025a).
-
-\bibitem[\citeproctext]{ref-patchwork}
-------, {``\href{https://patchwork.data-imaginist.com}{{patchwork}: The
-composer of plots},''} (2025b).
-
-\bibitem[\citeproctext]{ref-base}
-R Core Team, {``\href{https://www.R-project.org/}{{R}: A language and
-environment for statistical computing},''} (Vienna, Austria, R
-Foundation for Statistical Computing, 2025).
-
-\bibitem[\citeproctext]{ref-ggbreak}
-Shuangbin Xu, Meijun Chen, Tingze Feng, Li Zhan, Lang Zhou, and
-Guangchuang Yu, {``\href{https://doi.org/10.3389/fgene.2021.774846}{Use
-ggbreak to effectively utilize plotting space to deal with large
-datasets and outliers.}''} \emph{Frontiers in Genetics}, 12 (2021),
-774846.
-
-\bibitem[\citeproctext]{ref-plotly}
-Sievert, Carson, {``\href{https://plotly-r.com}{Interactive web-based
-data visualization with r, plotly, and shiny},''} (Chapman; Hall/CRC,
-2020).
-
-\bibitem[\citeproctext]{ref-ggrepel}
-Slowikowski, Kamil, {``\href{https://ggrepel.slowkow.com/}{{ggrepel}:
-Automatically position non-overlapping text labels with
-{`{ggplot2}'}},''} (2024).
-
-\bibitem[\citeproctext]{ref-son2025flaws}
-Son, Jaeho, and others,
-{``\href{https://arxiv.org/abs/2511.21843}{FLAWS: A benchmark for error
-identification and localization in scientific papers},''} \emph{arXiv
-preprint arXiv:2511.21843}, (2025).
-
-\bibitem[\citeproctext]{ref-reticulate}
-Ushey, Kevin, JJ Allaire, and Yuan Tang,
-{``\href{https://rstudio.github.io/reticulate/}{{reticulate}: Interface
-to {`{Python}'}},''} (2025).
-
-\bibitem[\citeproctext]{ref-renv}
-Ushey, Kevin, and Hadley Wickham,
-{``\href{https://doi.org/10.32614/CRAN.package.renv}{{renv}: Project
-environments},''} (2023).
-
-\bibitem[\citeproctext]{ref-tidyverse}
-Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy
-D'Agostino McGowan, Romain François, Garrett Grolemund, Alex Hayes,
-Lionel Henry, Jim Hester, Max Kuhn, Thomas Lin Pedersen, Evan Miller,
-Stephan Milton Bache, Kirill Müller, Jeroen Ooms, David Robinson, Dana
-Paige Seidel, Vitalie Spinu, Kohske Takahashi, Davis Vaughan, Claus
-Wilke, Kara Woo, and Hiroaki Yutani,
-{``\href{https://doi.org/10.21105/joss.01686}{Welcome to the
-{tidyverse}},''} \emph{Journal of Open Source Software}, 4 (2019), 1686.
-
-\bibitem[\citeproctext]{ref-scales}
-Wickham, Hadley, Thomas Lin Pedersen, and Dana Seidel,
-{``\href{https://scales.r-lib.org}{{scales}: Scale functions for
-visualization},''} (2025).
-
-\bibitem[\citeproctext]{ref-knitr2014}
-Xie, Yihui, {``{knitr}: A comprehensive tool for reproducible research
-in {R},''} in \emph{Implementing reproducible computational research},
-Victoria Stodden, Friedrich Leisch, and Roger D. Peng, eds. (Chapman;
-Hall/CRC, 2014).
-
-\bibitem[\citeproctext]{ref-knitr2015}
-------, {``\href{https://yihui.org/knitr/}{Dynamic documents with {R}
-and knitr},''} (Boca Raton, Florida, Chapman; Hall/CRC, 2015).
-
-\bibitem[\citeproctext]{ref-knitr2025}
-------, {``\href{https://yihui.org/knitr/}{{knitr}: A general-purpose
-package for dynamic report generation in {R}},''} (2025).
-
-\bibitem[\citeproctext]{ref-rmarkdown2018}
-Xie, Yihui, J. J. Allaire, and Garrett Grolemund,
-{``\href{https://bookdown.org/yihui/rmarkdown}{R markdown: The
-definitive guide},''} (Boca Raton, Florida, Chapman; Hall/CRC, 2018).
-
-\bibitem[\citeproctext]{ref-DT}
-Xie, Yihui, Joe Cheng, Xianying Tan, and Garrick Aden-Buie,
-{``\href{https://github.com/rstudio/DT}{{DT}: A wrapper of the
-JavaScript library {`{DataTables}'}},''} (2025).
-
-\bibitem[\citeproctext]{ref-rmarkdown2020}
-Xie, Yihui, Christophe Dervieux, and Emily Riederer,
-{``\href{https://bookdown.org/yihui/rmarkdown-cookbook}{R markdown
-cookbook},''} (Boca Raton, Florida, Chapman; Hall/CRC, 2020).
-
-\bibitem[\citeproctext]{ref-Zhang2025}
-Zhang, Tianmai M, and Neil F Abernethy,
-{``\href{https://arxiv.org/abs/2505.23824v2}{Reviewing scientific papers
-for critical problems with reasoning LLMs: Baseline approaches and
-automatic evaluation},''} \emph{arXiv preprint arXiv:2505.23824},
-(2025).
-
-\bibitem[\citeproctext]{ref-Zhang2025Replication}
-Zhang, Yaohui, Haijing Zhang, Wenlong Ji, Tianyu Hua, Nick Haber,
-Hancheng Cao, and Weixin Liang,
-{``\href{https://arxiv.org/abs/2506.11343v1}{From replication to
-redesign: Exploring pairwise comparisons for LLM-based peer review},''}
-\emph{arXiv preprint arXiv:2506.11343}, (2025).
-
-\bibitem[\citeproctext]{ref-kableExtra}
-Zhu, Hao, {``\href{http://haozhu233.github.io/kableExtra/}{{kableExtra}:
-Construct complex table with {`{kable}'} and pipe syntax},''} (2024).
-
-\end{CSLReferences}
-
-\cleardoublepage
-\phantomsection
-\addcontentsline{toc}{part}{Appendices}
-\appendix
-
 \section{Data and methods}\label{data-and-methods}
+
+\small
 
 We draw on two sources: human evaluations from
 \href{https://unjournal.github.io/unjournaldata/index.html}{The
@@ -854,41 +611,29 @@ communicate its uncertainty rather than suggest false precision.
 
 \subsubsection{System Prompt}\label{system-prompt}
 
-The system prompt is built from modular sections, each addressing a
-specific aspect of the evaluation task. We present each section below
-with brief explanations.
+The system prompt is built from modular sections and concatenated before
+each API call. We instruct the model to act as an expert evaluator,
+explicitly blocking the use of author reputation, publication venue, or
+prior knowledge of the paper's reception. Before scoring, the prompt
+requires a \textasciitilde1,000-word diagnostic summary (``think first,
+score second'') that identifies methodological issues and guides
+subsequent ratings.
 
-We instruct the model to act as an expert evaluator while explicitly
-preventing it from using author reputation, publication venue, or any
-prior knowledge of the paper's reception as evidence of quality.
-
-Before scoring, we ask for a written assessment identifying key issues
-in the manuscript. This ``think first, score second'' approach
-encourages the model to ground its ratings in specific observations.
-
-We define what percentile rankings mean and establish the reference
-group: ``serious research in the same area encountered in the last three
-years.'' This anchors the model's judgments to a consistent baseline.
-
-We define each of the seven percentile metrics, closely following The
-Unjournal's
+Percentile ratings are anchored to the reference group ``all serious
+research in the same area encountered in the last three years.'' The
+prompt defines each of the seven criteria following The Unjournal's
 \href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators}{guidelines
-for evaluators}. Note the emphasis on global priorities and practical
+for evaluators}, with emphasis on global priorities and practical
 relevance over pure academic novelty.
 
-We explain what credible intervals mean and how to construct them. This
-guidance helps ensure the model produces well-calibrated uncertainty
-estimates rather than artificially narrow intervals.
+The prompt also explains how to construct 90\% credible intervals (to
+encourage calibrated uncertainty rather than artificially narrow
+intervals), requests journal tier predictions on a 0--5 scale (providing
+an external benchmark for papers that eventually publish), and includes
+self-consistency checks requiring numeric scores to align with the
+written assessment.
 
-In addition to percentile metrics, we ask for journal tier predictions
-on a 0-5 scale. These provide an external benchmark and, for papers that
-eventually publish, allow us to assess predictive accuracy.
-
-Finally, we include instructions for self-consistency checks and the
-required JSON output format. The validation section encourages the model
-to ensure its scores align with its written assessment.
-
-The sections above are concatenated to form the complete system prompt:
+These sections are concatenated to form the complete system prompt:
 
 The \texttt{evaluate\_paper} function uploads a PDF to the API and
 submits a background job for evaluation:
@@ -969,6 +714,97 @@ genuinely relevant. Together with the qualitative ratings, these provide
 a structured assessment of how well the LLM's issue identification
 aligns with expert judgment.
 
+\normalsize
+
+\bookmarksetup{startatroot}
+
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
+
+\markboth{References}{References}
+
+\phantomsection\label{refs}
+\begin{CSLReferences}{1}{0}
+\bibitem[\citeproctext]{ref-aczel2021billion}
+Aczel, Balazs, Barnabas Szaszi, and Alex O Holcombe, {``A billion-dollar
+donation: Estimating the cost of researchers' time spent on peer
+review,''} \emph{Research integrity and peer review}, 6 (2021), 1--8
+(Springer).
+
+\bibitem[\citeproctext]{ref-clancy2023returns}
+Clancy, Matt, {``\href{https://arxiv.org/abs/2312.14289}{The returns to
+science in the presence of technological risk},''} \emph{arXiv preprint
+arXiv:2312.14289}, (2023).
+
+\bibitem[\citeproctext]{ref-dycke2023}
+Dycke, Nils, Ilia Kuznetsov, and Iryna Gurevych,
+{``\href{https://aclanthology.org/2023.acl-long.277/}{{NLP}eer: A
+unified resource for the computational study of peer review},''} in
+\emph{Proceedings of the 61st annual meeting of the association for
+computational linguistics (volume 1: Long papers)}, Anna Rogers, Jordan
+Boyd-Graber, and Naoaki Okazaki, eds., 2023.
+
+\bibitem[\citeproctext]{ref-eger2025}
+Eger, Steffen, Yong Cao, Jennifer D'Souza, Andreas Geiger, Christian
+Greisinger, Stephanie Gross, Yufang Hou, Brigitte Krenn, Anne Lauscher,
+Yizhi Li, Chenghua Lin, Nafise Sadat Moosavi, Wei Zhao, and Tristan
+Miller, {``\href{https://arxiv.org/abs/2502.05151}{Transforming science
+with large language models: A survey on AI-assisted scientific
+discovery, experimentation, content generation, and evaluation},''}
+\emph{arXiv preprint arXiv:2505.05151}, (2025).
+
+\bibitem[\citeproctext]{ref-korinek2025ai}
+Korinek, Anton,
+{``\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5455842}{AI
+agents for economic research},''} \emph{SSRN Working Paper}, (2025).
+
+\bibitem[\citeproctext]{ref-Luo2025}
+Luo, Ziming, Zonglin Yang, Zexin Xu, Wei Yang, and Xinya Du,
+{``\href{https://arxiv.org/abs/2501.04306}{LLM4SR: A survey on large
+language models for scientific research},''} \emph{arXiv preprint
+arXiv:2501.04306}, (2025).
+
+\bibitem[\citeproctext]{ref-mitchener2025kosmos}
+Mitchener, Ludovico, Ethan Yiu, and others,
+{``\href{https://arxiv.org/abs/2511.02824}{Kosmos: An AI scientist for
+autonomous discovery},''} \emph{arXiv preprint arXiv:2511.02824},
+(2025).
+
+\bibitem[\citeproctext]{ref-Pataranutaporn2025}
+Pataranutaporn, Pat, Nattavudh Powdthavee, Chayapatr Achiwaranguprok,
+and Pattie Maes,
+{``\href{https://api.semanticscholar.org/CorpusID:277510314}{Can AI
+solve the peer review crisis? A large scale cross model experiment of
+LLMs' performance and biases in evaluating over 1000 economics
+papers},''} 2025.
+
+\bibitem[\citeproctext]{ref-son2025flaws}
+Son, Jaeho, and others,
+{``\href{https://arxiv.org/abs/2511.21843}{FLAWS: A benchmark for error
+identification and localization in scientific papers},''} \emph{arXiv
+preprint arXiv:2511.21843}, (2025).
+
+\bibitem[\citeproctext]{ref-Zhang2025}
+Zhang, Tianmai M, and Neil F Abernethy,
+{``\href{https://arxiv.org/abs/2505.23824v2}{Reviewing scientific papers
+for critical problems with reasoning LLMs: Baseline approaches and
+automatic evaluation},''} \emph{arXiv preprint arXiv:2505.23824},
+(2025).
+
+\bibitem[\citeproctext]{ref-Zhang2025Replication}
+Zhang, Yaohui, Haijing Zhang, Wenlong Ji, Tianyu Hua, Nick Haber,
+Hancheng Cao, and Weixin Liang,
+{``\href{https://arxiv.org/abs/2506.11343v1}{From replication to
+redesign: Exploring pairwise comparisons for LLM-based peer review},''}
+\emph{arXiv preprint arXiv:2506.11343}, (2025).
+
+\end{CSLReferences}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{part}{Appendices}
+\appendix
+
 \section{Results: Ratings}\label{results-ratings}
 
 We compare quantitative ratings from 6 frontier LLMs (GPT-5 Pro, GPT-5.2
@@ -1047,27 +883,6 @@ Reasoning-capable models (GPT-5 Pro, GPT-5.2 Pro, Claude Opus 4.6) cost
 substantially more per paper than their lighter counterparts
 (GPT-4o-mini, Gemini 2.0 Flash), raising practical questions about
 cost-quality trade-offs for deployment at scale.
-
-\textbf{Overall ratings.} Each point in Figure~\ref{fig-scatter}
-represents a paper, with human mean rating on the x-axis and LLM rating
-on the y-axis. Points on the diagonal indicate perfect agreement. Human
-means carry their own variance; correlations are bounded by human
-inter-rater noise.
-
-\begin{figure}
-
-\caption{\label{fig-scatter}Human vs LLM overall ratings}
-
-\pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-scatter-1.pdf}}
-
-\end{figure}%
-
-Most models cluster around the identity line in the 40--80 range, but
-diverge more at the extremes---LLMs tend to compress ratings toward the
-centre of the scale relative to humans, producing smaller spread.
-Outlier papers (those far from the diagonal) merit qualitative
-investigation; we flag the largest disagreements in the supplementary
-material.
 
 \textbf{Agreement metrics.} We assess agreement using Pearson \emph{r}
 (linear correlation), Spearman \emph{ρ} (rank-based, robust to
@@ -1180,32 +995,10 @@ weigh that aspect of quality.
 
 \end{figure}%
 
-\textbf{Systematic rating differences.} Figure~\ref{fig-gap-heatmap}
-shows Human − LLM differences for each paper and criterion (primary
-model: GPT-5 Pro). Green indicates humans rated higher; orange indicates
-the LLM rated higher. Papers are ordered by their overall rating
-difference.
-
-\begin{figure}
-
-\caption{\label{fig-gap-heatmap}Human − LLM rating differences by paper
-and criterion}
-
-\pandocbounded{\includegraphics[keepaspectratio]{results_ratings_files/figure-pdf/fig-gap-heatmap-1.pdf}}
-
-\end{figure}%
-
-Rows with uniformly green or orange tiles indicate papers where humans
-and the LLM disagree systematically across all criteria, not just on one
-dimension. Columns with consistent colour suggest criteria-level biases
-(e.g., if the LLM consistently rates ``open science'' higher than
-humans).
-
-\emph{GPT-5 Pro evaluations include extended reasoning traces. See the
-\href{appendix_llm_traces.qmd}{Appendix} for full assessment summaries,
-reasoning traces, and extended statistical analysis (Krippendorff's
-alpha, bootstrap CIs, mutual information, tier correlations, top
-disagreement cases, and prompt comparison).}
+For per-paper scatter plots, rank comparisons, and the gap heatmap
+showing Human − LLM differences by paper and criterion, see the
+\hyperref[results]{main Results chapter}. Extended reasoning traces are
+available in \href{appendix_llm_traces.qmd}{Appendix C: LLM Traces}.
 
 \section{Results: Critiques \& Key
 Issues}\label{results-critiques-key-issues}
@@ -1215,7 +1008,7 @@ key issues against human expert critiques. The analysis uses LLM-based
 assessment (GPT-5.2 Pro as judge) to measure coverage and precision;
 human validation of these alignment scores is underway.
 
-\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-warning-color!10!white, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-warning-color-frame]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-warning-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-warning-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-warning-color}{\faExclamationTriangle}\hspace{0.5em}{Warning}, rightrule=.15mm]
 
 This section is under active development. Coverage and precision metrics
 below are LLM-assessed; manual annotation is in progress.
@@ -1248,7 +1041,7 @@ identified) and precision (whether GPT issues are substantive).
   concern
 \end{itemize}
 
-\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-note-color!10!white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-note-color-frame]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-note-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Caveat on Precision}, rightrule=.15mm]
 
 ``Precision'' only reflects whether LLM issues match the
 \emph{consensus} human issues curated in Coda---those prioritized by
@@ -1260,7 +1053,7 @@ reflect issues that weren't prioritized in the consensus summary.
 
 \end{tcolorbox}
 
-\begin{tcolorbox}[enhanced jigsaw, colback=white, colbacktitle=quarto-callout-note-color!10!white, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, coltitle=black, breakable, left=2mm, toptitle=1mm, toprule=.15mm, arc=.35mm, opacitybacktitle=0.6, leftrule=.75mm, bottomtitle=1mm, opacityback=0, bottomrule=.15mm, rightrule=.15mm, titlerule=0mm, colframe=quarto-callout-note-color-frame]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, leftrule=.75mm, titlerule=0mm, toptitle=1mm, opacitybacktitle=0.6, colframe=quarto-callout-note-color-frame, left=2mm, arc=.35mm, coltitle=black, breakable, bottomrule=.15mm, bottomtitle=1mm, colback=white, colbacktitle=quarto-callout-note-color!10!white, toprule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Interpretation Guide}, rightrule=.15mm]
 
 \begin{itemize}
 \tightlist

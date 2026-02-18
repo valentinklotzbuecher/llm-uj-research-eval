@@ -2,7 +2,11 @@
 title: "Data and methods"
 ---
 
-```{r} 
+```{=latex}
+\small
+```
+
+```{r}
 #| label: setup call
 #| code-summary: "Include global setup and parameters"
 
@@ -315,15 +319,13 @@ TEXT_FORMAT_COMBINED = {
 
 ### System Prompt
 
-The system prompt is built from modular sections, each addressing a specific aspect of the evaluation task. We present each section below with brief explanations.
-
-We instruct the model to act as an expert evaluator while explicitly preventing it from using author reputation, publication venue, or any prior knowledge of the paper's reception as evidence of quality.
+The system prompt is built from modular sections and concatenated before each API call. We instruct the model to act as an expert evaluator, explicitly blocking the use of author reputation, publication venue, or prior knowledge of the paper's reception. Before scoring, the prompt requires a ~1,000-word diagnostic summary ("think first, score second") that identifies methodological issues and guides subsequent ratings.
 
 ```{python}
 #| label: prompt-role
 #| eval: false
 #| code-fold: true
-#| code-summary: "Role and debiasing instructions"
+#| code-summary: "Role, debiasing, and diagnostic instructions"
 
 PROMPT_ROLE = """
 Your role -- You are an academic expert as well as a practitioner across every relevant field -- use all your knowledge and insight. You are acting as an expert research evaluator/reviewer.
@@ -332,15 +334,6 @@ Your role -- You are an academic expert as well as a practitioner across every r
 PROMPT_DEBIASING = """
 Do not look at any existing ratings or evaluations of these papers you might find on the internet or in your corpus, do not use the authors' names, status, or institutions in your judgment; ignore where (or whether) the work is published, the prestige of any venue, and how much attention it has received. Do not use this as evidence about quality. You must base all judgments entirely on the content of the PDF.
 """
-```
-
-Before scoring, we ask for a written assessment identifying key issues in the manuscript. This "think first, score second" approach encourages the model to ground its ratings in specific observations.
-
-```{python}
-#| label: prompt-diagnostic
-#| eval: false
-#| code-fold: true
-#| code-summary: "Diagnostic summary instructions"
 
 PROMPT_DIAGNOSTIC = """
 Diagnostic summary (Aim for about 1000 words, based only on the PDF):
@@ -348,7 +341,7 @@ Provide a compact paragraph that identifies the most important issues you detect
 """
 ```
 
-We define what percentile rankings mean and establish the reference group: "serious research in the same area encountered in the last three years." This anchors the model's judgments to a consistent baseline.
+Percentile ratings are anchored to the reference group "all serious research in the same area encountered in the last three years." The prompt defines each of the seven criteria following The Unjournal's [guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators), with emphasis on global priorities and practical relevance over pure academic novelty.
 
 ```{python}
 #| label: prompt-percentile
@@ -374,8 +367,6 @@ This is a judgment call. Some criteria to consider... First, does the work come 
 We are aiming for comparability across evaluators. If you suspect you are particularly exposed to higher-quality work in this category, compared to other likely evaluators, you may want to adjust your reference group downwards. (And of course vice-versa, if you suspect you are particularly exposed to lower-quality work.)
 """
 ```
-
-We define each of the seven percentile metrics, closely following The Unjournal's [guidelines for evaluators](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/policies-projects-evaluation-workflow/evaluation/guidelines-for-evaluators). Note the emphasis on global priorities and practical relevance over pure academic novelty.
 
 ```{python}
 #| label: prompt-metrics
@@ -408,13 +399,13 @@ Midpoint rating and credible intervals: For each metric, we ask you to provide a
 """
 ```
 
-We explain what credible intervals mean and how to construct them. This guidance helps ensure the model produces well-calibrated uncertainty estimates rather than artificially narrow intervals.
+The prompt also explains how to construct 90% credible intervals (to encourage calibrated uncertainty rather than artificially narrow intervals), requests journal tier predictions on a 0--5 scale (providing an external benchmark for papers that eventually publish), and includes self-consistency checks requiring numeric scores to align with the written assessment.
 
 ```{python}
 #| label: prompt-uncertainty
 #| eval: false
 #| code-fold: true
-#| code-summary: "Credible interval guidance"
+#| code-summary: "Credible intervals, journal tiers, and validation"
 
 PROMPT_UNCERTAINTY = """
 The midpoint and 'credible intervals': expressing uncertainty - What are we looking for and why?
@@ -422,15 +413,6 @@ The midpoint and 'credible intervals': expressing uncertainty - What are we look
 - How do I come up with these intervals? (Discussion and guidance): You may understand the concepts of uncertainty and credible intervals, but you might be unfamiliar with applying them in a situation like this one. You may have a certain best guess for the "Methods..." criterion. Still, even an expert can never be certain. E.g., you may misunderstand some aspect of the paper, there may be a method you are not familiar with, etc. Your uncertainty over this could be described by some distribution, representing your beliefs about the true value of this criterion. Your "best guess" should be the central mass point of this distribution. For some questions, the "true value" refers to something objective, e.g. will this work be published in a top-ranked journal? In other cases, like the percentile rankings, the true value means "if you had complete evidence, knowledge, and wisdom, what value would you choose?" If you are well calibrated your 90% credible intervals should contain the true value 90% of the time. Consider the midpoint as the 'median of your belief distribution'.
 - We also ask for the 'midpoint', the center dot on that slider. Essentially, we are asking for the median of your belief distribution. By this we mean the percentile ranking such that you believe "there's a 50% chance that the paper's true rank is higher than this, and a 50% chance that it actually ranks lower than this."
 """
-```
-
-In addition to percentile metrics, we ask for journal tier predictions on a 0-5 scale. These provide an external benchmark and, for papers that eventually publish, allow us to assess predictive accuracy.
-
-```{python}
-#| label: prompt-tiers
-#| eval: false
-#| code-fold: true
-#| code-summary: "Journal tier predictions"
 
 PROMPT_TIERS = """
 Additionally, we ask: What journal ranking tier should and will this work be published in?
@@ -458,15 +440,6 @@ Journal ranking tiers are on a 0-5 scale, as follows:
 - Journal ranking tier "will" (0.0-5.0)
     What if this work has already been peer reviewed and published? If this work has already been published, and you know where, please report the prediction you would have given absent that knowledge.
 """
-```
-
-Finally, we include instructions for self-consistency checks and the required JSON output format. The validation section encourages the model to ensure its scores align with its written assessment.
-
-```{python}
-#| label: prompt-validation
-#| eval: false
-#| code-fold: true
-#| code-summary: "Validation and output format"
 
 PROMPT_VALIDATION = """
 When you set the quantitative metrics:
@@ -498,7 +471,7 @@ Return STRICT JSON matching the supplied schema. No preamble. No markdown. No ex
 """
 ```
 
-The sections above are concatenated to form the complete system prompt:
+These sections are concatenated to form the complete system prompt:
 
 ```{python}
 #| label: prompt-assembly
@@ -1539,3 +1512,7 @@ The comparison pipeline uses a manually curated input and produces structured ou
 - **`results/key_issues_comparison_results.json`**: LLM-assessed alignment metrics including coverage, precision, missed issues, and overall ratings.
 
 The coverage metric estimates what fraction of human-identified issues the LLM captured; precision estimates what fraction of LLM issues are genuinely relevant. Together with the qualitative ratings, these provide a structured assessment of how well the LLM's issue identification aligns with expert judgment.
+
+```{=latex}
+\normalsize
+```
