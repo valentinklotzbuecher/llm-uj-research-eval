@@ -302,6 +302,15 @@ matched_papers <- intersect(
 )
 n_matched <- length(matched_papers)
 
+# Opus sample: papers evaluated by Claude Opus 4.6 AND humans
+# Agreement tables and Krippendorff alpha use this sample so all
+# models are compared on the same set of papers.
+opus_papers <- intersect(
+  llm_metrics |> filter(model == "Claude Opus 4.6") |> pull(paper) |> unique(),
+  unique(metrics_human$paper)
+)
+n_opus <- length(opus_papers)
+
 # Cost summary
 cost_data <- llm_tokens |>
   left_join(pricing, by = "model") |>
@@ -327,7 +336,7 @@ model_summary <- cost_data |>
   )
 ```
 
-We compare quantitative ratings from `r n_llm_models` frontier LLMs (`r llm_model_list`) against human expert reviews from [The Unjournal](https://unjournal.pubpub.org). `r n_matched` papers have both human and LLM evaluations, enabling direct comparison across all seven percentile criteria and two journal-tier predictions.
+We compare quantitative ratings from `r n_llm_models` frontier LLMs (`r llm_model_list`) against human expert reviews from [The Unjournal](https://unjournal.pubpub.org). Across all models, `r n_matched` papers have both human and LLM evaluations. Agreement metrics and Krippendorff's alpha below are computed on the `r n_opus`-paper matched sample with Claude Opus 4.6 evaluations, so that all models are compared on identical papers.
 
 We submit each PDF through a single, schema-enforced API call. The system prompt mirrors The Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric.^[0–100 percentiles relative to a reference group of ~'all serious work you have read in this area in the last three years', overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), and global_relevance (decision and priority usefulness). Journal tiers: (0–5, continuous) capture where the work should publish vs. will publish.] Each numeric field carries a midpoint (model's 50% belief) and a 90% credible interval; wide intervals indicate acknowledged uncertainty.
 
@@ -362,9 +371,9 @@ Total cost across all `r total_evaluations` LLM evaluations: **`r scales::dollar
 #| label: scatter-data-prep
 #| include: false
 
-# Prepare scatter_data for tbl-agreement (figure in main Results chapter)
+# Prepare scatter_data for tbl-agreement — restricted to common sample
 scatter_data <- llm_metrics |>
-  filter(criteria == "overall") |>
+  filter(criteria == "overall", paper %in% opus_papers) |>
   inner_join(human_avg, by = "paper") |>
   mutate(
     diff = midpoint - human_mid,
@@ -381,7 +390,7 @@ scatter_data <- llm_metrics |>
 
 ```{r}
 #| label: tbl-agreement
-#| tbl-cap: "Agreement between each LLM and human mean ratings (overall criterion)"
+#| tbl-cap: "Agreement between each LLM and human mean ratings (overall criterion), restricted to the matched sample of papers with Claude Opus 4.6 evaluations (N = `r n_opus`). All models are compared on identical papers."
 
 if (nrow(scatter_data) > 0) {
 
@@ -408,7 +417,7 @@ if (nrow(scatter_data) > 0) {
 
 ```{r}
 #| label: tbl-human-baseline
-#| tbl-cap: "Human-human vs Human-LLM agreement by criterion (Krippendorff's α)"
+#| tbl-cap: "Human-human vs Human-LLM agreement by criterion (Krippendorff's α), matched sample (N = `r n_opus` papers with Claude Opus 4.6 evaluations)."
 #| code-fold: true
 
 if (requireNamespace("irr", quietly = TRUE)) {
@@ -427,7 +436,7 @@ if (requireNamespace("irr", quietly = TRUE)) {
   # Compute human-human alpha (each evaluator as separate rater)
   compute_hh_alpha <- function(criterion) {
     human_wide <- metrics_human |>
-      filter(criteria == criterion, paper %in% matched_papers) |>
+      filter(criteria == criterion, paper %in% opus_papers) |>
       select(paper, evaluator, mid) |>
       distinct() |>
       pivot_wider(names_from = paper, values_from = mid)
@@ -443,12 +452,12 @@ if (requireNamespace("irr", quietly = TRUE)) {
   # Compute human-LLM alpha for a specific model
   compute_hl_alpha <- function(criterion, model_name) {
     human_mean <- metrics_human |>
-      filter(criteria == criterion, paper %in% matched_papers) |>
+      filter(criteria == criterion, paper %in% opus_papers) |>
       group_by(paper) |>
       summarise(Human = mean(mid, na.rm = TRUE), .groups = "drop")
 
     llm_rating <- llm_metrics |>
-      filter(criteria == criterion, model == model_name, paper %in% matched_papers) |>
+      filter(criteria == criterion, model == model_name, paper %in% opus_papers) |>
       select(paper, midpoint) |>
       rename(LLM = midpoint)
 

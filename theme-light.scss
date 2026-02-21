@@ -1,40 +1,43 @@
 /*--------------------------------------------------------------------
-  Unjournal theme  (SCSS)
+  Unjournal theme  (SCSS)  —  academic / article style
+  Base: litera (Bootswatch)
   ------------------------------------------------------------------*/
 
 /*-- scss:defaults --*/
 
 /* ─── Palette ──────────────────────────────────────────────────────*/
-$unjournal-green:  #2D9D5E;     // rich emerald green
-$unjournal-orange: #E8722A;     // vivid saffron orange
-$unjournal-blue:   #2B7CE9;     // clear azure blue
+$unjournal-green:  #2D9D5E;
+$unjournal-orange: #E8722A;
+$unjournal-blue:   #2B7CE9;
 
 /* ─── Typography ──────────────────────────────────────────────────*/
+// Body: serif for long-form reading (journal / preprint feel)
+// Headings: Inter sans-serif for clean hierarchy
+$font-family-serif:      "Source Serif 4", Georgia, "Times New Roman", serif;
 $font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-$font-family-base: $font-family-sans-serif;
-$headings-font-family: $font-family-sans-serif;
-$headings-font-weight: 600;
 
-$font-size-base: 1.05rem;
-$line-height-base: 1.7;
-$paragraph-margin-bottom: 1.2rem;
+$font-family-base:     $font-family-serif;
+$headings-font-family: $font-family-sans-serif;
+$headings-font-weight: 500;
+
+$font-size-base:          1rem;
+$line-height-base:        1.65;
+$paragraph-margin-bottom: 1.1rem;
 
 /* ─── Base colours ────────────────────────────────────────────────*/
 $body-bg:    #ffffff;
-$body-color: #222222;           // darker text, better contrast
+$body-color: #1a1a1a;
 
-$link-color:        $unjournal-green;
-$link-hover-color:  darken($unjournal-green, 12%);
-$url-color:         $unjournal-green;
+$link-color:       $unjournal-green;
+$link-hover-color: darken($unjournal-green, 12%);
 
 /* ─── Buttons ─────────────────────────────────────────────────────*/
-$btn-bg:                   $unjournal-green;
-$btn-border-color:         darken($unjournal-green, 10%);
-$btn-hover-bg:             $unjournal-orange;
-$btn-hover-border-color:   darken($unjournal-orange, 10%);
-$btn-color:                #ffffff;     // white text always
+$btn-bg:               $unjournal-green;
+$btn-border-color:     darken($unjournal-green, 10%);
+$btn-hover-bg:         $unjournal-orange;
+$btn-hover-border-color: darken($unjournal-orange, 10%);
+$btn-color:            #ffffff;
 
-/* fallback if build ignores variables above */
 .btn {
   background-color: $btn-bg !important;
   color:            $btn-color !important;
@@ -47,126 +50,178 @@ $btn-color:                #ffffff;     // white text always
   color:            $btn-color !important;
 }
 
+/*-- scss:rules --*/
+
+/* ─── Headings ────────────────────────────────────────────────────*/
+h1, h2, h3, h4, h5, h6 {
+  color: #111111;
+  margin-top: 1.8em;
+  margin-bottom: 0.5em;
+  font-family: $font-family-sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 1.9rem; font-weight: 600; margin-top: 0; }
+
+h2 {
+  font-size: 1.45rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.25em;
+}
+
+h3 { font-size: 1.2rem; color: #333; }
+h4 { font-size: 1.05rem; color: #444; font-weight: 600; }
+
+/* ─── Prose width — keep lines readable ──────────────────────────*/
+// litera's container is wide enough; constrain article body only
+.quarto-content article {
+  max-width: 800px;
+}
+
 /* ─── Figure captions ─────────────────────────────────────────────*/
 .fig-cap,
 figcaption,
 .quarto-float-caption {
-  color:       $unjournal-green;
-  font-weight: 600;
-  font-size:   0.82em;
-  line-height: 1.35;
+  color:       #555;
+  font-style:  italic;
+  font-size:   0.84em;
+  font-weight: 400;
+  font-family: $font-family-sans-serif;
+  line-height: 1.4;
+  margin-top:  0.4em;
 }
 
-/* ─── Inline code colour (“o3”, etc.) ─────────────────────────────*/
-/* Any <code> not inside <pre> */
+/* ─── Inline code ─────────────────────────────────────────────────*/
 :not(pre) > code {
-  color:            $unjournal-orange;                 // text hue
-  background-color: rgba($unjournal-orange, 0.12);     // faint pill bg
-  padding:          0 0.2em;
+  color:            $unjournal-orange;
+  background-color: rgba($unjournal-orange, 0.10);
+  padding:          0.05em 0.25em;
   border-radius:    3px;
-  font-weight:      600;
+  font-size:        0.88em;
 }
 
-/* Preserve normal colours inside fenced code blocks */
 pre code,
 .sourceCode code {
   color: inherit;
   background: inherit;
 }
 
-/* ─── Code blocks (optional background alpha tweak) ───────────────*/
-$code-block-bg-alpha: -.8;   // keep as-is; override if you change block theme
-
-/*-- scss:rules --*/
-
-/* ─── Headings ────────────────────────────────────────────────────*/
-h1, h2, h3, h4, h5, h6 {
-  color: darken($body-color, 5%);
-  margin-top: 1.5em;
-  margin-bottom: 0.6em;
-}
-
-h1 { font-size: 2.2rem; }
-
-h2 {
-  font-size: 1.6rem;
-  border-bottom: 2px solid rgba($unjournal-green, 0.3);
-  padding-bottom: 0.3em;
-}
-
-h3 { font-size: 1.3rem; }
+$code-block-bg-alpha: -.8;
 
 /* ─── Sidebar ─────────────────────────────────────────────────────*/
 .sidebar {
-  background-color: #fafafa;
-  border-right: 1px solid #e8e8e8;
+  background-color: #f8f8f6;
+  border-right: 1px solid #e4e4e4;
+  font-family: $font-family-sans-serif;
 }
 
 .sidebar-title {
   font-weight: 600;
+  font-size: 0.95rem;
   color: $unjournal-green;
+  letter-spacing: 0.01em;
 }
 
 .sidebar-item-text {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
-/* ─── Callouts ────────────────────────────────────────────────────*/
-.callout {
-  border-radius: 6px;
-  border-left-width: 4px;
-}
-
-.callout-warning {
-  border-color: $unjournal-orange;
-  background-color: rgba($unjournal-orange, 0.08);
-}
-
-.callout-tip {
-  border-color: $unjournal-green;
-  background-color: rgba($unjournal-green, 0.08);
-}
-
-.callout-note {
-  border-color: $unjournal-blue;
-  background-color: rgba($unjournal-blue, 0.08);
-}
-
-/* ─── Tables ──────────────────────────────────────────────────────*/
-table {
-  font-size: 0.92rem;
-  border-collapse: collapse;
-}
-
-thead th {
-  background-color: rgba($unjournal-green, 0.1);
-  border-bottom: 2px solid $unjournal-green;
-  font-weight: 600;
-}
-
-tbody tr:hover {
-  background-color: rgba($unjournal-green, 0.04);
-}
-
-/* ─── TOC (right sidebar) ─────────────────────────────────────────*/
+/* ─── TOC ─────────────────────────────────────────────────────────*/
 .toc-title {
+  font-family: $font-family-sans-serif;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #666;
+  letter-spacing: 0.07em;
+  color: #888;
+}
+
+#TOC a {
+  font-family: $font-family-sans-serif;
+  font-size: 0.86rem;
+  color: #555;
+}
+
+#TOC a:hover,
+#TOC a.active {
+  color: $unjournal-green;
 }
 
 /* ─── Abstract ────────────────────────────────────────────────────*/
 .abstract {
-  font-style: italic;
-  color: #555;
-  border-left: 3px solid $unjournal-green;
-  padding-left: 1rem;
-  margin: 1.5rem 0;
+  font-size:   0.95rem;
+  color:       #444;
+  font-family: $font-family-sans-serif;
+  border-top:    1px solid rgba($unjournal-green, 0.35);
+  border-bottom: 1px solid rgba($unjournal-green, 0.35);
+  padding: 0.85rem 0;
+  margin: 1.75rem 0;
+}
+
+.abstract-title {
+  font-weight: 600;
+  font-size:   0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $unjournal-green;
+  margin-bottom: 0.4rem;
 }
 
 /* ─── Author metadata ─────────────────────────────────────────────*/
 .quarto-title-meta {
-  font-size: 0.9rem;
+  font-family: $font-family-sans-serif;
+  font-size: 0.875rem;
+  color: #555;
+}
+
+/* ─── Callouts ────────────────────────────────────────────────────*/
+.callout {
+  border-radius: 4px;
+  border-left-width: 3px;
+  font-family: $font-family-sans-serif;
+  font-size: 0.93rem;
+}
+
+.callout-warning {
+  border-color: $unjournal-orange;
+  background-color: rgba($unjournal-orange, 0.06);
+}
+
+.callout-tip {
+  border-color: $unjournal-green;
+  background-color: rgba($unjournal-green, 0.06);
+}
+
+.callout-note {
+  border-color: $unjournal-blue;
+  background-color: rgba($unjournal-blue, 0.06);
+}
+
+/* ─── Tables ──────────────────────────────────────────────────────*/
+table {
+  font-family: $font-family-sans-serif;
+  font-size: 0.88rem;
+  border-collapse: collapse;
+}
+
+thead th {
+  background-color: rgba($unjournal-green, 0.07);
+  border-bottom: 1.5px solid $unjournal-green;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+tbody tr:hover {
+  background-color: rgba($unjournal-green, 0.03);
+}
+
+/* ─── Links ───────────────────────────────────────────────────────*/
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
