@@ -1,147 +1,67 @@
-# LLM Evaluation Results Tracking
+# Results Directory
 
-This directory contains LLM evaluation results and metadata for tracking different evaluation runs.
+This directory is the primary home for model outputs and run metadata.
 
-## Metadata System
+## What Lives Here
 
-All evaluation runs are tracked in `llm_runs_metadata.csv` with the following fields:
+- `llm_runs_metadata.csv`: run registry (status, model, prompt version, output paths)
+- `<run_id>/`: run-scoped outputs created by `track_llm_run.py`
+- `<model_dir>/json/*.response.json`: model response payloads used by current analysis
+- `key_issues_comparison*.json`: critique-alignment artifacts
+- aggregate CSVs (`combined_long.csv`, `metrics_long.csv`, `tiers_long.csv`) for compatibility and summaries
 
-- **run_id**: Unique identifier for this run (format: `YYYYMMDD_model_prompt_version`)
-- **date**: Date of the run
-- **model**: LLM model used (e.g., `gpt-5`, `claude-3.5`)
-- **prompt_version**: Version identifier for the prompt used
-- **prompt_description**: Human-readable description of the prompt
-- **num_papers**: Number of papers evaluated
-- **papers_evaluated**: Comma-separated list of paper identifiers
-- **output_combined_long**: Path to combined results CSV
-- **output_metrics_long**: Path to metrics CSV
-- **output_tiers_long**: Path to tiers CSV
-- **output_json_dir**: Path to JSON outputs directory
-- **notes**: Additional notes about the run
-- **status**: Run status (`in_progress`, `completed`, `failed`)
+## Current Analysis Pattern
 
-## Directory Structure
+The manuscript's `results.qmd` currently reads:
 
-Each run gets its own subdirectory:
+1. Human reference inputs from `data/`
+2. Model response JSONs from selected directories in `results/*/json/`
 
-```
-results/
-├── llm_runs_metadata.csv          # Master tracking file
-├── YYYYMMDD_model_promptversion/  # Run-specific directory
-│   ├── run_config.json            # Run configuration
-│   ├── combined_long.csv          # All metrics combined
-│   ├── metrics_long.csv           # Percentile ratings
-│   ├── tiers_long.csv             # Journal tier predictions
-│   └── json/                      # Individual paper JSONs
-│       ├── paper1.response.json
-│       └── paper2.response.json
-└── archive/                       # Old/legacy files
-```
+The model directories used are declared in a `model_dirs` mapping in `results.qmd`.
 
-## Using the Tracking Script
+## Run Tracking Script
 
-The `track_llm_run.py` script (in project root) helps manage runs:
+Use `track_llm_run.py` from repo root.
 
-### Start a new evaluation run
+### Start run
 
 ```bash
 python track_llm_run.py start \
-  --model gpt-5 \
-  --prompt-version v3 \
-  --description "Testing improved prompt with upfront diagnostic"
+  --model gpt-5-pro \
+  --prompt-version v1 \
+  --description "..."
 ```
 
-This will:
-- Generate a unique run ID
-- Create the directory structure
-- Add entry to metadata CSV
-- Create a run_config.json file
-
-### Complete a run
-
-After running your evaluation and saving outputs:
+### Complete run
 
 ```bash
-python track_llm_run.py complete 20251104_gpt5_v3 \
-  --papers "paper1,paper2,paper3,paper4,paper5"
+python track_llm_run.py complete <run_id> --papers "Paper1,Paper2"
 ```
 
-### List all runs
+### Inspect runs
 
 ```bash
-# All runs
 python track_llm_run.py list
-
-# Only in-progress runs
-python track_llm_run.py list --status in_progress
-
-# Only completed runs
-python track_llm_run.py list --status completed
+python track_llm_run.py show <run_id>
 ```
 
-### Show run details
+## Directory Convention for Tracked Runs
 
-```bash
-python track_llm_run.py show 20251104_gpt5_v3
+```text
+results/
+├── llm_runs_metadata.csv
+└── <run_id>/
+    ├── run_config.json
+    ├── combined_long.csv
+    ├── metrics_long.csv
+    ├── tiers_long.csv
+    └── json/
+        └── *.response.json
 ```
 
-## Workflow for 10-Paper Systematic Evaluation
+## Practical Guidance
 
-For the planned systematic evaluation:
+1. Keep raw JSON responses for reproducibility.
+2. Treat `llm_runs_metadata.csv` as the source of truth for run state.
+3. When adding a new run to manuscript comparisons, update `model_dirs` in `results.qmd`.
 
-1. **Start the run:**
-   ```bash
-   python track_llm_run.py start \
-     --model gpt-5 \
-     --prompt-version systematic_v1 \
-     --description "10-paper systematic evaluation with improved prompt" \
-     --notes "Post-cutoff papers, known methodology issues"
-   ```
-
-2. **Run your evaluation pipeline** (in methods.qmd or separate script)
-   - Save outputs to the directory shown by the script
-   - Use the run_id in filenames
-
-3. **Complete the run:**
-   ```bash
-   python track_llm_run.py complete 20251104_gpt5_systematic_v1 \
-     --papers "paper1,paper2,paper3,paper4,paper5,paper6,paper7,paper8,paper9,paper10"
-   ```
-
-4. **Update analysis code** in `results.qmd` to read from this run's directory
-
-## Legacy Files
-
-Files in `data/` are from earlier runs before the metadata system:
-- `data/combined_long.csv` - Baseline GPT-4 run (Sept 2024)
-- `data/combined_long_gpt-5.csv` - GPT-5 testing run (Oct 2024)
-- `data/metrics_long_gpt-5.csv` - Corresponding metrics
-
-These are now tracked in `llm_runs_metadata.csv` for reference.
-
-## Best Practices
-
-1. **Always use the tracking script** - Don't create run directories manually
-2. **Include descriptive notes** - Explain what you're testing
-3. **Complete runs promptly** - Mark runs as completed when done
-4. **One run per prompt/model combination** - For A/B testing, use separate runs
-5. **Keep outputs in run directories** - Don't mix files from different runs
-6. **Document prompt changes** - Update prompt_version and description when changing prompts
-
-## Comparing Runs
-
-To compare different runs in your analysis:
-
-```r
-# In results.qmd or similar
-metadata <- read.csv("results/llm_runs_metadata.csv")
-
-# Load specific run
-run1 <- metadata[metadata$run_id == "20251104_gpt5_v3", ]
-data1 <- read.csv(run1$output_combined_long)
-
-run2 <- metadata[metadata$run_id == "20251105_gpt5_v4", ]
-data2 <- read.csv(run2$output_combined_long)
-
-# Compare...
-```

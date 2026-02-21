@@ -8,7 +8,7 @@ This is a research project that uses LLMs to evaluate academic research papers b
 
 **Live site:** https://llm-uj-research-eval.netlify.app
 
-**Funding context:** The project is actively seeking funding through grant proposals. The `proposal.qmd` chapter contains a detailed proposal for Coefficient Giving's "AI for Forecasting and Sound Reasoning" RFP. Grant reviewers are directed to this chapter via a signpost callout on the landing page.
+**Current manuscript focus:** A concise working-paper structure centered on one-shot, structured LLM-vs-human evaluation comparisons.
 
 ## Environment Setup
 
@@ -81,20 +81,20 @@ quarto preview
 
 The Quarto book is organized into chapters:
 
-- **index.qmd**: Landing page with introduction, motivation, related work, team info, and budget overview. Includes a signpost callout directing grant reviewers to the proposal chapter.
-- **methods.qmd**: Methods chapter written in Nature/medical-journal style (flowing prose, bold inline headings, no bullet lists). Contains data sources, LLM evaluation pipeline, prompt design, JSON schema, multi-model setup, focal run, key-issue comparison, and formal definitions of all statistical measures (Pearson r, Spearman ρ, Krippendorff's α, RMSE, MAE, coverage, precision). All Python code is preserved in collapsible blocks.
-- **results_ratings.qmd**: Quantitative analysis comparing LLM vs human ratings (correlations, agreement metrics, calibration)
-- **results_critiques.qmd**: Qualitative comparison of LLM key issues vs human expert critiques (side-by-side display)
-- **proposal.qmd**: Grant proposal for Coefficient Giving's "AI for Forecasting and Sound Reasoning" RFP. Contains project scope, methodology, team details, budget scenarios, timeline, and deliverables. This is the primary document for grant reviewers.
-- **references.qmd**: Bibliography
+- **index.qmd**: Introduction, motivation, and research question framing.
+- **results.qmd**: Main findings (figures/tables used in the core working paper).
+- **discussion.qmd**: Limitations, implications, governance concerns, and future work.
+- **methods.qmd**: Methods chapter in prose-forward style with reproducible Python chunks.
+- **references.qmd**: Bibliography.
 
 **Appendices:**
-- **appendix_llm_traces.qmd**: Full assessment summaries and reasoning traces from LLM evaluations
-- **paper_response_analysis.qmd**: Separate analysis tracking whether authors updated papers in response to Unjournal evaluations (not part of main LLM evaluation discussion)
+- **results_ratings.qmd**: Extended quantitative appendix (agreement metrics, costs, additional diagnostics).
+- **results_critiques.qmd**: Extended qualitative appendix (issue coverage/precision comparisons).
+- **appendix_llm_traces.qmd**: Full model traces/assessment summaries for selected papers.
 
 **UI Conventions:**
 - Use `::: {.callout-note collapse="true"}` for secondary content that should be collapsed by default (e.g., detailed parameter tables, risk assessments, advisor lists)
-- Use `::: {.callout-tip}` for navigation signposts (e.g., directing grant reviewers to the proposal)
+- Use `::: {.callout-tip}` for navigation signposts and reader guidance.
 - Use `::: {.callout-warning}` for work-in-progress notices
 
 Configuration: `_quarto.yml`
@@ -103,37 +103,34 @@ Configuration: `_quarto.yml`
 
 **IMPORTANT: Data directory organization:**
 
-- **`data/`**: Production LLM evaluation results (large runs, ~50 papers)
-  - `metrics_long.csv` - Primary data file used by `results.qmd` and `slides_vk/index.qmd` (gpt-4, baseline_sept_2024)
-  - `combined_long.csv` - All metrics combined (gpt-4, baseline_sept_2024)
-  - `tiers_long.csv` - Journal tier predictions (gpt-4, baseline_sept_2024)
-  - `metrics_long_gpt-5.csv`, `combined_long_gpt-5.csv`, `tiers_long_gpt-5.csv` - GPT-5 comparison run (gpt5_oct_2024)
-  - Pre-computed human evaluation data (`.rds` and `.csv` files)
-  - `unjournal_evaluations/` - Markdown exports of Unjournal evaluations (synced weekly via GitHub Actions)
+- **`results/`**: Primary model outputs and tracked runs.
+  - Per-model directories with raw JSON responses (for example `results/gpt5_pro_updated_jan2026/json/`).
+  - `llm_runs_metadata.csv` master run registry and run-scoped CSV outputs.
+  - Cross-model comparison artifacts (for example `key_issues_comparison*.json`).
 
-- **`results/`**: New/test runs and metadata tracking
-  - `llm_runs_metadata.csv` - Master tracking file for all evaluation runs
-  - `jobs_index.csv` - Active job status tracking
-  - `{run_id}/` - Isolated directories for tracked runs (see Tracking System below)
+- **`data/`**: Human reference data plus legacy/archival aggregate CSV snapshots.
+  - Human ratings/tier exports (`rsx_evalr_rating.csv`, `research.csv`, `UJ_map.csv`, plus `.rds` snapshots).
+  - Historical aggregate LLM CSVs retained for provenance and back-compat.
+  - `unjournal_evaluations/` Markdown exports synced by GitHub Actions.
 
-- **`papers/`**: Input PDF files for evaluation
+- **`papers/`**: Input PDFs.
 
 **Standard data flow:**
 
 1. **Input**: PDFs of research papers in `papers/` directory
 2. **Processing**: Python code in `methods.qmd` uploads PDFs to OpenAI API and gets structured JSON evaluations
-3. **Storage**: Evaluation results saved to `results/` or `results/{run_id}/` as CSV files:
+3. **Storage**: Evaluation results saved to `results/` (raw JSON plus optional run-level CSVs):
    - `combined_long.csv`: All metrics in long format
    - `metrics_long.csv`: Percentile ratings (0-100 scale)
    - `tiers_long.csv`: Journal tier predictions (0-5 scale)
    - `json/`: Individual paper response files
-4. **Analysis**: R code chunks in `results.qmd` read CSVs from `data/` directory (production data)
+4. **Analysis**: `results.qmd` primarily parses model JSON files from `results/<model_run>/json/` and joins them with human-reference data from `data/`.
 
 ### Key Python Components (in methods.qmd)
 
 The LLM evaluation pipeline includes:
 
-- **File Upload & Caching**: Content-hashed file IDs stored in `cache/file_ids.json` to avoid re-uploading PDFs
+- **File Upload & Caching**: Content-hashed file IDs stored in `results/.file_cache.json` to avoid re-uploading PDFs
 - **Rate Limiting**: `TokenPacer` class manages TPM (tokens per minute) and RPM (requests per minute) limits with exponential backoff
 - **Structured Output**: JSON Schema enforcement via OpenAI's structured outputs API
 - **Retry Logic**: `call_with_retries()` handles 429 rate limits and transient errors
@@ -243,20 +240,16 @@ The pipeline in `methods.qmd` writes outputs to `results/` by default. To use tr
      --papers "Paper1,Paper2,Paper3"
    ```
 
-**Promoting results to production:**
+**Promoting results to analysis:**
 
-When a tracked run is ready to use in `results.qmd`:
-1. Copy the run's CSV files to `data/` directory
-2. Update file references in `results.qmd` if needed (currently uses `data/metrics_long.csv`)
-3. Document the promotion in the run's notes field
+When a tracked run is ready for the manuscript:
+1. Ensure run outputs are complete in `results/{run_id}/` (especially `json/`).
+2. Add/update the run in the `model_dirs` mapping in `results.qmd` (or append a new analysis chunk reading the run directory).
+3. If needed for archival snapshots, export aggregate CSVs to `data/` and record provenance in metadata.
 
 **Current tracked runs:**
 
-See `results/llm_runs_metadata.csv` for complete history. Major runs include:
-- `baseline_sept_2024`: Initial baseline (~50 papers, gpt-4) → `data/combined_long.csv`, `data/metrics_long.csv`
-- `gpt5_oct_2024`: GPT-5 comparison run (~50 papers) → `data/combined_long_gpt-5.csv`, `data/metrics_long_gpt-5.csv`
-- `improved_prompt_oct28_2024`: Diagnostic assessment approach (2 papers, test run, gpt-5)
-- `20251104_gpt-5_systematic_10paper_v1`: 10-paper systematic evaluation (in_progress)
+Run history changes frequently; use `results/llm_runs_metadata.csv` and `python track_llm_run.py list` as the source of truth.
 
 ### Configuration Parameters
 
@@ -274,43 +267,11 @@ This file is sourced at the top of each `.qmd` document.
 
 ### Paper Response Analysis Pipeline
 
-The `paper_change_analysis/` directory contains a separate analysis pipeline:
-
-**Purpose:** Track whether authors updated papers in response to Unjournal evaluations
-
-**Key scripts:**
-- `scripts/analyze_paper_changes.py`: Main pipeline that:
-  - Matches papers between "before" (evaluation-time) and "after" (latest) versions
-  - Extracts text from PDFs using pdfplumber
-  - Computes line-level diffs to identify changes
-  - Matches papers to evaluations using title extraction from markdown files
-- `scripts/generate_potential_matches.py`: Helper to create manual matching workflow
-- `scripts/llm_change_attribution.py`: (Optional) LLM analysis to assess if changes reflect evaluator feedback
-
-**Location:** `side_projects/paper_change_analysis/`
-
-**Data inputs:**
-- `papers/` and `more_papers/`: Before versions (at evaluation time)
-- `latest_papers_post_UJ/`: After versions (latest available)
-- `latest_papers_post_UJ/metadata.csv`: Paper titles and metadata
-- `data/unjournal_evaluations/*.md`: Evaluation files with paper titles (synced weekly via GitHub Actions)
-
-**Data outputs:**
-- `change_analysis_results.json`: Full results with line counts, text changes, evaluation matches
-- `change_analysis_summary.csv`: Summary statistics
-- `extracted_texts/`: Cached PDF text extractions
-
-**Key technique:** Evaluation matching uses regex to extract paper titles from markdown files (e.g., `Evaluation 1 of "Paper Title"`) and fuzzy matches against metadata titles.
+This pipeline has been moved out of this repository to `unjournal_tools_interfaces` (see `side_projects/README.md` for links). Treat references in older commits as historical context only.
 
 ### Side Projects
 
-The `side_projects/` directory contains separate analysis pipelines and utilities:
-
-- **`paper_change_analysis/`**: Pipeline to track whether authors updated papers in response to Unjournal evaluations (see separate section below)
-- **`openalex_work_finding_citers/`**: Scripts for identifying citing papers using OpenAlex API
-- Other experimental analyses not part of the main LLM evaluation pipeline
-
-These are not part of the main evaluation or analysis pipelines.
+`side_projects/` currently serves as a pointer directory to work that has moved to `unjournal_tools_interfaces`. Do not assume side-project code in older docs still exists locally.
 
 ### Issue Annotation Tool (Manual Concordance Labeling)
 
@@ -419,8 +380,8 @@ The script produces detailed JSON with:
 
 **Option A: Quick evaluation (no tracking):**
 1. Add PDF files to `papers/` directory
-2. Run the Python evaluation code in `methods.qmd` (look for chunks labeled `llm-submit` and `llm-status-collect`)
-3. Results will be saved to `results/*.csv`
+2. Run the Python evaluation code in `methods.qmd` (for example chunks `llm-kickoff` and `llm-status-collect`)
+3. Results will be saved under `results/` (raw JSON plus any run-level aggregate CSVs)
 4. Re-render `results.qmd` to see updated comparisons
 
 **Option B: Tracked evaluation run (recommended for production):**
@@ -444,7 +405,7 @@ The script produces detailed JSON with:
    python track_llm_run.py complete 20251104_gpt-5-pro_my_version \
      --papers "$(ls papers/*.pdf | xargs -n1 basename | sed 's/.pdf//' | paste -sd ',' -)"
    ```
-7. If results are production-ready, copy to `data/` directory and update `results.qmd` references
+7. Add/update the run directory in `results.qmd` model-loading code and re-render.
 
 ### To modify evaluation criteria
 
@@ -467,20 +428,11 @@ Or modify the defaults in `methods.qmd` where `TokenPacer` is instantiated.
 
 ### To work with human evaluation data
 
-Human ratings are pre-processed R data files in `data/`:
-- `all_ratings.rds`: Human evaluator ratings
-- `all_jtiers.rds`: Journal tier predictions from humans
-
-These are loaded in R chunks and joined with LLM evaluation CSVs.
+Human reference data is loaded from `data/` (primarily `rsx_evalr_rating.csv`, `research.csv`, and `UJ_map.csv`; `.rds` snapshots are also present). These are joined with model outputs parsed from `results/*/json/`.
 
 ### To run paper response analysis
 
-```bash
-conda activate qpy311  # or qpy311_arm on Apple Silicon
-python side_projects/paper_change_analysis/scripts/analyze_paper_changes.py
-```
-
-This analyzes changes between paper versions and matches them to evaluations. Results are saved to `side_projects/paper_change_analysis/change_analysis_results.json` and rendered in the appendix.
+Use the migrated repository referenced in `side_projects/README.md` (`unjournal_tools_interfaces`). This pipeline is no longer maintained in this repo.
 
 ## Important Notes
 
@@ -489,17 +441,16 @@ This analyzes changes between paper versions and matches them to evaluations. Re
   2. Results can be executed by running `quarto render`
   3. The workflow stays consistent (Valentin runs chunks, not scripts)
   Only create standalone scripts for truly reusable utilities that don't need to appear in the book.
-- **Caching**: Quarto uses aggressive caching (`freeze: auto` in `_quarto.yml`). Delete `_freeze/` if you need fresh execution.
+- **Caching**: PDF rendering uses `freeze: auto` in `_quarto.yml`; appendices also set `freeze: auto`. HTML main-chapter execution is generally uncached by default. Delete `_freeze/` if you need fresh execution.
 - **Code execution**: Python and R chunks have `eval: true/false` flags. Check these if code isn't running.
 - **PDF handling**: The pipeline sends PDFs directly to the API (native multimodal input), preserving figures and tables. No text extraction step.
 - **JSON parsing**: The code has fallback logic to extract JSON from markdown code fences if the model wraps output incorrectly.
 - **Reproducibility**: File IDs are cached by content hash. Re-running on the same PDF reuses the uploaded file.
-- **Python rendering environment**: The `paper_response_analysis.qmd` appendix requires jupyter/nbformat/ipykernel packages. These are in `environment.yml` but if rendering fails with "ModuleNotFoundError: No module named 'nbformat'", run `conda env update -n qpy311_arm -f environment.yml` (or your environment name). Set `QUARTO_PYTHON` to point to the correct environment's python before rendering.
-- **Content separation**: Keep discussion.qmd focused on the main LLM evaluation project only. Paper response analysis content belongs exclusively in the appendix (paper_response_analysis.qmd).
+- **Python rendering environment**: The project requires jupyter/nbformat/ipykernel for Python-backed Quarto chunks. If rendering fails with missing modules, update your active environment from `environment.yml` and point `QUARTO_PYTHON` to that interpreter.
 
 ## Git Workflow
 
-This is a collaborative research project. Current branch: `main`.
+This is a collaborative research project. Active development currently happens on `working-paper`.
 
 When committing:
 - Follow the existing commit message style (see `git log`)
@@ -508,9 +459,7 @@ When committing:
 
 ## Deployment
 
-The site is hosted on Netlify. The deployment process:
-1. Push to main branch on GitHub
-2. Netlify automatically runs `quarto render` and deploys `_book/` contents
+The site is hosted on Netlify. Deployment is triggered by pushes to the branch configured in Netlify for this repo.
 
 **Configuration notes:**
 - `embed-resources: true` in `_quarto.yml` embeds all assets (CSS, JS, images) as base64 in HTML files. This creates larger but self-contained files.
@@ -531,7 +480,7 @@ The site is hosted on Netlify. The deployment process:
 3. Syncs markdown files to `data/unjournal_evaluations/`
 4. Commits and pushes changes if any new evaluations are found
 
-This keeps the evaluation data fresh for the paper response analysis and other uses.
+This keeps the evaluation markdown corpus fresh for critique and metadata analyses.
 
 ## Visual Design and Theming
 
@@ -577,7 +526,7 @@ All R figures use `theme_uj()` (defined in each results file) with:
 
 ## Architecture Insights
 
-- **Two-language architecture**: Python handles API calls and structured data extraction; R handles statistical analysis and visualization. This is bridged via CSV files.
+- **Two-language architecture**: Python handles API calls and structured extraction; R handles statistical analysis and visualization. The bridge is primarily raw JSON responses plus derived tabular summaries.
 - **Structured outputs**: The JSON Schema approach ensures every paper gets rated on identical metrics with enforced types and bounds, making comparisons clean.
 - **Multi-provider evaluation**: Six models across three providers (OpenAI, Anthropic, Google) all receive identical prompts and schemas. Provider-specific API differences (file upload vs base64, sync vs background jobs) are abstracted in `methods.qmd`.
 - **Rate limiting design**: The `TokenPacer` class proactively sleeps before calls based on token history, avoiding 429 errors rather than just reacting to them.
