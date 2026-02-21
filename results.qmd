@@ -306,7 +306,7 @@ hh_bias     <- sprintf("%+.1f", mean(hh_pairs$mid_E1 - hh_pairs$mid_E2, na.rm = 
 hh_baseline_row <- tibble(
   Model          = "Human\u2013Human",
   N              = hh_n,
-  `Spearman \u03c1` = hh_spearman,
+  `Spearman ρ` = hh_spearman,
   `Pearson r`    = hh_pearson,
   `Mean bias`    = hh_bias,
   RMSE           = hh_rmse,
@@ -819,7 +819,7 @@ if (nrow(model_compare_data) > 0) {
     group_by(Model = model) |>
     summarise(
       N              = n(),
-      `Spearman \u03c1` = round(cor(human_mid, midpoint, method = "spearman",
+      `Spearman ρ` = round(cor(human_mid, midpoint, method = "spearman",
                                      use = "complete.obs"), 3),
       `Pearson r`    = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
       `Mean bias`    = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
@@ -827,7 +827,7 @@ if (nrow(model_compare_data) > 0) {
       MAE            = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
       .groups = "drop"
     ) |>
-    arrange(desc(`Spearman \u03c1`)) |>
+    arrange(desc(`Spearman ρ`)) |>
     bind_rows(hh_baseline_row, .)   # Human-Human baseline row at top
 
   knitr::kable(model_compare_tbl, align = c("l", rep("r", 6)), booktabs = TRUE) |>
