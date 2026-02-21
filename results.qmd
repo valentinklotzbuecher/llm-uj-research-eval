@@ -815,7 +815,7 @@ model_compare_data <- llm_metrics |>
   filter(!is.na(human_mid))
 
 if (nrow(model_compare_data) > 0) {
-  model_compare_tbl <- model_compare_data |>
+  llm_rows <- model_compare_data |>
     group_by(Model = model) |>
     summarise(
       N              = n(),
@@ -827,8 +827,9 @@ if (nrow(model_compare_data) > 0) {
       MAE            = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
       .groups = "drop"
     ) |>
-    arrange(desc(`Spearman ρ`)) |>
-    bind_rows(hh_baseline_row, .)   # Human-Human baseline row at top
+    arrange(desc(`Spearman ρ`))
+
+  model_compare_tbl <- bind_rows(hh_baseline_row, llm_rows)
 
   knitr::kable(model_compare_tbl, align = c("l", rep("r", 6)), booktabs = TRUE) |>
     kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0")

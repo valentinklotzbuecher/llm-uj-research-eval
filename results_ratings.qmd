@@ -430,7 +430,7 @@ hh_baseline_row <- tibble(
 
 if (nrow(scatter_data) > 0) {
 
-  agreement_tbl <- scatter_data |>
+  llm_rows <- scatter_data |>
     group_by(Model = model) |>
     summarise(
       N              = n(),
@@ -442,8 +442,9 @@ if (nrow(scatter_data) > 0) {
       MAE            = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
       .groups = "drop"
     ) |>
-    arrange(desc(`Spearman ρ`)) |>
-    bind_rows(hh_baseline_row, .)   # Human-Human baseline row at top
+    arrange(desc(`Spearman ρ`))
+
+  agreement_tbl <- bind_rows(hh_baseline_row, llm_rows)
 
   knitr::kable(agreement_tbl, align = c("l", rep("r", 6))) |>
     kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0")
