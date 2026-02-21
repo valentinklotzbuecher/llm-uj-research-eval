@@ -283,7 +283,7 @@ stronger safeguards against adversarial manipulation.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, colframe=quarto-callout-caution-color-frame, titlerule=0mm, opacitybacktitle=0.6, rightrule=.15mm, toptitle=1mm, colback=white, leftrule=.75mm, title=\textcolor{quarto-callout-caution-color}{\faFire}\hspace{0.5em}{Working paper}, colbacktitle=quarto-callout-caution-color!10!white, bottomtitle=1mm, arc=.35mm, bottomrule=.15mm, toprule=.15mm, breakable, left=2mm, opacityback=0, coltitle=black]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, titlerule=0mm, left=2mm, arc=.35mm, colbacktitle=quarto-callout-caution-color!10!white, colframe=quarto-callout-caution-color-frame, rightrule=.15mm, bottomtitle=1mm, coltitle=black, toprule=.15mm, toptitle=1mm, title=\textcolor{quarto-callout-caution-color}{\faFire}\hspace{0.5em}{Working paper}, colback=white, breakable, bottomrule=.15mm, opacitybacktitle=0.6, leftrule=.75mm]
 
 This is an evolving working paper. Analysis, metrics, and comparisons
 are under active development.
@@ -376,12 +376,16 @@ LLMs---GPT-5 Pro, GPT-5.2 Pro, GPT-4o-mini, Claude Sonnet 4, Claude Opus
   understate its ceiling capability. A re-run with extended thinking is
   planned.}, and Gemini 2.0 Flash---with the same rubric and guidelines
 used by human evaluators, then compare the resulting quantitative
-ratings and qualitative critiques against expert evaluations for r
-n\_papers economics and social-science working papers. We ask whether
-frontier AI evaluations can approximate expert judgment, which models
-perform best across rating criteria and cost tiers, and whether
-systematic differences reveal characteristic AI preferences over
-research.
+ratings and qualitative critiques against expert evaluations for 60
+economics and social-science working papers. We ask whether frontier AI
+evaluations can approximate expert judgment, which models perform best
+across rating criteria and cost tiers, and whether systematic
+differences reveal characteristic AI preferences over research. Our
+headline finding is that the best-performing model (GPT-5 Pro) matches
+or exceeds pairwise human inter-rater rank agreement on overall quality,
+making a strong case that frontier LLMs can serve as additional expert
+raters in structured evaluation pipelines, even under our deliberately
+minimal one-shot setup.
 
 Our approach is deliberately minimal: each model receives the same PDF
 and a fixed rubric in a single prompt, with no iteration, retrieval
@@ -430,42 +434,68 @@ requiring a diagnostic summary plus numeric midpoints and 90\% credible
 intervals for every metric. Full methodological details appear in
 \href{methods.qmd}{Methods}.
 
+We do not treat human ratings as ground truth. Quantitative percentile
+scoring is genuinely difficult: even domain experts disagree, and
+individual scores reflect both signal about paper quality and
+idiosyncratic tendencies (severity, topic familiarity, interpretation of
+the scale). Our question is therefore whether LLMs provide signal
+\emph{comparable to an additional expert rater}. If two human evaluators
+agree at Spearman ρ = 0.55, an LLM achieving ρ = 0.57 against the human
+mean is performing within human inter-rater range. The Human--Human
+baseline row in Table~\ref{tbl-model-agreement-main} makes this
+explicit; Krippendorff's α\textsubscript{HH} in
+\textbf{?@tbl-human-baseline} provides the criterion-level ceiling.
+
 \textbf{Per-paper overview and model comparison.}
-Figure~\ref{fig-overview-combined} presents two complementary views of
+Figure~\ref{fig-overview-combined} presents three complementary views of
 overall (0--100 percentile) ratings. Panel (a) displays individual human
 evaluator ratings alongside GPT-5 Pro (orange diamonds) and Claude Opus
 4.6 (purple diamonds) ratings for each paper, revealing inter-rater
 variability---CIs often span 20--40\textasciitilde points. In most cases
 both LLMs fall within the range of human opinions, though several papers
 show substantial divergence. Panel (b) compares the two
-highest-performing reasoning models directly against human mean ratings;
-points on the diagonal indicate perfect agreement.
+highest-performing reasoning models directly against human mean ratings.
+Panel (c) plots evaluator pairs against each other for all papers with
+≥2 raters, making the human-human agreement ceiling directly visible
+alongside LLM-human agreement in panel (b).
 
 \begin{figure}
 
 \caption{\label{fig-overview-combined}Per-paper overall ratings (0--100
 percentile). \textbf{(a)} Individual human evaluator midpoints (green
-circles) with 90\% credible intervals, GPT-5 Pro rating (orange diamond
-with CI), and Claude Opus 4.6 rating (purple diamond with CI) for each
-paper, sorted by descending human mean. Dotted horizontal lines show
-grand means (values in legend). \textbf{(b)} Human mean vs LLM overall
-rating for GPT-5 Pro and Claude Opus 4.6. Dashed diagonal is the
-identity line (perfect agreement); points above it indicate the LLM
-rated the paper higher.}
+circles) with each evaluator's self-reported 90\% credible interval
+(reflecting their own uncertainty about the true score; the vertical
+separation between green dots per paper reflects inter-rater
+disagreement), GPT-5 Pro (orange diamond with CI), and Claude Opus 4.6
+(purple diamond with CI), sorted by descending human mean. Dotted
+horizontal lines show grand means. \textbf{(b)} Human mean vs LLM
+overall rating for the two focal models; dashed diagonal is the identity
+line. \textbf{(c)} Pairwise human evaluator agreement across all matched
+papers: each point is one evaluator pair (papers with 3 raters
+contribute 3 points); compare directly with panel (b) to see whether
+LLM-human scatter exceeds human-human scatter. Note: panel (c) uses all
+\texttt{r\ n\_matched} matched papers while Table 1's Human--Human row
+is restricted to the \texttt{r\ n\_opus}-paper matched sample.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-overview-combined-1.pdf}}
 
 \end{figure}%
 
-Both models cluster around the identity line in the 40--80 range but
-diverge more at the extremes. LLMs tend to compress ratings toward the
-centre of the scale relative to humans, producing narrower spread---a
-pattern consistent with alignment training that discourages extreme
-outputs. Where humans rate a paper very highly or very harshly, the LLM
-typically pulls toward the middle. Full agreement metrics including
-Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and RMSE for all six
-models appear in the \href{results_ratings.qmd}{agreement table in
-Appendix A}.
+Panel (c) makes the human-human ceiling visual: the scatter of evaluator
+pairs is no tighter than the LLM-human scatter in panel (b), and
+individual pairs disagree by as much as 30--40 percentile points on
+individual papers. Note that panel (c) uses all 45 matched papers while
+the Human--Human row in Table~\ref{tbl-model-agreement-main} is
+restricted to the 33-paper matched sample (explaining the slightly
+different ρ values). Both models cluster around the identity line in the
+40--80 range but diverge more at the extremes. LLMs tend to compress
+ratings toward the centre of the scale relative to humans, producing
+narrower spread---a pattern consistent with alignment training that
+discourages extreme outputs. Where humans rate a paper very highly or
+very harshly, the LLM typically pulls toward the middle. Full agreement
+metrics including Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and
+RMSE for all six models appear in the
+\href{results_ratings.qmd}{agreement table in Appendix A}.
 
 \textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} places human
 rankings in the centre column with GPT-5 Pro on the left and Claude Opus
@@ -573,61 +603,71 @@ reasoning traces and assessment summaries are available in
 \textbf{Model comparison summary.} Table~\ref{tbl-model-agreement-main}
 compares all six models on overall-rating agreement metrics against the
 human mean, restricted to the 33-paper matched sample so every model is
-evaluated on identical papers. Models are sorted by Pearson \emph{r}.
+evaluated on identical papers. The \textbf{Human--Human} row is the
+empirical ceiling: it shows pairwise agreement between evaluators on the
+same papers. Models are sorted by Spearman \emph{ρ}.
 
-\begin{longtable}[]{@{}lrrrrrr@{}}
+\begin{longtable}[t]{lrrrrrr}
 
 \caption{\label{tbl-model-agreement-main}Agreement between each LLM and
 human mean overall rating (matched sample, N = \texttt{r\ n\_opus}
-papers). Pearson \emph{r} and Spearman \emph{ρ} measure correlation;
-bias = LLM − Human (positive = LLM more generous); RMSE and MAE measure
-error magnitude. Models sorted by Pearson \emph{r}.}
+papers). \textbf{Human--Human} row (top, bold) shows pairwise evaluator
+agreement as an empirical upper bound. Spearman \emph{ρ} (rank-based)
+and MAE (in percentile points, directly interpretable) are primary
+metrics; Pearson \emph{r} shown for completeness. Bias = LLM − Human
+(positive = LLM more generous). Models sorted by Spearman \emph{ρ}.}
 
 \tabularnewline
 
-\toprule\noalign{}
-Model & N & Pearson r & Spearman ρ & Mean bias & RMSE & MAE \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Claude Opus 4.6 & 33 & 0.567 & 0.477 & -7.6 & 17.2 & 12.4 \\
-Gemini 2.0 Flash & 33 & 0.467 & 0.447 & -5.3 & 13.2 & 10.8 \\
-GPT-5.2 Pro & 5 & 0.433 & 0.410 & -6.6 & 19.9 & 15.4 \\
-GPT-5 Pro & 33 & 0.396 & 0.553 & +5.1 & 14.1 & 10.0 \\
-GPT-4o-mini & 33 & 0.356 & 0.309 & -0.1 & 15.9 & 10.7 \\
-Claude Sonnet 4 & 8 & -0.232 & -0.058 & -1.6 & 9.1 & 6.8 \\
+\toprule
+Model & N & Spearman ρ & Pearson r & Mean bias & RMSE & MAE\\
+\midrule
+\cellcolor[HTML]{f0f8f0}{\textbf{Human–Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{27}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.472}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.584}} & \cellcolor[HTML]{f0f8f0}{\textbf{+3.5}} & \cellcolor[HTML]{f0f8f0}{\textbf{15.6}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.3}}\\
+GPT-5 Pro & 33 & 0.553 & 0.396 & +5.1 & 14.1 & 10.0\\
+Claude Opus 4.6 & 33 & 0.477 & 0.567 & -7.6 & 17.2 & 12.4\\
+Gemini 2.0 Flash & 33 & 0.447 & 0.467 & -5.3 & 13.2 & 10.8\\
+GPT-5.2 Pro & 5 & 0.410 & 0.433 & -6.6 & 19.9 & 15.4\\
+\addlinespace
+GPT-4o-mini & 33 & 0.309 & 0.356 & -0.1 & 15.9 & 10.7\\
+Claude Sonnet 4 & 8 & -0.058 & -0.232 & -1.6 & 9.1 & 6.8\\
+\bottomrule
 
 \end{longtable}
 
 Table~\ref{tbl-criteria-agreement-main} breaks the same agreement
-metrics down by evaluation criterion, averaged across all models in the
-matched sample, to reveal which dimensions of research quality show
-stronger vs weaker human--LLM alignment.
+metrics down by evaluation criterion, averaged across all models.
+Crucially, the \textbf{H-H ρ} column shows pairwise human-human Spearman
+ρ for each criterion --- the ceiling available to any model. Criteria
+where H-H ρ is itself low indicate genuine expert disagreement; low LLM
+agreement on those criteria is therefore expected rather than a model
+failure.
 
-\begin{longtable}[]{@{}lrrrr@{}}
+\begin{longtable}[t]{l>{}rrrrr}
 
 \caption{\label{tbl-criteria-agreement-main}Human--LLM agreement by
 criterion, averaged across all models (matched sample, N =
-\texttt{r\ n\_opus} papers). Higher Pearson \emph{r} indicates better
-alignment; positive bias indicates LLMs are more generous on that
-criterion.}
+\texttt{r\ n\_opus} papers). \textbf{H-H ρ} shows pairwise human
+evaluator Spearman \emph{ρ} (the ceiling for each criterion); LLM
+Spearman \emph{ρ} and other metrics are averages across all six models.
+Positive bias = LLMs rate higher on average. Note the ceiling variation
+across criteria: human evaluators agree strongly on some dimensions and
+barely at all on others (Open Science), which sets expectations for LLM
+performance.}
 
 \tabularnewline
 
-\toprule\noalign{}
-Criterion & Pearson r & Spearman ρ & Mean bias & RMSE \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Overall & 0.415 & 0.406 & -2.1 & 15.1 \\
-Claims \& Evidence & 0.362 & 0.279 & -4.5 & 16.9 \\
-Methods & 0.304 & 0.323 & -1.2 & 18.4 \\
-Adv. Knowledge & 0.230 & 0.218 & +1.1 & 16.8 \\
-Logic \& Comms & 0.082 & 0.041 & +3.9 & 16.9 \\
-Open Science & 0.037 & 0.008 & -11.7 & 27.0 \\
-Global Relevance & 0.181 & 0.257 & -0.3 & 17.6 \\
+\toprule
+Criterion & H-H ρ & LLM Spearman ρ & LLM Pearson r & Mean bias & RMSE\\
+\midrule
+Overall & \textbf{0.472} & 0.406 & 0.415 & -2.1 & 15.1\\
+Claims \& Evidence & \textbf{0.087} & 0.279 & 0.362 & -4.5 & 16.9\\
+Methods & \textbf{0.178} & 0.323 & 0.304 & -1.2 & 18.4\\
+Adv. Knowledge & \textbf{0.026} & 0.218 & 0.230 & +1.1 & 16.8\\
+Logic \& Comms & \textbf{0.291} & 0.041 & 0.082 & +3.9 & 16.9\\
+\addlinespace
+Open Science & \textbf{0.238} & 0.008 & 0.037 & -11.7 & 27.0\\
+Global Relevance & \textbf{0.201} & 0.257 & 0.181 & -0.3 & 17.6\\
+\bottomrule
 
 \end{longtable}
 

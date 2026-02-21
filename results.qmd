@@ -316,13 +316,13 @@ hh_baseline_row <- tibble(
 
 We evaluate `r n_llm_models` frontier LLMs against human expert reviews from [The Unjournal](https://unjournal.pubpub.org). Across all models, `r n_matched` papers have both human and LLM evaluations; `r n_opus` of these were also evaluated by Claude Opus 4.6 and form the matched sample used for rank comparisons and agreement tables below. Each model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Full methodological details appear in [Methods](methods.qmd).
 
-We do not treat human ratings as ground truth. Quantitative percentile scoring is genuinely difficult: even domain experts disagree, and individual scores reflect both signal about paper quality and idiosyncratic tendencies (severity, topic familiarity, interpretation of the scale). Our question is therefore whether LLMs provide signal *comparable to an additional expert rater*. If two human evaluators agree at Spearman ρ = 0.55, an LLM achieving ρ = 0.57 against the human mean is performing within human inter-rater range. The Human–Human baseline row in @tbl-model-agreement-main makes this explicit; Krippendorff's α~HH~ in @tbl-human-baseline provides the criterion-level ceiling.
+We do not treat human ratings as ground truth. Quantitative percentile scoring is genuinely difficult: even domain experts disagree, and individual scores reflect both signal about paper quality and idiosyncratic tendencies (severity, topic familiarity, interpretation of the scale). Our question is therefore whether LLMs provide signal *comparable to an additional expert rater*. If two human evaluators agree at Spearman ρ = 0.55, an LLM achieving ρ = 0.57 against the human mean is performing within human inter-rater range. The Human–Human baseline row in @tbl-model-agreement-main makes this explicit; Krippendorff's α~HH~ in the [human-baseline table in Appendix A](results_ratings.qmd) provides the criterion-level ceiling.
 
 **Per-paper overview and model comparison.** @fig-overview-combined presents three complementary views of overall (0--100 percentile) ratings. Panel (a) displays individual human evaluator ratings alongside GPT-5 Pro (orange diamonds) and Claude Opus 4.6 (purple diamonds) ratings for each paper, revealing inter-rater variability---CIs often span 20--40~points. In most cases both LLMs fall within the range of human opinions, though several papers show substantial divergence. Panel (b) compares the two highest-performing reasoning models directly against human mean ratings. Panel (c) plots evaluator pairs against each other for all papers with ≥2 raters, making the human-human agreement ceiling directly visible alongside LLM-human agreement in panel (b).
 
 ```{r}
 #| label: fig-overview-combined
-#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with each evaluator's self-reported 90% credible interval (reflecting their own uncertainty about the true score; the vertical separation between green dots per paper reflects inter-rater disagreement), GPT-5 Pro (orange diamond with CI), and Claude Opus 4.6 (purple diamond with CI), sorted by descending human mean. Dotted horizontal lines show grand means. **(b)** Human mean vs LLM overall rating for the two focal models; dashed diagonal is the identity line. **(c)** Pairwise human evaluator agreement across all matched papers: each point is one evaluator pair (papers with 3 raters contribute 3 points); compare directly with panel (b) to see whether LLM-human scatter exceeds human-human scatter. Note: panel (c) uses all `r n_matched` matched papers while Table 1's Human–Human row is restricted to the `r n_opus`-paper matched sample."
+#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with each evaluator's self-reported 90% credible interval (reflecting their own uncertainty about the true score; the vertical separation between green dots per paper reflects inter-rater disagreement), GPT-5 Pro (orange diamond with CI), and Claude Opus 4.6 (purple diamond with CI), sorted by descending human mean. Dotted horizontal lines show grand means. **(b)** Pairwise human evaluator agreement across all matched papers: each point is one evaluator pair (papers with 3 raters contribute 3 points); uses all `r n_matched` matched papers (the Human–Human row in Table 1 is restricted to the `r n_opus`-paper matched sample). **(c)** Human mean vs LLM overall rating for the two focal models with per-model Spearman ρ annotated; dashed diagonal is the identity line. Compare panels (b) and (c) directly to see whether LLM-human scatter is tighter than human-human scatter."
 #| fig-width: 14
 #| fig-height: 14
 #| code-fold: true
@@ -453,42 +453,7 @@ p_forest <- if (nrow(L_c) > 0) {
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Insufficient data") + theme_void()
 }
 
-# ── Panel (b): Scatter plot ──
-focal_models <- c("GPT-5 Pro", "Claude Opus 4.6")
-
-scatter_data <- llm_metrics |>
-  filter(criteria == "overall", model %in% focal_models) |>
-  inner_join(human_avg, by = "paper") |>
-  mutate(
-    diff = midpoint - human_mid,
-    paper_short = str_trunc(paper, 25),
-    human_lo = coalesce(human_lo, human_mid),
-    human_hi = coalesce(human_hi, human_mid),
-    lower_bound = coalesce(lower_bound, midpoint),
-    upper_bound = coalesce(upper_bound, midpoint)
-  ) |>
-  filter(!is.na(human_mid), !is.na(midpoint))
-
-p_scatter <- if (nrow(scatter_data) > 0) {
-  ggplot(scatter_data, aes(x = human_mid, y = midpoint, color = model)) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-    geom_point(size = 3.5, alpha = 0.7) +
-    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.4, max.overlaps = 8, show.legend = FALSE) +
-    scale_color_manual(values = MODEL_COLORS) +
-    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
-    facet_wrap(~model, ncol = 2) +
-    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = NULL, tag = "(b)") +
-    theme_uj() +
-    theme(
-      strip.text = element_text(size = 13, face = "bold"),
-      plot.tag = element_text(face = "bold", size = 14),
-      legend.position = "none"
-    )
-} else {
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "No matching data") + theme_void()
-}
-
-# ── Panel (c): Human-Human scatter ──
+# ── Panel (b): Human-Human scatter ──
 # All pairwise evaluator combinations for papers with ≥2 human raters
 hh_scatter_data <- metrics_human |>
   filter(criteria == "overall") |>
@@ -511,16 +476,63 @@ p_hh <- if (nrow(hh_scatter_data) > 0) {
     geom_point(color = UJ_GREEN, size = 3, alpha = 0.7) +
     annotate("text", x = 4, y = 96, label = hh_lbl,
              hjust = 0, vjust = 1, size = 3.4, color = "grey30") +
-    coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
-    labs(x = "Evaluator A (overall)", y = "Evaluator B (overall)", tag = "(c)") +
+    coord_fixed(ratio = 1, xlim = c(0, 100), ylim = c(0, 100)) +
+    labs(x = "Evaluator A (overall)", y = "Evaluator B (overall)", tag = "(b)") +
     theme_uj() +
     theme(plot.tag = element_text(face = "bold", size = 14))
 } else {
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Insufficient data") + theme_void()
 }
 
+# ── Panel (c): LLM vs Human scatter ──
+focal_models <- c("GPT-5 Pro", "Claude Opus 4.6")
+
+scatter_data <- llm_metrics |>
+  filter(criteria == "overall", model %in% focal_models) |>
+  inner_join(human_avg, by = "paper") |>
+  mutate(
+    diff = midpoint - human_mid,
+    paper_short = str_trunc(paper, 25),
+    human_lo = coalesce(human_lo, human_mid),
+    human_hi = coalesce(human_hi, human_mid),
+    lower_bound = coalesce(lower_bound, midpoint),
+    upper_bound = coalesce(upper_bound, midpoint)
+  ) |>
+  filter(!is.na(human_mid), !is.na(midpoint))
+
+# Per-model Spearman rho for facet annotations
+scatter_rho <- scatter_data |>
+  group_by(model) |>
+  summarise(
+    rho = cor(human_mid, midpoint, method = "spearman", use = "complete.obs"),
+    .groups = "drop"
+  ) |>
+  mutate(lbl = sprintf("Spearman \u03c1 = %.2f", rho),
+         x = 4, y = 96)
+
+p_scatter <- if (nrow(scatter_data) > 0) {
+  ggplot(scatter_data, aes(x = human_mid, y = midpoint, color = model)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    geom_point(size = 3.5, alpha = 0.7) +
+    ggrepel::geom_text_repel(aes(label = paper_short), size = 2.4, max.overlaps = 8, show.legend = FALSE) +
+    geom_text(data = scatter_rho, aes(x = x, y = y, label = lbl),
+              hjust = 0, vjust = 1, size = 3.4, color = "grey30", inherit.aes = FALSE) +
+    scale_color_manual(values = MODEL_COLORS) +
+    coord_fixed(ratio = 1, xlim = c(0, 100), ylim = c(0, 100)) +
+    facet_wrap(~model, ncol = 2) +
+    labs(x = "Human mean rating (0\u2013100)", y = "LLM rating (0\u2013100)", color = NULL, tag = "(c)") +
+    theme_uj() +
+    theme(
+      strip.text = element_text(size = 13, face = "bold"),
+      plot.tag = element_text(face = "bold", size = 14),
+      legend.position = "none"
+    )
+} else {
+  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "No matching data") + theme_void()
+}
+
 # ── Combine ──
-bottom_row <- wrap_plots(p_scatter, p_hh, widths = c(2, 1))
+bottom_row <- wrap_plots(p_hh, p_scatter, widths = c(1, 2))
 (p_forest / bottom_row) + plot_layout(heights = c(1, 0.85))
 ```
 

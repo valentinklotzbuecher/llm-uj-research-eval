@@ -110,6 +110,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 <link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
 <script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
 
@@ -833,53 +835,75 @@ Table&nbsp;A.1: Token usage and estimated cost per model
 </div>
 </div>
 <p>Total cost across all 255 LLM evaluations: <strong>$160.03</strong>. Reasoning-capable models (GPT-5 Pro, GPT-5.2 Pro, Claude Opus 4.6) cost substantially more per paper than their lighter counterparts (GPT-4o-mini, Gemini 2.0 Flash), raising practical questions about cost-quality trade-offs for deployment at scale.</p>
-<p><strong>Agreement metrics.</strong> We assess agreement using Pearson <em>r</em> (linear correlation), Spearman <em>ρ</em> (rank-based, robust to outliers), mean bias (LLM − Human; positive = LLM rates higher), and RMSE/MAE (error magnitude). Full definitions of all statistics appear in <a href="./methods.html">Methods</a>.</p>
+<p><strong>Agreement metrics.</strong> We assess agreement using Spearman <em>ρ</em> (rank-based, robust to outliers), MAE in percentile points (directly interpretable), RMSE, mean bias (LLM − Human; positive = LLM rates higher), and Pearson <em>r</em> for completeness. Full definitions appear in <a href="./methods.html">Methods</a>. The <strong>Human–Human</strong> row in each table provides the empirical ceiling.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  agreement_tbl <span class="ot">&lt;-</span> scatter_data <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  llm_rows <span class="ot">&lt;-</span> scatter_data <span class="sc">|&gt;</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="at">Model =</span> model) <span class="sc">|&gt;</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">N =</span> <span class="fu">n</span>(),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(midpoint <span class="sc">-</span> human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((midpoint <span class="sc">-</span> human_mid)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>),</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">MAE =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(midpoint <span class="sc">-</span> human_mid), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>))</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(agreement_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">6</span>)))</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">N              =</span> <span class="fu">n</span>(),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">method =</span> <span class="st">"spearman"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(midpoint <span class="sc">-</span> human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE           =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((midpoint <span class="sc">-</span> human_mid)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">MAE            =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(midpoint <span class="sc">-</span> human_mid), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span>))</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  agreement_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(hh_baseline_row, llm_rows)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(agreement_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">6</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">background =</span> <span class="st">"#f0f8f0"</span>)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="tbl-agreement" class="cell quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-agreement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;A.2: Agreement between each LLM and human mean ratings (overall criterion), restricted to the matched sample of papers with Claude Opus 4.6 evaluations (N = <code>r n_opus</code>). All models are compared on identical papers.
+Table&nbsp;A.2: Agreement between each LLM and human mean overall rating, matched sample (N = <code>r n_opus</code>). <strong>Human–Human</strong> row (top, bold) shows pairwise evaluator agreement on the same papers as an empirical upper bound. Spearman <em>ρ</em> (rank-based, robust to outliers) and MAE (in percentile points, directly interpretable) are primary metrics; Pearson <em>r</em> is shown for completeness. Bias = LLM − Human (positive = LLM more generous). Models sorted by Spearman <em>ρ</em>.
 </figcaption>
 <div aria-describedby="tbl-agreement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <table class="do-not-create-environment cell caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;">Model</th>
-<th style="text-align: right;">N</th>
-<th style="text-align: right;">Pearson r</th>
-<th style="text-align: right;">Spearman ρ</th>
-<th style="text-align: right;">Mean bias</th>
-<th style="text-align: right;">RMSE</th>
-<th style="text-align: right;">MAE</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Model</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">N</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Spearman ρ</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Pearson r</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Mean bias</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">RMSE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">MAE</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">Human–Human</td>
+<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">27</td>
+<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">0.472</td>
+<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">0.584</td>
+<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">+3.5</td>
+<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">15.6</td>
+<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">11.3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">GPT-5 Pro</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">0.553</td>
+<td style="text-align: right;">0.396</td>
+<td style="text-align: right;">+5.1</td>
+<td style="text-align: right;">14.1</td>
+<td style="text-align: right;">10.0</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">Claude Opus 4.6</td>
 <td style="text-align: right;">33</td>
-<td style="text-align: right;">0.567</td>
 <td style="text-align: right;">0.477</td>
+<td style="text-align: right;">0.567</td>
 <td style="text-align: right;">-7.6</td>
 <td style="text-align: right;">17.2</td>
 <td style="text-align: right;">12.4</td>
@@ -887,8 +911,8 @@ Table&nbsp;A.2: Agreement between each LLM and human mean ratings (overall crite
 <tr class="even">
 <td style="text-align: left;">Gemini 2.0 Flash</td>
 <td style="text-align: right;">33</td>
-<td style="text-align: right;">0.467</td>
 <td style="text-align: right;">0.447</td>
+<td style="text-align: right;">0.467</td>
 <td style="text-align: right;">-5.3</td>
 <td style="text-align: right;">13.2</td>
 <td style="text-align: right;">10.8</td>
@@ -896,35 +920,26 @@ Table&nbsp;A.2: Agreement between each LLM and human mean ratings (overall crite
 <tr class="odd">
 <td style="text-align: left;">GPT-5.2 Pro</td>
 <td style="text-align: right;">5</td>
-<td style="text-align: right;">0.433</td>
 <td style="text-align: right;">0.410</td>
+<td style="text-align: right;">0.433</td>
 <td style="text-align: right;">-6.6</td>
 <td style="text-align: right;">19.9</td>
 <td style="text-align: right;">15.4</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">GPT-5 Pro</td>
-<td style="text-align: right;">33</td>
-<td style="text-align: right;">0.396</td>
-<td style="text-align: right;">0.553</td>
-<td style="text-align: right;">+5.1</td>
-<td style="text-align: right;">14.1</td>
-<td style="text-align: right;">10.0</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">GPT-4o-mini</td>
 <td style="text-align: right;">33</td>
-<td style="text-align: right;">0.356</td>
 <td style="text-align: right;">0.309</td>
+<td style="text-align: right;">0.356</td>
 <td style="text-align: right;">-0.1</td>
 <td style="text-align: right;">15.9</td>
 <td style="text-align: right;">10.7</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">Claude Sonnet 4</td>
 <td style="text-align: right;">8</td>
-<td style="text-align: right;">-0.232</td>
 <td style="text-align: right;">-0.058</td>
+<td style="text-align: right;">-0.232</td>
 <td style="text-align: right;">-1.6</td>
 <td style="text-align: right;">9.1</td>
 <td style="text-align: right;">6.8</td>
@@ -936,8 +951,8 @@ Table&nbsp;A.2: Agreement between each LLM and human mean ratings (overall crite
 </figure>
 </div>
 </div>
-<p><a href="#tbl-agreement" class="quarto-xref">Table&nbsp;<span>A.2</span></a> reports correlation and error metrics between each LLM and the human mean overall rating. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings. These correlations are bounded above by human inter-rater noise—since the human “mean” is itself noisy, no model can achieve a perfect correlation.</p>
-<p><strong>Human baseline context.</strong> To interpret human-LLM agreement, we compare against human-human agreement as an upper bound. If human evaluators only agree with each other at α = 0.5, expecting LLMs to exceed that would be unrealistic. <a href="#tbl-human-baseline" class="quarto-xref">Table&nbsp;<span>A.3</span></a> shows α<sub>HH</sub> (Krippendorff’s alpha among human evaluators) alongside α<sub>HL</sub> (between the human mean and each LLM).</p>
+<p><a href="#tbl-agreement" class="quarto-xref">Table&nbsp;<span>A.2</span></a> reports agreement metrics between each LLM and the human mean overall rating, with the Human–Human baseline as the top row. The Human–Human row shows pairwise correlation between the two evaluators assigned to the same paper: this is the empirical ceiling any model can hope to reach, since the human “mean” used as the reference is itself a noisy estimate. Where an LLM’s Spearman <em>ρ</em> approaches the Human–Human baseline, it is providing signal comparable to an additional expert rater. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings.</p>
+<p><strong>Human baseline context.</strong> Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a “correct” score would be. <a href="#tbl-human-baseline" class="quarto-xref">Table&nbsp;<span>A.3</span></a> quantifies this noise as Krippendorff’s α<sub>HH</sub>. The α<sub>HL</sub> columns show how close each LLM comes to that ceiling. A model achieving α<sub>HL</sub> ≥ α<sub>HH</sub> on a criterion is generating signal indistinguishable from an additional human evaluator. Criteria where α<sub>HH</sub> is already low indicate genuine expert disagreement; low α<sub>HL</sub> on those criteria is therefore expected, not a model failure.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
@@ -1012,114 +1027,111 @@ Table&nbsp;A.2: Agreement between each LLM and human mean ratings (overall crite
 <span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ungroup</span>()</span>
 <span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Format for display</span></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Format for display — put α_HH immediately after Criterion column</span></span>
 <span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>  baseline_display <span class="ot">&lt;-</span> baseline_results <span class="sc">|&gt;</span></span>
 <span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>criterion_key) <span class="sc">|&gt;</span></span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(.x), <span class="st">"—"</span>, <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, .x))))</span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(.x), <span class="st">"\u2014"</span>, <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, .x))))</span>
 <span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(baseline_display, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(baseline_display) <span class="sc">-</span> <span class="dv">1</span>)))</span>
-<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>  alpha_col_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Criterion"</span>, <span class="st">"\u03b1_HH"</span>,</span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">sort</span>(<span class="fu">grep</span>(<span class="st">"^\u03b1_HL"</span>, <span class="fu">names</span>(baseline_display), <span class="at">value =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">all</span>(alpha_col_order <span class="sc">%in%</span> <span class="fu">names</span>(baseline_display))) {</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>    baseline_display <span class="ot">&lt;-</span> baseline_display <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">all_of</span>(alpha_col_order))</span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(baseline_display, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(baseline_display) <span class="sc">-</span> <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="tbl-human-baseline" class="cell quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-human-baseline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;A.3: Human-human vs Human-LLM agreement by criterion (Krippendorff’s α), matched sample (N = <code>r n_opus</code> papers with Claude Opus 4.6 evaluations).
+Table&nbsp;A.3: Krippendorff’s α<sub>HH</sub> (inter-human agreement, <strong>bold</strong>) vs α<sub>HL</sub> (human–LLM agreement) by criterion, matched sample (N = <code>r n_opus</code> papers). α<sub>HH</sub> is the empirical ceiling: an LLM with α<sub>HL</sub> ≥ α<sub>HH</sub> performs at or above the human inter-rater level for that criterion. Criteria where α<sub>HH</sub> is already low indicate genuine evaluator disagreement.
 </figcaption>
 <div aria-describedby="tbl-human-baseline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <table class="do-not-create-environment cell caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 11%">
-<col style="width: 3%">
-<col style="width: 11%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 15%">
-<col style="width: 15%">
-<col style="width: 16%">
-</colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Criterion</th>
-<th style="text-align: right;">α_HH</th>
-<th style="text-align: right;">α_HL (GPT-5 Pro)</th>
-<th style="text-align: right;">α_HL (GPT-5.2 Pro)</th>
-<th style="text-align: right;">α_HL (GPT-4o-mini)</th>
-<th style="text-align: right;">α_HL (Claude Sonnet 4)</th>
-<th style="text-align: right;">α_HL (Claude Opus 4.6)</th>
-<th style="text-align: right;">α_HL (Gemini 2.0 Flash)</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Criterion</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HH</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HL (Claude Opus 4.6)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HL (Claude Sonnet 4)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HL (Gemini 2.0 Flash)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HL (GPT-4o-mini)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HL (GPT-5 Pro)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">α_HL (GPT-5.2 Pro)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Overall</td>
-<td style="text-align: right;">0.58</td>
+<td style="text-align: right; font-weight: bold;">0.58</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: right;">-0.15</td>
+<td style="text-align: right;">0.37</td>
+<td style="text-align: right;">0.36</td>
 <td style="text-align: right;">0.33</td>
 <td style="text-align: right;">0.45</td>
-<td style="text-align: right;">0.36</td>
-<td style="text-align: right;">-0.15</td>
-<td style="text-align: right;">0.47</td>
-<td style="text-align: right;">0.37</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Claims</td>
-<td style="text-align: right;">0.07</td>
+<td style="text-align: right; font-weight: bold;">0.07</td>
+<td style="text-align: right;">0.26</td>
+<td style="text-align: right;">-0.17</td>
+<td style="text-align: right;">0.42</td>
+<td style="text-align: right;">0.25</td>
 <td style="text-align: right;">0.33</td>
 <td style="text-align: right;">0.49</td>
-<td style="text-align: right;">0.25</td>
-<td style="text-align: right;">-0.17</td>
-<td style="text-align: right;">0.26</td>
-<td style="text-align: right;">0.42</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Methods</td>
-<td style="text-align: right;">0.29</td>
+<td style="text-align: right; font-weight: bold;">0.29</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">-0.30</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">0.31</td>
 <td style="text-align: right;">0.32</td>
 <td style="text-align: right;">0.21</td>
-<td style="text-align: right;">0.31</td>
-<td style="text-align: right;">-0.30</td>
-<td style="text-align: right;">0.39</td>
-<td style="text-align: right;">0.27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Adv. Knowledge</td>
-<td style="text-align: right;">0.13</td>
-<td style="text-align: right;">0.23</td>
-<td style="text-align: right;">0.20</td>
-<td style="text-align: right;">0.22</td>
-<td style="text-align: right;">0.10</td>
+<td style="text-align: right; font-weight: bold;">0.13</td>
 <td style="text-align: right;">0.32</td>
 <td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.23</td>
+<td style="text-align: right;">0.20</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Logic &amp; Comms</td>
-<td style="text-align: right;">0.47</td>
+<td style="text-align: right; font-weight: bold;">0.47</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">-0.04</td>
+<td style="text-align: right;">0.21</td>
 <td style="text-align: right;">-0.12</td>
 <td style="text-align: right;">-0.19</td>
-<td style="text-align: right;">0.21</td>
-<td style="text-align: right;">0.14</td>
-<td style="text-align: right;">0.09</td>
-<td style="text-align: right;">-0.04</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Open Science</td>
-<td style="text-align: right;">0.27</td>
+<td style="text-align: right; font-weight: bold;">0.27</td>
+<td style="text-align: right;">-0.18</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">-0.08</td>
 <td style="text-align: right;">-0.07</td>
 <td style="text-align: right;">-0.52</td>
-<td style="text-align: right;">-0.08</td>
-<td style="text-align: right;">0.33</td>
-<td style="text-align: right;">-0.18</td>
-<td style="text-align: right;">0.08</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Global Relevance</td>
-<td style="text-align: right;">0.41</td>
+<td style="text-align: right; font-weight: bold;">0.41</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">0.05</td>
 <td style="text-align: right;">0.25</td>
 <td style="text-align: right;">0.69</td>
-<td style="text-align: right;">0.05</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.18</td>
-<td style="text-align: right;">0.21</td>
 </tr>
 </tbody>
 </table>
@@ -1128,7 +1140,7 @@ Table&nbsp;A.3: Human-human vs Human-LLM agreement by criterion (Krippendorff’
 </figure>
 </div>
 </div>
-<p>Where α<sub>HL</sub> approaches α<sub>HH</sub>, the LLM is performing at or near the ceiling set by human inter-rater variability. Criteria where α<sub>HH</sub> is already low (indicating genuine evaluator disagreement) naturally cap how well any model can do. Extended agreement analysis—including CI coverage, bootstrap confidence intervals, mutual information, and per-criterion correlations—is available in the supplementary material.</p>
+<p>Where α<sub>HL</sub> ≥ α<sub>HH</sub>, the LLM is performing at or above the ceiling set by human inter-rater variability — its ratings are as consistent with the human reference as a second human evaluator would be. Criteria where α<sub>HH</sub> is already low (indicating genuine evaluator disagreement) naturally cap how well any model can do, and low α<sub>HL</sub> on those criteria reflects the difficulty of the task rather than a model failure. Extended agreement analysis — including CI coverage, bootstrap confidence intervals, and mutual information — is available in the supplementary material.</p>
 <p><strong>Criteria-level patterns.</strong> <a href="#fig-criteria-heatmap" class="quarto-xref">Figure&nbsp;<span>A.1</span></a> displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge (similar colour intensity) suggest robust agreement on that dimension; criteria with divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.</p>
 <div class="cell">
 <details class="code-fold">
@@ -2101,204 +2113,251 @@ Figure&nbsp;A.2: Human mean overall rating (x-axis) vs LLM overall rating (y-axi
 <span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid), <span class="sc">!</span><span class="fu">is.na</span>(midpoint))</span>
 <span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>**Agreement metrics.** We assess agreement using Pearson *r* (linear correlation), Spearman *ρ* (rank-based, robust to outliers), mean bias (LLM − Human; positive = LLM rates higher), and RMSE/MAE (error magnitude). Full definitions of all statistics appear in <span class="co">[</span><span class="ot">Methods</span><span class="co">](methods.qmd)</span>.</span>
-<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-agreement</span></span>
-<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Agreement between each LLM and human mean ratings (overall criterion), restricted to the matched sample of papers with Claude Opus 4.6 evaluations (N = `r n_opus`). All models are compared on identical papers."</span></span>
-<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>  agreement_tbl <span class="ot">&lt;-</span> scatter_data <span class="sc">|&gt;</span></span>
-<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="at">Model =</span> model) <span class="sc">|&gt;</span></span>
-<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
-<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>      <span class="at">N =</span> <span class="fu">n</span>(),</span>
-<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(midpoint <span class="sc">-</span> human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((midpoint <span class="sc">-</span> human_mid)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>),</span>
-<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>      <span class="at">MAE =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(midpoint <span class="sc">-</span> human_mid), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
-<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>))</span>
-<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(agreement_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">6</span>)))</span>
-<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: compute-hh-baseline</span></span>
+<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a><span class="co"># Human-Human pairwise agreement (baseline for agreement tables).</span></span>
+<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a><span class="co"># For papers with ≥2 evaluators, assign E1/E2 by row order within paper,</span></span>
+<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a><span class="co"># then compute pairwise correlation and error metrics across all such papers.</span></span>
+<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>hh_pairs <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(paper, evaluator, mid) <span class="sc">|&gt;</span></span>
+<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper) <span class="sc">|&gt;</span></span>
+<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>() <span class="sc">&gt;=</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">slot =</span> <span class="fu">paste0</span>(<span class="st">"E"</span>, <span class="fu">row_number</span>())) <span class="sc">|&gt;</span></span>
+<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> slot, <span class="at">values_from =</span> <span class="fu">c</span>(mid, evaluator)) <span class="sc">|&gt;</span></span>
+<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(mid_E1), <span class="sc">!</span><span class="fu">is.na</span>(mid_E2))</span>
+<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>hh_n        <span class="ot">&lt;-</span> <span class="fu">nrow</span>(hh_pairs)</span>
+<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>hh_pearson  <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">cor</span>(hh_pairs<span class="sc">$</span>mid_E1, hh_pairs<span class="sc">$</span>mid_E2), <span class="dv">3</span>)</span>
+<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>hh_spearman <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">cor</span>(hh_pairs<span class="sc">$</span>mid_E1, hh_pairs<span class="sc">$</span>mid_E2, <span class="at">method =</span> <span class="st">"spearman"</span>), <span class="dv">3</span>)</span>
+<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>hh_mae      <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(hh_pairs<span class="sc">$</span>mid_E1 <span class="sc">-</span> hh_pairs<span class="sc">$</span>mid_E2), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>)</span>
+<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>hh_rmse     <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((hh_pairs<span class="sc">$</span>mid_E1 <span class="sc">-</span> hh_pairs<span class="sc">$</span>mid_E2)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>)</span>
+<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>hh_bias     <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(hh_pairs<span class="sc">$</span>mid_E1 <span class="sc">-</span> hh_pairs<span class="sc">$</span>mid_E2, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>@tbl-agreement reports correlation and error metrics between each LLM and the human mean overall rating. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings. These correlations are bounded above by human inter-rater noise---since the human "mean" is itself noisy, no model can achieve a perfect correlation.</span>
-<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a>**Human baseline context.** To interpret human-LLM agreement, we compare against human-human agreement as an upper bound. If human evaluators only agree with each other at α = 0.5, expecting LLMs to exceed that would be unrealistic. @tbl-human-baseline shows α~HH~ (Krippendorff's alpha among human evaluators) alongside α~HL~ (between the human mean and each LLM).</span>
-<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-human-baseline</span></span>
-<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Human-human vs Human-LLM agreement by criterion (Krippendorff's α), matched sample (N = `r n_opus` papers with Claude Opus 4.6 evaluations)."</span></span>
-<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>hh_baseline_row <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model          =</span> <span class="st">"Human\u2013Human"</span>,</span>
+<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a>  <span class="at">N              =</span> hh_n,</span>
+<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> hh_spearman,</span>
+<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> hh_pearson,</span>
+<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> hh_bias,</span>
+<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE           =</span> hh_rmse,</span>
+<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a>  <span class="at">MAE            =</span> hh_mae</span>
+<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">"irr"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a>**Agreement metrics.** We assess agreement using Spearman *ρ* (rank-based, robust to outliers), MAE in percentile points (directly interpretable), RMSE, mean bias (LLM − Human; positive = LLM rates higher), and Pearson *r* for completeness. Full definitions appear in [Methods](methods.qmd). The **Human–Human** row in each table provides the empirical ceiling.</span>
 <span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(irr)</span>
-<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>  criteria_list <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"overall"</span>, <span class="st">"claims"</span>, <span class="st">"methods"</span>, <span class="st">"adv_knowledge"</span>,</span>
-<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"logic_comms"</span>, <span class="st">"open_sci"</span>, <span class="st">"gp_relevance"</span>)</span>
-<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a>  criterion_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>    <span class="at">overall =</span> <span class="st">"Overall"</span>, <span class="at">claims =</span> <span class="st">"Claims"</span>, <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
-<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>    <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>, <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
-<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>    <span class="at">open_sci =</span> <span class="st">"Open Science"</span>, <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
-<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Compute human-human alpha (each evaluator as separate rater)</span></span>
-<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a>  compute_hh_alpha <span class="ot">&lt;-</span> <span class="cf">function</span>(criterion) {</span>
-<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>    human_wide <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(criteria <span class="sc">==</span> criterion, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(paper, evaluator, mid) <span class="sc">|&gt;</span></span>
-<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>      <span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> paper, <span class="at">values_from =</span> mid)</span>
-<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(human_wide) <span class="sc">&lt;</span> <span class="dv">2</span> <span class="sc">||</span> <span class="fu">ncol</span>(human_wide) <span class="sc">&lt;</span> <span class="dv">3</span>) <span class="fu">return</span>(<span class="cn">NA_real_</span>)</span>
-<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a>    M <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(human_wide[, <span class="sc">-</span><span class="dv">1</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
-<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
-<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>      irr<span class="sc">::</span><span class="fu">kripp.alpha</span>(M, <span class="at">method =</span> <span class="st">"interval"</span>)<span class="sc">$</span>value</span>
-<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) <span class="cn">NA_real_</span>)</span>
-<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Compute human-LLM alpha for a specific model</span></span>
-<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>  compute_hl_alpha <span class="ot">&lt;-</span> <span class="cf">function</span>(criterion, model_name) {</span>
-<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>    human_mean <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(criteria <span class="sc">==</span> criterion, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(paper) <span class="sc">|&gt;</span></span>
-<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="at">Human =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a>    llm_rating <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(criteria <span class="sc">==</span> criterion, model <span class="sc">==</span> model_name, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(paper, midpoint) <span class="sc">|&gt;</span></span>
-<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rename</span>(<span class="at">LLM =</span> midpoint)</span>
-<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>    combined <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(human_mean, llm_rating, <span class="at">by =</span> <span class="st">"paper"</span>)</span>
-<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(combined) <span class="sc">&lt;</span> <span class="dv">3</span>) <span class="fu">return</span>(<span class="cn">NA_real_</span>)</span>
+<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-agreement</span></span>
+<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Human–Human** row (top, bold) shows pairwise evaluator agreement on the same papers as an empirical upper bound. Spearman *ρ* (rank-based, robust to outliers) and MAE (in percentile points, directly interpretable) are primary metrics; Pearson *r* is shown for completeness. Bias = LLM − Human (positive = LLM more generous). Models sorted by Spearman *ρ*."</span></span>
+<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>  llm_rows <span class="ot">&lt;-</span> scatter_data <span class="sc">|&gt;</span></span>
+<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="at">Model =</span> model) <span class="sc">|&gt;</span></span>
+<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>      <span class="at">N              =</span> <span class="fu">n</span>(),</span>
+<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">method =</span> <span class="st">"spearman"</span>,</span>
+<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(midpoint <span class="sc">-</span> human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE           =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((midpoint <span class="sc">-</span> human_mid)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>),</span>
+<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>      <span class="at">MAE            =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(midpoint <span class="sc">-</span> human_mid), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span>))</span>
+<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>  agreement_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(hh_baseline_row, llm_rows)</span>
+<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(agreement_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">6</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">background =</span> <span class="st">"#f0f8f0"</span>)</span>
+<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>@tbl-agreement reports agreement metrics between each LLM and the human mean overall rating, with the Human–Human baseline as the top row. The Human–Human row shows pairwise correlation between the two evaluators assigned to the same paper: this is the empirical ceiling any model can hope to reach, since the human "mean" used as the reference is itself a noisy estimate. Where an LLM's Spearman *ρ* approaches the Human–Human baseline, it is providing signal comparable to an additional expert rater. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings.</span>
+<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a>**Human baseline context.** Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a "correct" score would be. @tbl-human-baseline quantifies this noise as Krippendorff's α~HH~. The α~HL~ columns show how close each LLM comes to that ceiling. A model achieving α~HL~ ≥ α~HH~ on a criterion is generating signal indistinguishable from an additional human evaluator. Criteria where α~HH~ is already low indicate genuine expert disagreement; low α~HL~ on those criteria is therefore expected, not a model failure.</span>
+<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-human-baseline</span></span>
+<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Krippendorff's α~HH~ (inter-human agreement, **bold**) vs α~HL~ (human–LLM agreement) by criterion, matched sample (N = `r n_opus` papers). α~HH~ is the empirical ceiling: an LLM with α~HL~ ≥ α~HH~ performs at or above the human inter-rater level for that criterion. Criteria where α~HH~ is already low indicate genuine evaluator disagreement."</span></span>
+<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">"irr"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
 <span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>    M <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="at">Human =</span> combined<span class="sc">$</span>Human, <span class="at">LLM =</span> combined<span class="sc">$</span>LLM)</span>
-<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
-<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>      irr<span class="sc">::</span><span class="fu">kripp.alpha</span>(M, <span class="at">method =</span> <span class="st">"interval"</span>)<span class="sc">$</span>value</span>
-<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) <span class="cn">NA_real_</span>)</span>
-<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get unique LLM models</span></span>
-<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>  llm_models <span class="ot">&lt;-</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)</span>
-<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build comparison table</span></span>
-<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a>  baseline_results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Criterion =</span> criterion_labels[criteria_list]) <span class="sc">|&gt;</span></span>
-<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">criterion_key =</span> criteria_list) <span class="sc">|&gt;</span></span>
-<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">α_HH</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">compute_hh_alpha</span>(criterion_key)</span>
-<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
-<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add columns for each LLM model</span></span>
-<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (mod <span class="cf">in</span> llm_models) {</span>
-<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>    col_name <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"α_HL ("</span>, mod, <span class="st">")"</span>)</span>
-<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>    baseline_results <span class="ot">&lt;-</span> baseline_results <span class="sc">|&gt;</span></span>
-<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">col_name :=</span> <span class="fu">compute_hl_alpha</span>(criterion_key, mod)) <span class="sc">|&gt;</span></span>
-<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ungroup</span>()</span>
+<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(irr)</span>
+<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>  criteria_list <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"overall"</span>, <span class="st">"claims"</span>, <span class="st">"methods"</span>, <span class="st">"adv_knowledge"</span>,</span>
+<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"logic_comms"</span>, <span class="st">"open_sci"</span>, <span class="st">"gp_relevance"</span>)</span>
+<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a>  criterion_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>    <span class="at">overall =</span> <span class="st">"Overall"</span>, <span class="at">claims =</span> <span class="st">"Claims"</span>, <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
+<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>    <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>, <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
+<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>    <span class="at">open_sci =</span> <span class="st">"Open Science"</span>, <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
+<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Compute human-human alpha (each evaluator as separate rater)</span></span>
+<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>  compute_hh_alpha <span class="ot">&lt;-</span> <span class="cf">function</span>(criterion) {</span>
+<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a>    human_wide <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(criteria <span class="sc">==</span> criterion, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(paper, evaluator, mid) <span class="sc">|&gt;</span></span>
+<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>      <span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> paper, <span class="at">values_from =</span> mid)</span>
+<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(human_wide) <span class="sc">&lt;</span> <span class="dv">2</span> <span class="sc">||</span> <span class="fu">ncol</span>(human_wide) <span class="sc">&lt;</span> <span class="dv">3</span>) <span class="fu">return</span>(<span class="cn">NA_real_</span>)</span>
+<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>    M <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(human_wide[, <span class="sc">-</span><span class="dv">1</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>      irr<span class="sc">::</span><span class="fu">kripp.alpha</span>(M, <span class="at">method =</span> <span class="st">"interval"</span>)<span class="sc">$</span>value</span>
+<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) <span class="cn">NA_real_</span>)</span>
 <span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Format for display</span></span>
-<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>  baseline_display <span class="ot">&lt;-</span> baseline_results <span class="sc">|&gt;</span></span>
-<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>criterion_key) <span class="sc">|&gt;</span></span>
-<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(.x), <span class="st">"—"</span>, <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, .x))))</span>
-<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(baseline_display, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(baseline_display) <span class="sc">-</span> <span class="dv">1</span>)))</span>
-<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>Where α~HL~ approaches α~HH~, the LLM is performing at or near the ceiling set by human inter-rater variability. Criteria where α~HH~ is already low (indicating genuine evaluator disagreement) naturally cap how well any model can do. Extended agreement analysis---including CI coverage, bootstrap confidence intervals, mutual information, and per-criterion correlations---is available in the supplementary material.</span>
-<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a>**Criteria-level patterns.** @fig-criteria-heatmap displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge (similar colour intensity) suggest robust agreement on that dimension; criteria with divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.</span>
-<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-criteria-heatmap</span></span>
-<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Mean rating by evaluator type (rows) and criterion (columns), averaged across all matched papers. Tile colour scales from light (lower mean) to vivid orange (higher mean), clamped to 40\u201380. Criteria where all rows show similar colour intensity indicate broad agreement; divergent columns flag criteria-level systematic differences."</span></span>
-<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
-<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 6.5</span></span>
+<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Compute human-LLM alpha for a specific model</span></span>
+<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>  compute_hl_alpha <span class="ot">&lt;-</span> <span class="cf">function</span>(criterion, model_name) {</span>
+<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>    human_mean <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(criteria <span class="sc">==</span> criterion, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(paper) <span class="sc">|&gt;</span></span>
+<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="at">Human =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>    llm_rating <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(criteria <span class="sc">==</span> criterion, model <span class="sc">==</span> model_name, paper <span class="sc">%in%</span> opus_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(paper, midpoint) <span class="sc">|&gt;</span></span>
+<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rename</span>(<span class="at">LLM =</span> midpoint)</span>
+<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>    combined <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(human_mean, llm_rating, <span class="at">by =</span> <span class="st">"paper"</span>)</span>
+<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(combined) <span class="sc">&lt;</span> <span class="dv">3</span>) <span class="fu">return</span>(<span class="cn">NA_real_</span>)</span>
+<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a>    M <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="at">Human =</span> combined<span class="sc">$</span>Human, <span class="at">LLM =</span> combined<span class="sc">$</span>LLM)</span>
+<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tryCatch</span>({</span>
+<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a>      irr<span class="sc">::</span><span class="fu">kripp.alpha</span>(M, <span class="at">method =</span> <span class="st">"interval"</span>)<span class="sc">$</span>value</span>
+<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">error =</span> <span class="cf">function</span>(e) <span class="cn">NA_real_</span>)</span>
+<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a>metric_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall =</span> <span class="st">"Overall"</span>, <span class="at">claims =</span> <span class="st">"Claims"</span>, <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
-<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>, <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
-<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci =</span> <span class="st">"Open Science"</span>, <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
-<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a>criteria_means <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a>  metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
-<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Human"</span>),</span>
-<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a>  llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
-<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(model, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">criteria_label =</span> <span class="fu">factor</span>(metric_labels[criteria], <span class="at">levels =</span> metric_labels))</span>
-<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(criteria_means) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(criteria_means, <span class="fu">aes</span>(<span class="at">x =</span> criteria_label, <span class="at">y =</span> model, <span class="at">fill =</span> mean_rating)) <span class="sc">+</span></span>
-<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(mean_rating, <span class="dv">0</span>)), <span class="at">size =</span> <span class="fl">4.2</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
-<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#f0f0f0"</span>, <span class="at">high =</span> UJ_ORANGE, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">80</span>), <span class="at">name =</span> <span class="st">"Mean rating"</span>) <span class="sc">+</span></span>
-<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
-<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">30</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">11</span>),</span>
-<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
-<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
-<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get unique LLM models</span></span>
+<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a>  llm_models <span class="ot">&lt;-</span> <span class="fu">unique</span>(llm_metrics<span class="sc">$</span>model)</span>
+<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build comparison table</span></span>
+<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a>  baseline_results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Criterion =</span> criterion_labels[criteria_list]) <span class="sc">|&gt;</span></span>
+<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">criterion_key =</span> criteria_list) <span class="sc">|&gt;</span></span>
+<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">α_HH</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">compute_hh_alpha</span>(criterion_key)</span>
+<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
+<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add columns for each LLM model</span></span>
+<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (mod <span class="cf">in</span> llm_models) {</span>
+<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a>    col_name <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"α_HL ("</span>, mod, <span class="st">")"</span>)</span>
+<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a>    baseline_results <span class="ot">&lt;-</span> baseline_results <span class="sc">|&gt;</span></span>
+<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">col_name :=</span> <span class="fu">compute_hl_alpha</span>(criterion_key, mod)) <span class="sc">|&gt;</span></span>
+<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ungroup</span>()</span>
+<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Format for display — put α_HH immediately after Criterion column</span></span>
+<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a>  baseline_display <span class="ot">&lt;-</span> baseline_results <span class="sc">|&gt;</span></span>
+<span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>criterion_key) <span class="sc">|&gt;</span></span>
+<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(.x), <span class="st">"\u2014"</span>, <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, .x))))</span>
+<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a>  alpha_col_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Criterion"</span>, <span class="st">"\u03b1_HH"</span>,</span>
+<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">sort</span>(<span class="fu">grep</span>(<span class="st">"^\u03b1_HL"</span>, <span class="fu">names</span>(baseline_display), <span class="at">value =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">all</span>(alpha_col_order <span class="sc">%in%</span> <span class="fu">names</span>(baseline_display))) {</span>
+<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a>    baseline_display <span class="ot">&lt;-</span> baseline_display <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">all_of</span>(alpha_col_order))</span>
+<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a>**Additional models.** @fig-scatter-other shows overall ratings for the two lightweight models---GPT-4o-mini and Gemini 2.0 Flash---against human mean ratings. These models cost 50--200× less per paper than reasoning-capable models (see @tbl-cost-overview) but may sacrifice rating accuracy.</span>
-<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-scatter-other</span></span>
-<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Human mean overall rating (x-axis) vs LLM overall rating (y-axis) for the two lightweight models GPT-4o-mini and Gemini 2.0 Flash. Each point is one paper; the dashed diagonal is the identity line. These models cost 50\u2013200\u00d7 less per paper than reasoning-capable models (see cost table above)."</span></span>
-<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
-<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 6</span></span>
-<span id="cb9-570"><a href="#cb9-570" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a>other_models <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"GPT-4o-mini"</span>, <span class="st">"Gemini 2.0 Flash"</span>)</span>
-<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a>scatter_other <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, model <span class="sc">%in%</span> other_models) <span class="sc">|&gt;</span></span>
-<span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_avg, <span class="at">by =</span> <span class="st">"paper"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> midpoint <span class="sc">-</span> human_mid,</span>
-<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a>    <span class="at">paper_short =</span> <span class="fu">str_trunc</span>(paper, <span class="dv">25</span>),</span>
-<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_lo =</span> <span class="fu">coalesce</span>(human_lo, human_mid),</span>
-<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_hi =</span> <span class="fu">coalesce</span>(human_hi, human_mid),</span>
-<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower_bound =</span> <span class="fu">coalesce</span>(lower_bound, midpoint),</span>
-<span id="cb9-582"><a href="#cb9-582" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper_bound =</span> <span class="fu">coalesce</span>(upper_bound, midpoint)</span>
-<span id="cb9-583"><a href="#cb9-583" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-584"><a href="#cb9-584" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid), <span class="sc">!</span><span class="fu">is.na</span>(midpoint))</span>
-<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_other) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb9-587"><a href="#cb9-587" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(scatter_other, <span class="fu">aes</span>(<span class="at">x =</span> human_mid, <span class="at">y =</span> midpoint, <span class="at">color =</span> model)) <span class="sc">+</span></span>
-<span id="cb9-588"><a href="#cb9-588" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
-<span id="cb9-589"><a href="#cb9-589" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb9-590"><a href="#cb9-590" aria-hidden="true" tabindex="-1"></a>    ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">size =</span> <span class="fl">2.4</span>, <span class="at">max.overlaps =</span> <span class="dv">8</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb9-591"><a href="#cb9-591" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> MODEL_COLORS) <span class="sc">+</span></span>
-<span id="cb9-592"><a href="#cb9-592" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">+</span></span>
-<span id="cb9-593"><a href="#cb9-593" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>model, <span class="at">ncol =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb9-594"><a href="#cb9-594" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Human mean rating (0\u2013100)"</span>, <span class="at">y =</span> <span class="st">"LLM rating (0\u2013100)"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb9-595"><a href="#cb9-595" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
-<span id="cb9-596"><a href="#cb9-596" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span>
-<span id="cb9-597"><a href="#cb9-597" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb9-598"><a href="#cb9-598" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"No matching data for lightweight model scatter plot.</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb9-599"><a href="#cb9-599" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-600"><a href="#cb9-600" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-601"><a href="#cb9-601" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-602"><a href="#cb9-602" aria-hidden="true" tabindex="-1"></a>For per-paper scatter plots, rank comparisons, and the gap heatmap showing Human − LLM differences by paper and criterion, see the <span class="co">[</span><span class="ot">main Results chapter</span><span class="co">](results.qmd)</span>. Extended reasoning traces are available in <span class="co">[</span><span class="ot">Appendix C: LLM Traces</span><span class="co">](appendix_llm_traces.qmd)</span>.</span>
-<span id="cb9-603"><a href="#cb9-603" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-604"><a href="#cb9-604" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(baseline_display, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(baseline_display) <span class="sc">-</span> <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a>Where α~HL~ ≥ α~HH~, the LLM is performing at or above the ceiling set by human inter-rater variability — its ratings are as consistent with the human reference as a second human evaluator would be. Criteria where α~HH~ is already low (indicating genuine evaluator disagreement) naturally cap how well any model can do, and low α~HL~ on those criteria reflects the difficulty of the task rather than a model failure. Extended agreement analysis — including CI coverage, bootstrap confidence intervals, and mutual information — is available in the supplementary material.</span>
+<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a>**Criteria-level patterns.** @fig-criteria-heatmap displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge (similar colour intensity) suggest robust agreement on that dimension; criteria with divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.</span>
+<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-criteria-heatmap</span></span>
+<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Mean rating by evaluator type (rows) and criterion (columns), averaged across all matched papers. Tile colour scales from light (lower mean) to vivid orange (higher mean), clamped to 40\u201380. Criteria where all rows show similar colour intensity indicate broad agreement; divergent columns flag criteria-level systematic differences."</span></span>
+<span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
+<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 6.5</span></span>
+<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a>metric_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall =</span> <span class="st">"Overall"</span>, <span class="at">claims =</span> <span class="st">"Claims"</span>, <span class="at">methods =</span> <span class="st">"Methods"</span>,</span>
+<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>, <span class="at">logic_comms =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
+<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci =</span> <span class="st">"Open Science"</span>, <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
+<span id="cb9-582"><a href="#cb9-582" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-583"><a href="#cb9-583" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-584"><a href="#cb9-584" aria-hidden="true" tabindex="-1"></a>criteria_means <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a>  metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-587"><a href="#cb9-587" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
+<span id="cb9-588"><a href="#cb9-588" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-589"><a href="#cb9-589" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Human"</span>),</span>
+<span id="cb9-590"><a href="#cb9-590" aria-hidden="true" tabindex="-1"></a>  llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb9-591"><a href="#cb9-591" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(criteria <span class="sc">%in%</span> <span class="fu">names</span>(metric_labels), paper <span class="sc">%in%</span> matched_papers) <span class="sc">|&gt;</span></span>
+<span id="cb9-592"><a href="#cb9-592" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(model, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb9-593"><a href="#cb9-593" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">mean_rating =</span> <span class="fu">mean</span>(midpoint, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb9-594"><a href="#cb9-594" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb9-595"><a href="#cb9-595" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">criteria_label =</span> <span class="fu">factor</span>(metric_labels[criteria], <span class="at">levels =</span> metric_labels))</span>
+<span id="cb9-596"><a href="#cb9-596" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-597"><a href="#cb9-597" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(criteria_means) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb9-598"><a href="#cb9-598" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(criteria_means, <span class="fu">aes</span>(<span class="at">x =</span> criteria_label, <span class="at">y =</span> model, <span class="at">fill =</span> mean_rating)) <span class="sc">+</span></span>
+<span id="cb9-599"><a href="#cb9-599" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb9-600"><a href="#cb9-600" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(mean_rating, <span class="dv">0</span>)), <span class="at">size =</span> <span class="fl">4.2</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb9-601"><a href="#cb9-601" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"#f0f0f0"</span>, <span class="at">high =</span> UJ_ORANGE, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">80</span>), <span class="at">name =</span> <span class="st">"Mean rating"</span>) <span class="sc">+</span></span>
+<span id="cb9-602"><a href="#cb9-602" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb9-603"><a href="#cb9-603" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
+<span id="cb9-604"><a href="#cb9-604" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">30</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">11</span>),</span>
+<span id="cb9-605"><a href="#cb9-605" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>),</span>
+<span id="cb9-606"><a href="#cb9-606" aria-hidden="true" tabindex="-1"></a>          <span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb9-607"><a href="#cb9-607" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-608"><a href="#cb9-608" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-609"><a href="#cb9-609" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-610"><a href="#cb9-610" aria-hidden="true" tabindex="-1"></a>**Additional models.** @fig-scatter-other shows overall ratings for the two lightweight models---GPT-4o-mini and Gemini 2.0 Flash---against human mean ratings. These models cost 50--200× less per paper than reasoning-capable models (see @tbl-cost-overview) but may sacrifice rating accuracy.</span>
+<span id="cb9-611"><a href="#cb9-611" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-614"><a href="#cb9-614" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-615"><a href="#cb9-615" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-scatter-other</span></span>
+<span id="cb9-616"><a href="#cb9-616" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Human mean overall rating (x-axis) vs LLM overall rating (y-axis) for the two lightweight models GPT-4o-mini and Gemini 2.0 Flash. Each point is one paper; the dashed diagonal is the identity line. These models cost 50\u2013200\u00d7 less per paper than reasoning-capable models (see cost table above)."</span></span>
+<span id="cb9-617"><a href="#cb9-617" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 11</span></span>
+<span id="cb9-618"><a href="#cb9-618" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 6</span></span>
+<span id="cb9-619"><a href="#cb9-619" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-620"><a href="#cb9-620" aria-hidden="true" tabindex="-1"></a>other_models <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"GPT-4o-mini"</span>, <span class="st">"Gemini 2.0 Flash"</span>)</span>
+<span id="cb9-621"><a href="#cb9-621" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-622"><a href="#cb9-622" aria-hidden="true" tabindex="-1"></a>scatter_other <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb9-623"><a href="#cb9-623" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">==</span> <span class="st">"overall"</span>, model <span class="sc">%in%</span> other_models) <span class="sc">|&gt;</span></span>
+<span id="cb9-624"><a href="#cb9-624" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_avg, <span class="at">by =</span> <span class="st">"paper"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-625"><a href="#cb9-625" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-626"><a href="#cb9-626" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> midpoint <span class="sc">-</span> human_mid,</span>
+<span id="cb9-627"><a href="#cb9-627" aria-hidden="true" tabindex="-1"></a>    <span class="at">paper_short =</span> <span class="fu">str_trunc</span>(paper, <span class="dv">25</span>),</span>
+<span id="cb9-628"><a href="#cb9-628" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_lo =</span> <span class="fu">coalesce</span>(human_lo, human_mid),</span>
+<span id="cb9-629"><a href="#cb9-629" aria-hidden="true" tabindex="-1"></a>    <span class="at">human_hi =</span> <span class="fu">coalesce</span>(human_hi, human_mid),</span>
+<span id="cb9-630"><a href="#cb9-630" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower_bound =</span> <span class="fu">coalesce</span>(lower_bound, midpoint),</span>
+<span id="cb9-631"><a href="#cb9-631" aria-hidden="true" tabindex="-1"></a>    <span class="at">upper_bound =</span> <span class="fu">coalesce</span>(upper_bound, midpoint)</span>
+<span id="cb9-632"><a href="#cb9-632" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-633"><a href="#cb9-633" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid), <span class="sc">!</span><span class="fu">is.na</span>(midpoint))</span>
+<span id="cb9-634"><a href="#cb9-634" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-635"><a href="#cb9-635" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(scatter_other) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb9-636"><a href="#cb9-636" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(scatter_other, <span class="fu">aes</span>(<span class="at">x =</span> human_mid, <span class="at">y =</span> midpoint, <span class="at">color =</span> model)) <span class="sc">+</span></span>
+<span id="cb9-637"><a href="#cb9-637" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb9-638"><a href="#cb9-638" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb9-639"><a href="#cb9-639" aria-hidden="true" tabindex="-1"></a>    ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">size =</span> <span class="fl">2.4</span>, <span class="at">max.overlaps =</span> <span class="dv">8</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb9-640"><a href="#cb9-640" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> MODEL_COLORS) <span class="sc">+</span></span>
+<span id="cb9-641"><a href="#cb9-641" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">+</span></span>
+<span id="cb9-642"><a href="#cb9-642" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>model, <span class="at">ncol =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb9-643"><a href="#cb9-643" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Human mean rating (0\u2013100)"</span>, <span class="at">y =</span> <span class="st">"LLM rating (0\u2013100)"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb9-644"><a href="#cb9-644" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>() <span class="sc">+</span></span>
+<span id="cb9-645"><a href="#cb9-645" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span>
+<span id="cb9-646"><a href="#cb9-646" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb9-647"><a href="#cb9-647" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"No matching data for lightweight model scatter plot.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-648"><a href="#cb9-648" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-649"><a href="#cb9-649" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-650"><a href="#cb9-650" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-651"><a href="#cb9-651" aria-hidden="true" tabindex="-1"></a>For per-paper scatter plots, rank comparisons, and the gap heatmap showing Human − LLM differences by paper and criterion, see the <span class="co">[</span><span class="ot">main Results chapter</span><span class="co">](results.qmd)</span>. Extended reasoning traces are available in <span class="co">[</span><span class="ot">Appendix C: LLM Traces</span><span class="co">](appendix_llm_traces.qmd)</span>.</span>
+<span id="cb9-652"><a href="#cb9-652" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-653"><a href="#cb9-653" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
