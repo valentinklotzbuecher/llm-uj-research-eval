@@ -322,7 +322,7 @@ We do not treat human ratings as ground truth. Quantitative percentile scoring i
 
 ```{r}
 #| label: fig-overview-combined
-#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with 90% credible intervals, GPT-5 Pro rating (orange diamond with CI), and Claude Opus 4.6 rating (purple diamond with CI) for each paper, sorted by descending human mean. Dotted horizontal lines show grand means (values in legend). **(b)** Human mean vs LLM overall rating for GPT-5 Pro and Claude Opus 4.6; dashed diagonal is the identity line. **(c)** Pairwise human evaluator agreement: each point is one evaluator pair for papers with ≥2 raters (papers with 3 evaluators contribute up to 3 pairs); the diagonal shows perfect agreement."
+#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with each evaluator's self-reported 90% credible interval (reflecting their own uncertainty about the true score; the vertical separation between green dots per paper reflects inter-rater disagreement), GPT-5 Pro (orange diamond with CI), and Claude Opus 4.6 (purple diamond with CI), sorted by descending human mean. Dotted horizontal lines show grand means. **(b)** Human mean vs LLM overall rating for the two focal models; dashed diagonal is the identity line. **(c)** Pairwise human evaluator agreement across all matched papers: each point is one evaluator pair (papers with 3 raters contribute 3 points); compare directly with panel (b) to see whether LLM-human scatter exceeds human-human scatter. Note: panel (c) uses all `r n_matched` matched papers while Table 1's Human–Human row is restricted to the `r n_opus`-paper matched sample."
 #| fig-width: 14
 #| fig-height: 14
 #| code-fold: true
@@ -524,7 +524,7 @@ bottom_row <- wrap_plots(p_scatter, p_hh, widths = c(2, 1))
 (p_forest / bottom_row) + plot_layout(heights = c(1, 0.85))
 ```
 
-Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in the [agreement table in Appendix A](results_ratings.qmd).
+Panel (c) makes the human-human ceiling visual: the scatter of evaluator pairs is no tighter than the LLM-human scatter in panel (b), and individual pairs disagree by as much as 30--40 percentile points on individual papers. Note that panel (c) uses all `r n_matched` matched papers while the Human–Human row in @tbl-model-agreement-main is restricted to the `r n_opus`-paper matched sample (explaining the slightly different ρ values). Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in the [agreement table in Appendix A](results_ratings.qmd).
 
 **Rank comparison.** @fig-rankslope-main places human rankings in the centre column with GPT-5 Pro on the left and Claude Opus 4.6 on the right, restricted to the `r n_opus` papers with Claude Opus 4.6 evaluations. Each paper appears as a pair of S-curves connecting its human rank to its rank under each LLM. Horizontal curves indicate agreement; curves that climb toward the top indicate the LLM ranked the paper higher (better) than humans did. Colour encodes the rank shift: green when humans rank it higher, orange (left, GPT-5 Pro) or purple (right, Opus) when the LLM does. The triptych layout makes it easy to spot papers where both LLMs agree with each other but disagree with humans (both curves slope the same way), versus papers where the two LLMs diverge.
 
@@ -868,11 +868,11 @@ if (nrow(model_compare_data) > 0) {
 }
 ```
 
-@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion, averaged across all models in the matched sample, to reveal which dimensions of research quality show stronger vs weaker human--LLM alignment.
+@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion, averaged across all models. Crucially, the **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion — the ceiling available to any model. Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.
 
 ```{r}
 #| label: tbl-criteria-agreement-main
-#| tbl-cap: "Human--LLM agreement by criterion, averaged across all models (matched sample, N = `r n_opus` papers). Higher Pearson *r* indicates better alignment; positive bias indicates LLMs are more generous on that criterion."
+#| tbl-cap: "Human--LLM agreement by criterion, averaged across all models (matched sample, N = `r n_opus` papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the ceiling for each criterion); LLM Spearman *ρ* and other metrics are averages across all six models. Positive bias = LLMs rate higher on average. Note the ceiling variation across criteria: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), which sets expectations for LLM performance."
 #| code-fold: true
 
 criteria_order <- c("overall", "claims", "methods", "adv_knowledge",
@@ -887,6 +887,25 @@ criteria_labels <- c(
   gp_relevance = "Global Relevance"
 )
 
+# Human-human pairwise Spearman rho per criterion (ceiling reference)
+hh_crit_pairs <- metrics_human |>
+  filter(criteria %in% criteria_order, paper %in% opus_papers) |>
+  select(paper, criteria, evaluator, mid) |>
+  distinct() |>
+  group_by(paper, criteria) |>
+  filter(n() >= 2) |>
+  mutate(slot = paste0("E", row_number())) |>
+  ungroup() |>
+  pivot_wider(names_from = slot, values_from = c(mid, evaluator)) |>
+  filter(!is.na(mid_E1), !is.na(mid_E2))
+
+hh_crit_rho <- hh_crit_pairs |>
+  group_by(criteria) |>
+  summarise(
+    `H-H ρ` = round(cor(mid_E1, mid_E2, method = "spearman", use = "complete.obs"), 3),
+    .groups = "drop"
+  )
+
 human_by_crit <- metrics_human |>
   filter(criteria %in% criteria_order, paper %in% opus_papers) |>
   group_by(paper, criteria) |>
@@ -898,20 +917,23 @@ crit_compare_data <- llm_metrics |>
 
 if (nrow(crit_compare_data) > 0) {
   crit_tbl <- crit_compare_data |>
-    group_by(Criterion = criteria) |>
+    group_by(criteria) |>
     summarise(
-      `Pearson r`  = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
-      `Spearman ρ` = round(cor(human_mid, midpoint, method = "spearman",
-                               use = "complete.obs"), 3),
-      `Mean bias`  = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
-      RMSE         = round(sqrt(mean((midpoint - human_mid)^2, na.rm = TRUE)), 1),
+      `LLM Spearman ρ` = round(cor(human_mid, midpoint, method = "spearman",
+                                    use = "complete.obs"), 3),
+      `LLM Pearson r`  = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
+      `Mean bias`       = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
+      RMSE              = round(sqrt(mean((midpoint - human_mid)^2, na.rm = TRUE)), 1),
       .groups = "drop"
     ) |>
-    mutate(Criterion = factor(Criterion, levels = criteria_order,
+    left_join(hh_crit_rho, by = "criteria") |>
+    mutate(Criterion = factor(criteria, levels = criteria_order,
                               labels = criteria_labels[criteria_order])) |>
+    select(Criterion, `H-H ρ`, `LLM Spearman ρ`, `LLM Pearson r`, `Mean bias`, RMSE) |>
     arrange(Criterion)
 
-  knitr::kable(crit_tbl, align = c("l", rep("r", 4)))
+  knitr::kable(crit_tbl, align = c("l", rep("r", 5))) |>
+    kableExtra::column_spec(2, bold = TRUE)
 }
 ```
 
