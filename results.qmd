@@ -538,9 +538,11 @@ bottom_row <- wrap_plots(p_hh, p_scatter, widths = c(1, 2))
 
 Panel (c) makes the human-human ceiling visual: the scatter of evaluator pairs is no tighter than the LLM-human scatter in panel (b), and individual pairs disagree by as much as 30--40 percentile points on individual papers. Note that panel (c) uses all `r n_matched` matched papers while the Human–Human row in @tbl-model-agreement-main is restricted to the `r n_opus`-paper matched sample (explaining the slightly different ρ values). Both models cluster around the identity line in the 40--80 range but diverge more at the extremes. LLMs tend to compress ratings toward the centre of the scale relative to humans, producing narrower spread---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics including Pearson *r*, Spearman *ρ*, mean bias, and RMSE for all six models appear in the [agreement table in Appendix A](results_ratings.qmd).
 
+<!-- DROPPED FOR CONFERENCE VERSION — rank slopegraph (Fig 2)
 **Rank comparison.** @fig-rankslope-main places human rankings in the centre column with GPT-5 Pro on the left and Claude Opus 4.6 on the right, restricted to the `r n_opus` papers with Claude Opus 4.6 evaluations. Each paper appears as a pair of S-curves connecting its human rank to its rank under each LLM. Horizontal curves indicate agreement; curves that climb toward the top indicate the LLM ranked the paper higher (better) than humans did. Colour encodes the rank shift: green when humans rank it higher, orange (left, GPT-5 Pro) or purple (right, Opus) when the LLM does. The triptych layout makes it easy to spot papers where both LLMs agree with each other but disagree with humans (both curves slope the same way), versus papers where the two LLMs diverge.
 
 ```{r}
+#| eval: false
 #| label: fig-rankslope-main
 #| fig-cap: "Triptych slopegraph of overall ratings for the `r n_papers_slope`-paper matched sample (papers evaluated by all three sources). Each column shows rank order (1 = highest rated) within that source; papers are connected by S-shaped curves. Green = human panel ranks higher; orange (left) = GPT-5 Pro ranks higher; purple (right) = Claude Opus ranks higher. Colour intensity encodes magnitude of rank shift. Right-side labels show human rank (H) and rank delta for each model (\u0394G, \u0394C; positive = LLM ranks higher)."
 #| fig-height: 13
@@ -676,8 +678,9 @@ if (n_papers_slope > 0) {
 ```
 
 Papers where both curves slope the same direction indicate systematic human--LLM disagreement; papers where left and right curves diverge indicate model-specific differences—GPT and Claude "see" the paper differently, not just differently from humans. Horizontal curves indicate agreement with the human ordering. The criteria-level Krippendorff's alpha analysis in the [human baseline table in Appendix A](results_ratings.qmd) quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
+END DROPPED SECTION -->
 
-**Rating differences by paper and criterion.** While the scatter plots and slopegraph summarise agreement on a single dimension, @fig-gap-heatmap-main unpacks Human − LLM differences across all seven criteria simultaneously. Each column is a paper, each row a criterion, and tile colour encodes the signed difference (human mean minus LLM midpoint). Green tiles indicate the human panel rated the paper higher; orange (GPT-5 Pro) or purple (Claude Opus) tiles indicate the LLM was more generous. Papers are sorted by GPT-5 Pro's overall difference so that both panels share the same column order, making model-specific patterns immediately visible.
+**Rating differences by paper and criterion.** @fig-gap-heatmap-main unpacks Human − LLM differences across all seven criteria simultaneously. Each column is a paper, each row a criterion, and tile colour encodes the signed difference (human mean minus LLM midpoint). Green tiles indicate the human panel rated the paper higher; orange (GPT-5 Pro) or purple (Claude Opus) tiles indicate the LLM was more generous. Papers are sorted by GPT-5 Pro's overall difference so that both panels share the same column order, making model-specific patterns immediately visible.
 
 ```{r}
 #| label: fig-gap-heatmap-main
