@@ -10,6 +10,23 @@ This is a research project that uses LLMs to evaluate academic research papers b
 
 **Funding context:** The project is actively seeking funding through grant proposals. The `proposal.qmd` chapter contains a detailed proposal for Coefficient Giving's "AI for Forecasting and Sound Reasoning" RFP. Grant reviewers are directed to this chapter via a signpost callout on the landing page.
 
+### Dual Hosting Setup
+
+The project maintains two hosted versions from different branches:
+
+| Branch | Host | URL | Purpose |
+|--------|------|-----|---------|
+| `main` | Netlify | https://llm-uj-research-eval.netlify.app | Full project site with all chapters, appendices, proposal |
+| `working-paper` | GitHub Pages | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | Concise self-contained research paper (Introduction, Methods, Results, Discussion) |
+
+**Key differences:**
+- **main branch**: Multi-chapter Quarto book with extensive appendices, code visibility, grant proposal
+- **working-paper branch**: Streamlined 4-chapter paper structure, Hypothes.is annotations enabled, PDF output
+
+**Cross-linking:** The Netlify site (main) includes a callout and sidebar link to the GitHub Pages working paper.
+
+**Hypothes.is annotations:** The working-paper site has `hypothesis: true` enabled for collaborative annotation. Annotations are tagged with `migrated` and `todo` for tracking unresolved feedback.
+
 ## Environment Setup
 
 This project uses **both R and Python** in a mixed environment:
@@ -508,14 +525,26 @@ When committing:
 
 ## Deployment
 
-The site is hosted on Netlify. The deployment process:
-1. Push to main branch on GitHub
-2. Netlify automatically runs `quarto render` and deploys `_book/` contents
+The project uses dual hosting:
 
-**Configuration notes:**
-- `embed-resources: true` in `_quarto.yml` embeds all assets (CSS, JS, images) as base64 in HTML files. This creates larger but self-contained files.
-- `hypothesis: true` enables Hypothes.is annotation overlay for visitor comments. Note: Hypothesis requires external scripts from hypothes.is CDN, which may conflict with `embed-resources: true` in some browsers.
-- Large HTML files (>100MB) cannot be pushed to GitHub. If full-book renders produce oversized files, commit only source `.qmd` files and let Netlify render from source.
+### Netlify (main branch)
+- **URL:** https://llm-uj-research-eval.netlify.app
+- **Trigger:** Pushes to `main` branch
+- **Process:** Netlify runs `quarto render` and deploys `_book/` contents
+- **Notes:**
+  - `embed-resources: true` embeds all assets as base64 (larger but self-contained files)
+  - Hypothesis disabled on main (conflicts with embed-resources)
+  - Large HTML files (>100MB) cannot be pushed to GitHub; Netlify renders from source
+
+### GitHub Pages (working-paper branch)
+- **URL:** https://valentinklotzbuecher.github.io/llm-uj-research-eval/
+- **Trigger:** GitHub Actions workflow on push to `working-paper` branch
+- **Workflow:** `.github/workflows/gh-pages.yml`
+- **Notes:**
+  - `hypothesis: true` enabled for collaborative annotation
+  - Renders both HTML and PDF
+  - Self-contained research paper format (4 chapters)
+  - Annotations tagged `migrated` and `todo` track unresolved feedback from earlier review
 
 ## Automated Data Sync
 
