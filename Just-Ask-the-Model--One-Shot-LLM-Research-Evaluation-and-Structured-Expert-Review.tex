@@ -142,6 +142,7 @@
 
 % hyperref-colors.tex
 \usepackage{xcolor}
+\usepackage{colortbl}
 \usepackage{hyperref}
 \usepackage{caption}
 
@@ -256,26 +257,28 @@
 Structured Expert Review}
 \author{Valentin Klotzbücher \and David Reinstein \and Lorenzo
 Pacchiardi \and Tianmai Michael Zhang}
-\date{2026-02-21}
+\date{2026-03-13}
 \begin{document}
 \maketitle
 \begin{abstract}
 Peer review is strained, and AI tools generating referee-like feedback
 are already adopted by researchers and commercial services---yet field
 evidence on how reliably frontier LLMs can evaluate research remains
-scarce. We compare structured evaluations produced by six frontier LLMs
-against paid expert review packages from The Unjournal, an open
-evaluation platform covering economics and social-science working
-papers, where both humans and models rate papers on seven percentile
-criteria with uncertainty intervals and provide narrative critiques.
-Treating human evaluations as a high-quality but noisy reference signal,
-we find that top reasoning-capable models often approach the ceiling
-implied by human inter-rater variability on several criteria, while
-exhibiting consistent failure modes: compressed rating scales, uneven
-criterion coverage, and variable identification of expert-flagged
-concerns. Our results support AI as structured screening and decision
-support rather than full automation, and motivate stability checks and
-stronger safeguards against adversarial manipulation.
+scarce. We compare structured one-shot evaluations by GPT-5 Pro against
+paid expert review packages from The Unjournal, an open evaluation
+platform covering economics and social-science working papers, where
+both humans and the model rate papers on seven percentile criteria with
+uncertainty intervals and provide narrative critiques. Treating human
+evaluations as a high-quality but noisy reference signal, we find that
+GPT-5 Pro approaches the agreement levels observed among human
+evaluators themselves on several criteria, while exhibiting consistent
+failure modes: compressed rating scales, uneven criterion coverage, and
+variable identification of expert-flagged concerns. Our results suggest
+that even a minimal one-shot setup---a single prompt with a fixed
+rubric, no iteration or retrieval augmentation---yields LLM ratings
+comparable to an additional expert rater, though central compression and
+uneven qualitative coverage indicate clear limitations. Appendix results
+for five additional models confirm the pattern across capability tiers.
 \end{abstract}
 
 
@@ -283,22 +286,10 @@ stronger safeguards against adversarial manipulation.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, opacityback=0, titlerule=0mm, left=2mm, arc=.35mm, colbacktitle=quarto-callout-caution-color!10!white, colframe=quarto-callout-caution-color-frame, rightrule=.15mm, bottomtitle=1mm, coltitle=black, toprule=.15mm, toptitle=1mm, title=\textcolor{quarto-callout-caution-color}{\faFire}\hspace{0.5em}{Working paper}, colback=white, breakable, bottomrule=.15mm, opacitybacktitle=0.6, leftrule=.75mm]
-
-This is an evolving working paper. Analysis, metrics, and comparisons
-are under active development.
-
-This work is a collaboration with \href{https://www.unjournal.org/}{The
-Unjournal}, which has published 55+ detailed evaluation packages
-building open, quantitative evaluation infrastructure for
-global-priorities-relevant research in economics, policy, and social
-science. We thank The Unjournal's evaluation community for generating
-the structured human assessments that make this comparison possible.
-
-Funding for The Unjournal has been provided by the Survival and
-Flourishing Fund, the Long Term Future Fund, and EA Funds.
-
-\end{tcolorbox}
+\emph{A collaboration with \href{https://www.unjournal.org/}{The
+Unjournal} (55+ open evaluation packages for global-priorities
+research). Funding: Survival and Flourishing Fund, Long Term Future
+Fund, EA Funds.}
 
 Peer review is under strain. Reviewers are hard to find, turnaround
 times are lengthening, and the system costs an estimated \$1.5 billion
@@ -311,54 +302,40 @@ LLM-assisted writing (\citeproc{ref-spitzer2026submission}{Spitzer
 2026}). This combination creates demand for automated support in
 editorial and pre-submission workflows.
 
-AI ``reviewer'' products are already marketed directly to authors. For
-example, Refine offers automated, comment-style feedback on drafts and
-emphasizes that it is not a comprehensive replacement for content
-development or fact checking (\citeproc{ref-refineFAQ}{Refine n.d.}).
-IsItCredible (``Reviewer 2'') similarly sells automated referee-like
-reports, explicitly states that the service is not a substitute for
-human peer review, and claims uploaded files are deleted after delivery
-(\citeproc{ref-isitcredible}{IsItCredible.com n.d.}). These commercial
-tools likely use bespoke multi-step or agentic pipelines, though their
-internal architectures are not publicly documented. Meanwhile,
-publishers are formalizing policies that treat manuscripts and reviews
-as confidential and prohibit reviewers from uploading them into
-general-purpose generative AI tools, while permitting limited,
-controlled uses of AI for screening tasks (eg, completeness and
-plagiarism checks) within publisher-managed systems
+Commercial AI reviewer products---such as Refine
+(\citeproc{ref-refineFAQ}{Refine n.d.}), IsItCredible
+(\citeproc{ref-isitcredible}{IsItCredible.com n.d.}), and QED Science
+(\citeproc{ref-qedScience2026}{QED Science 2026})---already market
+automated referee-like feedback directly to authors, though they
+explicitly disclaim substituting for human peer review and their
+internal architectures remain undocumented. OpenAIReview
+(\citeproc{ref-openAIReview2026}{Hsu and Tan 2026}) takes a different
+approach: an open-source, transparent pipeline that uses progressive
+prompting to generate detailed critiques at roughly \$4 per paper.
+Meanwhile, publishers are formalizing policies that restrict reviewer
+use of general-purpose AI tools while permitting controlled in-house
+applications for screening tasks
 (\citeproc{ref-elsevierAIPolicy2025}{Elsevier 2025};
-\citeproc{ref-leung2026policies}{Leung 2026}).
+\citeproc{ref-leung2026policies}{Leung 2026}). Our study complements
+these efforts by asking how far the simplest possible setup---a single
+prompt to a frontier model, with no bespoke pipeline---can go.
 
 These developments make the evidentiary gap salient: funders, editors,
 and policymakers need to know when AI evaluation outputs are trustworthy
 enough to use, and when they are unstable, biased, or manipulable.
-Recent work highlights all three concerns. First, reproducibility can be
-``jagged'': repeated runs of the same models on the same corpus over
-time can be highly consistent for some tasks and models, but much less
-so for others (\citeproc{ref-thomas2026jagged}{Thomas, Romasanta, and
-Pujol Priego 2026}); robustness may require separating scientific
-judgment from computational execution (\citeproc{ref-xu2026scaling}{Xu
-and Yang 2026}); and even without overt adversarial intent, subtle
-reframings of the same task can induce systematic shifts in outputs---a
-form of LLM ``specification search''---raising concerns about
-frame-sensitive biases when models serve as measurement instruments
+Recent work documents three interlocking concerns. Reproducibility can
+be ``jagged'' across models and time
+(\citeproc{ref-thomas2026jagged}{Thomas, Romasanta, and Pujol Priego
+2026}), and subtle task reframings can induce systematic output shifts
+reminiscent of specification search
 (\citeproc{ref-AsherMalzahnPersanoPaschalMyersHall2026P_Hack}{Asher et
-al. 2026}). Second, adversarial manipulation is not hypothetical:
-invisible-text ``prompt injection'' can substantially inflate
-LLM-assigned review scores and acceptance recommendations in simulated
-peer review (\citeproc{ref-choi2026invisible}{Choi et al. 2026}), and
-prompt-injection vulnerabilities are also documented in other
-high-stakes advice settings (\citeproc{ref-lee2025promptinj}{Lee et al.
-2025}). Third, even when outputs look fluent and plausible, it remains
-unclear whether AI models approximate expert judgment: AI-generated
-reviews tend to cover more surface-level sections while being less
-thematically diverse and less focused on interpretation, originality,
-and applicability than human reviews
-(\citeproc{ref-rajakumar2026peerreview}{Rajakumar et al. 2026}); LLMs
-used as manuscript quality checkers identify only a small fraction of
-confirmed critical errors even with the strongest reasoning models
-(\citeproc{ref-Zhang2025}{Zhang and Abernethy 2025}); and LLM scoring
-exhibits systematic range restriction and halo effects that can distort
+al. 2026}). Adversarial manipulation is not hypothetical: invisible
+prompt-injection text can inflate LLM review scores in simulated peer
+review (\citeproc{ref-choi2026invisible}{Choi et al. 2026}). And even
+without manipulation, AI reviews tend to be less thematically diverse
+and less focused on interpretation and originality than human reviews
+(\citeproc{ref-rajakumar2026peerreview}{Rajakumar et al. 2026}), while
+LLM scoring exhibits range restriction and halo effects that distort
 agreement metrics (\citeproc{ref-wang2025psychometric}{Wang et al.
 2025}).
 
@@ -369,31 +346,30 @@ setting designed to make ``expert judgment'' observable and
 multi-dimensional rather than implicit.
 
 We use \href{https://www.unjournal.org/}{The Unjournal's} structured
-human evaluations as a reference signal. We prompt six frontier
-LLMs---GPT-5 Pro, GPT-5.2 Pro, GPT-4o-mini, Claude Sonnet 4, Claude Opus
-4.6\footnote{Claude Opus 4.6 was evaluated without extended thinking
-  enabled; results for this model reflect standard inference and likely
-  understate its ceiling capability. A re-run with extended thinking is
-  planned.}, and Gemini 2.0 Flash---with the same rubric and guidelines
-used by human evaluators, then compare the resulting quantitative
-ratings and qualitative critiques against expert evaluations for 60
-economics and social-science working papers. We ask whether frontier AI
-evaluations can approximate expert judgment, which models perform best
-across rating criteria and cost tiers, and whether systematic
-differences reveal characteristic AI preferences over research. Our
-headline finding is that the best-performing model (GPT-5 Pro) matches
-or exceeds pairwise human inter-rater rank agreement on overall quality,
-making a strong case that frontier LLMs can serve as additional expert
-raters in structured evaluation pipelines, even under our deliberately
-minimal one-shot setup.
+human evaluations as a reference signal. We prompt GPT-5 Pro---a
+frontier reasoning model---with the same rubric and guidelines used by
+human evaluators, then compare the resulting quantitative ratings and
+qualitative critiques against expert evaluations for 60 economics and
+social-science working papers. We ask whether a frontier LLM evaluation
+can approximate expert judgment, where systematic differences arise, and
+whether the model reveals characteristic AI preferences over research.
+Our headline finding is that GPT-5 Pro matches or exceeds pairwise human
+inter-rater rank agreement on overall quality---that is, the LLM-human
+correlation is comparable to the human-human correlation, which is the
+appropriate benchmark given substantial disagreement among human
+evaluators themselves. Appendix results for five additional models
+spanning different capability and cost tiers confirm the pattern. This
+suggests that top reasoning models can currently serve as supplementary
+raters in structured evaluation pipelines, even under our minimal
+one-shot setup.
 
-Our approach is deliberately minimal: each model receives the same PDF
-and a fixed rubric in a single prompt, with no iteration, retrieval
+Our approach is minimal by design: each model receives the same PDF and
+a fixed rubric in a single prompt, with no iteration, retrieval
 augmentation, chain-of-thought scaffolding, or multi-step agentic loop.
 This makes our results a conservative lower bound on what LLM-based
-evaluation can achieve. If frontier models already yield meaningful
-agreement with expert reviewers under the simplest possible setup, more
-sophisticated pipelines---structured measurement schemas
+evaluation can currently achieve. If frontier models already yield
+meaningful agreement with expert reviewers under the simplest possible
+setup, more sophisticated pipelines---structured measurement schemas
 (\citeproc{ref-AsirvathamMokskiShleifer2026GPTMeasurement}{Asirvatham,
 Mokski, and Shleifer 2026}), iterative quality-checking workflows
 (\citeproc{ref-Zhang2025}{Zhang and Abernethy 2025}), or the kind of
@@ -406,16 +382,17 @@ it, is a key direction for future work.
 The Unjournal setting is particularly well suited for this comparison.
 It commissions paid expert evaluations using a structured rubric
 covering seven percentile criteria with 90\% credible intervals plus
-journal-tier predictions, and publishes the resulting packages
-openly---reducing classic gatekeeping motives and increasing reviewer
-effort. The resulting ratings and critiques still exhibit substantial
-inter-rater variation; accordingly, we treat human evaluations as a
-high-quality but noisy reference signal, not ground truth. The rich,
-multi-dimensional data allow us to compare the priorities and
-calibration of humans and AI models across criteria and domains, while
-the journal-tier predictions provide an external reference
-point\footnote{These represent verifiable publication outcomes, not
-  statements about the ``true quality'' of the paper.} enabling a
+journal-tier predictions, and publishes the resulting packages openly
+rather than making binary accept/reject decisions---which may increase
+reviewer effort through accountability and transparency. The resulting
+ratings and critiques still exhibit substantial inter-rater variation;
+accordingly, we treat human evaluations as a high-quality but noisy
+reference signal, not ground truth. The rich, multi-dimensional data
+allow us to compare the priorities and calibration of humans and AI
+models across criteria and domains, while eventual publication outcomes
+for journal-tier predictions provide an external validation
+opportunity\footnote{These represent verifiable publication outcomes,
+  not statements about the ``true quality'' of the paper.} enabling a
 human-vs-LLM horse race. Finally, The Unjournal's pipeline of future
 evaluations allows for clean out-of-training-data predictions, serving
 as a live testing lab for prospective validation.
@@ -424,40 +401,39 @@ as a live testing lab for prospective validation.
 
 \section{Results}\label{results}
 
-We evaluate 6 frontier LLMs against human expert reviews from
-\href{https://unjournal.pubpub.org}{The Unjournal}. Across all models,
-45 papers have both human and LLM evaluations; 33 of these were also
-evaluated by Claude Opus 4.6 and form the matched sample used for rank
-comparisons and agreement tables below. Each model receives the same
-PDF, system prompt mirroring The Unjournal rubric, and JSON schema
-requiring a diagnostic summary plus numeric midpoints and 90\% credible
-intervals for every metric. Full methodological details appear in
-\href{methods.qmd}{Methods}.
+We evaluate GPT-5 Pro against human expert reviews from
+\href{https://unjournal.pubpub.org}{The Unjournal} on 45 matched papers
+(papers with both GPT-5 Pro and human evaluations). The model receives
+the same PDF, system prompt mirroring The Unjournal rubric, and JSON
+schema requiring a diagnostic summary plus numeric midpoints and 90\%
+credible intervals for every metric. Results for five additional models
+are reported in \href{results_ratings.qmd}{Appendix A}. Full
+methodological details appear in \href{methods.qmd}{Methods}.
 
 We do not treat human ratings as ground truth. Quantitative percentile
 scoring is genuinely difficult: even domain experts disagree, and
 individual scores reflect both signal about paper quality and
 idiosyncratic tendencies (severity, topic familiarity, interpretation of
-the scale). Our question is therefore whether LLMs provide signal
+the scale). Our question is therefore whether an LLM provides signal
 \emph{comparable to an additional expert rater}. If two human evaluators
-agree at Spearman ρ = 0.55, an LLM achieving ρ = 0.57 against the human
-mean is performing within human inter-rater range. The Human--Human
-baseline row in Table~\ref{tbl-model-agreement-main} makes this
-explicit; Krippendorff's α\textsubscript{HH} in
-\textbf{?@tbl-human-baseline} provides the criterion-level ceiling.
+agree at Spearman ρ ≈ 0.5, an LLM achieving comparable ρ against the
+human mean is performing within human inter-rater range. The
+Human--Human baseline row in Table~\ref{tbl-model-agreement-main} makes
+this explicit; Krippendorff's α\textsubscript{HH} in the
+\href{results_ratings.qmd}{human-baseline table in Appendix A} provides
+the criterion-level ceiling.
 
-\textbf{Per-paper overview and model comparison.}
-Figure~\ref{fig-overview-combined} presents three complementary views of
-overall (0--100 percentile) ratings. Panel (a) displays individual human
-evaluator ratings alongside GPT-5 Pro (orange diamonds) and Claude Opus
-4.6 (purple diamonds) ratings for each paper, revealing inter-rater
-variability---CIs often span 20--40\textasciitilde points. In most cases
-both LLMs fall within the range of human opinions, though several papers
-show substantial divergence. Panel (b) compares the two
-highest-performing reasoning models directly against human mean ratings.
-Panel (c) plots evaluator pairs against each other for all papers with
-≥2 raters, making the human-human agreement ceiling directly visible
-alongside LLM-human agreement in panel (b).
+\textbf{Per-paper overview.} Figure~\ref{fig-overview-combined} presents
+three complementary views of overall (0--100 percentile) ratings. Panel
+(a) displays individual human evaluator ratings alongside GPT-5 Pro
+(orange diamonds) for each paper, revealing inter-rater
+variability---the self-reported 90\% credible intervals from individual
+evaluators often span 20--40 percentile points. In most cases the LLM
+falls within the range of human opinions, though several papers show
+substantial divergence. Panel (b) plots all pairwise human evaluator
+combinations, making the human-human agreement ceiling directly visible.
+Panel (c) compares GPT-5 Pro ratings against human mean ratings with
+per-paper labels.
 
 \begin{figure}
 
@@ -466,109 +442,57 @@ percentile). \textbf{(a)} Individual human evaluator midpoints (green
 circles) with each evaluator's self-reported 90\% credible interval
 (reflecting their own uncertainty about the true score; the vertical
 separation between green dots per paper reflects inter-rater
-disagreement), GPT-5 Pro (orange diamond with CI), and Claude Opus 4.6
-(purple diamond with CI), sorted by descending human mean. Dotted
-horizontal lines show grand means. \textbf{(b)} Human mean vs LLM
-overall rating for the two focal models; dashed diagonal is the identity
-line. \textbf{(c)} Pairwise human evaluator agreement across all matched
-papers: each point is one evaluator pair (papers with 3 raters
-contribute 3 points); compare directly with panel (b) to see whether
-LLM-human scatter exceeds human-human scatter. Note: panel (c) uses all
-\texttt{r\ n\_matched} matched papers while Table 1's Human--Human row
-is restricted to the \texttt{r\ n\_opus}-paper matched sample.}
+disagreement) and GPT-5 Pro (orange diamonds with CI), sorted by
+descending human mean. Dotted horizontal lines show grand means.
+\textbf{(b)} Pairwise human evaluator agreement: each point is one
+evaluator pair (papers with 3 raters contribute 3 points). \textbf{(c)}
+Human mean vs GPT-5 Pro overall rating; dashed diagonal is the identity
+line. Compare panels (b) and (c) directly to see whether LLM-human
+scatter is tighter than human-human scatter.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-overview-combined-1.pdf}}
 
 \end{figure}%
 
-Panel (c) makes the human-human ceiling visual: the scatter of evaluator
-pairs is no tighter than the LLM-human scatter in panel (b), and
-individual pairs disagree by as much as 30--40 percentile points on
-individual papers. Note that panel (c) uses all 45 matched papers while
-the Human--Human row in Table~\ref{tbl-model-agreement-main} is
-restricted to the 33-paper matched sample (explaining the slightly
-different ρ values). Both models cluster around the identity line in the
-40--80 range but diverge more at the extremes. LLMs tend to compress
-ratings toward the centre of the scale relative to humans, producing
-narrower spread---a pattern consistent with alignment training that
-discourages extreme outputs. Where humans rate a paper very highly or
-very harshly, the LLM typically pulls toward the middle. Full agreement
-metrics including Pearson \emph{r}, Spearman \emph{ρ}, mean bias, and
-RMSE for all six models appear in the
-\href{results_ratings.qmd}{agreement table in Appendix A}.
+Panel (b) makes the human-human ceiling directly visible: the scatter of
+evaluator pairs is no tighter than the GPT-5 Pro--human scatter in panel
+(c), and individual pairs disagree by as much as 30--40 percentile
+points on individual papers. GPT-5 Pro clusters around the identity line
+in the 40--80 range but diverges more at the extremes, compressing
+ratings toward the centre of the scale relative to humans---a pattern
+consistent with alignment training that discourages extreme outputs.
+Where humans rate a paper very highly or very harshly, the LLM typically
+pulls toward the middle. Full agreement metrics for all six models
+appear in \href{results_ratings.qmd}{Appendix A}.
 
-\textbf{Rank comparison.} Figure~\ref{fig-rankslope-main} places human
-rankings in the centre column with GPT-5 Pro on the left and Claude Opus
-4.6 on the right, restricted to the 33 papers with Claude Opus 4.6
-evaluations. Each paper appears as a pair of S-curves connecting its
-human rank to its rank under each LLM. Horizontal curves indicate
-agreement; curves that climb toward the top indicate the LLM ranked the
-paper higher (better) than humans did. Colour encodes the rank shift:
-green when humans rank it higher, orange (left, GPT-5 Pro) or purple
-(right, Opus) when the LLM does. The triptych layout makes it easy to
-spot papers where both LLMs agree with each other but disagree with
-humans (both curves slope the same way), versus papers where the two
-LLMs diverge.
+\textbf{Rating differences by paper and criterion.}
+Figure~\ref{fig-gap-heatmap-main} unpacks Human − GPT-5 Pro differences
+across all seven criteria simultaneously. Each column is a paper, each
+row a criterion, and tile colour encodes the signed difference (human
+mean minus GPT-5 Pro midpoint). Green tiles indicate the human panel
+rated the paper higher; orange tiles indicate GPT-5 Pro was more
+generous. Papers are sorted by overall difference.
 
 \begin{figure}
 
-\caption{\label{fig-rankslope-main}Triptych slopegraph of overall
-ratings for the \texttt{r\ n\_papers\_slope}-paper matched sample
-(papers evaluated by all three sources). Each column shows rank order (1
-= highest rated) within that source; papers are connected by S-shaped
-curves. Green = human panel ranks higher; orange (left) = GPT-5 Pro
-ranks higher; purple (right) = Claude Opus ranks higher. Colour
-intensity encodes magnitude of rank shift. Right-side labels show human
-rank (H) and rank delta for each model (ΔG, ΔC; positive = LLM ranks
-higher).}
-
-\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-rankslope-main-1.pdf}}
-
-\end{figure}%
-
-Papers where both curves slope the same direction indicate systematic
-human--LLM disagreement; papers where left and right curves diverge
-indicate model-specific differences---GPT and Claude ``see'' the paper
-differently, not just differently from humans. Horizontal curves
-indicate agreement with the human ordering. The criteria-level
-Krippendorff's alpha analysis in the \href{results_ratings.qmd}{human
-baseline table in Appendix A} quantifies where human--LLM agreement
-approaches the ceiling set by human inter-rater variability.
-
-\textbf{Rating differences by paper and criterion.} While the scatter
-plots and slopegraph summarise agreement on a single dimension,
-Figure~\ref{fig-gap-heatmap-main} unpacks Human − LLM differences across
-all seven criteria simultaneously. Each column is a paper, each row a
-criterion, and tile colour encodes the signed difference (human mean
-minus LLM midpoint). Green tiles indicate the human panel rated the
-paper higher; orange (GPT-5 Pro) or purple (Claude Opus) tiles indicate
-the LLM was more generous. Papers are sorted by GPT-5 Pro's overall
-difference so that both panels share the same column order, making
-model-specific patterns immediately visible.
-
-\begin{figure}
-
-\caption{\label{fig-gap-heatmap-main}Human minus LLM rating difference
-for every paper (columns) and criterion (rows), comparing GPT-5 Pro
-(left panel) and Claude Opus 4.6 (right panel). Green tiles indicate the
-human mean was higher; orange (GPT-5 Pro) or purple (Claude Opus) tiles
-indicate the LLM rated the paper higher. Colour is clamped to ±30
-percentile points. Papers are sorted by GPT-5 Pro overall difference so
-the two panels are directly comparable.}
+\caption{\label{fig-gap-heatmap-main}Human minus GPT-5 Pro rating
+difference for every paper (columns) and criterion (rows). Green tiles
+indicate the human mean was higher; orange tiles indicate GPT-5 Pro
+rated the paper higher. Colour is clamped to ±30 percentile points.
+Papers are sorted by overall difference.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-gap-heatmap-main-1.pdf}}
 
 \end{figure}%
 
 Rows with uniformly green or orange tiles indicate papers where humans
-and the LLM disagree systematically across all criteria, not just on one
-dimension. Columns with consistent colour suggest criteria-level
+and GPT-5 Pro disagree systematically across all criteria, not just on
+one dimension. Columns with consistent colour suggest criteria-level
 biases---for instance, if ``Open Science'' is green across nearly all
 papers, humans may systematically reward data-sharing practices more
-than the LLM does. Comparing the two panels reveals whether disagreement
-patterns are model-specific or shared across frontier LLMs; tiles that
-change colour between panels highlight papers where the models diverge
-from each other, not just from humans.
+than the model does. Multi-model comparisons in
+\href{results_ratings.qmd}{Appendix A} reveal whether these disagreement
+patterns are GPT-5 Pro--specific or shared across frontier LLMs.
 
 \textbf{Qualitative critique comparison.} Beyond numeric ratings, we
 compare the substantive critiques each model raises against the
@@ -592,81 +516,68 @@ consistent with the automated scores.
 Detailed paper-by-paper comparisons---including matched issue pairs with
 severity labels, structural difference tables, and per-evaluator
 breakdowns---appear in \href{results_critiques.qmd}{Appendix B:
-Critiques \& Key Issues}. Extended quantitative analysis, including
-per-criterion correlations, bootstrap confidence intervals, mutual
-information, tier prediction accuracy, cost-quality trade-offs across
-all six models, and top disagreement cases, is reported in
+Critiques \& Key Issues}. Extended quantitative analysis including all
+six models, per-criterion correlations, bootstrap confidence intervals,
+tier prediction accuracy, and cost-quality trade-offs is reported in
 \href{results_ratings.qmd}{Appendix A: Results Ratings}. The full LLM
 reasoning traces and assessment summaries are available in
 \href{appendix_llm_traces.qmd}{Appendix C: LLM Traces}.
 
-\textbf{Model comparison summary.} Table~\ref{tbl-model-agreement-main}
-compares all six models on overall-rating agreement metrics against the
-human mean, restricted to the 33-paper matched sample so every model is
-evaluated on identical papers. The \textbf{Human--Human} row is the
-empirical ceiling: it shows pairwise agreement between evaluators on the
-same papers. Models are sorted by Spearman \emph{ρ}.
+\textbf{Agreement summary.} Table~\ref{tbl-model-agreement-main} shows
+GPT-5 Pro's agreement with the human mean on overall ratings, alongside
+the Human--Human baseline as an empirical ceiling. Full model comparison
+across all six models is in \href{results_ratings.qmd}{Appendix A}.
 
 \begin{longtable}[t]{lrrrrrr}
 
-\caption{\label{tbl-model-agreement-main}Agreement between each LLM and
-human mean overall rating (matched sample, N = \texttt{r\ n\_opus}
-papers). \textbf{Human--Human} row (top, bold) shows pairwise evaluator
-agreement as an empirical upper bound. Spearman \emph{ρ} (rank-based)
-and MAE (in percentile points, directly interpretable) are primary
-metrics; Pearson \emph{r} shown for completeness. Bias = LLM − Human
-(positive = LLM more generous). Models sorted by Spearman \emph{ρ}.}
+\caption{\label{tbl-model-agreement-main}GPT-5 Pro agreement with human
+mean overall rating (N = \texttt{r\ n\_focal} matched papers).
+\textbf{Human--Human} row shows pairwise evaluator agreement as an
+empirical ceiling. Spearman \emph{ρ} (rank-based) and MAE (in percentile
+points) are primary metrics; Pearson \emph{r} shown for completeness.
+Bias = LLM − Human (positive = LLM more generous).}
 
 \tabularnewline
 
 \toprule
 Model & N & Spearman ρ & Pearson r & Mean bias & RMSE & MAE\\
 \midrule
-\cellcolor[HTML]{f0f8f0}{\textbf{Human–Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{27}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.472}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.584}} & \cellcolor[HTML]{f0f8f0}{\textbf{+3.5}} & \cellcolor[HTML]{f0f8f0}{\textbf{15.6}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.3}}\\
-GPT-5 Pro & 33 & 0.553 & 0.396 & +5.1 & 14.1 & 10.0\\
-Claude Opus 4.6 & 33 & 0.477 & 0.567 & -7.6 & 17.2 & 12.4\\
-Gemini 2.0 Flash & 33 & 0.447 & 0.467 & -5.3 & 13.2 & 10.8\\
-GPT-5.2 Pro & 5 & 0.410 & 0.433 & -6.6 & 19.9 & 15.4\\
-\addlinespace
-GPT-4o-mini & 33 & 0.309 & 0.356 & -0.1 & 15.9 & 10.7\\
-Claude Sonnet 4 & 8 & -0.058 & -0.232 & -1.6 & 9.1 & 6.8\\
+\cellcolor[HTML]{f0f8f0}{\textbf{Human–Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{37}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.432}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.565}} & \cellcolor[HTML]{f0f8f0}{\textbf{+4.1}} & \cellcolor[HTML]{f0f8f0}{\textbf{15.6}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.0}}\\
+GPT-5 Pro & 45 & 0.517 & 0.342 & +6.4 & 15.4 & 10.3\\
 \bottomrule
 
 \end{longtable}
 
 Table~\ref{tbl-criteria-agreement-main} breaks the same agreement
-metrics down by evaluation criterion, averaged across all models.
-Crucially, the \textbf{H-H ρ} column shows pairwise human-human Spearman
-ρ for each criterion --- the ceiling available to any model. Criteria
-where H-H ρ is itself low indicate genuine expert disagreement; low LLM
-agreement on those criteria is therefore expected rather than a model
-failure.
+metrics down by evaluation criterion for GPT-5 Pro. Crucially, the
+\textbf{H-H ρ} column shows pairwise human-human Spearman ρ for each
+criterion --- the ceiling available to any model. Criteria where H-H ρ
+is itself low indicate genuine expert disagreement; low LLM agreement on
+those criteria is therefore expected rather than a model failure.
 
 \begin{longtable}[t]{l>{}rrrrr}
 
-\caption{\label{tbl-criteria-agreement-main}Human--LLM agreement by
-criterion, averaged across all models (matched sample, N =
-\texttt{r\ n\_opus} papers). \textbf{H-H ρ} shows pairwise human
-evaluator Spearman \emph{ρ} (the ceiling for each criterion); LLM
-Spearman \emph{ρ} and other metrics are averages across all six models.
-Positive bias = LLMs rate higher on average. Note the ceiling variation
-across criteria: human evaluators agree strongly on some dimensions and
-barely at all on others (Open Science), which sets expectations for LLM
-performance.}
+\caption{\label{tbl-criteria-agreement-main}GPT-5 Pro agreement with
+human mean by criterion (N = \texttt{r\ n\_focal} matched papers).
+\textbf{H-H ρ} shows pairwise human evaluator Spearman \emph{ρ} (the
+ceiling for each criterion). Positive bias = GPT-5 Pro rates higher on
+average. Note the ceiling variation: human evaluators agree strongly on
+some dimensions and barely at all on others (Open Science), setting
+expectations for LLM performance.}
 
 \tabularnewline
 
 \toprule
-Criterion & H-H ρ & LLM Spearman ρ & LLM Pearson r & Mean bias & RMSE\\
+Criterion & H-H ρ & Spearman ρ & Pearson r & Mean bias & RMSE\\
 \midrule
-Overall & \textbf{0.472} & 0.406 & 0.415 & -2.1 & 15.1\\
-Claims \& Evidence & \textbf{0.087} & 0.279 & 0.362 & -4.5 & 16.9\\
-Methods & \textbf{0.178} & 0.323 & 0.304 & -1.2 & 18.4\\
-Adv. Knowledge & \textbf{0.026} & 0.218 & 0.230 & +1.1 & 16.8\\
-Logic \& Comms & \textbf{0.291} & 0.041 & 0.082 & +3.9 & 16.9\\
+Overall & \textbf{0.432} & 0.517 & 0.342 & +6.4 & 15.4\\
+Claims \& Evidence & \textbf{0.400} & 0.388 & 0.213 & +4.0 & 18.3\\
+Methods & \textbf{0.362} & 0.536 & 0.339 & +4.5 & 18.5\\
+Adv. Knowledge & \textbf{0.179} & 0.459 & 0.303 & +7.9 & 17.6\\
+Logic \& Comms & \textbf{0.225} & 0.276 & 0.187 & +9.6 & 16.5\\
 \addlinespace
-Open Science & \textbf{0.238} & 0.008 & 0.037 & -11.7 & 27.0\\
-Global Relevance & \textbf{0.201} & 0.257 & 0.181 & -0.3 & 17.6\\
+Open Science & \textbf{-0.033} & 0.125 & 0.166 & -17.0 & 27.7\\
+Global Relevance & \textbf{0.130} & 0.429 & 0.345 & +6.1 & 16.0\\
 \bottomrule
 
 \end{longtable}
@@ -680,18 +591,17 @@ Source code and data are hosted at
 
 \section{Discussion}\label{discussion}
 
-Frontier LLMs achieve moderate-to-strong agreement with human expert
-evaluators, approaching the ceiling set by inter-rater variability among
-humans themselves. Correlations with human mean ratings are highest for
-reasoning-capable models (GPT-5 Pro, Claude Opus 4.6), though even
-lightweight models (GPT-4o-mini, Gemini 2.0 Flash) perform respectably
-at a fraction of the cost. Central compression---the tendency for LLMs
-to pull extreme ratings toward the middle of the scale---is the most
-consistent pattern across all models, likely reflecting alignment
-training that discourages confident extreme outputs. Qualitative
-coverage varies widely across papers: on some, the LLM captures nearly
-all consensus human concerns; on others, it misses key critiques or
-raises issues absent from the expert consensus.
+GPT-5 Pro achieves moderate-to-strong agreement with human expert
+evaluators, approaching the agreement levels observed among human
+evaluators themselves. Central compression---the tendency to pull
+extreme ratings toward the middle of the scale---is the most consistent
+pattern, likely reflecting alignment training that discourages confident
+extreme outputs. Qualitative coverage varies widely across papers: on
+some, the model captures nearly all consensus human concerns; on others,
+it misses key critiques or raises issues absent from the expert
+consensus. Appendix results for five additional models confirm these
+patterns across capability tiers, with reasoning-capable models
+outperforming lightweight ones.
 
 \textbf{Limitations.} Several caveats temper these conclusions. Our
 sample comprises roughly 50 social-science papers specifically selected
@@ -700,23 +610,23 @@ literature; performance may differ in other fields or on less polished
 manuscripts. Human evaluations are themselves a noisy reference signal
 rather than ground truth, with substantial inter-rater variation that
 caps achievable agreement. We cannot fully rule out knowledge
-contamination: while we block extrinsic priors in the system prompt, the
-models' training data may include fragments of these papers or related
-discussions. Alignment training likely contributes to score inflation
-and narrower credible intervals than humans provide. All LLM evaluations
-are single-run; aggregating across multiple runs or temperature settings
+contamination: while we instruct the model to ignore prior knowledge
+about authors, institutions, or publication history in the system
+prompt, the models' training data may include fragments of these papers
+or related discussions. Robustness checks with models whose training
+cutoffs predate the papers, or out-of-time validation on papers entering
+The Unjournal's pipeline after model training, would help address this
+concern. Alignment training likely contributes to score inflation and
+narrower credible intervals than humans provide. All LLM evaluations are
+single-run; aggregating across multiple runs or temperature settings
 could change the picture. Finally, the qualitative coverage and
 precision metrics are themselves LLM-assessed (GPT-5.2 Pro as judge),
 introducing a further layer of model dependence.
 
-\textbf{Implications.} The cost structure is striking: lightweight
-models deliver evaluations at under a cent per paper, while
-reasoning-capable models cost several dollars---still orders of
-magnitude cheaper than human expert review. This suggests a practical
-tier structure in which cheap models could serve as rapid screening
-tools and expensive reasoners could provide deeper assessment where
-warranted. However, the qualitative gaps we observe---missed critiques,
-generic issues, and central compression of ratings---argue against full
+\textbf{Implications.} Even a reasoning-capable model costing several
+dollars per paper is orders of magnitude cheaper than human expert
+review. The qualitative gaps we observe---missed critiques, generic
+issues, and central compression of ratings---argue against full
 automation of peer review. AI evaluation appears most promising as a
 supplement: providing fast structured feedback, flagging potential
 concerns for human reviewers, and enabling systematic comparison across
@@ -741,21 +651,16 @@ confidentiality agreements with API providers, transparent disclosure of
 AI involvement in review, and periodic re-calibration against fresh
 human evaluations.
 
-\textbf{Future work.} Several extensions follow naturally from this
-analysis. Content-swap bias tests following Pataranutaporn et al.
-(\citeproc{ref-Pataranutaporn2025}{2025}) would reveal whether LLMs show
-systematic biases based on author names or institutional affiliations. A
-journal-outcome prediction horse-race would compare human and LLM tier
-predictions against actual publication venues. Systematic prompt and
-model comparisons, including agent-based approaches, could identify
-configurations that reduce central compression or improve qualitative
-coverage. Human enumerator validation---employing trained raters to
-independently assess whether LLMs identify the same consensus
-critiques---would ground the currently LLM-assessed coverage metrics.
-Out-of-time validation using papers entering The Unjournal's pipeline
-would eliminate contamination concerns entirely. Finally, hybrid
-human-AI evaluation trials would test whether collaboration improves
-evaluation quality beyond either alone.
+\textbf{Future directions.} All LLM evaluations reported here are
+single-run; multi-run robustness and prompt-sensitivity analysis would
+directly address the key open methodological question. Out-of-time
+validation on papers entering The Unjournal's pipeline after model
+training cutoffs would eliminate residual contamination concerns. The
+qualitative coverage and precision metrics are themselves LLM-assessed
+(GPT-5.2 Pro as judge); human validation of these scores is needed to
+close the model-dependence loop. Finally, comparing human and LLM tier
+predictions against verified publication venues would offer a rare
+opportunity for externally verifiable accuracy measurement.
 
 \bookmarksetup{startatroot}
 
@@ -1002,16 +907,14 @@ Elsevier,
 {``\href{https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals}{Generative
 AI policies for journals}''} (Feb. 19, 2026).
 
+\bibitem[\citeproctext]{ref-openAIReview2026}
+Hsu, Chao-Chun, and Chenhao Tan,
+{``\href{https://openaireview.github.io/blog.html}{OpenAIReview:
+Open-source AI-assisted academic paper reviewing},''} 2026.
+
 \bibitem[\citeproctext]{ref-isitcredible}
 IsItCredible.com, {``\href{https://www.isitcredible.com/}{Is it
 credible?}''} (Feb. 19, 2026).
-
-\bibitem[\citeproctext]{ref-lee2025promptinj}
-Lee, Ro Woon, Tae Joon Jun, Jeong-Moo Lee, Soo Ick Cho, Hyung Jun Park,
-and Jungyo Suh,
-{``\href{https://doi.org/10.1001/jamanetworkopen.2025.49963}{Vulnerability
-of large language models to prompt injection when providing medical
-advice},''} \emph{JAMA Network Open}, 8 (2025), e2549963.
 
 \bibitem[\citeproctext]{ref-leung2026policies}
 Leung, Tiffany I.,
@@ -1019,12 +922,9 @@ Leung, Tiffany I.,
 peer review---how publishing policies must advance},''} \emph{JAMA
 Network Open}, 9 (2026), e2552042.
 
-\bibitem[\citeproctext]{ref-Pataranutaporn2025}
-Pataranutaporn, Pat, Nattavudh Powdthavee, Chayapatr Achiwaranguprok,
-and Pattie Maes, {``\href{https://doi.org/10.48550/arXiv.2502.00070}{Can
-AI solve the peer review crisis? A large scale cross model experiment of
-LLMs' performance and biases in evaluating over 1000 economics
-papers},''} 2025.
+\bibitem[\citeproctext]{ref-qedScience2026}
+QED Science, {``\href{https://www.qedscience.com/}{QED science: Critical
+thinking AI for research},''} 2026.
 
 \bibitem[\citeproctext]{ref-rajakumar2026peerreview}
 Rajakumar, Hamrish Kumar, Kailash Abhishek Sankaran, Manasi Pillai
@@ -1056,12 +956,6 @@ Wang, Yuehan, Jinyan Huang, Lun Du, Yuxin Guo, Ying Liu, and Rong Wang,
 language models as raters in large-scale writing assessments: A
 psychometric framework for reliability and validity},''} \emph{Computers
 and Education: Artificial Intelligence}, 9 (2025), 100481.
-
-\bibitem[\citeproctext]{ref-xu2026scaling}
-Xu, Yiqing, and Leo Y. Yang,
-{``\href{https://yiqingxu.org/papers/2026_ai/AI_reproducibility.pdf}{Scaling
-reproducibility: An AI-assisted workflow for large-scale reanalysis},''}
-2026.
 
 \bibitem[\citeproctext]{ref-Zhang2025}
 Zhang, Tianmai M, and Neil F Abernethy,
