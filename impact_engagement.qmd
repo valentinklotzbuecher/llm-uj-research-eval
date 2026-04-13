@@ -7,11 +7,7 @@ format:
     toc-depth: 3
     code-fold: true
     code-summary: "Show analysis code"
-execute:
-  echo: true
-  eval: false
-  warning: false
-  message: false
+engine: knitr
 ---
 
 This page documents preliminary evidence that Unjournal evaluations generate real scientific engagement—authors read and act on evaluations, revising their papers in response. This is supplementary context for the core LLM-vs-human evaluation study; it also forms part of a broader evidence base for the value and impact of The Unjournal's evaluation model.
@@ -32,22 +28,15 @@ The core question is: among papers that received Unjournal evaluations, how many
 **Limitation: correlation, not causation.** Demonstrating that a paper was revised after evaluation does not establish that the revision was *caused* by the evaluation. Authors revise papers for many reasons—journal submission, conference feedback, co-author cycles. A follow-up analysis (Phase 2, see below) will use LLM-assisted comparison of evaluator suggestions against the specific changes made.
 :::
 
-```{python}
-#| label: load-data
-#| eval: false
-#| code-summary: "Load and prepare data"
-
-import pandas as pd
-import json
-from pathlib import Path
-
+```python
 # Source data lives in unjournal_tools_interfaces/paper_change_analysis/
 # (migrated from this repo; path below assumes local clone)
-data_path = Path("../unjournal_tools_interfaces/paper_change_analysis/change_analysis_results.json")
+import pandas as pd, json
+from pathlib import Path
 
+data_path = Path("../unjournal_tools_interfaces/paper_change_analysis/change_analysis_results.json")
 with open(data_path) as f:
     results = json.load(f)
-
 df = pd.DataFrame(results)
 
 print(f"Total paper pairs: {len(df)}")
@@ -91,16 +80,8 @@ Several patterns are visible:
 - **The largest revision** (Zero-Sum Thinking, 3,207 lines) involves a conceptually ambitious paper—it may have undergone significant reframing following evaluator feedback on the theoretical mechanisms.
 - **The celebrity vaccination paper** shows a large text reduction (−36.6%), consistent with condensation from a working paper into a published or submission-ready version—a common pattern following reviewer feedback.
 
-```{python}
-#| label: candidates-table
-#| eval: false
-#| code-summary: "Generate candidates table"
-
-candidates = df[
-    (df['has_evaluation'] == True) &
-    (df['total_changes'] > 50)
-].copy()
-
+```python
+candidates = df[(df['has_evaluation'] == True) & (df['total_changes'] > 50)].copy()
 display_cols = ['paper_title', 'total_changes', 'additions_count',
                 'deletions_count', 'text_length_change_pct']
 candidates[display_cols].sort_values('total_changes', ascending=False)
