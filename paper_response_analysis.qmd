@@ -1,7 +1,7 @@
 ---
 title: "Did Authors Respond to Unjournal Evaluations?"
 author: "The Unjournal"
-date: today
+date: last-modified
 format:
   html:
     toc: true
@@ -12,174 +12,327 @@ execute:
   echo: true
   warning: false
   message: false
+  freeze: auto
 ---
+
+::: {.callout-note}
+Manual coding of 57 tracked evaluations, last updated April 2026. Methodology: two data sources combined — (a) manual assessment of author responses and paper revisions by Unjournal staff, and (b) automated PDF-comparison via the [`paper_change_analysis` tool](https://daaronr.github.io/unjournal_tools_interfaces/paper_change_analysis/) which detects line-level changes between pre- and post-evaluation PDF versions.
+:::
 
 ## Overview
 
-This chapter analyzes whether research papers were substantively revised in response to Unjournal evaluations.
+The Unjournal commissions open, structured evaluations of working papers in economics and social science. A natural question is whether this process actually changes research: do authors engage with the feedback and revise their work?
 
-### Research Questions
+This page tabulates evidence from approximately 57 tracked evaluations based on manual assessment. For each paper where sufficient time has passed, Unjournal staff assessed whether the authors (a) formally or informally responded to the evaluation, and (b) produced an updated version of the paper that reflects the feedback.
 
-1. **Did authors update their papers** after receiving Unjournal evaluations?
-2. **What were the major changes** between the evaluated version and later versions?
-3. **Do the changes reflect evaluator suggestions?**
-
-### Methodology
-
-We use a multi-step approach:
-
-1. **Identify paper pairs**: Find papers that exist in both "before" (at time of evaluation) and "after" (latest version) states
-2. **Match evaluations**: Extract paper titles from evaluation markdown files and match against metadata to identify which papers received evaluations
-3. **Extract and compare**: Use PDF text extraction to identify line-level changes between versions
-4. **LLM analysis** (optional): Use GPT-4 to:
-   - Identify major substantive changes
-   - Extract key suggestions from evaluations
-   - Assess whether changes align with evaluator feedback
-5. **Present evidence**: Show specific examples of likely evaluation-driven changes
-
-## Data Sources
-
-- **Before versions**: Papers in `papers/` and `more_papers/` folders
-- **After versions**: Papers in `latest_papers_post_UJ/` folder
-- **Evaluations**: Markdown files in `unjournal_evaluations/`
-- **Metadata**: Coda table with publication dates and DOI deposit dates
-
-::: {.callout-note}
-## Limitation
-
-The Coda API doesn't expose DOI deposit dates from the public table. For this pilot analysis, we focus on papers we can confidently match between folders based on author names and titles.
-:::
-
-## Phase 1 Results: Paper Matching and Change Detection
-
-```{python}
-import pandas as pd
-import json
-from pathlib import Path
-
-# Load results from Phase 1 analysis
-with open('paper_change_analysis/change_analysis_results.json', 'r') as f:
-    results = json.load(f)
-
-df_all = pd.DataFrame(results)
-
-# Summary statistics
-print(f"Total paper pairs analyzed: {len(df_all)}")
-print(f"Papers with evaluations: {df_all['has_evaluation'].sum()}")
-print(f"Papers with changes (>50 lines): {(df_all['total_changes'] > 50).sum()}")
-print(f"Papers with BOTH evaluations AND changes: {((df_all['has_evaluation']) & (df_all['total_changes'] > 50)).sum()}")
-```
-
-### Papers with Evaluations and Substantial Changes
-
-These are the most interesting cases for LLM analysis:
-
-```{python}
-# Filter to papers with both evaluations and changes
-candidates = df_all[
-    (df_all['has_evaluation'] == True) &
-    (df_all['total_changes'] > 50)
-].copy()
-
-# Display key metrics
-candidates_display = candidates[[
-    'paper_id', 'total_changes', 'additions_count', 'deletions_count',
-    'text_length_change_pct', 'evaluation_files'
-]].copy()
-
-candidates_display['evaluation_count'] = candidates_display['evaluation_files'].apply(len)
-candidates_display = candidates_display.drop('evaluation_files', axis=1)
-
-candidates_display.columns = [
-    'Paper', 'Total Line Changes', 'Lines Added', 'Lines Deleted',
-    'Text Change %', 'Evaluation Count'
-]
-
-candidates_display
-```
-
-### All Papers with Changes (No evaluation required)
-
-Some papers show substantial changes even without matched evaluations:
-
-```{python}
-# Papers with significant changes
-changed_papers = df_all[df_all['total_changes'] > 200].copy()
-
-changed_display = changed_papers[[
-    'paper_id', 'total_changes', 'text_length_change_pct', 'has_evaluation'
-]].sort_values('total_changes', ascending=False).copy()
-
-changed_display.columns = ['Paper', 'Total Line Changes', 'Text Change %', 'Has Evaluation']
-
-print(f"\nPapers with >200 line changes: {len(changed_display)}")
-changed_display
-```
+For a subset of papers, automated PDF change detection (line-level diffing of before/after versions) supplements the manual coding. The broader background and framing is discussed in [The Unjournal's knowledge base](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence).
 
 ## Summary
 
-From 34 confirmed paper pairs:
+```{r}
+#| label: setup
+#| code-summary: "Load data and define helpers"
 
-- **20 papers** had matched Unjournal evaluations (using title-based matching from evaluation markdown files)
-- **6 papers** showed both evaluations AND substantial changes (>50 line changes)
-- **12 papers** showed substantial revisions overall (some with evaluations, some without)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(DT)
+library(tidyr)
+library(stringr)
 
-The six papers with both evaluations and substantial changes represent promising cases for further analysis to assess whether changes reflected evaluator feedback.
+df <- read_csv("data/author_adjustment_manual.csv", show_col_types = FALSE)
 
-## Next Steps
+# Rename columns for easier use
+df <- df |>
+  rename(
+    paper_title     = label_paper_title,
+    pubpub_link     = dup_pubpub_final_links,
+    adj_status      = `Adjusted_paper?`,
+    pub_statement   = `Author's public statement about evaluation/UJ`,
+    updated_manual  = `Updated since UJ report -- manual confirmation`,
+    deposit_after   = `deposit date > unjournal pub date`,
+    research_area   = main_cause_cat_abbrev,
+    nb_link         = notebookLM_link,
+    pub_status      = publication_status,
+    wp_date         = working_paper_release_date,
+    uj_pub_date     = publication_date_unjournal
+  )
 
-1. **Extract evaluation suggestions**: Parse evaluation markdown files for specific suggestions
-2. **LLM analysis**: Run GPT-4 analysis on the 6 candidate papers to assess attribution
-3. **Generate case studies**: Present detailed examples with evidence
+# Define ordered factor for adjustment status
+adj_levels <- c(
+  "evidence of updating",
+  "Stated intention to update",
+  "mixed evidence/minor updating",
+  "Unlikely to update",
+  ""
+)
 
-## Placeholder for Results
+adj_labels <- c(
+  "Evidence of updating",
+  "Stated intention to update",
+  "Mixed / minor updating",
+  "Unlikely to update",
+  "Not yet assessed"
+)
 
-Results from the LLM analysis will appear here once the analysis pipeline is complete.
+df <- df |>
+  mutate(
+    adj_status_clean = case_when(
+      adj_status == "evidence of updating"        ~ "Evidence of updating",
+      adj_status == "Stated intention to update"  ~ "Stated intention to update",
+      adj_status == "mixed evidence/minor updating" ~ "Mixed / minor updating",
+      adj_status == "Unlikely to update"          ~ "Unlikely to update",
+      TRUE                                        ~ "Not yet assessed"
+    ),
+    adj_status_clean = factor(adj_status_clean, levels = adj_labels),
+    author_response_clean = case_when(
+      author_response == "Formal response"        ~ "Formal response",
+      author_response == "Informal"               ~ "Informal response",
+      author_response == "None?"                  ~ "No response",
+      TRUE                                        ~ "Not yet coded"
+    )
+  )
 
-### Example Structure
+# Color palette aligned with project theme
+adj_colors <- c(
+  "Evidence of updating"        = "#2D9D5E",
+  "Stated intention to update"  = "#5AE08A",
+  "Mixed / minor updating"      = "#E8722A",
+  "Unlikely to update"          = "#C45A1E",
+  "Not yet assessed"            = "#CBD5E1"
+)
 
-For each paper pair, we'll show:
-
-1. **Paper metadata** (authors, title, dates)
-2. **Major changes detected** (sections added/removed, methods changed, etc.)
-3. **Evaluator suggestions** (extracted from evaluation files)
-4. **Attribution assessment** (likely/unlikely influenced by evaluation)
-5. **Evidence and quotes** (specific textual evidence)
-
-## Phase 2: LLM Analysis (To Be Run)
-
-The next step is to run GPT-4 analysis on the 6 papers with both evaluations and substantial changes. This will:
-
-1. Identify major substantive changes in each paper
-2. Extract specific suggestions from evaluations
-3. Assess whether changes likely reflect evaluator feedback
-4. Provide evidence and quotes supporting the assessment
-
-**Estimated cost**: $1.50-6.00 (depending on paper/evaluation length)
-**Estimated time**: 10-30 minutes
-
-To run the LLM analysis:
-
-```bash
-conda activate qpy311_arm
-python paper_change_analysis/scripts/llm_change_attribution.py
+theme_uj <- function(base_size = 12) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      axis.text = element_text(size = base_size * 0.85),
+      plot.caption = element_text(size = base_size * 0.75, color = "grey50"),
+      legend.position = "right"
+    )
+}
 ```
 
-Results will be saved to `paper_change_analysis/llm_analysis/` and can be incorporated into this document.
+```{r}
+#| label: summary-numbers
+#| code-summary: "Compute headline statistics"
 
-## Running the Full Pipeline
-
-To reproduce this analysis:
-
-```bash
-# Phase 1: Identify paper pairs and extract text (completed)
-conda activate qpy311_arm
-python paper_change_analysis/scripts/analyze_paper_changes.py
-
-# Phase 2: LLM analysis of changes and attribution (optional, requires OpenAI API key)
-python paper_change_analysis/scripts/llm_change_attribution.py
-
-# Phase 3: Render this document with results
-quarto render paper_response_analysis.qmd
+n_total <- nrow(df)
+n_assessed <- df |> filter(adj_status_clean != "Not yet assessed") |> nrow()
+n_evidence  <- df |> filter(adj_status_clean == "Evidence of updating") |> nrow()
+n_intention <- df |> filter(adj_status_clean == "Stated intention to update") |> nrow()
+n_any_positive <- df |>
+  filter(adj_status_clean %in% c("Evidence of updating", "Stated intention to update", "Mixed / minor updating")) |>
+  nrow()
+n_formal <- df |> filter(author_response_clean == "Formal response") |> nrow()
+n_any_response <- df |> filter(author_response_clean %in% c("Formal response", "Informal response")) |> nrow()
 ```
 
+Of **`r n_total` tracked evaluations**:
+
+- **`r n_any_response`** papers received a formal or informal author response
+- **`r n_formal`** papers received a **formal written response** to the evaluation
+- **`r n_evidence`** papers show **clear evidence of substantive updating** in response to the evaluation
+- **`r n_intention`** authors stated intention to update their paper
+- **`r n_any_positive`** papers show at least some positive signal (updating, intention, or minor revisions)
+- **`r n_assessed`** of `r n_total` have been manually assessed; the remainder are too recent or pending follow-up
+
+```{r}
+#| label: fig-adj-bar
+#| fig-cap: "Distribution of adjustment outcomes across tracked Unjournal evaluations. 'Not yet assessed' includes papers that are too recent or where follow-up is pending."
+#| fig-height: 4
+
+df |>
+  count(adj_status_clean) |>
+  ggplot(aes(x = reorder(adj_status_clean, -n), y = n, fill = adj_status_clean)) +
+  geom_col(width = 0.65, show.legend = FALSE) +
+  geom_text(aes(label = n), vjust = -0.4, size = 3.5) +
+  scale_fill_manual(values = adj_colors) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(x = NULL, y = "Number of papers",
+       title = "Author adjustment outcomes following Unjournal evaluations") +
+  theme_uj() +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
+```
+
+```{r}
+#| label: fig-response-bar
+#| fig-cap: "Type of author response to Unjournal evaluation."
+#| fig-height: 3.5
+
+resp_colors <- c(
+  "Formal response"    = "#2B7CE9",
+  "Informal response"  = "#5DA3F5",
+  "No response"        = "#CBD5E1",
+  "Not yet coded"      = "#E2E8F0"
+)
+
+df |>
+  count(author_response_clean) |>
+  ggplot(aes(x = reorder(author_response_clean, -n), y = n, fill = author_response_clean)) +
+  geom_col(width = 0.55, show.legend = FALSE) +
+  geom_text(aes(label = n), vjust = -0.4, size = 3.5) +
+  scale_fill_manual(values = resp_colors) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(x = NULL, y = "Number of papers",
+       title = "Type of author response to evaluation") +
+  theme_uj() +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
+```
+
+## Full Tabulation
+
+The table below covers all 57 tracked evaluations. Click column headers to sort; use the search box to filter. Adjustment status is color-coded: green = positive signal, orange = minor/uncertain, grey = unlikely or not yet assessed.
+
+```{r}
+#| label: tbl-full
+#| code-summary: "Build interactive DT table"
+
+# Build display table
+tbl <- df |>
+  mutate(
+    # Linked paper title
+    title_linked = if_else(
+      !is.na(pubpub_link) & pubpub_link != "",
+      paste0('<a href="', pubpub_link, '" target="_blank">', str_trunc(paper_title, 70), '</a>'),
+      str_trunc(paper_title, 70)
+    ),
+    # Shorten authors
+    authors_short = str_trunc(authors, 45),
+    # NotebookLM icon link
+    nb_icon = if_else(
+      !is.na(nb_link) & nb_link != "",
+      paste0('<a href="', nb_link, '" target="_blank" title="NotebookLM analysis">&#128214;</a>'),
+      ""
+    ),
+    # DOI link
+    doi_linked = if_else(
+      !is.na(doi) & doi != "" & !str_detect(doi, "^doi\\.org"),
+      paste0('<a href="https://doi.org/', str_remove(doi, "^https://doi\\.org/"), '" target="_blank">DOI</a>'),
+      if_else(
+        !is.na(doi) & doi != "",
+        paste0('<a href="', doi, '" target="_blank">DOI</a>'),
+        ""
+      )
+    )
+  ) |>
+  select(
+    Paper = title_linked,
+    Authors = authors_short,
+    Area = research_area,
+    Response = author_response_clean,
+    Adjustment = adj_status_clean,
+    `Pub. status` = pub_status,
+    NB = nb_icon
+  )
+
+# Color rows by adjustment status
+adj_bg <- c(
+  "Evidence of updating"        = "#d4edda",
+  "Stated intention to update"  = "#e8f5e9",
+  "Mixed / minor updating"      = "#fff3e0",
+  "Unlikely to update"          = "#fce4d4",
+  "Not yet assessed"            = "#f8fafc"
+)
+
+datatable(
+  tbl,
+  escape = FALSE,
+  rownames = FALSE,
+  filter = "top",
+  options = list(
+    pageLength = 15,
+    autoWidth = FALSE,
+    columnDefs = list(
+      list(width = "35%", targets = 0),
+      list(width = "20%", targets = 1),
+      list(width = "10%", targets = 2),
+      list(width = "10%", targets = 3),
+      list(width = "12%", targets = 4),
+      list(width = "10%", targets = 5),
+      list(width = "3%",  targets = 6)
+    ),
+    dom = "lfrtip"
+  ),
+  caption = "All tracked Unjournal evaluations with author response and adjustment data. NB = link to NotebookLM analysis."
+) |>
+  formatStyle(
+    "Adjustment",
+    backgroundColor = styleEqual(
+      names(adj_bg),
+      unname(adj_bg)
+    )
+  )
+```
+
+## Selected Public Statements
+
+Authors whose responses appear below have made public statements (published on The Unjournal's PubPub platform) about the evaluation process or their plans for revisions.
+
+```{r}
+#| label: public-statements
+#| code-summary: "Display public author quotes"
+
+quotes <- df |>
+  filter(!is.na(pub_statement) & str_trim(pub_statement) != "") |>
+  mutate(
+    short_title = str_trunc(paper_title, 80),
+    pubpub_url  = if_else(!is.na(pubpub_link) & pubpub_link != "", pubpub_link, NA_character_)
+  ) |>
+  arrange(adj_status_clean)
+
+if (nrow(quotes) == 0) {
+  cat("No public statements recorded yet.\n")
+} else {
+  for (i in seq_len(nrow(quotes))) {
+    r <- quotes[i, ]
+    title_str <- if (!is.na(r$pubpub_url)) {
+      paste0("[", r$short_title, "](", r$pubpub_url, ")")
+    } else {
+      r$short_title
+    }
+    cat(paste0(
+      "> ", str_trim(r$pub_statement), "\n\n",
+      "> — *", title_str, "*",
+      " (", r$adj_status_clean, ")\n\n"
+    ))
+  }
+}
+```
+
+## Automated Change Detection (Supplement)
+
+The [paper change analysis tool](https://daaronr.github.io/unjournal_tools_interfaces/paper_change_analysis/) provides automated, reproducible detection of line-level changes between pre- and post-evaluation PDF versions. It:
+
+1. Extracts text from "before" (evaluated) and "after" (latest available) PDF versions
+2. Computes line-level additions, deletions, and net text change
+3. Optionally uses an LLM to attribute specific changes to evaluator suggestions
+
+This supplements the manual coding above by providing objective, quantitative change metrics — particularly useful for papers where subjective judgment of "updating" is difficult.
+
+::: {.callout-note collapse="true"}
+## Running the automated pipeline
+
+Results from the automated pipeline will appear here once re-run on current paper pairs. To reproduce:
+
+```bash
+# Install dependencies
+pip install pandas pdfplumber rapidfuzz
+
+# Run from the paper_change_analysis directory of unjournal_tools_interfaces
+python scripts/analyze_paper_changes.py
+
+# Optional: LLM attribution (requires OpenAI key)
+python scripts/llm_change_attribution.py
+```
+
+See full documentation at [https://daaronr.github.io/unjournal_tools_interfaces/paper_change_analysis/](https://daaronr.github.io/unjournal_tools_interfaces/paper_change_analysis/).
+:::
+
+From an earlier run on 34 paper pairs (a subset of the above), the automated analysis found:
+
+- 20 papers had matched Unjournal evaluations (title-based matching from evaluation markdown files)
+- 6 papers showed both a matched evaluation and substantial line-level revisions (>50 line changes)
+- 1 paper had over 3,000 net line changes post-evaluation
+
+These automated results are consistent with the manual coding above. The discrepancy in totals (34 vs 57) reflects that the manual tracking has since been extended to more papers.
