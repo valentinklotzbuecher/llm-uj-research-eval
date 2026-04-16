@@ -30,6 +30,9 @@ jobs:
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
+      - name: Create required directories for R setup
+        run: mkdir -p papers data results
+
       - name: Render (using frozen computations)
         run: quarto render --no-execute
 
