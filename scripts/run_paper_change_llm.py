@@ -132,7 +132,7 @@ def find_evaluation_file(paper_title: str, authors_str: str) -> Path | None:
         m = re.search(r"^title:\s*(.+)$", text, re.MULTILINE)
         if m:
             yaml_title = m.group(1).strip().strip('"\'')
-        if re.search(r"authors?\s*response", yaml_title, re.I):
+        if re.search(r"authors?'?\s*response", yaml_title, re.I):
             continue
 
         content_words = set(_normalize(text[:3000]).split())

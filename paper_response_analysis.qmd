@@ -16,7 +16,7 @@ execute:
 ---
 
 ::: {.callout-note}
-Manual coding of 57 tracked evaluations, last updated April 2026. Two data sources: (a) manual assessment of author responses and paper revisions by Unjournal staff; (b) GPT-5 Pro change-attribution analysis comparing pre-evaluation PDFs against current NBER/arxiv versions, assessing whether paper updates reflect evaluator suggestions (see [LLM Change Attribution Analysis](#llm-change-attribution-analysis) below).
+Manual coding of 57 tracked evaluations, last updated April 2026. Two data sources: (a) manual assessment of author responses and paper revisions by Unjournal staff; (b) Claude Opus 4.6 change-attribution analysis comparing pre-evaluation PDFs against current NBER/arxiv versions, assessing whether paper updates reflect evaluator suggestions (see [Combined Evidence](#combined-evidence) below).
 :::
 
 ## Overview
@@ -266,28 +266,28 @@ datatable(
   )
 ```
 
-## LLM Change Attribution Analysis
+## Combined Evidence of Paper Updating {#combined-evidence}
 
-For papers where a newer version is publicly available (via NBER or arxiv), we compare the pre-evaluation version (the PDF sent to evaluators) against the current version, then use GPT-5 Pro to assess whether the changes plausibly reflect the evaluators' suggestions.
+Two evidence streams are combined below:
 
-**Pipeline** (scripts in `scripts/`, run from project root):
-1. `fetch_latest_papers.py` — downloads latest PDFs from NBER/arxiv for all papers with qualifying DOIs
-2. `run_paper_change_llm.py` — extracts text, computes diffs, runs a 3-step LLM analysis per paper: (a) identify major changes, (b) extract evaluator suggestions from the evaluation markdown, (c) assess whether each change aligns with a suggestion
+- **Manual classification** (all 57 papers): Unjournal staff assessed whether authors engaged with feedback and revised their work.
+- **LLM change-attribution** (8 papers): For papers with fetchable NBER/arxiv DOIs and meaningful text changes, Claude Opus 4.6 compared pre-evaluation PDFs against current versions in a 3-step pipeline — (a) identify major changes, (b) extract evaluator suggestions, (c) assess whether changes plausibly reflect suggestions.
 
 ::: {.callout-note collapse="true"}
-## Methodology and caveats
+## Pipeline and caveats
 
-- **Before version**: the PDF evaluated by Unjournal evaluators (stored in `papers/`)
-- **After version**: latest version fetched from NBER or arxiv in April 2026
-- **Attribution conservatism**: GPT-5 Pro is instructed to mark changes as "direct" or "indirect" only when there is clear conceptual alignment with a specific evaluator suggestion; coincidental improvements are labelled "possible" or "unrelated"
-- **Temporal caveat**: a newer PDF does not guarantee the change happened *in response* to the evaluation; some papers were already in revision. The `deposit date > UJ pub date` flag in the manual coding helps but is not definitive
-- **Coverage**: 30 papers had fetchable DOIs (NBER or arxiv); of these, 11 showed meaningful text changes (≥15 line edits or ≥0.5% size change); 3 papers with no matching pre-evaluation PDF were excluded
-- **LLM limitations**: the model sees truncated text (60,000 chars per version) and may miss changes in heavily mathematical or figure-dense sections
+**Scripts** (run from project root): `scripts/fetch_latest_papers.py` → `scripts/run_paper_change_llm.py`
+
+- **Before version**: PDF evaluated by Unjournal evaluators (`papers/`); **After version**: latest from NBER/arxiv, fetched April 2026
+- **Model**: Claude Opus 4.6, temperature 0.2; instructed to be conservative — only "direct" or "indirect" attribution when there is clear conceptual alignment with a specific suggestion
+- **Coverage**: 30 papers had fetchable DOIs; 8 showed meaningful text changes (≥15 line edits or ≥0.5% size change) and matched evaluation files; 3 papers lacked pre-evaluation PDFs; the 3 manually-confirmed updates were also LLM-analyzed using `--paper` to override the skip filter
+- **Temporal caveat**: newer version ≠ evaluation-driven change; some papers were already in revision. The `deposit date > UJ pub date` flag helps but is not definitive
+- **LLM limitations**: text truncated at 60,000 chars per version; may miss changes in mathematical/figure-dense sections
 :::
 
 ```{r}
 #| label: llm-attribution-load
-#| code-summary: "Load LLM attribution results"
+#| code-summary: "Load and merge LLM + manual data"
 
 nn <- function(x, default = NA) if (!is.null(x)) x else default
 
@@ -300,7 +300,7 @@ if (file.exists(llm_results_path)) {
     oa <- r$overall_assessment
     data.frame(
       paper_title      = nn(r$paper_title, ""),
-      adj_status       = nn(r$adj_status, ""),
+      adj_status_csv   = nn(r$adj_status, ""),
       deposit_after_uj = isTRUE(r$deposit_after_uj),
       text_chg_pct     = nn(r$text_length_change_pct, NA_real_),
       additions        = nn(r$additions_count, NA_integer_),
@@ -316,15 +316,44 @@ if (file.exists(llm_results_path)) {
     )
   }) |> bind_rows()
 
-  llm_analyzed    <- llm_df |> filter(!skipped & eval_found & n_major_changes > 0)
-  n_analyzed      <- nrow(llm_analyzed)
+  llm_analyzed <- llm_df |>
+    filter(!skipped & eval_found & n_major_changes > 0 & !is.na(pct_influenced))
+
+  # Enrich with area and PubPub links from main df
+  llm_enriched <- llm_analyzed |>
+    left_join(
+      df |> select(paper_title, research_area, pubpub_link),
+      by = "paper_title"
+    ) |>
+    mutate(
+      manual_tier = case_when(
+        adj_status_csv == "evidence of updating"          ~ "Confirmed update",
+        adj_status_csv == "Stated intention to update"    ~ "Stated intention",
+        adj_status_csv == "mixed evidence/minor updating" ~ "Mixed / minor",
+        adj_status_csv == "Unlikely to update"            ~ "Unlikely",
+        TRUE                                              ~ "Unclassified"
+      ),
+      combined_tier = case_when(
+        manual_tier == "Confirmed update" & pct_influenced >= 40 ~ "Confirmed + strong LLM",
+        manual_tier == "Confirmed update"                        ~ "Confirmed + weaker LLM",
+        pct_influenced >= 30                                     ~ "LLM: likely influenced",
+        pct_influenced >= 10                                     ~ "LLM: possibly influenced",
+        TRUE                                                     ~ "LLM: largely independent"
+      ),
+      combined_tier = factor(combined_tier, levels = c(
+        "Confirmed + strong LLM", "Confirmed + weaker LLM",
+        "LLM: likely influenced", "LLM: possibly influenced",
+        "LLM: largely independent"
+      ))
+    )
+
+  n_analyzed      <- nrow(llm_enriched)
   n_total_fetched <- nrow(llm_df)
-  med_pct         <- median(llm_analyzed$pct_influenced, na.rm = TRUE)
-  n_high          <- sum(!is.na(llm_analyzed$pct_influenced) &
-                           llm_analyzed$pct_influenced >= 30, na.rm = TRUE)
+  med_pct         <- median(llm_enriched$pct_influenced, na.rm = TRUE)
+  n_high          <- sum(llm_enriched$pct_influenced >= 30, na.rm = TRUE)
 } else {
   message("LLM results not found — run scripts/run_paper_change_llm.py first")
-  llm_df <- llm_analyzed <- data.frame()
+  llm_df <- llm_analyzed <- llm_enriched <- data.frame()
   n_analyzed <- n_total_fetched <- n_high <- 0
   med_pct <- NA_real_
 }
@@ -332,80 +361,190 @@ if (file.exists(llm_results_path)) {
 
 ```{r}
 #| label: llm-attribution-summary
-#| code-summary: "Summary statistics"
+#| code-summary: "Summary callout"
 
-if (nrow(llm_analyzed) > 0) {
-  cat(glue::glue(
-    "Of **{n_total_fetched}** papers with fetchable DOIs (NBER/arxiv), ",
-    "**{n_analyzed}** showed meaningful text changes and had a matched evaluation. ",
-    "For these, GPT-5 Pro estimated a median of **{round(med_pct)}%** of major changes ",
-    "as likely influenced by evaluator suggestions (confidence ≥ 1/5). ",
-    "**{n_high}** papers had ≥30% of changes attributed to the evaluation."
-  ))
+if (nrow(llm_enriched) > 0) {
+  n_confirmed   <- sum(llm_enriched$manual_tier == "Confirmed update")
+  n_llm_high    <- sum(llm_enriched$manual_tier == "Unclassified" &
+                         llm_enriched$pct_influenced >= 30)
+  glue::glue(
+    "Of **{n_total_fetched}** papers with fetchable DOIs, **{n_analyzed}** had ",
+    "meaningful text changes and a matched evaluation. ",
+    "**{n_confirmed}** are manually confirmed updates; of the remaining ",
+    "{n_analyzed - n_confirmed}, the LLM finds **{n_llm_high}** with ≥30% of changes ",
+    "likely driven by evaluator feedback (median across all: **{round(med_pct)}%**)."
+  ) |> cat()
+}
+```
+
+```{r}
+#| label: fig-combined-dot
+#| fig-cap: "LLM attribution score for the 8 papers with pre/post versions. x-axis: estimated % of major changes attributed to evaluator feedback (Claude Opus 4.6, conservative). Point size scales with % text change. Color distinguishes papers manually confirmed as updates (green) from unclassified papers (blue). Dashed line at 30%."
+#| fig-height: 4.2
+
+if (nrow(llm_enriched) > 0) {
+  dot_colors <- c(
+    "Confirmed update" = "#2D9D5E",
+    "Unclassified"     = "#2B7CE9"
+  )
+
+  llm_enriched |>
+    mutate(paper_short = str_trunc(paper_title, 48)) |>
+    ggplot(aes(
+      x     = pct_influenced,
+      y     = reorder(paper_short, pct_influenced),
+      color = manual_tier,
+      size  = text_chg_pct
+    )) +
+    geom_vline(xintercept = 30, linetype = "dashed",
+               color = "grey55", linewidth = 0.5) +
+    geom_point(alpha = 0.85) +
+    scale_color_manual(values = dot_colors, name = "Manual classification") +
+    scale_size_continuous(range = c(3, 9), name = "Text change %") +
+    scale_x_continuous(limits = c(0, 72),
+                       labels = \(x) paste0(x, "%"),
+                       breaks = c(0, 15, 30, 50, 70)) +
+    labs(x = "% of major changes attributed to evaluator feedback",
+         y = NULL) +
+    theme_uj() +
+    theme(legend.position = "bottom", legend.box = "vertical",
+          legend.margin = margin(0, 0, 0, 0))
+}
+```
+
+```{r}
+#| label: fig-combined-overview
+#| fig-cap: "Combined evidence distribution across all 57 tracked papers. Papers with LLM attribution results are subdivided by combined tier; the remainder use manual classification only. 'Not fetched' = no NBER/arxiv DOI available."
+#| fig-height: 4
+
+if (nrow(llm_enriched) > 0) {
+  # LLM-analyzed papers: use combined tier
+  llm_summary <- llm_enriched |>
+    count(combined_tier) |>
+    rename(group = combined_tier) |>
+    mutate(group = as.character(group), source = "LLM-analyzed")
+
+  # All other papers: manual classification, excluding those in LLM set
+  llm_titles <- llm_enriched$paper_title
+  other_summary <- df |>
+    filter(!paper_title %in% llm_titles) |>
+    mutate(group = case_when(
+      adj_status_clean == "Evidence of updating"       ~ "Confirmed update\n(manual only)",
+      adj_status_clean == "Stated intention to update" ~ "Stated intention",
+      adj_status_clean == "Mixed / minor updating"     ~ "Mixed / minor",
+      adj_status_clean == "Unlikely to update"         ~ "Unlikely to update",
+      TRUE                                             ~ "Not yet assessed"
+    )) |>
+    count(group) |>
+    mutate(source = "Manual only")
+
+  # Separate bucket for not-fetched (skipped, no DOI)
+  n_not_fetched <- llm_df |> filter(skipped) |> nrow()
+  if (n_not_fetched > 0) {
+    other_summary <- bind_rows(
+      other_summary,
+      data.frame(group = "No version fetched", n = n_not_fetched, source = "Manual only")
+    )
+  }
+
+  combined_summary <- bind_rows(llm_summary, other_summary) |>
+  mutate(
+    group = factor(group, levels = c(
+      "Confirmed + strong LLM", "Confirmed + weaker LLM",
+      "LLM: likely influenced", "LLM: possibly influenced",
+      "LLM: largely independent",
+      "Confirmed update\n(manual only)", "Stated intention",
+      "Mixed / minor", "Unlikely to update",
+      "No version fetched", "Not yet assessed"
+    ))
+  )
+
+  overview_colors <- c(
+    "Confirmed + strong LLM"        = "#1a7a47",
+    "Confirmed + weaker LLM"        = "#2D9D5E",
+    "LLM: likely influenced"        = "#5AE08A",
+    "LLM: possibly influenced"      = "#a8d5b5",
+    "LLM: largely independent"      = "#d0e8d8",
+    "Confirmed update\n(manual only)" = "#2B7CE9",
+    "Stated intention"              = "#7EB8F7",
+    "Mixed / minor"                 = "#E8722A",
+    "Unlikely to update"            = "#C45A1E",
+    "No version fetched"            = "#E2E8F0",
+    "Not yet assessed"              = "#CBD5E1"
+  )
+
+  ggplot(combined_summary, aes(
+    x = n, y = reorder(group, n), fill = group
+  )) +
+    geom_col(width = 0.65, show.legend = FALSE) +
+    geom_text(aes(label = n), hjust = -0.3, size = 3.2) +
+    scale_fill_manual(values = overview_colors) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
+    labs(x = "Number of papers", y = NULL,
+         title = "Combined evidence: all 57 tracked evaluations") +
+    theme_uj() +
+    theme(axis.text.y = element_text(size = 9))
 }
 ```
 
 ```{r}
 #| label: tbl-llm-attribution
-#| code-summary: "Build attribution table"
+#| tbl-cap: "Papers with LLM attribution results, sorted by estimated % of evaluation-driven changes. 'Confirmed update' papers (Bilal, Kremer, Liang) were manually verified and also LLM-analyzed. Signal tier combines both evidence streams."
+#| code-summary: "Combined evidence table"
 
-if (nrow(llm_analyzed) > 0) {
-  tbl_llm <- llm_analyzed |>
-    mutate(
-      Title       = str_trunc(paper_title, 65),
-      `Adj. status` = adj_status,
-      `Deposit after UJ` = ifelse(deposit_after_uj, "yes", "no"),
-      `Text Δ%`   = round(text_chg_pct, 1),
-      `Adds/Dels` = paste0(additions, "/", deletions),
-      `Major changes` = n_major_changes,
-      `Eval. suggestions` = n_suggestions,
-      `% attr. to eval` = ifelse(!is.na(pct_influenced), paste0(round(pct_influenced), "%"), "—"),
-      `Confidence (1–5)` = ifelse(!is.na(attr_confidence), attr_confidence, "—"),
-      `LLM narrative` = str_trunc(narrative, 180)
-    ) |>
-    select(Title, `Adj. status`, `Deposit after UJ`, `Text Δ%`, `Adds/Dels`,
-           `Major changes`, `Eval. suggestions`, `% attr. to eval`,
-           `Confidence (1–5)`, `LLM narrative`)
-
-  # Color coding by % attributed
-  pct_vals <- llm_analyzed$pct_influenced
-  pct_bg <- case_when(
-    is.na(pct_vals)      ~ "#f8fafc",
-    pct_vals >= 50       ~ "#d4edda",
-    pct_vals >= 30       ~ "#fff3e0",
-    TRUE                 ~ "#f8fafc"
+if (nrow(llm_enriched) > 0) {
+  tier_bg <- c(
+    "Confirmed + strong LLM"   = "#c8e6c9",
+    "Confirmed + weaker LLM"   = "#d4edda",
+    "LLM: likely influenced"   = "#e8f5e9",
+    "LLM: possibly influenced" = "#fff3e0",
+    "LLM: largely independent" = "#f8fafc"
   )
+
+  tbl_llm <- llm_enriched |>
+    arrange(desc(pct_influenced)) |>
+    mutate(
+      Title = ifelse(
+        !is.na(pubpub_link) & nchar(pubpub_link) > 0,
+        paste0('<a href="', pubpub_link, '" target="_blank">',
+               str_trunc(paper_title, 58), '</a>'),
+        str_trunc(paper_title, 58)
+      ),
+      `Manual`          = manual_tier,
+      `Dep. after`      = ifelse(deposit_after_uj, "yes", "no"),
+      `Text Δ%`         = round(text_chg_pct, 1),
+      `LLM %`           = paste0(round(pct_influenced), "%"),
+      `Conf.`           = paste0(attr_confidence, "/5"),
+      `Signal tier`     = combined_tier,
+      `LLM narrative`   = str_trunc(narrative, 200)
+    ) |>
+    select(Title, Manual, `Dep. after`, `Text Δ%`, `LLM %`,
+           `Conf.`, `Signal tier`, `LLM narrative`)
 
   datatable(
     tbl_llm,
-    escape    = FALSE,
-    rownames  = FALSE,
-    options   = list(
+    escape   = FALSE,
+    rownames = FALSE,
+    options  = list(
       pageLength = 15,
       dom        = "lrtip",
       columnDefs = list(
-        list(width = "28%", targets = 0),
+        list(width = "24%", targets = 0),
         list(width = "12%", targets = 1),
-        list(width = "8%",  targets = 2),
+        list(width = "6%",  targets = 2),
         list(width = "6%",  targets = 3),
-        list(width = "8%",  targets = 4),
-        list(width = "6%",  targets = 5),
-        list(width = "8%",  targets = 6),
-        list(width = "7%",  targets = 7),
-        list(width = "7%",  targets = 8),
-        list(width = "10%", targets = 9)
-      )
-    ),
-    caption = "GPT-5 Pro attribution analysis: do paper changes reflect evaluator suggestions? Papers without measurable text changes are excluded."
-  ) |>
-    formatStyle(
-      "% attr. to eval",
-      backgroundColor = styleEqual(
-        paste0(round(pct_vals[!is.na(pct_vals)]), "%"),
-        pct_bg[!is.na(pct_vals)]
+        list(width = "6%",  targets = 4),
+        list(width = "5%",  targets = 5),
+        list(width = "15%", targets = 6),
+        list(width = "26%", targets = 7)
       )
     )
+  ) |>
+  formatStyle(
+    "Signal tier",
+    backgroundColor = styleEqual(names(tier_bg), unname(tier_bg))
+  )
 } else {
-  cat("*No LLM attribution results available yet.*")
+  cat("*No LLM attribution results available yet — run scripts/run_paper_change_llm.py first.*")
 }
 ```
