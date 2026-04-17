@@ -34,17 +34,17 @@ except ImportError:
     pass  # stdlib
 
 try:
-    from openai import OpenAI
+    import anthropic
 except ImportError:
-    sys.exit("openai not installed. Run: pip install openai")
+    sys.exit("anthropic not installed. Run: pip install anthropic")
 
 REPO_ROOT = Path(__file__).parent.parent
 MANIFEST_PATH = REPO_ROOT / "data" / "paper_fetch_manifest.json"
 EVALS_DIR = REPO_ROOT / "data" / "unjournal_evaluations"
 RESULTS_PATH = REPO_ROOT / "data" / "paper_change_llm_results.json"
-KEY_FILE = REPO_ROOT / "key" / "openai_key.txt"
+KEY_FILE = REPO_ROOT / "key" / "anthropic_key.txt"
 
-MODEL = "gpt-5-pro-2025-10-06"
+MODEL = "claude-opus-4-6"
 TEMPERATURE = 0.2
 MAX_TEXT_CHARS = 60_000   # per paper version fed to the LLM
 MAX_EVAL_CHARS = 30_000   # evaluation text fed to the LLM
@@ -148,28 +148,37 @@ def find_evaluation_file(paper_title: str, authors_str: str) -> Path | None:
 
 
 # ---------------------------------------------------------------------------
-# OpenAI helpers
+# Anthropic helpers
 # ---------------------------------------------------------------------------
 
 def load_api_key() -> str:
-    if not KEY_FILE.exists():
-        sys.exit(f"API key not found at {KEY_FILE}")
-    return KEY_FILE.read_text().strip()
+    if KEY_FILE.exists():
+        return KEY_FILE.read_text().strip()
+    import os
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if key:
+        return key
+    sys.exit(f"API key not found at {KEY_FILE} and ANTHROPIC_API_KEY env var not set")
 
 
-def call_llm(client: OpenAI, system: str, user: str) -> dict:
+def call_llm(client: anthropic.Anthropic, system: str, user: str) -> dict:
     for attempt in range(3):
         try:
-            resp = client.chat.completions.create(
+            resp = client.messages.create(
                 model=MODEL,
+                max_tokens=4096,
+                temperature=TEMPERATURE,
+                system=system + "\n\nReturn ONLY valid JSON. No markdown fences, no preamble, no explanation outside the JSON object.",
                 messages=[
-                    {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
-                temperature=TEMPERATURE,
-                response_format={"type": "json_object"},
             )
-            return json.loads(resp.choices[0].message.content)
+            raw = resp.content[0].text.strip()
+            # Strip markdown fences if present
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+            return json.loads(raw)
         except Exception as e:
             print(f"  [llm error attempt {attempt+1}] {e}")
             time.sleep(4 * (attempt + 1))
@@ -246,7 +255,7 @@ Return JSON:
 }"""
 
 
-def analyze_paper(client: OpenAI, key: str, entry: dict, dry_run: bool) -> dict | None:
+def analyze_paper(client: anthropic.Anthropic, key: str, entry: dict, dry_run: bool) -> dict | None:
     title = entry["paper_title"]
     before_path = REPO_ROOT / entry["before_pdf"] if entry.get("before_pdf") else None
     after_path = REPO_ROOT / entry["after_pdf"] if entry.get("after_pdf") else None
@@ -401,14 +410,23 @@ def main():
 
     client = None
     if not args.dry_run:
-        client = OpenAI(api_key=load_api_key())
+        client = anthropic.Anthropic(api_key=load_api_key())
 
     results = list(existing_results.values())
     processed_keys = set(existing_results.keys())
 
     entries = {k: v for k, v in manifest.items() if v["fetch_status"] == "success"}
+
+    # Skip papers already manually classified (non-blank adj_status)
+    # unless a specific paper was requested
+    if not args.paper:
+        skipped_manual = [k for k, v in entries.items() if v.get("adj_status", "").strip()]
+        if skipped_manual:
+            print(f"Skipping {len(skipped_manual)} already-classified papers: {', '.join(skipped_manual)}")
+        entries = {k: v for k, v in entries.items() if not v.get("adj_status", "").strip()}
+
     if args.paper:
-        entries = {k: v for k, v in entries.items() if k == args.paper}
+        entries = {k: v for k, v in manifest.items() if k == args.paper and manifest[k]["fetch_status"] == "success"}
         if not entries:
             sys.exit(f"Paper key '{args.paper}' not found or not fetched successfully.")
 
