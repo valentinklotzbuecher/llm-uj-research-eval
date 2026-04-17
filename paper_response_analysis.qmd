@@ -48,7 +48,6 @@ df <- df |>
     paper_title     = label_paper_title,
     pubpub_link     = dup_pubpub_final_links,
     adj_status      = `Adjusted_paper?`,
-    pub_statement   = `Author's public statement about evaluation/UJ`,
     updated_manual  = `Updated since UJ report -- manual confirmation`,
     deposit_after   = `deposit date > unjournal pub date`,
     research_area   = main_cause_cat_abbrev,
@@ -263,41 +262,6 @@ datatable(
       unname(adj_bg)
     )
   )
-```
-
-## Selected Public Statements
-
-Authors whose responses appear below have made public statements (published on The Unjournal's PubPub platform) about the evaluation process or their plans for revisions.
-
-```{r}
-#| label: public-statements
-#| code-summary: "Display public author quotes"
-
-quotes <- df |>
-  filter(!is.na(pub_statement) & str_trim(pub_statement) != "") |>
-  mutate(
-    short_title = str_trunc(paper_title, 80),
-    pubpub_url  = if_else(!is.na(pubpub_link) & pubpub_link != "", pubpub_link, NA_character_)
-  ) |>
-  arrange(adj_status_clean)
-
-if (nrow(quotes) == 0) {
-  cat("No public statements recorded yet.\n")
-} else {
-  for (i in seq_len(nrow(quotes))) {
-    r <- quotes[i, ]
-    title_str <- if (!is.na(r$pubpub_url)) {
-      paste0("[", r$short_title, "](", r$pubpub_url, ")")
-    } else {
-      r$short_title
-    }
-    cat(paste0(
-      "> ", str_trim(r$pub_statement), "\n\n",
-      "> — *", title_str, "*",
-      " (", r$adj_status_clean, ")\n\n"
-    ))
-  }
-}
 ```
 
 ## Automated Change Detection (Supplement)
