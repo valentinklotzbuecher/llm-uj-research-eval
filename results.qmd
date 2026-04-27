@@ -310,11 +310,30 @@ hh_baseline_row <- tibble(
   RMSE           = hh_rmse,
   MAE            = hh_mae
 )
+
+# Spearman-Brown correction factor (same logic as Appendix A).
+# GPT-5 Pro rho is computed against the k-rater human mean; rho_HH compares
+# individual raters. Multiply raw rho_HL by sb_factor for a fair comparison.
+k_raters <- metrics_human |>
+  filter(criteria == "overall", paper %in% focal_papers) |>
+  group_by(paper) |>
+  summarise(k = n_distinct(evaluator), .groups = "drop") |>
+  summarise(k = mean(k)) |>
+  pull(k)
+r_kk      <- k_raters * hh_spearman / (1 + (k_raters - 1) * hh_spearman)
+sb_factor <- sqrt(hh_spearman / r_kk)
+
+spearman_ci95 <- function(rho, n) {
+  if (is.na(rho) || n < 4) return("—")
+  z  <- atanh(rho)
+  se <- 1 / sqrt(n - 3)
+  sprintf("[%.2f, %.2f]", tanh(z - 1.96 * se), tanh(z + 1.96 * se))
+}
 ```
 
 We evaluate GPT-5 Pro against human expert reviews from [The Unjournal](https://unjournal.pubpub.org) on `r n_focal` matched papers (papers with both GPT-5 Pro and human evaluations). The model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Results for five additional models are reported in [Appendix A](results_ratings.qmd). Full methodological details appear in [Methods](methods.qmd).
 
-We do not treat human ratings as ground truth. Quantitative percentile scoring is genuinely difficult: even domain experts disagree, and individual scores reflect both signal about paper quality and idiosyncratic tendencies (severity, topic familiarity, interpretation of the scale). Our question is therefore whether an LLM provides signal *comparable to an additional expert rater*. If two human evaluators agree at Spearman ρ ≈ 0.5, an LLM achieving comparable ρ against the human mean is performing within human inter-rater range. The Human–Human baseline row in @tbl-model-agreement-main makes this explicit; Krippendorff's α~HH~ in the [human-baseline table in Appendix A](results_ratings.qmd) provides the criterion-level ceiling.
+We do not treat human ratings as ground truth. Quantitative percentile scoring is genuinely difficult: even domain experts disagree, and individual scores reflect both signal about paper quality and idiosyncratic tendencies (severity, topic familiarity, interpretation of the scale). Our question is whether an LLM provides signal *comparable to an additional expert rater*. The Human–Human baseline row in @tbl-model-agreement-main provides this reference. **Caution**: the LLM's *ρ* is computed against the *mean* of `r round(k_raters, 1)` human raters, which reduces noise and inflates apparent agreement relative to the individual-vs-individual ρ_HH. The Spearman-Brown adjusted column corrects for this; the fair comparison is ρ adj. vs. ρ_HH. Krippendorff's α~HH~ in the [human-baseline table in Appendix A](results_ratings.qmd) provides the criterion-level reference.
 
 **Per-paper overview.** @fig-overview-combined presents three complementary views of overall (0--100 percentile) ratings. Panel (a) displays individual human evaluator ratings alongside GPT-5 Pro (orange diamonds) for each paper, revealing inter-rater variability---the self-reported 90% credible intervals from individual evaluators often span 20--40 percentile points. In most cases the LLM falls within the range of human opinions, though several papers show substantial divergence. Panel (b) plots all pairwise human evaluator combinations, making the human-human agreement ceiling directly visible. Panel (c) compares GPT-5 Pro ratings against human mean ratings with per-paper labels.
 
@@ -810,11 +829,11 @@ Coverage and precision vary substantially across papers. Some papers achieve hig
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 
-**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings, alongside the Human–Human baseline as an empirical ceiling. Full model comparison across all six models is in [Appendix A](results_ratings.qmd).
+**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings, alongside the Human–Human baseline as a reference. The Spearman-Brown adjusted column (ρ adj.) is the appropriate comparator to ρ_HH; see Appendix A for all six models. Full model comparison is in [Appendix A](results_ratings.qmd).
 
 ```{r}
 #| label: tbl-model-agreement-main
-#| tbl-cap: "GPT-5 Pro agreement with human mean overall rating (N = `r n_focal` matched papers). **Human–Human** row shows pairwise evaluator agreement as an empirical ceiling. Spearman *ρ* (rank-based) and MAE (in percentile points) are primary metrics; Pearson *r* shown for completeness. Bias = LLM − Human (positive = LLM more generous)."
+#| tbl-cap: "GPT-5 Pro agreement with human mean overall rating (N = `r n_focal` matched papers). **Human–Human** row (bold) shows pairwise individual-vs-individual Spearman *ρ* as a reference. **ρ (vs. mean)**: raw Spearman *ρ* between GPT-5 Pro and human *mean*—upward-biased because the mean suppresses noise. **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper); compare this to Human–Human ρ = `r hh_spearman`. **95% CI**: Fisher-z. Bias = LLM − Human."
 #| code-fold: true
 
 model_compare_data <- llm_metrics |>
@@ -826,32 +845,48 @@ model_compare_data <- llm_metrics |>
   filter(!is.na(human_mid))
 
 if (nrow(model_compare_data) > 0) {
-  llm_rows <- model_compare_data |>
-    group_by(Model = model) |>
-    summarise(
-      N              = n(),
-      `Spearman ρ` = round(cor(human_mid, midpoint, method = "spearman",
-                                     use = "complete.obs"), 3),
-      `Pearson r`    = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
-      `Mean bias`    = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
-      RMSE           = round(sqrt(mean((midpoint - human_mid)^2, na.rm = TRUE)), 1),
-      MAE            = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
-      .groups = "drop"
-    ) |>
-    arrange(desc(`Spearman ρ`))
+  raw_rho <- cor(model_compare_data$human_mid, model_compare_data$midpoint,
+                 method = "spearman", use = "complete.obs")
+  n_gpt   <- nrow(model_compare_data)
 
-  model_compare_tbl <- bind_rows(hh_baseline_row, llm_rows)
+  llm_row <- tibble(
+    Model          = "GPT-5 Pro",
+    N              = n_gpt,
+    `ρ (vs. mean)` = sprintf("%.3f", raw_rho),
+    `ρ adj. (SB)`  = sprintf("%.3f", raw_rho * sb_factor),
+    `95% CI`       = spearman_ci95(raw_rho, n_gpt),
+    `Pearson r`    = round(cor(model_compare_data$human_mid, model_compare_data$midpoint,
+                               use = "complete.obs"), 3),
+    `Mean bias`    = sprintf("%+.1f", mean(model_compare_data$midpoint - model_compare_data$human_mid,
+                                           na.rm = TRUE)),
+    MAE            = round(mean(abs(model_compare_data$midpoint - model_compare_data$human_mid),
+                                na.rm = TRUE), 1)
+  )
 
-  knitr::kable(model_compare_tbl, align = c("l", rep("r", 6)), booktabs = TRUE) |>
+  hh_row_main <- tibble(
+    Model          = "Human–Human",
+    N              = hh_n,
+    `ρ (vs. mean)` = sprintf("%.3f", hh_spearman),
+    `ρ adj. (SB)`  = "—",
+    `95% CI`       = spearman_ci95(hh_spearman, hh_n),
+    `Pearson r`    = round(hh_pearson, 3),
+    `Mean bias`    = hh_bias,
+    MAE            = hh_mae
+  )
+
+  model_compare_tbl <- bind_rows(hh_row_main, llm_row)
+
+  knitr::kable(model_compare_tbl, align = c("l", rep("r", ncol(model_compare_tbl) - 1)),
+               booktabs = TRUE) |>
     kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0")
 }
 ```
 
-@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. Crucially, the **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion — the ceiling available to any model. Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.
+@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. The **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion as a reference — note that raw LLM ρ is upward-biased relative to H-H ρ by the mean-vs-individual asymmetry (see @tbl-model-agreement-main). Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.
 
 ```{r}
 #| label: tbl-criteria-agreement-main
-#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` matched papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the ceiling for each criterion). Positive bias = GPT-5 Pro rates higher on average. Note the ceiling variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), setting expectations for LLM performance."
+#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` matched papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the reference for each criterion; see @tbl-model-agreement-main note about mean-vs-individual bias). Positive bias = GPT-5 Pro rates higher on average. Note the variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science)."
 #| code-fold: true
 
 criteria_order <- c("overall", "claims", "methods", "adv_knowledge",
