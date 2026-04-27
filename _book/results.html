@@ -1166,7 +1166,7 @@ Figure&nbsp;2.2: Human minus GPT-5 Pro rating difference for every paper (column
 </div>
 <p>Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; manual validation through our annotation tool is underway and preliminary results are consistent with the automated scores.</p>
 <p>Detailed paper-by-paper comparisons—including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns—appear in <a href="./results_critiques.html">Appendix B: Critiques &amp; Key Issues</a>. Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in <a href="./results_ratings.html">Appendix A: Results Ratings</a>. The full LLM reasoning traces and assessment summaries are available in <a href="./appendix_llm_traces.html">Appendix C: LLM Traces</a>.</p>
-<p><strong>Agreement summary.</strong> <a href="#tbl-model-agreement-main" class="quarto-xref">Table&nbsp;<span>2.1</span></a> shows GPT-5 Pro’s agreement with the human mean on overall ratings, alongside the Human–Human baseline as a reference. The Spearman-Brown adjusted column (ρ adj.) is the appropriate comparator to ρ_HH; see Appendix A for all six models. Full model comparison is in <a href="./results_ratings.html">Appendix A</a>.</p>
+<p><strong>Agreement summary.</strong> <a href="#tbl-model-agreement-main" class="quarto-xref">Table&nbsp;<span>2.1</span></a> shows GPT-5 Pro’s agreement with the human mean on overall ratings. The table is split into a <strong>primary matched group</strong> (same papers as the H–H baseline, enabling a direct like-for-like comparison) and a <strong>secondary full-sample group</strong> (all 45 matched papers for GPT-5 Pro). The Spearman-Brown adjusted ρ is the appropriate comparator to ρ_HH; the raw ρ (vs.&nbsp;mean) is inflated because LLMs are evaluated against the averaged human signal. Six-model comparison with the same structure is in <a href="./results_ratings.html#tbl-agreement">Appendix A, Table A2</a>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
@@ -1179,46 +1179,66 @@ Figure&nbsp;2.2: Human minus GPT-5 Pro rating difference for every paper (column
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid))</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(model_compare_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  raw_rho <span class="ot">&lt;-</span> <span class="fu">cor</span>(model_compare_data<span class="sc">$</span>human_mid, model_compare_data<span class="sc">$</span>midpoint,</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  n_gpt   <span class="ot">&lt;-</span> <span class="fu">nrow</span>(model_compare_data)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  llm_row <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Model          =</span> <span class="st">"GPT-5 Pro"</span>,</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">N              =</span> n_gpt,</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, raw_rho),</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, raw_rho <span class="sc">*</span> sb_factor),</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(raw_rho, n_gpt),</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(model_compare_data<span class="sc">$</span>human_mid, model_compare_data<span class="sc">$</span>midpoint,</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>                               <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(model_compare_data<span class="sc">$</span>midpoint <span class="sc">-</span> model_compare_data<span class="sc">$</span>human_mid,</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">MAE            =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(model_compare_data<span class="sc">$</span>midpoint <span class="sc">-</span> model_compare_data<span class="sc">$</span>human_mid),</span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>                                <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>)</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  hh_row_main <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">Model          =</span> <span class="st">"Human–Human"</span>,</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">N              =</span> hh_n,</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, hh_spearman),</span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">"—"</span>,</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(hh_spearman, hh_n),</span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(hh_pearson, <span class="dv">3</span>),</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> hh_bias,</span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">MAE            =</span> hh_mae</span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  model_compare_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(hh_row_main, llm_row)</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(model_compare_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(model_compare_tbl) <span class="sc">-</span> <span class="dv">1</span>)),</span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>               <span class="at">booktabs =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">background =</span> <span class="st">"#f0f8f0"</span>)</span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Matched sample: same papers used for H-H baseline (≥2 human raters)</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  lfl_papers_main  <span class="ot">&lt;-</span> hh_pairs<span class="sc">$</span>paper</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  model_lfl        <span class="ot">&lt;-</span> model_compare_data <span class="sc">|&gt;</span> <span class="fu">filter</span>(paper <span class="sc">%in%</span> lfl_papers_main)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  raw_rho_lfl      <span class="ot">&lt;-</span> <span class="fu">cor</span>(model_lfl<span class="sc">$</span>human_mid, model_lfl<span class="sc">$</span>midpoint,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>                          <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  n_lfl            <span class="ot">&lt;-</span> <span class="fu">nrow</span>(model_lfl)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Full sample: all focal papers</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  raw_rho_full <span class="ot">&lt;-</span> <span class="fu">cor</span>(model_compare_data<span class="sc">$</span>human_mid, model_compare_data<span class="sc">$</span>midpoint,</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>                      <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  n_gpt        <span class="ot">&lt;-</span> <span class="fu">nrow</span>(model_compare_data)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  make_gpt_row <span class="ot">&lt;-</span> <span class="cf">function</span>(data, rho, n_papers, <span class="at">label =</span> <span class="st">"GPT-5 Pro"</span>) {</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">Model          =</span> label,</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">N              =</span> n_papers,</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, rho),</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, rho <span class="sc">*</span> sb_factor),</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(rho, n_papers),</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(data<span class="sc">$</span>human_mid, data<span class="sc">$</span>midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(data<span class="sc">$</span>midpoint <span class="sc">-</span> data<span class="sc">$</span>human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>      <span class="at">MAE            =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, <span class="fu">mean</span>(<span class="fu">abs</span>(data<span class="sc">$</span>midpoint <span class="sc">-</span> data<span class="sc">$</span>human_mid), <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  hh_row_main <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">Model          =</span> <span class="st">"Human–Human"</span>,</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">N              =</span> hh_n,</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, hh_spearman),</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">"—"</span>,</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(hh_spearman, hh_n),</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(hh_pearson, <span class="dv">3</span>),</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> hh_bias,</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">MAE            =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, hh_mae)</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>  gpt_matched_row <span class="ot">&lt;-</span> <span class="fu">make_gpt_row</span>(model_lfl, raw_rho_lfl, n_lfl)</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>  gpt_full_row    <span class="ot">&lt;-</span> <span class="fu">make_gpt_row</span>(model_compare_data, raw_rho_full, n_gpt)</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>  model_compare_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(hh_row_main, gpt_matched_row, gpt_full_row)</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(model_compare_tbl,</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>               <span class="at">align    =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(model_compare_tbl) <span class="sc">-</span> <span class="dv">1</span>)),</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>               <span class="at">booktabs =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">background =</span> <span class="st">"#f0f8f0"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">pack_rows</span>(</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sprintf</span>(<span class="st">"Matched sample — same %d papers as H–H baseline (primary)"</span>, hh_n),</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>      <span class="dv">1</span>, <span class="dv">2</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">italic =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span></span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">pack_rows</span>(</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sprintf</span>(<span class="st">"Full sample — all %d GPT-5 Pro matched papers (secondary)"</span>, n_gpt),</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>      <span class="dv">3</span>, <span class="dv">3</span>, <span class="at">bold =</span> <span class="cn">FALSE</span>, <span class="at">italic =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="tbl-model-agreement-main" class="cell quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-model-agreement-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.1: GPT-5 Pro agreement with human mean overall rating (N = <code>r n_focal</code> matched papers). <strong>Human–Human</strong> row (bold) shows pairwise individual-vs-individual Spearman <em>ρ</em> as a reference. <strong>ρ (vs.&nbsp;mean)</strong>: raw Spearman <em>ρ</em> between GPT-5 Pro and human <em>mean</em>—upward-biased because the mean suppresses noise. <strong>ρ adj. (SB)</strong>: Spearman-Brown corrected to individual-rater-equivalent (×<code>r sprintf('%.2f', sb_factor)</code> for k≈<code>r round(k_raters, 1)</code> raters/paper); compare this to Human–Human ρ = <code>r hh_spearman</code>. <strong>95% CI</strong>: Fisher-z. Bias = LLM − Human.
+Table&nbsp;2.1: GPT-5 Pro overall-rating agreement. <strong>Primary (matched) group</strong>: same <code>r hh_n</code> papers used for the H–H baseline (≥2 human raters), enabling a direct like-for-like comparison. <strong>Secondary group</strong>: all <code>r n_focal</code> GPT-5 Pro matched papers (larger N, but H–H not computable on extra papers). <strong>ρ (vs.&nbsp;mean)</strong>: raw Spearman <em>ρ</em> against human mean—upward-biased; <strong>ρ adj. (SB)</strong>: Spearman-Brown corrected to individual-rater-equivalent (×<code>r sprintf('%.2f', sb_factor)</code>); <strong>95% CI</strong>: Fisher-z. Bias = LLM − Human. Full six-model comparison in <a href="./results_ratings.html">Appendix A</a>.
 </figcaption>
 <div aria-describedby="tbl-model-agreement-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -1236,8 +1256,11 @@ Table&nbsp;2.1: GPT-5 Pro agreement with human mean overall rating (N = <code>r 
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left; font-weight: bold; background-color: #f0f8f0 !important;">Human–Human</td>
+<tr class="odd" data-grouplength="2">
+<td colspan="8" style="border-bottom: 1px solid; color: black !important"><strong>Matched sample — same 37 papers as H–H baseline (primary)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; font-weight: bold; background-color: #f0f8f0 !important; padding-left: 2em;" data-indentlevel="1">Human–Human</td>
 <td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">37</td>
 <td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">0.432</td>
 <td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">—</td>
@@ -1246,8 +1269,21 @@ Table&nbsp;2.1: GPT-5 Pro agreement with human mean overall rating (N = <code>r 
 <td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">+4.1</td>
 <td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">11.0</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">GPT-5 Pro</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">GPT-5 Pro</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">0.624</td>
+<td style="text-align: right;">0.535</td>
+<td style="text-align: right;">[0.38, 0.79]</td>
+<td style="text-align: right;">0.573</td>
+<td style="text-align: right;">+6.6</td>
+<td style="text-align: right;">8.5</td>
+</tr>
+<tr class="even" data-grouplength="1">
+<td colspan="8" style="border-bottom: 1px solid"><em>Full sample — all 45 GPT-5 Pro matched papers (secondary)</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">GPT-5 Pro</td>
 <td style="text-align: right;">45</td>
 <td style="text-align: right;">0.517</td>
 <td style="text-align: right;">0.444</td>
@@ -1331,7 +1367,7 @@ Table&nbsp;2.1: GPT-5 Pro agreement with human mean overall rating (N = <code>r 
 <div id="tbl-criteria-agreement-main" class="cell quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-criteria-agreement-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.2: GPT-5 Pro agreement with human mean by criterion (N = <code>r n_focal</code> matched papers). <strong>H-H ρ</strong> shows pairwise human evaluator Spearman <em>ρ</em> (the reference for each criterion; see <a href="#tbl-model-agreement-main" class="quarto-xref">Table&nbsp;<span>2.1</span></a> note about mean-vs-individual bias). Positive bias = GPT-5 Pro rates higher on average. Note the variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science).
+Table&nbsp;2.2: GPT-5 Pro agreement with human mean by criterion (N = <code>r n_focal</code> papers; N = <code>r hh_n</code> for H–H). <strong>H-H ρ</strong>: pairwise human evaluator Spearman <em>ρ</em> (reference; computed on <code>r hh_n</code> papers with ≥2 raters; raw LLM ρ is upward-biased vs.&nbsp;H-H ρ—see <a href="#tbl-model-agreement-main" class="quarto-xref">Table&nbsp;<span>2.1</span></a>). Positive bias = GPT-5 Pro rates higher on average. Note the variation across criteria: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), setting expectations for LLM performance.
 </figcaption>
 <div aria-describedby="tbl-criteria-agreement-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -2723,11 +2759,11 @@ Table&nbsp;2.2: GPT-5 Pro agreement with human mean by criterion (N = <code>r n_
 <span id="cb10-847"><a href="#cb10-847" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-848"><a href="#cb10-848" aria-hidden="true" tabindex="-1"></a>Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in <span class="co">[</span><span class="ot">Appendix B: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>. Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in <span class="co">[</span><span class="ot">Appendix A: Results Ratings</span><span class="co">](results_ratings.qmd)</span>. The full LLM reasoning traces and assessment summaries are available in <span class="co">[</span><span class="ot">Appendix C: LLM Traces</span><span class="co">](appendix_llm_traces.qmd)</span>.</span>
 <span id="cb10-849"><a href="#cb10-849" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-850"><a href="#cb10-850" aria-hidden="true" tabindex="-1"></a>**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings, alongside the Human–Human baseline as a reference. The Spearman-Brown adjusted column (ρ adj.) is the appropriate comparator to ρ_HH; see Appendix A for all six models. Full model comparison is in <span class="co">[</span><span class="ot">Appendix A</span><span class="co">](results_ratings.qmd)</span>.</span>
+<span id="cb10-850"><a href="#cb10-850" aria-hidden="true" tabindex="-1"></a>**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings. The table is split into a **primary matched group** (same papers as the H–H baseline, enabling a direct like-for-like comparison) and a **secondary full-sample group** (all <span class="in">`r n_focal`</span> matched papers for GPT-5 Pro). The Spearman-Brown adjusted ρ is the appropriate comparator to ρ_HH; the raw ρ (vs. mean) is inflated because LLMs are evaluated against the averaged human signal. Six-model comparison with the same structure is in <span class="co">[</span><span class="ot">Appendix A, Table A2</span><span class="co">](results_ratings.qmd#tbl-agreement)</span>.</span>
 <span id="cb10-851"><a href="#cb10-851" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-854"><a href="#cb10-854" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb10-855"><a href="#cb10-855" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-model-agreement-main</span></span>
-<span id="cb10-856"><a href="#cb10-856" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "GPT-5 Pro agreement with human mean overall rating (N = `r n_focal` matched papers). **Human–Human** row (bold) shows pairwise individual-vs-individual Spearman *ρ* as a reference. **ρ (vs. mean)**: raw Spearman *ρ* between GPT-5 Pro and human *mean*—upward-biased because the mean suppresses noise. **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper); compare this to Human–Human ρ = `r hh_spearman`. **95% CI**: Fisher-z. Bias = LLM − Human."</span></span>
+<span id="cb10-856"><a href="#cb10-856" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "GPT-5 Pro overall-rating agreement. **Primary (matched) group**: same `r hh_n` papers used for the H–H baseline (≥2 human raters), enabling a direct like-for-like comparison. **Secondary group**: all `r n_focal` GPT-5 Pro matched papers (larger N, but H–H not computable on extra papers). **ρ (vs. mean)**: raw Spearman *ρ* against human mean—upward-biased; **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)`); **95% CI**: Fisher-z. Bias = LLM − Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."</span></span>
 <span id="cb10-857"><a href="#cb10-857" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
 <span id="cb10-858"><a href="#cb10-858" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-859"><a href="#cb10-859" aria-hidden="true" tabindex="-1"></a>model_compare_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
@@ -2739,115 +2775,135 @@ Table&nbsp;2.2: GPT-5 Pro agreement with human mean by criterion (N = <code>r n_
 <span id="cb10-865"><a href="#cb10-865" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(human_mid))</span>
 <span id="cb10-866"><a href="#cb10-866" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-867"><a href="#cb10-867" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(model_compare_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb10-868"><a href="#cb10-868" aria-hidden="true" tabindex="-1"></a>  raw_rho <span class="ot">&lt;-</span> <span class="fu">cor</span>(model_compare_data<span class="sc">$</span>human_mid, model_compare_data<span class="sc">$</span>midpoint,</span>
-<span id="cb10-869"><a href="#cb10-869" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>)</span>
-<span id="cb10-870"><a href="#cb10-870" aria-hidden="true" tabindex="-1"></a>  n_gpt   <span class="ot">&lt;-</span> <span class="fu">nrow</span>(model_compare_data)</span>
-<span id="cb10-871"><a href="#cb10-871" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-872"><a href="#cb10-872" aria-hidden="true" tabindex="-1"></a>  llm_row <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb10-873"><a href="#cb10-873" aria-hidden="true" tabindex="-1"></a>    <span class="at">Model          =</span> <span class="st">"GPT-5 Pro"</span>,</span>
-<span id="cb10-874"><a href="#cb10-874" aria-hidden="true" tabindex="-1"></a>    <span class="at">N              =</span> n_gpt,</span>
-<span id="cb10-875"><a href="#cb10-875" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, raw_rho),</span>
-<span id="cb10-876"><a href="#cb10-876" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, raw_rho <span class="sc">*</span> sb_factor),</span>
-<span id="cb10-877"><a href="#cb10-877" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(raw_rho, n_gpt),</span>
-<span id="cb10-878"><a href="#cb10-878" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(model_compare_data<span class="sc">$</span>human_mid, model_compare_data<span class="sc">$</span>midpoint,</span>
-<span id="cb10-879"><a href="#cb10-879" aria-hidden="true" tabindex="-1"></a>                               <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb10-880"><a href="#cb10-880" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(model_compare_data<span class="sc">$</span>midpoint <span class="sc">-</span> model_compare_data<span class="sc">$</span>human_mid,</span>
-<span id="cb10-881"><a href="#cb10-881" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb10-882"><a href="#cb10-882" aria-hidden="true" tabindex="-1"></a>    <span class="at">MAE            =</span> <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(model_compare_data<span class="sc">$</span>midpoint <span class="sc">-</span> model_compare_data<span class="sc">$</span>human_mid),</span>
-<span id="cb10-883"><a href="#cb10-883" aria-hidden="true" tabindex="-1"></a>                                <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>)</span>
-<span id="cb10-884"><a href="#cb10-884" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-885"><a href="#cb10-885" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-886"><a href="#cb10-886" aria-hidden="true" tabindex="-1"></a>  hh_row_main <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb10-887"><a href="#cb10-887" aria-hidden="true" tabindex="-1"></a>    <span class="at">Model          =</span> <span class="st">"Human–Human"</span>,</span>
-<span id="cb10-888"><a href="#cb10-888" aria-hidden="true" tabindex="-1"></a>    <span class="at">N              =</span> hh_n,</span>
-<span id="cb10-889"><a href="#cb10-889" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, hh_spearman),</span>
-<span id="cb10-890"><a href="#cb10-890" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">"—"</span>,</span>
-<span id="cb10-891"><a href="#cb10-891" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(hh_spearman, hh_n),</span>
-<span id="cb10-892"><a href="#cb10-892" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(hh_pearson, <span class="dv">3</span>),</span>
-<span id="cb10-893"><a href="#cb10-893" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> hh_bias,</span>
-<span id="cb10-894"><a href="#cb10-894" aria-hidden="true" tabindex="-1"></a>    <span class="at">MAE            =</span> hh_mae</span>
-<span id="cb10-895"><a href="#cb10-895" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-896"><a href="#cb10-896" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-897"><a href="#cb10-897" aria-hidden="true" tabindex="-1"></a>  model_compare_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(hh_row_main, llm_row)</span>
-<span id="cb10-898"><a href="#cb10-898" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-899"><a href="#cb10-899" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(model_compare_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(model_compare_tbl) <span class="sc">-</span> <span class="dv">1</span>)),</span>
-<span id="cb10-900"><a href="#cb10-900" aria-hidden="true" tabindex="-1"></a>               <span class="at">booktabs =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-901"><a href="#cb10-901" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">background =</span> <span class="st">"#f0f8f0"</span>)</span>
-<span id="cb10-902"><a href="#cb10-902" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb10-903"><a href="#cb10-903" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-868"><a href="#cb10-868" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-869"><a href="#cb10-869" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Matched sample: same papers used for H-H baseline (≥2 human raters)</span></span>
+<span id="cb10-870"><a href="#cb10-870" aria-hidden="true" tabindex="-1"></a>  lfl_papers_main  <span class="ot">&lt;-</span> hh_pairs<span class="sc">$</span>paper</span>
+<span id="cb10-871"><a href="#cb10-871" aria-hidden="true" tabindex="-1"></a>  model_lfl        <span class="ot">&lt;-</span> model_compare_data <span class="sc">|&gt;</span> <span class="fu">filter</span>(paper <span class="sc">%in%</span> lfl_papers_main)</span>
+<span id="cb10-872"><a href="#cb10-872" aria-hidden="true" tabindex="-1"></a>  raw_rho_lfl      <span class="ot">&lt;-</span> <span class="fu">cor</span>(model_lfl<span class="sc">$</span>human_mid, model_lfl<span class="sc">$</span>midpoint,</span>
+<span id="cb10-873"><a href="#cb10-873" aria-hidden="true" tabindex="-1"></a>                          <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>)</span>
+<span id="cb10-874"><a href="#cb10-874" aria-hidden="true" tabindex="-1"></a>  n_lfl            <span class="ot">&lt;-</span> <span class="fu">nrow</span>(model_lfl)</span>
+<span id="cb10-875"><a href="#cb10-875" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-876"><a href="#cb10-876" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Full sample: all focal papers</span></span>
+<span id="cb10-877"><a href="#cb10-877" aria-hidden="true" tabindex="-1"></a>  raw_rho_full <span class="ot">&lt;-</span> <span class="fu">cor</span>(model_compare_data<span class="sc">$</span>human_mid, model_compare_data<span class="sc">$</span>midpoint,</span>
+<span id="cb10-878"><a href="#cb10-878" aria-hidden="true" tabindex="-1"></a>                      <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>)</span>
+<span id="cb10-879"><a href="#cb10-879" aria-hidden="true" tabindex="-1"></a>  n_gpt        <span class="ot">&lt;-</span> <span class="fu">nrow</span>(model_compare_data)</span>
+<span id="cb10-880"><a href="#cb10-880" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-881"><a href="#cb10-881" aria-hidden="true" tabindex="-1"></a>  make_gpt_row <span class="ot">&lt;-</span> <span class="cf">function</span>(data, rho, n_papers, <span class="at">label =</span> <span class="st">"GPT-5 Pro"</span>) {</span>
+<span id="cb10-882"><a href="#cb10-882" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb10-883"><a href="#cb10-883" aria-hidden="true" tabindex="-1"></a>      <span class="at">Model          =</span> label,</span>
+<span id="cb10-884"><a href="#cb10-884" aria-hidden="true" tabindex="-1"></a>      <span class="at">N              =</span> n_papers,</span>
+<span id="cb10-885"><a href="#cb10-885" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, rho),</span>
+<span id="cb10-886"><a href="#cb10-886" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, rho <span class="sc">*</span> sb_factor),</span>
+<span id="cb10-887"><a href="#cb10-887" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(rho, n_papers),</span>
+<span id="cb10-888"><a href="#cb10-888" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(data<span class="sc">$</span>human_mid, data<span class="sc">$</span>midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb10-889"><a href="#cb10-889" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(data<span class="sc">$</span>midpoint <span class="sc">-</span> data<span class="sc">$</span>human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb10-890"><a href="#cb10-890" aria-hidden="true" tabindex="-1"></a>      <span class="at">MAE            =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, <span class="fu">mean</span>(<span class="fu">abs</span>(data<span class="sc">$</span>midpoint <span class="sc">-</span> data<span class="sc">$</span>human_mid), <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb10-891"><a href="#cb10-891" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-892"><a href="#cb10-892" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-893"><a href="#cb10-893" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-894"><a href="#cb10-894" aria-hidden="true" tabindex="-1"></a>  hh_row_main <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb10-895"><a href="#cb10-895" aria-hidden="true" tabindex="-1"></a>    <span class="at">Model          =</span> <span class="st">"Human–Human"</span>,</span>
+<span id="cb10-896"><a href="#cb10-896" aria-hidden="true" tabindex="-1"></a>    <span class="at">N              =</span> hh_n,</span>
+<span id="cb10-897"><a href="#cb10-897" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ (vs. mean)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, hh_spearman),</span>
+<span id="cb10-898"><a href="#cb10-898" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">ρ adj. (SB)</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">"—"</span>,</span>
+<span id="cb10-899"><a href="#cb10-899" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">spearman_ci95</span>(hh_spearman, hh_n),</span>
+<span id="cb10-900"><a href="#cb10-900" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>    <span class="ot">=</span> <span class="fu">round</span>(hh_pearson, <span class="dv">3</span>),</span>
+<span id="cb10-901"><a href="#cb10-901" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>    <span class="ot">=</span> hh_bias,</span>
+<span id="cb10-902"><a href="#cb10-902" aria-hidden="true" tabindex="-1"></a>    <span class="at">MAE            =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, hh_mae)</span>
+<span id="cb10-903"><a href="#cb10-903" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb10-904"><a href="#cb10-904" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-905"><a href="#cb10-905" aria-hidden="true" tabindex="-1"></a>@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. The **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion as a reference — note that raw LLM ρ is upward-biased relative to H-H ρ by the mean-vs-individual asymmetry (see @tbl-model-agreement-main). Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.</span>
-<span id="cb10-906"><a href="#cb10-906" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-909"><a href="#cb10-909" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-910"><a href="#cb10-910" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-criteria-agreement-main</span></span>
-<span id="cb10-911"><a href="#cb10-911" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` matched papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the reference for each criterion; see @tbl-model-agreement-main note about mean-vs-individual bias). Positive bias = GPT-5 Pro rates higher on average. Note the variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science)."</span></span>
-<span id="cb10-912"><a href="#cb10-912" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb10-913"><a href="#cb10-913" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-914"><a href="#cb10-914" aria-hidden="true" tabindex="-1"></a>criteria_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"overall"</span>, <span class="st">"claims"</span>, <span class="st">"methods"</span>, <span class="st">"adv_knowledge"</span>,</span>
-<span id="cb10-915"><a href="#cb10-915" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"logic_comms"</span>, <span class="st">"open_sci"</span>, <span class="st">"gp_relevance"</span>)</span>
-<span id="cb10-916"><a href="#cb10-916" aria-hidden="true" tabindex="-1"></a>criteria_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb10-917"><a href="#cb10-917" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall      =</span> <span class="st">"Overall"</span>,</span>
-<span id="cb10-918"><a href="#cb10-918" aria-hidden="true" tabindex="-1"></a>  <span class="at">claims       =</span> <span class="st">"Claims &amp; Evidence"</span>,</span>
-<span id="cb10-919"><a href="#cb10-919" aria-hidden="true" tabindex="-1"></a>  <span class="at">methods      =</span> <span class="st">"Methods"</span>,</span>
-<span id="cb10-920"><a href="#cb10-920" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>,</span>
-<span id="cb10-921"><a href="#cb10-921" aria-hidden="true" tabindex="-1"></a>  <span class="at">logic_comms  =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
-<span id="cb10-922"><a href="#cb10-922" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci     =</span> <span class="st">"Open Science"</span>,</span>
-<span id="cb10-923"><a href="#cb10-923" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
-<span id="cb10-924"><a href="#cb10-924" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-925"><a href="#cb10-925" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-926"><a href="#cb10-926" aria-hidden="true" tabindex="-1"></a><span class="co"># Human-human pairwise Spearman rho per criterion (ceiling reference)</span></span>
-<span id="cb10-927"><a href="#cb10-927" aria-hidden="true" tabindex="-1"></a>hh_crit_pairs <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb10-928"><a href="#cb10-928" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> criteria_order, paper <span class="sc">%in%</span> focal_papers) <span class="sc">|&gt;</span></span>
-<span id="cb10-929"><a href="#cb10-929" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(paper, criteria, evaluator, mid) <span class="sc">|&gt;</span></span>
-<span id="cb10-930"><a href="#cb10-930" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
-<span id="cb10-931"><a href="#cb10-931" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb10-932"><a href="#cb10-932" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>() <span class="sc">&gt;=</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-933"><a href="#cb10-933" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">slot =</span> <span class="fu">paste0</span>(<span class="st">"E"</span>, <span class="fu">row_number</span>())) <span class="sc">|&gt;</span></span>
-<span id="cb10-934"><a href="#cb10-934" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
-<span id="cb10-935"><a href="#cb10-935" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> slot, <span class="at">values_from =</span> <span class="fu">c</span>(mid, evaluator)) <span class="sc">|&gt;</span></span>
-<span id="cb10-936"><a href="#cb10-936" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(mid_E1), <span class="sc">!</span><span class="fu">is.na</span>(mid_E2))</span>
-<span id="cb10-937"><a href="#cb10-937" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-938"><a href="#cb10-938" aria-hidden="true" tabindex="-1"></a>hh_crit_rho <span class="ot">&lt;-</span> hh_crit_pairs <span class="sc">|&gt;</span></span>
-<span id="cb10-939"><a href="#cb10-939" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
-<span id="cb10-940"><a href="#cb10-940" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb10-941"><a href="#cb10-941" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">H-H ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(mid_E1, mid_E2, <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb10-942"><a href="#cb10-942" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb10-943"><a href="#cb10-943" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-944"><a href="#cb10-944" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-945"><a href="#cb10-945" aria-hidden="true" tabindex="-1"></a>human_by_crit <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
-<span id="cb10-946"><a href="#cb10-946" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> criteria_order, paper <span class="sc">%in%</span> focal_papers) <span class="sc">|&gt;</span></span>
-<span id="cb10-947"><a href="#cb10-947" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
-<span id="cb10-948"><a href="#cb10-948" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">human_mid =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
-<span id="cb10-949"><a href="#cb10-949" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-950"><a href="#cb10-950" aria-hidden="true" tabindex="-1"></a>crit_compare_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
-<span id="cb10-951"><a href="#cb10-951" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> criteria_order, model <span class="sc">==</span> <span class="st">"GPT-5 Pro"</span>, paper <span class="sc">%in%</span> focal_papers) <span class="sc">|&gt;</span></span>
-<span id="cb10-952"><a href="#cb10-952" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_by_crit, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"paper"</span>, <span class="st">"criteria"</span>))</span>
-<span id="cb10-953"><a href="#cb10-953" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-954"><a href="#cb10-954" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(crit_compare_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb10-955"><a href="#cb10-955" aria-hidden="true" tabindex="-1"></a>  crit_tbl <span class="ot">&lt;-</span> crit_compare_data <span class="sc">|&gt;</span></span>
-<span id="cb10-956"><a href="#cb10-956" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
-<span id="cb10-957"><a href="#cb10-957" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
-<span id="cb10-958"><a href="#cb10-958" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">method =</span> <span class="st">"spearman"</span>,</span>
-<span id="cb10-959"><a href="#cb10-959" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb10-960"><a href="#cb10-960" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
-<span id="cb10-961"><a href="#cb10-961" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(midpoint <span class="sc">-</span> human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb10-962"><a href="#cb10-962" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE              =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((midpoint <span class="sc">-</span> human_mid)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>),</span>
-<span id="cb10-963"><a href="#cb10-963" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb10-964"><a href="#cb10-964" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb10-965"><a href="#cb10-965" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(hh_crit_rho, <span class="at">by =</span> <span class="st">"criteria"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-966"><a href="#cb10-966" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Criterion =</span> <span class="fu">factor</span>(criteria, <span class="at">levels =</span> criteria_order,</span>
-<span id="cb10-967"><a href="#cb10-967" aria-hidden="true" tabindex="-1"></a>                              <span class="at">labels =</span> criteria_labels[criteria_order])) <span class="sc">|&gt;</span></span>
-<span id="cb10-968"><a href="#cb10-968" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Criterion, <span class="st">`</span><span class="at">H-H ρ</span><span class="st">`</span>, <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span>, <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>, <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>, RMSE) <span class="sc">|&gt;</span></span>
-<span id="cb10-969"><a href="#cb10-969" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(Criterion)</span>
-<span id="cb10-970"><a href="#cb10-970" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-971"><a href="#cb10-971" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(crit_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb10-972"><a href="#cb10-972" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb10-973"><a href="#cb10-973" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb10-974"><a href="#cb10-974" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-975"><a href="#cb10-975" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-976"><a href="#cb10-976" aria-hidden="true" tabindex="-1"></a>::: {.content-visible when-format="pdf"}</span>
-<span id="cb10-977"><a href="#cb10-977" aria-hidden="true" tabindex="-1"></a>All appendices, interactive figures, and full code are available at the companion website: <span class="ot">&lt;https://llm-uj-research-eval.netlify.app&gt;</span>. Source code and data are hosted at <span class="ot">&lt;https://github.com/valentinklotzbuecher/llm-uj-research-eval&gt;</span>.</span>
-<span id="cb10-978"><a href="#cb10-978" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb10-905"><a href="#cb10-905" aria-hidden="true" tabindex="-1"></a>  gpt_matched_row <span class="ot">&lt;-</span> <span class="fu">make_gpt_row</span>(model_lfl, raw_rho_lfl, n_lfl)</span>
+<span id="cb10-906"><a href="#cb10-906" aria-hidden="true" tabindex="-1"></a>  gpt_full_row    <span class="ot">&lt;-</span> <span class="fu">make_gpt_row</span>(model_compare_data, raw_rho_full, n_gpt)</span>
+<span id="cb10-907"><a href="#cb10-907" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-908"><a href="#cb10-908" aria-hidden="true" tabindex="-1"></a>  model_compare_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(hh_row_main, gpt_matched_row, gpt_full_row)</span>
+<span id="cb10-909"><a href="#cb10-909" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-910"><a href="#cb10-910" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(model_compare_tbl,</span>
+<span id="cb10-911"><a href="#cb10-911" aria-hidden="true" tabindex="-1"></a>               <span class="at">align    =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="fu">ncol</span>(model_compare_tbl) <span class="sc">-</span> <span class="dv">1</span>)),</span>
+<span id="cb10-912"><a href="#cb10-912" aria-hidden="true" tabindex="-1"></a>               <span class="at">booktabs =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-913"><a href="#cb10-913" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">background =</span> <span class="st">"#f0f8f0"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-914"><a href="#cb10-914" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">pack_rows</span>(</span>
+<span id="cb10-915"><a href="#cb10-915" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sprintf</span>(<span class="st">"Matched sample — same %d papers as H–H baseline (primary)"</span>, hh_n),</span>
+<span id="cb10-916"><a href="#cb10-916" aria-hidden="true" tabindex="-1"></a>      <span class="dv">1</span>, <span class="dv">2</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">italic =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span></span>
+<span id="cb10-917"><a href="#cb10-917" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb10-918"><a href="#cb10-918" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">pack_rows</span>(</span>
+<span id="cb10-919"><a href="#cb10-919" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sprintf</span>(<span class="st">"Full sample — all %d GPT-5 Pro matched papers (secondary)"</span>, n_gpt),</span>
+<span id="cb10-920"><a href="#cb10-920" aria-hidden="true" tabindex="-1"></a>      <span class="dv">3</span>, <span class="dv">3</span>, <span class="at">bold =</span> <span class="cn">FALSE</span>, <span class="at">italic =</span> <span class="cn">TRUE</span></span>
+<span id="cb10-921"><a href="#cb10-921" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-922"><a href="#cb10-922" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-923"><a href="#cb10-923" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-924"><a href="#cb10-924" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-925"><a href="#cb10-925" aria-hidden="true" tabindex="-1"></a>@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. The **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion as a reference — note that raw LLM ρ is upward-biased relative to H-H ρ by the mean-vs-individual asymmetry (see @tbl-model-agreement-main). Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.</span>
+<span id="cb10-926"><a href="#cb10-926" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-929"><a href="#cb10-929" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-930"><a href="#cb10-930" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-criteria-agreement-main</span></span>
+<span id="cb10-931"><a href="#cb10-931" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` papers; N = `r hh_n` for H–H). **H-H ρ**: pairwise human evaluator Spearman *ρ* (reference; computed on `r hh_n` papers with ≥2 raters; raw LLM ρ is upward-biased vs. H-H ρ—see @tbl-model-agreement-main). Positive bias = GPT-5 Pro rates higher on average. Note the variation across criteria: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), setting expectations for LLM performance."</span></span>
+<span id="cb10-932"><a href="#cb10-932" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb10-933"><a href="#cb10-933" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-934"><a href="#cb10-934" aria-hidden="true" tabindex="-1"></a>criteria_order <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"overall"</span>, <span class="st">"claims"</span>, <span class="st">"methods"</span>, <span class="st">"adv_knowledge"</span>,</span>
+<span id="cb10-935"><a href="#cb10-935" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"logic_comms"</span>, <span class="st">"open_sci"</span>, <span class="st">"gp_relevance"</span>)</span>
+<span id="cb10-936"><a href="#cb10-936" aria-hidden="true" tabindex="-1"></a>criteria_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb10-937"><a href="#cb10-937" aria-hidden="true" tabindex="-1"></a>  <span class="at">overall      =</span> <span class="st">"Overall"</span>,</span>
+<span id="cb10-938"><a href="#cb10-938" aria-hidden="true" tabindex="-1"></a>  <span class="at">claims       =</span> <span class="st">"Claims &amp; Evidence"</span>,</span>
+<span id="cb10-939"><a href="#cb10-939" aria-hidden="true" tabindex="-1"></a>  <span class="at">methods      =</span> <span class="st">"Methods"</span>,</span>
+<span id="cb10-940"><a href="#cb10-940" aria-hidden="true" tabindex="-1"></a>  <span class="at">adv_knowledge =</span> <span class="st">"Adv. Knowledge"</span>,</span>
+<span id="cb10-941"><a href="#cb10-941" aria-hidden="true" tabindex="-1"></a>  <span class="at">logic_comms  =</span> <span class="st">"Logic &amp; Comms"</span>,</span>
+<span id="cb10-942"><a href="#cb10-942" aria-hidden="true" tabindex="-1"></a>  <span class="at">open_sci     =</span> <span class="st">"Open Science"</span>,</span>
+<span id="cb10-943"><a href="#cb10-943" aria-hidden="true" tabindex="-1"></a>  <span class="at">gp_relevance =</span> <span class="st">"Global Relevance"</span></span>
+<span id="cb10-944"><a href="#cb10-944" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-945"><a href="#cb10-945" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-946"><a href="#cb10-946" aria-hidden="true" tabindex="-1"></a><span class="co"># Human-human pairwise Spearman rho per criterion (ceiling reference)</span></span>
+<span id="cb10-947"><a href="#cb10-947" aria-hidden="true" tabindex="-1"></a>hh_crit_pairs <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb10-948"><a href="#cb10-948" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> criteria_order, paper <span class="sc">%in%</span> focal_papers) <span class="sc">|&gt;</span></span>
+<span id="cb10-949"><a href="#cb10-949" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(paper, criteria, evaluator, mid) <span class="sc">|&gt;</span></span>
+<span id="cb10-950"><a href="#cb10-950" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
+<span id="cb10-951"><a href="#cb10-951" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb10-952"><a href="#cb10-952" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>() <span class="sc">&gt;=</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-953"><a href="#cb10-953" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">slot =</span> <span class="fu">paste0</span>(<span class="st">"E"</span>, <span class="fu">row_number</span>())) <span class="sc">|&gt;</span></span>
+<span id="cb10-954"><a href="#cb10-954" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb10-955"><a href="#cb10-955" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> slot, <span class="at">values_from =</span> <span class="fu">c</span>(mid, evaluator)) <span class="sc">|&gt;</span></span>
+<span id="cb10-956"><a href="#cb10-956" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(mid_E1), <span class="sc">!</span><span class="fu">is.na</span>(mid_E2))</span>
+<span id="cb10-957"><a href="#cb10-957" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-958"><a href="#cb10-958" aria-hidden="true" tabindex="-1"></a>hh_crit_rho <span class="ot">&lt;-</span> hh_crit_pairs <span class="sc">|&gt;</span></span>
+<span id="cb10-959"><a href="#cb10-959" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
+<span id="cb10-960"><a href="#cb10-960" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb10-961"><a href="#cb10-961" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">H-H ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(mid_E1, mid_E2, <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb10-962"><a href="#cb10-962" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb10-963"><a href="#cb10-963" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-964"><a href="#cb10-964" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-965"><a href="#cb10-965" aria-hidden="true" tabindex="-1"></a>human_by_crit <span class="ot">&lt;-</span> metrics_human <span class="sc">|&gt;</span></span>
+<span id="cb10-966"><a href="#cb10-966" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> criteria_order, paper <span class="sc">%in%</span> focal_papers) <span class="sc">|&gt;</span></span>
+<span id="cb10-967"><a href="#cb10-967" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(paper, criteria) <span class="sc">|&gt;</span></span>
+<span id="cb10-968"><a href="#cb10-968" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">human_mid =</span> <span class="fu">mean</span>(mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb10-969"><a href="#cb10-969" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-970"><a href="#cb10-970" aria-hidden="true" tabindex="-1"></a>crit_compare_data <span class="ot">&lt;-</span> llm_metrics <span class="sc">|&gt;</span></span>
+<span id="cb10-971"><a href="#cb10-971" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(criteria <span class="sc">%in%</span> criteria_order, model <span class="sc">==</span> <span class="st">"GPT-5 Pro"</span>, paper <span class="sc">%in%</span> focal_papers) <span class="sc">|&gt;</span></span>
+<span id="cb10-972"><a href="#cb10-972" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(human_by_crit, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"paper"</span>, <span class="st">"criteria"</span>))</span>
+<span id="cb10-973"><a href="#cb10-973" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-974"><a href="#cb10-974" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(crit_compare_data) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb10-975"><a href="#cb10-975" aria-hidden="true" tabindex="-1"></a>  crit_tbl <span class="ot">&lt;-</span> crit_compare_data <span class="sc">|&gt;</span></span>
+<span id="cb10-976"><a href="#cb10-976" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(criteria) <span class="sc">|&gt;</span></span>
+<span id="cb10-977"><a href="#cb10-977" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb10-978"><a href="#cb10-978" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">method =</span> <span class="st">"spearman"</span>,</span>
+<span id="cb10-979"><a href="#cb10-979" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb10-980"><a href="#cb10-980" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>  <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cor</span>(human_mid, midpoint, <span class="at">use =</span> <span class="st">"complete.obs"</span>), <span class="dv">3</span>),</span>
+<span id="cb10-981"><a href="#cb10-981" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>       <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%+.1f"</span>, <span class="fu">mean</span>(midpoint <span class="sc">-</span> human_mid, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb10-982"><a href="#cb10-982" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE              =</span> <span class="fu">round</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((midpoint <span class="sc">-</span> human_mid)<span class="sc">^</span><span class="dv">2</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="dv">1</span>),</span>
+<span id="cb10-983"><a href="#cb10-983" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb10-984"><a href="#cb10-984" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb10-985"><a href="#cb10-985" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(hh_crit_rho, <span class="at">by =</span> <span class="st">"criteria"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-986"><a href="#cb10-986" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Criterion =</span> <span class="fu">factor</span>(criteria, <span class="at">levels =</span> criteria_order,</span>
+<span id="cb10-987"><a href="#cb10-987" aria-hidden="true" tabindex="-1"></a>                              <span class="at">labels =</span> criteria_labels[criteria_order])) <span class="sc">|&gt;</span></span>
+<span id="cb10-988"><a href="#cb10-988" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Criterion, <span class="st">`</span><span class="at">H-H ρ</span><span class="st">`</span>, <span class="st">`</span><span class="at">Spearman ρ</span><span class="st">`</span>, <span class="st">`</span><span class="at">Pearson r</span><span class="st">`</span>, <span class="st">`</span><span class="at">Mean bias</span><span class="st">`</span>, RMSE) <span class="sc">|&gt;</span></span>
+<span id="cb10-989"><a href="#cb10-989" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(Criterion)</span>
+<span id="cb10-990"><a href="#cb10-990" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-991"><a href="#cb10-991" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(crit_tbl, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb10-992"><a href="#cb10-992" aria-hidden="true" tabindex="-1"></a>    kableExtra<span class="sc">::</span><span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-993"><a href="#cb10-993" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-994"><a href="#cb10-994" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-995"><a href="#cb10-995" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-996"><a href="#cb10-996" aria-hidden="true" tabindex="-1"></a>::: {.content-visible when-format="pdf"}</span>
+<span id="cb10-997"><a href="#cb10-997" aria-hidden="true" tabindex="-1"></a>All appendices, interactive figures, and full code are available at the companion website: <span class="ot">&lt;https://llm-uj-research-eval.netlify.app&gt;</span>. Source code and data are hosted at <span class="ot">&lt;https://github.com/valentinklotzbuecher/llm-uj-research-eval&gt;</span>.</span>
+<span id="cb10-998"><a href="#cb10-998" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

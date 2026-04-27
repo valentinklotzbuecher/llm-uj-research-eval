@@ -829,11 +829,11 @@ Coverage and precision vary substantially across papers. Some papers achieve hig
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 
-**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings, alongside the Human–Human baseline as a reference. The Spearman-Brown adjusted column (ρ adj.) is the appropriate comparator to ρ_HH; see Appendix A for all six models. Full model comparison is in [Appendix A](results_ratings.qmd).
+**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings. The table is split into a **primary matched group** (same papers as the H–H baseline, enabling a direct like-for-like comparison) and a **secondary full-sample group** (all `r n_focal` matched papers for GPT-5 Pro). The Spearman-Brown adjusted ρ is the appropriate comparator to ρ_HH; the raw ρ (vs. mean) is inflated because LLMs are evaluated against the averaged human signal. Six-model comparison with the same structure is in [Appendix A, Table A2](results_ratings.qmd#tbl-agreement).
 
 ```{r}
 #| label: tbl-model-agreement-main
-#| tbl-cap: "GPT-5 Pro agreement with human mean overall rating (N = `r n_focal` matched papers). **Human–Human** row (bold) shows pairwise individual-vs-individual Spearman *ρ* as a reference. **ρ (vs. mean)**: raw Spearman *ρ* between GPT-5 Pro and human *mean*—upward-biased because the mean suppresses noise. **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper); compare this to Human–Human ρ = `r hh_spearman`. **95% CI**: Fisher-z. Bias = LLM − Human."
+#| tbl-cap: "GPT-5 Pro overall-rating agreement. **Primary (matched) group**: same `r hh_n` papers used for the H–H baseline (≥2 human raters), enabling a direct like-for-like comparison. **Secondary group**: all `r n_focal` GPT-5 Pro matched papers (larger N, but H–H not computable on extra papers). **ρ (vs. mean)**: raw Spearman *ρ* against human mean—upward-biased; **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)`); **95% CI**: Fisher-z. Bias = LLM − Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."
 #| code-fold: true
 
 model_compare_data <- llm_metrics |>
@@ -845,23 +845,31 @@ model_compare_data <- llm_metrics |>
   filter(!is.na(human_mid))
 
 if (nrow(model_compare_data) > 0) {
-  raw_rho <- cor(model_compare_data$human_mid, model_compare_data$midpoint,
-                 method = "spearman", use = "complete.obs")
-  n_gpt   <- nrow(model_compare_data)
 
-  llm_row <- tibble(
-    Model          = "GPT-5 Pro",
-    N              = n_gpt,
-    `ρ (vs. mean)` = sprintf("%.3f", raw_rho),
-    `ρ adj. (SB)`  = sprintf("%.3f", raw_rho * sb_factor),
-    `95% CI`       = spearman_ci95(raw_rho, n_gpt),
-    `Pearson r`    = round(cor(model_compare_data$human_mid, model_compare_data$midpoint,
-                               use = "complete.obs"), 3),
-    `Mean bias`    = sprintf("%+.1f", mean(model_compare_data$midpoint - model_compare_data$human_mid,
-                                           na.rm = TRUE)),
-    MAE            = round(mean(abs(model_compare_data$midpoint - model_compare_data$human_mid),
-                                na.rm = TRUE), 1)
-  )
+  # Matched sample: same papers used for H-H baseline (≥2 human raters)
+  lfl_papers_main  <- hh_pairs$paper
+  model_lfl        <- model_compare_data |> filter(paper %in% lfl_papers_main)
+  raw_rho_lfl      <- cor(model_lfl$human_mid, model_lfl$midpoint,
+                          method = "spearman", use = "complete.obs")
+  n_lfl            <- nrow(model_lfl)
+
+  # Full sample: all focal papers
+  raw_rho_full <- cor(model_compare_data$human_mid, model_compare_data$midpoint,
+                      method = "spearman", use = "complete.obs")
+  n_gpt        <- nrow(model_compare_data)
+
+  make_gpt_row <- function(data, rho, n_papers, label = "GPT-5 Pro") {
+    tibble(
+      Model          = label,
+      N              = n_papers,
+      `ρ (vs. mean)` = sprintf("%.3f", rho),
+      `ρ adj. (SB)`  = sprintf("%.3f", rho * sb_factor),
+      `95% CI`       = spearman_ci95(rho, n_papers),
+      `Pearson r`    = round(cor(data$human_mid, data$midpoint, use = "complete.obs"), 3),
+      `Mean bias`    = sprintf("%+.1f", mean(data$midpoint - data$human_mid, na.rm = TRUE)),
+      MAE            = sprintf("%.1f", mean(abs(data$midpoint - data$human_mid), na.rm = TRUE))
+    )
+  }
 
   hh_row_main <- tibble(
     Model          = "Human–Human",
@@ -871,14 +879,26 @@ if (nrow(model_compare_data) > 0) {
     `95% CI`       = spearman_ci95(hh_spearman, hh_n),
     `Pearson r`    = round(hh_pearson, 3),
     `Mean bias`    = hh_bias,
-    MAE            = hh_mae
+    MAE            = sprintf("%.1f", hh_mae)
   )
 
-  model_compare_tbl <- bind_rows(hh_row_main, llm_row)
+  gpt_matched_row <- make_gpt_row(model_lfl, raw_rho_lfl, n_lfl)
+  gpt_full_row    <- make_gpt_row(model_compare_data, raw_rho_full, n_gpt)
 
-  knitr::kable(model_compare_tbl, align = c("l", rep("r", ncol(model_compare_tbl) - 1)),
+  model_compare_tbl <- bind_rows(hh_row_main, gpt_matched_row, gpt_full_row)
+
+  knitr::kable(model_compare_tbl,
+               align    = c("l", rep("r", ncol(model_compare_tbl) - 1)),
                booktabs = TRUE) |>
-    kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0")
+    kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0") |>
+    kableExtra::pack_rows(
+      sprintf("Matched sample — same %d papers as H–H baseline (primary)", hh_n),
+      1, 2, bold = TRUE, italic = FALSE, color = "black"
+    ) |>
+    kableExtra::pack_rows(
+      sprintf("Full sample — all %d GPT-5 Pro matched papers (secondary)", n_gpt),
+      3, 3, bold = FALSE, italic = TRUE
+    )
 }
 ```
 
@@ -886,7 +906,7 @@ if (nrow(model_compare_data) > 0) {
 
 ```{r}
 #| label: tbl-criteria-agreement-main
-#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` matched papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the reference for each criterion; see @tbl-model-agreement-main note about mean-vs-individual bias). Positive bias = GPT-5 Pro rates higher on average. Note the variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science)."
+#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` papers; N = `r hh_n` for H–H). **H-H ρ**: pairwise human evaluator Spearman *ρ* (reference; computed on `r hh_n` papers with ≥2 raters; raw LLM ρ is upward-biased vs. H-H ρ—see @tbl-model-agreement-main). Positive bias = GPT-5 Pro rates higher on average. Note the variation across criteria: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), setting expectations for LLM performance."
 #| code-fold: true
 
 criteria_order <- c("overall", "claims", "methods", "adv_knowledge",
