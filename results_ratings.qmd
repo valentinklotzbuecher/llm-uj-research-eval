@@ -445,11 +445,11 @@ spearman_ci95 <- function(rho, n) {
 }
 ```
 
-**Agreement metrics.** We report Spearman *ρ* (rank-based, robust to outliers), MAE in percentile points, mean bias (LLM − Human), and Pearson *r*. Full definitions appear in [Methods](methods.qmd). **Caution on comparability**: LLM *ρ* is computed against the *mean* of `r round(k_raters, 1)` human raters, while the Human–Human row compares individual raters to each other. Because averaging reduces noise, the raw LLM *ρ* is upward-biased relative to ρ_HH; the Spearman-Brown adjusted column corrects for this.
+**Agreement metrics.** We report Spearman *ρ*, MAE, mean bias, and Pearson *r*. The **H–H row** shows individual-vs-individual *ρ* — it is already on the natural scale and serves as the reference. **LLM rows** show *ρ* against the human *mean* rating (of `r round(k_raters, 1)` raters/paper), which is upward-biased relative to H–H because averaging suppresses noise. The **ρ adj.** column applies the Spearman-Brown correction to LLM rows only (×`r sprintf("%.2f", sb_factor)`), converting them to the individual-rater-equivalent scale so they are directly comparable to the H–H *ρ*.
 
 ```{r}
 #| label: tbl-agreement
-#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Human–Human** row (top, bold) shows pairwise evaluator Spearman *ρ* (individual vs. individual). **ρ (vs. mean)**: raw Spearman *ρ* between LLM and human *mean* rating — upward-biased as a comparison to ρ_HH because the mean suppresses noise. **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent scale (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper); this is the fair comparison to ρ_HH. **95% CI**: Fisher-z interval. Bias = LLM − Human (positive = LLM more generous). †N < 15: unreliable estimate."
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Spearman ρ column**: for the H–H row this is individual-vs-individual ρ (the reference, already on the natural scale); for LLM rows it is ρ vs. the human *mean* (upward-biased because the mean is smoother than any individual rater). **ρ adj.**: Spearman-Brown corrected to individual-rater-equivalent scale (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper) — apply this correction to compare LLM rows fairly to H–H. H–H shows — in the ρ adj. column because no correction is needed. **95% CI**: Fisher-z. Bias = LLM − Human. †N < 15: unreliable."
 
 MIN_N <- 15
 
@@ -470,11 +470,11 @@ if (nrow(scatter_data) > 0) {
       arrange(desc(raw_rho)) |>
       mutate(
         flag           = ifelse(N < MIN_N, "†", ""),
-        `ρ (vs. mean)` = sprintf("%.3f%s", raw_rho, flag),
-        `ρ adj. (SB)`  = sprintf("%.3f%s", raw_rho * sb_factor, flag),
+        `Spearman ρ` = sprintf("%.3f%s", raw_rho, flag),
+        `ρ adj.`  = sprintf("%.3f%s", raw_rho * sb_factor, flag),
         `95% CI`       = mapply(spearman_ci95, raw_rho, N)
       ) |>
-      select(Model, N, `ρ (vs. mean)`, `ρ adj. (SB)`, `95% CI`,
+      select(Model, N, `Spearman ρ`, `ρ adj.`, `95% CI`,
              `Pearson r`, `Mean bias`, MAE)
   }
 
@@ -486,8 +486,8 @@ if (nrow(scatter_data) > 0) {
   hh_row <- tibble(
     Model          = "Human–Human",
     N              = hh_n,
-    `ρ (vs. mean)` = sprintf("%.3f", hh_spearman),
-    `ρ adj. (SB)`  = "—",
+    `Spearman ρ` = sprintf("%.3f", hh_spearman),
+    `ρ adj.`  = "—",
     `95% CI`       = spearman_ci95(hh_spearman, hh_n),
     `Pearson r`    = round(hh_pearson, 3),
     `Mean bias`    = hh_bias,
@@ -512,13 +512,13 @@ if (nrow(scatter_data) > 0) {
 }
 ```
 
-@tbl-agreement is organised in two groups. The **primary matched-sample group** restricts both the H–H baseline and all LLM rows to the same `r hh_n` papers that have ≥2 human raters — this is the only fair like-for-like comparison (same denominator for every row). The **secondary full-sample group** uses each model's own maximum N (up to `r n_opus`), which increases power at the cost of cross-row comparability. **ρ (vs. mean)** is upward-biased relative to ρ_HH because LLMs are evaluated against the mean of `r round(k_raters, 1)` human raters; **ρ adj. (SB)** applies the Spearman-Brown correction (×`r sprintf("%.2f", sb_factor)`) for a fair comparison to the H–H *ρ* of `r hh_spearman`. 95% CIs (Fisher-z) are wide at these sample sizes. Models with N < 15 (†) are unreliable.
+@tbl-agreement is organised in two groups. The **primary matched-sample group** restricts both the H–H baseline and all LLM rows to the same `r hh_n` papers that have ≥2 human raters — this is the only fair like-for-like comparison (same denominator for every row). The **secondary full-sample group** uses each model's own maximum N (up to `r n_opus`), which increases power at the cost of cross-row comparability. **Spearman ρ** is upward-biased relative to ρ_HH because LLMs are evaluated against the mean of `r round(k_raters, 1)` human raters; **ρ adj.** applies the Spearman-Brown correction (×`r sprintf("%.2f", sb_factor)`) for a fair comparison to the H–H *ρ* of `r hh_spearman`. 95% CIs (Fisher-z) are wide at these sample sizes. Models with N < 15 (†) are unreliable.
 
 @tbl-agreement-full repeats the same structure using each model's own maximum matched sample.
 
 ```{r}
 #| label: tbl-agreement-full
-#| tbl-cap: "Agreement between each LLM and human mean overall rating, using each model's own maximum matched sample (not restricted to the common `r n_opus`-paper set). Larger N per model but cross-model comparison is confounded by paper-set differences. Same columns and Spearman-Brown correction as @tbl-agreement."
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, using each model's own maximum matched sample (not restricted to the common `r n_opus`-paper set). Larger N per model but cross-model comparison is confounded by paper-set differences. Same column structure as @tbl-agreement: H–H Spearman *ρ* is individual-vs-individual; LLM Spearman *ρ* is vs. human mean (upward-biased); ρ adj. is Spearman-Brown corrected for fair comparison."
 
 if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
 
@@ -567,11 +567,11 @@ if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
       arrange(desc(raw_rho)) |>
       mutate(
         flag           = ifelse(N < 15, "†", ""),
-        `ρ (vs. mean)` = sprintf("%.3f%s", raw_rho, flag),
-        `ρ adj. (SB)`  = sprintf("%.3f%s", raw_rho * sb_full, flag),
+        `Spearman ρ` = sprintf("%.3f%s", raw_rho, flag),
+        `ρ adj.`  = sprintf("%.3f%s", raw_rho * sb_full, flag),
         `95% CI`       = mapply(spearman_ci95, raw_rho, N)
       ) |>
-      select(Model, N, `ρ (vs. mean)`, `ρ adj. (SB)`, `95% CI`,
+      select(Model, N, `Spearman ρ`, `ρ adj.`, `95% CI`,
              `Pearson r`, `Mean bias`, MAE)
   }
 
@@ -581,8 +581,8 @@ if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
   hh_row_full <- tibble(
     Model               = "Human–Human",
     N                   = nrow(hh_pairs_full),
-    `ρ (vs. mean)` = sprintf("%.3f", hh_rho_full),
-    `ρ adj. (SB)`  = "—",
+    `Spearman ρ` = sprintf("%.3f", hh_rho_full),
+    `ρ adj.`  = "—",
     `95% CI`            = spearman_ci95(hh_rho_full, nrow(hh_pairs_full)),
     `Pearson r`         = round(cor(hh_pairs_full$mid_E1, hh_pairs_full$mid_E2), 3),
     `Mean bias`         = "—",

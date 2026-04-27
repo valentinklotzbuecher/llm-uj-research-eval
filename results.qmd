@@ -829,11 +829,11 @@ Coverage and precision vary substantially across papers. Some papers achieve hig
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 
-**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement with the human mean on overall ratings. The table is split into a **primary matched group** (same papers as the H–H baseline, enabling a direct like-for-like comparison) and a **secondary full-sample group** (all `r n_focal` matched papers for GPT-5 Pro). The Spearman-Brown adjusted ρ is the appropriate comparator to ρ_HH; the raw ρ (vs. mean) is inflated because LLMs are evaluated against the averaged human signal. Six-model comparison with the same structure is in [Appendix A, Table A2](results_ratings.qmd#tbl-agreement).
+**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement split into a **primary matched group** (same `r hh_n` papers as the H–H baseline, enabling like-for-like comparison) and a **secondary full-sample group** (all `r n_focal` matched papers). In the Spearman *ρ* column, the H–H row shows individual-vs-individual *ρ* (the reference, already on the natural scale); GPT-5 Pro rows show *ρ* vs. the human mean, which is upward-biased. The **ρ adj.** column applies the Spearman-Brown correction to GPT-5 Pro rows only, making them directly comparable to H–H *ρ*. Six-model comparison in [Appendix A, Table A2](results_ratings.qmd#tbl-agreement).
 
 ```{r}
 #| label: tbl-model-agreement-main
-#| tbl-cap: "GPT-5 Pro overall-rating agreement. **Primary (matched) group**: same `r hh_n` papers used for the H–H baseline (≥2 human raters), enabling a direct like-for-like comparison. **Secondary group**: all `r n_focal` GPT-5 Pro matched papers (larger N, but H–H not computable on extra papers). **ρ (vs. mean)**: raw Spearman *ρ* against human mean—upward-biased; **ρ adj. (SB)**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)`); **95% CI**: Fisher-z. Bias = LLM − Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."
+#| tbl-cap: "GPT-5 Pro overall-rating agreement. **Primary (matched) group**: same `r hh_n` papers as the H–H baseline (≥2 human raters). **Secondary group**: all `r n_focal` matched papers. **Spearman ρ column**: H–H row shows individual-vs-individual ρ (reference, natural scale; ρ adj. shows —). GPT-5 Pro rows show ρ vs. human mean — upward-biased relative to H–H. **ρ adj.**: Spearman-Brown corrected to individual-rater-equivalent (×`r sprintf('%.2f', sb_factor)`), making GPT-5 Pro rows directly comparable to H–H. **95% CI**: Fisher-z. Bias = LLM − Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."
 #| code-fold: true
 
 model_compare_data <- llm_metrics |>
@@ -862,8 +862,8 @@ if (nrow(model_compare_data) > 0) {
     tibble(
       Model          = label,
       N              = n_papers,
-      `ρ (vs. mean)` = sprintf("%.3f", rho),
-      `ρ adj. (SB)`  = sprintf("%.3f", rho * sb_factor),
+      `Spearman ρ` = sprintf("%.3f", rho),
+      `ρ adj.`  = sprintf("%.3f", rho * sb_factor),
       `95% CI`       = spearman_ci95(rho, n_papers),
       `Pearson r`    = round(cor(data$human_mid, data$midpoint, use = "complete.obs"), 3),
       `Mean bias`    = sprintf("%+.1f", mean(data$midpoint - data$human_mid, na.rm = TRUE)),
@@ -874,8 +874,8 @@ if (nrow(model_compare_data) > 0) {
   hh_row_main <- tibble(
     Model          = "Human–Human",
     N              = hh_n,
-    `ρ (vs. mean)` = sprintf("%.3f", hh_spearman),
-    `ρ adj. (SB)`  = "—",
+    `Spearman ρ` = sprintf("%.3f", hh_spearman),
+    `ρ adj.`  = "—",
     `95% CI`       = spearman_ci95(hh_spearman, hh_n),
     `Pearson r`    = round(hh_pearson, 3),
     `Mean bias`    = hh_bias,
