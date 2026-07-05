@@ -9,8 +9,17 @@ import sys
 from pathlib import Path
 
 def extract_metrics_from_response(response_data: dict) -> dict | None:
-    """Extract metrics from an OpenAI response JSON structure."""
+    """Extract metrics from OpenAI, provider, or headless compatibility JSON."""
     try:
+        # Headless/provider compatibility shape used by newer runs.
+        parsed = response_data.get("parsed")
+        if isinstance(parsed, dict) and "metrics" in parsed:
+            return parsed
+
+        output_text = response_data.get("output_text")
+        if isinstance(output_text, str) and output_text.strip():
+            return json.loads(output_text)
+
         # Find the message output containing the metrics
         for output_item in response_data.get("output", []):
             if output_item.get("type") == "message" and output_item.get("role") == "assistant":
