@@ -257,6 +257,23 @@ llm_metrics <- llm_data$metrics
 llm_tiers <- llm_data$tiers
 llm_tokens <- llm_data$tokens
 
+# Reconcile LLM filenames with human labels for papers where the citation year
+# differs but the manuscript is the same (verified by title/DOI/content):
+#  - "Trammel and Aschenbrenner 2024" (file) == human "Existential risk and
+#     growth" == UJ label "Trammel and Aschenbrenner 2025"
+#  - "Liang et al 2023" (file) == human "The Environmental Effects of Economic
+#     Production" == UJ label "Liang et al. 2021"
+# (LLM file "Liang et al. 2025" is a different paper — China SMC — left as is.)
+canon_paper <- function(x) dplyr::recode(
+  x,
+  "Trammel and Aschenbrenner 2024" = "Trammel and Aschenbrenner 2025",
+  "Liang et al 2023"               = "Liang et al. 2021",
+  .default = x
+)
+llm_metrics <- llm_metrics |> mutate(paper = canon_paper(paper))
+llm_tiers   <- llm_tiers   |> mutate(paper = canon_paper(paper))
+llm_tokens  <- llm_tokens  |> mutate(paper = canon_paper(paper))
+
 n_llm_models <- n_distinct(llm_metrics$model)
 n_llm_papers <- n_distinct(llm_metrics$paper)
 
@@ -310,6 +327,44 @@ hh_baseline_row <- tibble(
   RMSE           = hh_rmse,
   MAE            = hh_mae
 )
+```
+
+```{r}
+#| label: compute-bootstrap-ci
+#| include: false
+
+# Paired bootstrap over papers: resample the focal sample with replacement and
+# recompute (a) GPT-5 Pro vs human-mean Spearman rho and (b) pooled human-human
+# pairwise Spearman rho on the same draw, so the difference is evaluated on
+# matched resamples rather than on independent ones.
+set.seed(42)
+B <- 2000
+
+llm_overall_boot <- llm_metrics |>
+  filter(criteria == "overall", model == "GPT-5 Pro", paper %in% focal_papers) |>
+  inner_join(human_avg |> select(paper, human_mid), by = "paper") |>
+  select(paper, midpoint, human_mid)
+
+boot_draws <- replicate(B, {
+  bp <- sample(llm_overall_boot$paper, replace = TRUE)
+  d_llm <- llm_overall_boot[match(bp, llm_overall_boot$paper), ]
+  r_llm <- suppressWarnings(cor(d_llm$human_mid, d_llm$midpoint,
+                                method = "spearman", use = "complete.obs"))
+  d_hh <- hh_pairs[match(bp, hh_pairs$paper), ]
+  d_hh <- d_hh[!is.na(d_hh$mid_E1) & !is.na(d_hh$mid_E2), ]
+  r_hh <- if (nrow(d_hh) >= 5) {
+    suppressWarnings(cor(d_hh$mid_E1, d_hh$mid_E2,
+                         method = "spearman", use = "complete.obs"))
+  } else NA_real_
+  c(r_llm = r_llm, r_hh = r_hh)
+})
+
+boot_ci_llm  <- quantile(boot_draws["r_llm", ], c(0.025, 0.975), na.rm = TRUE)
+boot_ci_hh   <- quantile(boot_draws["r_hh", ],  c(0.025, 0.975), na.rm = TRUE)
+boot_diff    <- boot_draws["r_llm", ] - boot_draws["r_hh", ]
+boot_ci_diff <- quantile(boot_diff, c(0.025, 0.975), na.rm = TRUE)
+
+fmt_ci <- function(ci) sprintf("[%.2f, %.2f]", ci[1], ci[2])
 ```
 
 We evaluate GPT-5 Pro against human expert reviews from [The Unjournal](https://unjournal.pubpub.org) on `r n_focal` matched papers (papers with both GPT-5 Pro and human evaluations). The model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Results for five additional models are reported in [Appendix A](results_ratings.qmd). Full methodological details appear in [Methods](methods.qmd).
@@ -746,15 +801,15 @@ Rows with uniformly green or orange tiles indicate papers where humans and GPT-5
 #| message: false
 
 comparison_results_file <- c(
-  "results/key_issue_comp_results.json",
-  "results/key_issues_comparison_results.json"
+  here("results", "key_issue_comp_results.json"),
+  here("results", "key_issues_comparison_results.json")
 )
 comparison_results_file <- comparison_results_file[file.exists(comparison_results_file)][1]
 
 has_critique_data <- FALSE
 
 if (!is.na(comparison_results_file)) {
-  comparison_file <- "results/key_issues_comparison.json"
+  comparison_file <- here("results", "key_issues_comparison.json")
   if (file.exists(comparison_file)) {
     comparison_data <- fromJSON(comparison_file)
     llm_results_raw <- fromJSON(comparison_results_file)
@@ -806,7 +861,7 @@ if (has_critique_data) {
 }
 ```
 
-Coverage and precision vary substantially across papers. Some papers achieve high scores on both dimensions, indicating strong alignment between human and LLM critiques, while others reveal the LLM missing key human concerns or raising issues absent from the expert consensus. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; manual validation through our annotation tool is underway and preliminary results are consistent with the automated scores.
+Coverage and precision vary substantially across papers. Averaged over the `r if (has_critique_data) nrow(comparison_data |> filter(!is.na(coverage_pct)))` focal papers, the model captures `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))` of human consensus issues (range `r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`), while `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))` of model-raised issues match a substantive human concern. Low precision partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus count against precision. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 
@@ -814,7 +869,7 @@ Detailed paper-by-paper comparisons---including matched issue pairs with severit
 
 ```{r}
 #| label: tbl-model-agreement-main
-#| tbl-cap: "GPT-5 Pro agreement with human mean overall rating (N = `r n_focal` matched papers). **Human–Human** row shows pairwise evaluator agreement as an empirical ceiling. Spearman *ρ* (rank-based) and MAE (in percentile points) are primary metrics; Pearson *r* shown for completeness. Bias = LLM − Human (positive = LLM more generous)."
+#| tbl-cap: !expr paste0("GPT-5 Pro agreement with human mean overall rating (N = ", n_focal, " matched papers). **Human–Human** row shows pairwise evaluator agreement as an empirical ceiling. Spearman *ρ* (rank-based) and MAE (in percentile points) are primary metrics; Pearson *r* shown for completeness. Bias = LLM − Human (positive = LLM more generous).")
 #| code-fold: true
 
 model_compare_data <- llm_metrics |>
@@ -847,11 +902,13 @@ if (nrow(model_compare_data) > 0) {
 }
 ```
 
+To quantify the uncertainty in this comparison we use a paired bootstrap over papers (2,000 resamples): each draw resamples the matched sample with replacement and recomputes both the GPT-5 Pro--human rank correlation and the human--human pairwise rank correlation on the same draw. The GPT-5 Pro correlation is ρ = `r sprintf("%.2f", cor(model_compare_data$human_mid, model_compare_data$midpoint, method = "spearman"))` with 95% CI `r fmt_ci(boot_ci_llm)`, against a human--human baseline of ρ = `r sprintf("%.2f", hh_spearman)` `r fmt_ci(boot_ci_hh)`. The bootstrap distribution of the difference (LLM minus human--human) spans `r fmt_ci(boot_ci_diff)`: at this sample size we cannot statistically separate the model from an additional human rater---the two correlations are comparable, not demonstrably ordered. This is the precise sense in which GPT-5 Pro "performs within the human inter-rater range."
+
 @tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. Crucially, the **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion — the ceiling available to any model. Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.
 
 ```{r}
 #| label: tbl-criteria-agreement-main
-#| tbl-cap: "GPT-5 Pro agreement with human mean by criterion (N = `r n_focal` matched papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the ceiling for each criterion). Positive bias = GPT-5 Pro rates higher on average. Note the ceiling variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), setting expectations for LLM performance."
+#| tbl-cap: !expr paste0("GPT-5 Pro agreement with human mean by criterion (N = ", n_focal, " matched papers). **H-H ρ** shows pairwise human evaluator Spearman *ρ* (the ceiling for each criterion). Positive bias = GPT-5 Pro rates higher on average. Note the ceiling variation: human evaluators agree strongly on some dimensions and barely at all on others (Open Science), setting expectations for LLM performance.")
 #| code-fold: true
 
 criteria_order <- c("overall", "claims", "methods", "adv_knowledge",
@@ -915,6 +972,79 @@ if (nrow(crit_compare_data) > 0) {
     kableExtra::column_spec(2, bold = TRUE)
 }
 ```
+
+**Journal-tier predictions and verifiable outcomes.** Beyond percentile ratings, both evaluator types predict where each paper *will* publish on The Unjournal's 0--5 journal-tier scale. Unlike percentile scores, these predictions eventually resolve against an observable outcome: the venue where the paper actually publishes.
+
+```{r}
+#| label: compute-tier-outcomes
+#| include: false
+
+# Realized publication tier from The Unjournal's recorded publication status.
+# Mapping is deliberately coarse and conservative; ambiguous entries
+# ("? journal", "uncertain peer review"), R&R/forthcoming/conditionally
+# accepted, and book chapters are treated as unresolved.
+tier_outcomes <- research |>
+  distinct(label_paper, publication_status) |>
+  filter(!is.na(label_paper)) |>
+  mutate(
+    status_l = str_to_lower(coalesce(publication_status, "")),
+    realized_tier = case_when(
+      str_detect(status_l, "~top journal")        ~ 4.5,
+      str_detect(status_l, "decent journal")      ~ 3.0,
+      str_detect(status_l, "psychology journal")  ~ 2.5,
+      TRUE ~ NA_real_
+    )
+  )
+
+human_tier_will <- rsx_research |>
+  filter(criteria == "journal_predict") |>
+  mutate(mid = suppressWarnings(as.numeric(middle_rating))) |>
+  filter(!is.na(mid), !is.na(label_paper)) |>
+  distinct(label_paper, evaluator, mid) |>
+  group_by(paper = label_paper) |>
+  summarise(human_will = mean(mid), .groups = "drop")
+
+gpt_tier_will <- llm_tiers |>
+  filter(model == "GPT-5 Pro", tier_kind == "tier_will") |>
+  distinct(paper, .keep_all = TRUE) |>
+  select(paper, gpt_will = score)
+
+tier_df <- human_tier_will |>
+  inner_join(gpt_tier_will, by = "paper") |>
+  left_join(tier_outcomes |> select(paper = label_paper, publication_status, realized_tier),
+            by = "paper")
+
+n_tier_pred   <- nrow(tier_df)
+tier_pred_rho <- cor(tier_df$human_will, tier_df$gpt_will, method = "spearman")
+
+tier_resolved   <- tier_df |> filter(!is.na(realized_tier)) |> arrange(desc(realized_tier))
+n_tier_resolved <- nrow(tier_resolved)
+n_tier_open     <- n_tier_pred - n_tier_resolved
+tier_mae_human  <- mean(abs(tier_resolved$human_will - tier_resolved$realized_tier))
+tier_mae_gpt    <- mean(abs(tier_resolved$gpt_will - tier_resolved$realized_tier))
+```
+
+Human and GPT-5 Pro tier predictions agree at Spearman ρ = `r sprintf("%.2f", tier_pred_rho)` (N = `r n_tier_pred` papers with both predictions)---stronger agreement than on any percentile criterion, suggesting that "where will this publish" is a better-anchored question than "what percentile is this paper." For `r n_tier_resolved` of these papers, The Unjournal's records already show a resolved publication outcome that we can map to the tier scale (@tbl-tier-outcomes). On this small resolved set, mean absolute error against the realized tier is `r sprintf("%.2f", tier_mae_gpt)` tiers for GPT-5 Pro and `r sprintf("%.2f", tier_mae_human)` for the human panel mean---both track outcomes to within roughly two-thirds of a tier, and the sample is far too small to rank the two.
+
+```{r}
+#| label: tbl-tier-outcomes
+#| tbl-cap: "Papers with resolved publication outcomes: predicted vs realized journal tier (0--5 scale). Realized tier maps The Unjournal's recorded publication status: '~top journal' = 4.5, 'decent journal' = 3.0, field journal = 2.5. Ambiguous statuses, R&R/forthcoming, and book chapters are treated as unresolved and excluded. Human prediction is the evaluator mean."
+#| code-fold: true
+
+if (n_tier_resolved > 0) {
+  tier_resolved |>
+    transmute(
+      Paper = paper,
+      `Recorded outcome` = publication_status,
+      `Realized tier` = realized_tier,
+      `Human prediction` = round(human_will, 2),
+      `GPT-5 Pro prediction` = round(gpt_will, 2)
+    ) |>
+    knitr::kable(align = c("l", "l", rep("r", 3)))
+}
+```
+
+Two caveats apply. First, most of these papers were published before the model's training cutoff, so GPT-5 Pro may partly *recall* venues rather than predict them; human predictions were made before the publication outcome was known, which makes this comparison structurally generous to the model. Second, the remaining `r n_tier_open` papers with registered predictions from both evaluator types are still unresolved (working papers, R&R, or forthcoming). These predictions are locked in this repository and can be scored as outcomes accrue---a prospective validation design that sidesteps the contamination concern entirely, since future publication decisions cannot appear in any current model's training data.
 
 ::: {.content-visible when-format="pdf"}
 All appendices, interactive figures, and full code are available at the companion website: <https://llm-uj-research-eval.netlify.app>. Source code and data are hosted at <https://github.com/valentinklotzbuecher/llm-uj-research-eval>.

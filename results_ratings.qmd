@@ -291,6 +291,21 @@ llm_tiers <- llm_data$tiers
 llm_tokens <- llm_data$tokens
 llm_summaries <- llm_data$summaries
 
+# Reconcile LLM filenames with human labels where the citation year differs but
+# the manuscript is the same (verified by title/DOI/content). See results.qmd.
+canon_paper <- function(x) dplyr::recode(
+  x,
+  "Trammel and Aschenbrenner 2024" = "Trammel and Aschenbrenner 2025",
+  "Liang et al 2023"               = "Liang et al. 2021",
+  .default = x
+)
+llm_metrics   <- llm_metrics   |> mutate(paper = canon_paper(paper))
+llm_tiers     <- llm_tiers     |> mutate(paper = canon_paper(paper))
+llm_tokens    <- llm_tokens    |> mutate(paper = canon_paper(paper))
+if (!is.null(llm_summaries) && nrow(llm_summaries) > 0) {
+  llm_summaries <- llm_summaries |> mutate(paper = canon_paper(paper))
+}
+
 # Summary stats for inline use
 n_llm_models <- n_distinct(llm_metrics$model)
 n_llm_papers <- n_distinct(llm_metrics$paper)
@@ -428,11 +443,13 @@ hh_baseline_row <- tibble(
 
 ```{r}
 #| label: tbl-agreement
-#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Human–Human** row (top, bold) shows pairwise evaluator agreement on the same papers as an empirical upper bound. Spearman *ρ* (rank-based, robust to outliers) and MAE (in percentile points, directly interpretable) are primary metrics; Pearson *r* is shown for completeness. Bias = LLM − Human (positive = LLM more generous). Models sorted by Spearman *ρ*."
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Human–Human** row (top, bold) shows pairwise evaluator agreement on the same papers as an empirical upper bound. Spearman *ρ* (rank-based, robust to outliers) and MAE (in percentile points, directly interpretable) are primary metrics; Pearson *r* is shown for completeness. Bias = LLM − Human (positive = LLM more generous). Models sorted by Spearman *ρ*. Models with fewer than 10 matched papers are omitted (see text)."
+
+min_n_agreement <- 10
 
 if (nrow(scatter_data) > 0) {
 
-  llm_rows <- scatter_data |>
+  llm_rows_all <- scatter_data |>
     group_by(Model = model) |>
     summarise(
       N              = n(),
@@ -446,6 +463,9 @@ if (nrow(scatter_data) > 0) {
     ) |>
     arrange(desc(`Spearman ρ`))
 
+  llm_rows      <- llm_rows_all |> filter(N >= min_n_agreement)
+  excluded_rows <- llm_rows_all |> filter(N < min_n_agreement)
+
   agreement_tbl <- bind_rows(hh_baseline_row, llm_rows)
 
   knitr::kable(agreement_tbl, align = c("l", rep("r", 6))) |>
@@ -453,13 +473,13 @@ if (nrow(scatter_data) > 0) {
 }
 ```
 
-@tbl-agreement reports agreement metrics between each LLM and the human mean overall rating, with the Human–Human baseline as the top row. The Human–Human row shows pairwise correlation between the two evaluators assigned to the same paper: this is the empirical ceiling any model can hope to reach, since the human "mean" used as the reference is itself a noisy estimate. Where an LLM's Spearman *ρ* approaches the Human–Human baseline, it is providing signal comparable to an additional expert rater. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings.
+@tbl-agreement reports agreement metrics between each LLM and the human mean overall rating, with the Human–Human baseline as the top row. The Human–Human row shows pairwise correlation between the two evaluators assigned to the same paper: this is the empirical ceiling any model can hope to reach, since the human "mean" used as the reference is itself a noisy estimate. Where an LLM's Spearman *ρ* approaches the Human–Human baseline, it is providing signal comparable to an additional expert rater. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings. `r if (exists("excluded_rows") && nrow(excluded_rows) > 0) paste0("Omitted for insufficient overlap with the matched sample: ", paste0(excluded_rows$Model, " (N = ", excluded_rows$N, ")", collapse = ", "), ". Rank correlations at these sample sizes are too unstable to interpret and appear only in the cost table.")`
 
 **Human baseline context.** Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a "correct" score would be. @tbl-human-baseline quantifies this noise as Krippendorff's α~HH~. The α~HL~ columns show how close each LLM comes to that ceiling. A model achieving α~HL~ ≥ α~HH~ on a criterion is generating signal indistinguishable from an additional human evaluator. Criteria where α~HH~ is already low indicate genuine expert disagreement; low α~HL~ on those criteria is therefore expected, not a model failure.
 
 ```{r}
 #| label: tbl-human-baseline
-#| tbl-cap: "Krippendorff's α~HH~ (inter-human agreement, **bold**) vs α~HL~ (human–LLM agreement) by criterion, matched sample (N = `r n_opus` papers). α~HH~ is the empirical ceiling: an LLM with α~HL~ ≥ α~HH~ performs at or above the human inter-rater level for that criterion. Criteria where α~HH~ is already low indicate genuine evaluator disagreement."
+#| tbl-cap: "Krippendorff's α~HH~ (inter-human agreement, **bold**) vs α~HL~ (human–LLM agreement) by criterion, matched sample (N = `r n_opus` papers). α~HH~ is the empirical ceiling: an LLM with α~HL~ ≥ α~HH~ performs at or above the human inter-rater level for that criterion. Criteria where α~HH~ is already low indicate genuine evaluator disagreement. Models with fewer than 10 matched papers are omitted, as in the agreement table."
 #| code-fold: true
 
 if (requireNamespace("irr", quietly = TRUE)) {
@@ -512,8 +532,13 @@ if (requireNamespace("irr", quietly = TRUE)) {
     }, error = function(e) NA_real_)
   }
 
-  # Get unique LLM models
-  llm_models <- unique(llm_metrics$model)
+  # Only models with enough matched papers for stable agreement estimates
+  # (same threshold as tbl-agreement)
+  eligible_models <- scatter_data |>
+    count(model) |>
+    filter(n >= min_n_agreement) |>
+    pull(model)
+  llm_models <- intersect(unique(llm_metrics$model), eligible_models)
 
   # Build comparison table
   baseline_results <- tibble(Criterion = criterion_labels[criteria_list]) |>
