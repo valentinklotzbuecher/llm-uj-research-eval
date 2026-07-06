@@ -426,7 +426,28 @@ def main():
 
         results.append(result_entry)
 
-    # Save results
+    # Save results. If the existing file holds more valid entries than this run
+    # produced (e.g. a partial or errored run), back it up first so a bad run
+    # can never silently destroy good results.
+    def count_valid(entries):
+        return sum(1 for r in entries
+                   if r.get("comparison", {}).get("coverage_pct") is not None)
+
+    if OUTPUT_JSON.exists():
+        try:
+            with open(OUTPUT_JSON) as f:
+                existing = json.load(f)
+            if count_valid(existing) > count_valid(results):
+                from datetime import datetime
+                backup = OUTPUT_JSON.with_name(
+                    f"{OUTPUT_JSON.stem}.backup_{datetime.now():%Y%m%d_%H%M%S}.json")
+                backup.write_text(json.dumps(existing, indent=2, ensure_ascii=False))
+                print(f"WARNING: existing results have more valid entries "
+                      f"({count_valid(existing)}) than this run ({count_valid(results)}); "
+                      f"backed up to {backup.name}")
+        except (json.JSONDecodeError, OSError):
+            pass
+
     print(f"\nSaving results to {OUTPUT_JSON}...")
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_JSON, 'w') as f:
