@@ -68,6 +68,7 @@
 
 
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -257,7 +258,7 @@
 Structured Expert Review}
 \author{Valentin Klotzbücher \and David Reinstein \and Lorenzo
 Pacchiardi \and Tianmai Michael Zhang}
-\date{2026-03-13}
+\date{2026-07-06}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -353,15 +354,16 @@ qualitative critiques against expert evaluations for 60 economics and
 social-science working papers. We ask whether a frontier LLM evaluation
 can approximate expert judgment, where systematic differences arise, and
 whether the model reveals characteristic AI preferences over research.
-Our headline finding is that GPT-5 Pro matches or exceeds pairwise human
-inter-rater rank agreement on overall quality---that is, the LLM-human
-correlation is comparable to the human-human correlation, which is the
-appropriate benchmark given substantial disagreement among human
-evaluators themselves. Appendix results for five additional models
-spanning different capability and cost tiers confirm the pattern. This
-suggests that top reasoning models can currently serve as supplementary
-raters in structured evaluation pipelines, even under our minimal
-one-shot setup.
+Our headline finding is that GPT-5 Pro's rank agreement with the human
+panel on overall quality is statistically indistinguishable from
+pairwise human inter-rater agreement: a paired bootstrap over papers
+cannot separate the LLM-human correlation from the human-human
+correlation, which is the appropriate benchmark given substantial
+disagreement among human evaluators themselves. Appendix results for
+five additional models spanning different capability and cost tiers
+confirm the pattern. This suggests that top reasoning models can
+currently serve as supplementary raters in structured evaluation
+pipelines, even under our minimal one-shot setup.
 
 Our approach is minimal by design: each model receives the same PDF and
 a fixed rubric in a single prompt, with no iteration, retrieval
@@ -402,7 +404,7 @@ as a live testing lab for prospective validation.
 \section{Results}\label{results}
 
 We evaluate GPT-5 Pro against human expert reviews from
-\href{https://unjournal.pubpub.org}{The Unjournal} on 45 matched papers
+\href{https://unjournal.pubpub.org}{The Unjournal} on 47 matched papers
 (papers with both GPT-5 Pro and human evaluations). The model receives
 the same PDF, system prompt mirroring The Unjournal rubric, and JSON
 schema requiring a diagnostic summary plus numeric midpoints and 90\%
@@ -503,15 +505,17 @@ issues that correspond to a substantive human concern. These metrics are
 assessed by GPT-5.2 Pro acting as an independent judge (see
 \href{methods.qmd}{Methods} for the judging protocol).
 
-Coverage and precision vary substantially across papers. Some papers
-achieve high scores on both dimensions, indicating strong alignment
-between human and LLM critiques, while others reveal the LLM missing key
-human concerns or raising issues absent from the expert consensus.
-Because these metrics are themselves LLM-assessed, they should be
-interpreted with the caveat that an LLM judge may systematically over-
-or under-credit matches relative to a human annotator; manual validation
-through our annotation tool is underway and preliminary results are
-consistent with the automated scores.
+Coverage and precision vary substantially across papers. Averaged over
+the focal papers, the model captures of human consensus issues (range ),
+while of model-raised issues match a substantive human concern. Low
+precision partly reflects the reference set: the human consensus list
+contains only the issues evaluation managers prioritised, so model
+issues flagged by individual evaluators but not curated into the
+consensus count against precision. Because these metrics are themselves
+LLM-assessed, they should be interpreted with the caveat that an LLM
+judge may systematically over- or under-credit matches relative to a
+human annotator; the repository includes a browser-based annotation tool
+for manual validation of these alignment scores, which is ongoing.
 
 Detailed paper-by-paper comparisons---including matched issue pairs with
 severity labels, structural difference tables, and per-evaluator
@@ -548,6 +552,18 @@ GPT-5 Pro & 45 & 0.517 & 0.342 & +6.4 & 15.4 & 10.3\\
 
 \end{longtable}
 
+To quantify the uncertainty in this comparison we use a paired bootstrap
+over papers (2,000 resamples): each draw resamples the matched sample
+with replacement and recomputes both the GPT-5 Pro--human rank
+correlation and the human--human pairwise rank correlation on the same
+draw. The GPT-5 Pro correlation is ρ = 0.52 with 95\% CI {[}0.27,
+0.71{]}, against a human--human baseline of ρ = 0.43 {[}0.12, 0.68{]}.
+The bootstrap distribution of the difference (LLM minus human--human)
+spans {[}-0.24, 0.44{]}: at this sample size we cannot statistically
+separate the model from an additional human rater---the two correlations
+are comparable, not demonstrably ordered. This is the precise sense in
+which GPT-5 Pro ``performs within the human inter-rater range.''
+
 Table~\ref{tbl-criteria-agreement-main} breaks the same agreement
 metrics down by evaluation criterion for GPT-5 Pro. Crucially, the
 \textbf{H-H ρ} column shows pairwise human-human Spearman ρ for each
@@ -582,6 +598,88 @@ Global Relevance & \textbf{0.130} & 0.429 & 0.345 & +6.1 & 16.0\\
 
 \end{longtable}
 
+\textbf{Journal-tier predictions and verifiable outcomes.} Beyond
+percentile ratings, both evaluator types predict where each paper
+\emph{will} publish on The Unjournal's 0--5 journal-tier scale. Unlike
+percentile scores, these predictions eventually resolve against an
+observable outcome: the venue where the paper actually publishes.
+
+Human and GPT-5 Pro tier predictions agree at Spearman ρ = 0.75 (N = 42
+papers with both predictions)---stronger agreement than on any
+percentile criterion, suggesting that ``where will this publish'' is a
+better-anchored question than ``what percentile is this paper.'' For 8
+of these papers, The Unjournal's records already show a resolved
+publication outcome that we can map to the tier scale
+(Table~\ref{tbl-tier-outcomes}). On this small resolved set, mean
+absolute error against the realized tier is 0.62 tiers for GPT-5 Pro and
+0.71 for the human panel mean---both track outcomes to within roughly
+two-thirds of a tier, and the sample is far too small to rank the two.
+
+{
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2039}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2913}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1359}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1650}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2039}}@{}}
+
+\caption{\label{tbl-tier-outcomes}Papers with resolved publication
+outcomes: predicted vs realized journal tier (0--5 scale). Realized tier
+maps The Unjournal's recorded publication status: `\textasciitilde top
+journal' = 4.5, `decent journal' = 3.0, field journal = 2.5. Ambiguous
+statuses, R\&R/forthcoming, and book chapters are treated as unresolved
+and excluded. Human prediction is the evaluator mean.}
+
+\tabularnewline
+
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Paper
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Recorded outcome
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Realized tier
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Human prediction
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+GPT-5 Pro prediction
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Alatas et al.~2019 & Published, \textasciitilde top journal & 4.5 & 3.50
+& 3.9 \\
+Barker et al.~2021 & Published, \textasciitilde top journal & 4.5 & 4.00
+& 3.7 \\
+Buntaine et al.~2023 & Published, \textasciitilde top journal & 4.5 &
+4.70 & 4.5 \\
+Hill et al.~2024 & Published, \textasciitilde top journal & 4.5 & 4.50 &
+4.6 \\
+Jack et al.~2022 & Published, \textasciitilde top journal & 4.5 & 4.00 &
+4.5 \\
+Fangwa et al.~2023 & published, decent journal & 3.0 & 3.60 & 4.0 \\
+Kremer et al.~2020 & published, decent journal & 3.0 & 4.00 & 3.9 \\
+Caviola et al.~2022 & Published: Psychology journal & 2.5 & 4.35 &
+4.1 \\
+
+\end{longtable}
+
+}
+
+Two caveats apply. First, most of these papers were published before the
+model's training cutoff, so GPT-5 Pro may partly \emph{recall} venues
+rather than predict them; human predictions were made before the
+publication outcome was known, which makes this comparison structurally
+generous to the model. Second, the remaining 34 papers with registered
+predictions from both evaluator types are still unresolved (working
+papers, R\&R, or forthcoming). These predictions are locked in this
+repository and can be scored as outcomes accrue---a prospective
+validation design that sidesteps the contamination concern entirely,
+since future publication decisions cannot appear in any current model's
+training data.
+
 All appendices, interactive figures, and full code are available at the
 companion website: \url{https://llm-uj-research-eval.netlify.app}.
 Source code and data are hosted at
@@ -592,36 +690,42 @@ Source code and data are hosted at
 \section{Discussion}\label{discussion}
 
 GPT-5 Pro achieves moderate-to-strong agreement with human expert
-evaluators, approaching the agreement levels observed among human
+evaluators: a paired bootstrap cannot distinguish its rank agreement
+with the human panel from the agreement observed between human
 evaluators themselves. Central compression---the tendency to pull
 extreme ratings toward the middle of the scale---is the most consistent
 pattern, likely reflecting alignment training that discourages confident
-extreme outputs. Qualitative coverage varies widely across papers: on
-some, the model captures nearly all consensus human concerns; on others,
-it misses key critiques or raises issues absent from the expert
-consensus. Appendix results for five additional models confirm these
-patterns across capability tiers, with reasoning-capable models
-outperforming lightweight ones.
+extreme outputs. Journal-tier predictions are the dimension where human
+and model judgments align most closely, and on the small set of papers
+whose publication outcomes have already resolved, both predict realized
+venues with broadly similar accuracy. Qualitative coverage varies widely
+across papers: on some, the model captures nearly all consensus human
+concerns; on others, it misses key critiques or raises issues absent
+from the expert consensus. Appendix results for five additional models
+confirm these patterns across capability tiers, with reasoning-capable
+models outperforming lightweight ones.
 
 \textbf{Limitations.} Several caveats temper these conclusions. Our
-sample comprises roughly 50 social-science papers specifically selected
-by The Unjournal for evaluation, not a random draw from the research
-literature; performance may differ in other fields or on less polished
-manuscripts. Human evaluations are themselves a noisy reference signal
-rather than ground truth, with substantial inter-rater variation that
-caps achievable agreement. We cannot fully rule out knowledge
-contamination: while we instruct the model to ignore prior knowledge
-about authors, institutions, or publication history in the system
-prompt, the models' training data may include fragments of these papers
-or related discussions. Robustness checks with models whose training
-cutoffs predate the papers, or out-of-time validation on papers entering
-The Unjournal's pipeline after model training, would help address this
-concern. Alignment training likely contributes to score inflation and
-narrower credible intervals than humans provide. All LLM evaluations are
-single-run; aggregating across multiple runs or temperature settings
-could change the picture. Finally, the qualitative coverage and
-precision metrics are themselves LLM-assessed (GPT-5.2 Pro as judge),
-introducing a further layer of model dependence.
+sample comprises 60 social-science papers evaluated by the model, of
+which 47 have published human evaluation packages for direct comparison;
+all were specifically selected by The Unjournal for evaluation, not a
+random draw from the research literature; performance may differ in
+other fields or on less polished manuscripts. Human evaluations are
+themselves a noisy reference signal rather than ground truth, with
+substantial inter-rater variation that caps achievable agreement. We
+cannot fully rule out knowledge contamination: while we instruct the
+model to ignore prior knowledge about authors, institutions, or
+publication history in the system prompt, the models' training data may
+include fragments of these papers or related discussions. Robustness
+checks with models whose training cutoffs predate the papers, or
+out-of-time validation on papers entering The Unjournal's pipeline after
+model training, would help address this concern. Alignment training
+likely contributes to score inflation and narrower credible intervals
+than humans provide. All LLM evaluations are single-run; aggregating
+across multiple runs or temperature settings could change the picture.
+Finally, the qualitative coverage and precision metrics are themselves
+LLM-assessed (GPT-5.2 Pro as judge), introducing a further layer of
+model dependence.
 
 \textbf{Implications.} Even a reasoning-capable model costing several
 dollars per paper is orders of magnitude cheaper than human expert
@@ -658,9 +762,12 @@ validation on papers entering The Unjournal's pipeline after model
 training cutoffs would eliminate residual contamination concerns. The
 qualitative coverage and precision metrics are themselves LLM-assessed
 (GPT-5.2 Pro as judge); human validation of these scores is needed to
-close the model-dependence loop. Finally, comparing human and LLM tier
-predictions against verified publication venues would offer a rare
-opportunity for externally verifiable accuracy measurement.
+close the model-dependence loop. Finally, the tier-prediction comparison
+in Results is a first step toward externally verifiable accuracy
+measurement: roughly thirty papers with registered predictions from both
+evaluator types have not yet resolved, and scoring those predictions as
+publication outcomes accrue provides a contamination-free horse race
+that strengthens with time.
 
 \bookmarksetup{startatroot}
 
@@ -875,7 +982,7 @@ in \href{results_critiques.qmd}{Appendix B: Critiques \& Key Issues}.
 
 \markboth{References}{References}
 
-\phantomsection\label{refs}
+\protect\phantomsection\label{refs}
 \begin{CSLReferences}{1}{0}
 \bibitem[\citeproctext]{ref-aczel2021billion}
 Aczel, Balazs, Barnabas Szaszi, and Alex O Holcombe, {``A billion-dollar
@@ -903,9 +1010,9 @@ text injection and peer review by AI models},''} \emph{JAMA Network
 Open}, 9 (2026), e2552099.
 
 \bibitem[\citeproctext]{ref-elsevierAIPolicy2025}
-Elsevier,
-{``\href{https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals}{Generative
-AI policies for journals}''} (Feb. 19, 2026).
+Elsevier, {``Generative AI policies for journals,''}
+\textless{}\url{https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals}\textgreater{}
+(Feb. 19, 2026).
 
 \bibitem[\citeproctext]{ref-openAIReview2026}
 Hsu, Chao-Chun, and Chenhao Tan,
@@ -913,8 +1020,9 @@ Hsu, Chao-Chun, and Chenhao Tan,
 Open-source AI-assisted academic paper reviewing},''} 2026.
 
 \bibitem[\citeproctext]{ref-isitcredible}
-IsItCredible.com, {``\href{https://www.isitcredible.com/}{Is it
-credible?}''} (Feb. 19, 2026).
+IsItCredible.com, {``Is it credible?''}
+\textless{}\url{https://www.isitcredible.com/}\textgreater{} (Feb. 19,
+2026).
 
 \bibitem[\citeproctext]{ref-leung2026policies}
 Leung, Tiffany I.,
@@ -935,7 +1043,8 @@ AI-generated review reports},''} \emph{Postgraduate Medical Journal},
 (2026), qgag005.
 
 \bibitem[\citeproctext]{ref-refineFAQ}
-Refine, {``\href{https://www.refine.ink/faq}{FAQ - refine}''} (Feb. 19,
+Refine, {``FAQ - refine,''}
+\textless{}\url{https://www.refine.ink/faq}\textgreater{} (Feb. 19,
 2026).
 
 \bibitem[\citeproctext]{ref-spitzer2026submission}
