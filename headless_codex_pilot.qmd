@@ -1,0 +1,84 @@
+# Headless Codex Pilot
+
+This page records a small exploratory extension to the main evaluation pipeline: running the same broad research-evaluation scaffold through `codex exec` using ChatGPT/Codex subscription access rather than metered OpenAI API calls.
+
+This is not part of the main evidence base. The primary results in this working paper use API-based model calls with controlled inputs, recorded model identifiers, and native PDF ingestion where available. The headless Codex pilot is useful for low-cost exploration, prompt development, and deciding whether further evaluations are worth running, but it should be treated as a separate input modality and execution surface.
+
+## What we tried
+
+We added a small runner:
+
+- Script: `scripts/run_headless_codex_eval.py`
+- Pilot run: `results/codex_gpt55_headless_pilot_jul2026/`
+- Model surface: `gpt-5.5` via `codex exec`, authenticated through ChatGPT/Codex rather than an API key
+- Prompt version: `v4_assessment_current_text_extraction`
+- Input modality: `pdftotext`-extracted text, truncated at 60,000 characters for the first pilot
+- First paper: `Bruers_2021.pdf`
+
+The runner deliberately marks the result as `pdftotext_extracted_text`, stores the source PDF hash, writes a `run_config.json`, and emits JSON in a compatibility shape that the existing analysis code can read. The aggregation helper now reads both older OpenAI response payloads and the newer `parsed` / `output_text` shape used by this pilot.
+
+The one-paper pilot produced the expected artifacts:
+
+- `json/Bruers_2021.response.json`
+- `metrics_long.csv`
+- `tiers_long.csv`
+- `combined_long.csv`
+- `assessment_summaries.csv`
+
+For this first run, the combined metrics were:
+
+| Metric | Midpoint | Lower | Upper |
+|---|---:|---:|---:|
+| Overall | 46 | 32 | 61 |
+| Claims and evidence | 42 | 27 | 58 |
+| Methods | 34 | 20 | 50 |
+| Advancing knowledge | 57 | 40 | 72 |
+| Logic and communication | 62 | 48 | 75 |
+| Open science | 36 | 20 | 55 |
+| Global relevance | 70 | 55 | 82 |
+| Tier should | 2.3 | 1.5 | 3.2 |
+| Tier will | 2.4 | 1.4 | 3.4 |
+
+The model also correctly noted in its assessment that the text had been truncated and widened uncertainty accordingly. This is the behavior we want from an exploratory runner: it should surface input limitations rather than presenting the output as equivalent to a full native-PDF evaluation.
+
+## Replicability and consistency
+
+The main concern is real: this approach is less standardized than the API-based approach.
+
+The API workflow is better for strict replication because it gives us a cleaner contract: explicit model identifiers, structured-output enforcement, direct request and response payloads, file IDs or native PDF inputs, usage metadata, and a provider surface designed for programmatic runs. It is also easier to re-run from a clean environment, pin defaults, and audit failures.
+
+The headless Codex workflow is attractive for exploration because it can use subscription access and avoid metered API costs. But several details make it less directly replicable:
+
+- The execution surface is the Codex CLI, not the model API.
+- Subscription entitlements and rate limits can vary by account and over time.
+- Default behavior may change with Codex releases unless we pin command flags and record the CLI version.
+- The pilot currently uses extracted text, not native PDF input, so figures, tables, equations, and layout can be degraded.
+- The first run intentionally truncated the extracted text; this must be treated as a pilot constraint, not a production setting.
+- `codex exec` is an agentic wrapper around a model call. Even when prompted not to use tools, it is not as minimal as a direct API request.
+
+This does not make the approach unusable. It means we should use it with a different evidential status. It is well suited for:
+
+- cheap preliminary screening;
+- prompt iteration before API spending;
+- exploratory robustness checks;
+- identifying candidate papers for deeper API-based evaluation;
+- running larger informal batches where exact comparability is not the goal.
+
+It is less suited for:
+
+- headline quantitative comparisons with human evaluators;
+- claims about model-vs-model performance;
+- strict reproduction of the native-PDF GPT-5 Pro runs;
+- archival baselines where future re-runs must be as close as possible to the original call.
+
+## Practical guardrails
+
+For any larger headless batch, we should keep the following guardrails:
+
+- Record the Codex CLI version, model flag, auth mode, run timestamp, prompt version, PDF hash, text-extraction command, input character count, and truncation status.
+- Keep the output in a separate `results/<run_id>/` directory with `input_modality` clearly marked.
+- Do not merge headless/text-extraction results into the main model-comparison plots without a visible modality label.
+- Use API-based runs for confirmatory comparisons or for any result we expect others to reproduce exactly.
+- Avoid browser automation or ChatGPT web scraping; use documented Codex non-interactive execution instead.
+
+The appropriate interpretation is therefore: headless Codex is a useful exploration and cost-control tool, not a drop-in replacement for the API-based evidence pipeline.
