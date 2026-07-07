@@ -589,11 +589,28 @@ coverage---the fraction of human-identified concerns that the LLM also
 raised in some form---against precision---the fraction of LLM-raised
 issues that correspond to a substantive human concern. These metrics are
 assessed by GPT-5.2 Pro acting as an independent judge (see
-\href{methods.qmd}{Methods} for the judging protocol).
+\href{methods.qmd}{Methods} for the judging protocol). One of the 14
+originally curated pairs (Peterman et al.~2025) is excluded: the judge
+flagged---and we verified against the paper---that the curated human
+critique belonged to a different manuscript, so results are reported for
+the remaining 13 pairs.
+
+\begin{figure}
+
+\caption{\label{fig-coverage-precision-main}Coverage (\% of
+human-identified issues that the LLM also raised) vs Precision (\% of
+LLM-raised issues that match a substantive human concern) for each
+paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the
+cross-paper mean for each axis. Papers in the upper-right quadrant show
+strong alignment between human and LLM critiques.}
+
+\pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-coverage-precision-main-1.pdf}}
+
+\end{figure}%
 
 Coverage and precision vary substantially across papers. Averaged over
-the 14 focal papers, the model captures 75\% of human consensus issues
-(range 40--100\%), while 47\% of model-raised issues match a substantive
+the 13 focal papers, the model captures 78\% of human consensus issues
+(range 50--100\%), while 49\% of model-raised issues match a substantive
 human concern. Low precision partly reflects the reference set: the
 human consensus list contains only the issues evaluation managers
 prioritised, so model issues flagged by individual evaluators but not
@@ -1050,7 +1067,11 @@ Pro. The schema for this focal run adds a \texttt{key\_issues} array---a
 ranked list of concise issue statements identifying the most important
 methodological, interpretive, or evidential concerns---alongside the
 standard metrics. This structured output enables direct comparison
-between machine-generated and human-identified issues.
+between machine-generated and human-identified issues. One curated pair
+(Peterman et al.~2025) was later excluded from the comparison after the
+LLM judge flagged, and we verified, that its human critique had been
+misattributed to a different manuscript during curation; the
+coverage/precision analysis therefore covers 13 papers.
 
 \textbf{Key-issue comparison with human critiques.} To validate how well
 the LLM identifies substantive concerns, we compare its

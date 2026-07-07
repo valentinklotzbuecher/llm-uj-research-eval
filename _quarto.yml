@@ -108,6 +108,9 @@ format:
       warning: false
       message: false
       freeze: auto
-      cache: true
+      # knitr cache keys on chunk code only: data-file changes (e.g. results/
+      # JSONs) do not invalidate it and silently produce stale numbers in the
+      # PDF while HTML (cache: false) stays correct.
+      cache: false
       prefer-html: true
       echo: false

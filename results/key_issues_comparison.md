@@ -1,6 +1,18 @@
 # Key Issues Comparison: GPT-5.2 Pro vs Human Expert Critiques
 
-**Papers matched:** 14
+**Papers matched:** 13
+
+> **Exclusion note (2026-07-07):** `Peterman_et_al._2025` (systematic review/meta-analysis
+> of social safety nets and women's economic empowerment) was removed from this file.
+> The human critique previously curated under it (ASQ-3 validation in India,
+> multiple-hypothesis testing over ASQ items, CONSORT flow diagram, parent-reported
+> outcome bias) belongs to a different manuscript: The Unjournal's evaluation of
+> "Maternal cash transfers for gender equity and child development: Experimental
+> evidence from India" (September 2025), which is not part of this study's sample.
+> The GPT-5.2 Pro judge flagged the mismatch during issue matching and we verified it
+> against the paper PDF. The pair is excluded from the coverage/precision analysis
+> pending re-curation of the correct critique from Coda. The removed section is
+> preserved in git history.
 
 ---
 
@@ -425,44 +437,6 @@ Optional but important
 2. Clearer/visual depiction of sensitivity analysis/multiverse analysis — Both evaluators requested a concise visual summary (such as a specification curve or analogue of Figure 2) showing how the large number of analytical choices and adjustments systematically affect the final estimates. E2 called this their "most significant statistical recommendation".
 
 3. Linear decay model — Evaluator 2 expressed surprise at the linear choice, suggesting exponential models are more common in psychological phenomena and that linear decay might lead to "overestimation"
-
----
-
-## Peterman_et_al._2025
-
-**Coda title:** Social Safety Nets, Women’s Economic
-Achievements and Agency
-
-### GPT-5.2 Pro Key Issues
-
-- Extremely high heterogeneity (I² often ~80–95% and τ² > ~0.02) means the pooled mean effect may be a weak policy summary; the paper should more strongly emphasize dispersion/prediction intervals and limits to generalization.
-- Several apparent internal inconsistencies/typos in reported magnitudes and intervals (e.g., public works pooled effect reported with different values; at least one implausible confidence interval) need reconciliation and traceability to code output.
-- Outcome harmonization across very different constructs (savings/assets/expenditures vs autonomy/voice/decision-making) using standardized effects risks conflating mechanisms and complicates interpretation; stronger justification and construct-validity discussion is needed.
-- RVE implementation details are not fully transparent in the main text (e.g., assumed within-study correlation rho, small-sample corrections, sensitivity to rho), which can matter with many dependent effect sizes per study.
-- Moderator/meta-regression analysis appears underpowered for key subgroups and vulnerable to multiple-testing false positives; a pre-specified moderator hierarchy and/or correction strategy would strengthen inference.
-- Modality comparisons (UCT vs CCT vs in-kind, etc.) may be confounded by correlated design features (targeting rules, recipient identity, enforcement intensity, complementary programming, baseline contexts) that are only coarsely measured; causal interpretation of modality differences should be more cautious.
-- Restricting inclusion to RCTs improves internal validity but may reduce representativeness for large-scale national programs commonly evaluated quasi-experimentally; this could bias conclusions about real-world SSN performance.
-- The evidence base is heavily concentrated in certain regions (notably sub-Saharan Africa) and in cash modalities; conclusions about underrepresented modalities (social care, public works, fee waivers) and regions are therefore fragile.
-- Agency measurement is known to be noisy and context-dependent; the paper notes some limitations (e.g., decision-making ambiguity) but does not fully assess how measurement heterogeneity may attenuate or distort pooled results.
-- Cost-benefit evidence is sparse and not harmonized; most studies omit women-specific benefits, making any overall “value for money” implication highly uncertain and potentially a lower bound in unknown ways.
-- Open-science posture is incomplete at present (public repository only “upon acceptance”; extraction form not public), limiting immediate reproducibility and external auditing of coding decisions.
-
-### Human Expert Critiques (Coda)
-
-Optional but important
-DR — I chose the critiques that seemed important to me, and vetted them quickly in NotebookLM, dropping some the authors’ already seem to address, at least in the August version. But I’m not an expert in this area.
-ASQ regional validation: “it would be useful to show that the ASQ3 has been validated in India.”
-Lack of MHT comparisons “The authors present results for an overall child development index, domain-specific indices, as well as individual ASQ items. They do this without accounting for multiple comparisons or presenting this as a pre-specified plan” 
-DR: I checked the PAPs (3 pdfs) on NotebookLM and it said “the detailed breakdown into the multiple component indices and individual items... was not explicitly included in the PAP's definition of the outcome.
-“ASQ3 is meant as a screening tool for early childhood development, not a test of child’s abilities. Typically, it relies on cutoffs to determine whether a child is “at risk” of suboptimal development in certain domains. An index score for the ASQ3 were used in the analysis, but it would be useful to see the analysis for differences in proportion of children at risk of developmental delays.”
-
-"Possibly relevant but I’m not sure:
-Consort flow diagram — “ the study should include a consort flow diagram” 
-I'm not sure if this is desirable practice in this context. I don't think it's common practice in the economics literature 
-“ASQ3 is parent reported. This trial was not blinded, so results could have been biased, which is worth mentioning as a key limitation” 
-They seem to recognize this to an extent, even if it’s not emphasized. At least they discuss the issue of ‘experimental demand effects’ in the appendix and provide evidence suggesting it may not be important 
-
-Limitations for LLM benchmarking: David Reinstein is not an expert on this. Only 1 strong evaluation, and the critiques are not always in the economics wheelhouse.
 
 ---
 
