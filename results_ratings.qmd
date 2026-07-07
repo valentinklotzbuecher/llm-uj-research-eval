@@ -437,49 +437,197 @@ hh_baseline_row <- tibble(
   RMSE           = hh_rmse,
   MAE            = hh_mae
 )
-```
 
-**Agreement metrics.** We assess agreement using Spearman *ρ* (rank-based, robust to outliers), MAE in percentile points (directly interpretable), RMSE, mean bias (LLM − Human; positive = LLM rates higher), and Pearson *r* for completeness. Full definitions appear in [Methods](methods.qmd). The **Human–Human** row in each table provides the empirical ceiling.
+# Spearman-Brown correction factor.
+# LLM rho is computed against the k-rater human mean (smoother signal) while
+# rho_HH compares individual raters. Multiply raw rho_HL by sb_factor to
+# convert to the individual-rater-equivalent scale for a fair comparison.
+k_raters <- metrics_human |>
+  filter(criteria == "overall", paper %in% opus_papers) |>
+  group_by(paper) |>
+  summarise(k = n_distinct(evaluator), .groups = "drop") |>
+  summarise(k = mean(k)) |>
+  pull(k)
+r_kk      <- k_raters * hh_spearman / (1 + (k_raters - 1) * hh_spearman)
+sb_factor <- sqrt(hh_spearman / r_kk)
 
-```{r}
-#| label: tbl-agreement
-#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Human–Human** row (top, bold) shows pairwise evaluator agreement on the same papers as an empirical upper bound. Spearman *ρ* (rank-based, robust to outliers) and MAE (in percentile points, directly interpretable) are primary metrics; Pearson *r* is shown for completeness. Bias = LLM − Human (positive = LLM more generous). Models sorted by Spearman *ρ*. Models with fewer than 10 matched papers are omitted (see text)."
-
-min_n_agreement <- 10
-
-if (nrow(scatter_data) > 0) {
-
-  llm_rows_all <- scatter_data |>
-    group_by(Model = model) |>
-    summarise(
-      N              = n(),
-      `Spearman ρ` = round(cor(human_mid, midpoint, method = "spearman",
-                                     use = "complete.obs"), 3),
-      `Pearson r`    = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
-      `Mean bias`    = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
-      RMSE           = round(sqrt(mean((midpoint - human_mid)^2, na.rm = TRUE)), 1),
-      MAE            = round(mean(abs(midpoint - human_mid), na.rm = TRUE), 1),
-      .groups = "drop"
-    ) |>
-    arrange(desc(`Spearman ρ`))
-
-  llm_rows      <- llm_rows_all |> filter(N >= min_n_agreement)
-  excluded_rows <- llm_rows_all |> filter(N < min_n_agreement)
-
-  agreement_tbl <- bind_rows(hh_baseline_row, llm_rows)
-
-  knitr::kable(agreement_tbl, align = c("l", rep("r", 6))) |>
-    kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0")
+# Fisher-z 95% CI for Spearman rho
+spearman_ci95 <- function(rho, n) {
+  if (is.na(rho) || n < 4) return("—")
+  z  <- atanh(rho)
+  se <- 1 / sqrt(n - 3)
+  sprintf("[%.2f, %.2f]", tanh(z - 1.96 * se), tanh(z + 1.96 * se))
 }
 ```
 
-@tbl-agreement reports agreement metrics between each LLM and the human mean overall rating, with the Human–Human baseline as the top row. The Human–Human row shows pairwise correlation between the two evaluators assigned to the same paper: this is the empirical ceiling any model can hope to reach, since the human "mean" used as the reference is itself a noisy estimate. Where an LLM's Spearman *ρ* approaches the Human–Human baseline, it is providing signal comparable to an additional expert rater. Positive mean bias indicates the model rates papers higher than humans on average; negative bias indicates harsher ratings. `r if (exists("excluded_rows") && nrow(excluded_rows) > 0) paste0("Omitted for insufficient overlap with the matched sample: ", paste0(excluded_rows$Model, " (N = ", excluded_rows$N, ")", collapse = ", "), ". Rank correlations at these sample sizes are too unstable to interpret and appear only in the cost table.")`
+**Agreement metrics.** We report Spearman *ρ*, MAE, mean bias, and Pearson *r*. The **H–H row** shows individual-vs-individual *ρ* — it is already on the natural scale and serves as the reference. **LLM rows** show *ρ* against the human *mean* rating (of `r round(k_raters, 1)` raters/paper), which is upward-biased relative to H–H because averaging suppresses noise. The **ρ adj.** column applies the Spearman-Brown correction to LLM rows only (×`r sprintf("%.2f", sb_factor)`), converting them to the individual-rater-equivalent scale so they are directly comparable to the H–H *ρ*.
 
-**Human baseline context.** Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a "correct" score would be. @tbl-human-baseline quantifies this noise as Krippendorff's α~HH~. The α~HL~ columns show how close each LLM comes to that ceiling. A model achieving α~HL~ ≥ α~HH~ on a criterion is generating signal indistinguishable from an additional human evaluator. Criteria where α~HH~ is already low indicate genuine expert disagreement; low α~HL~ on those criteria is therefore expected, not a model failure.
+```{r}
+#| label: tbl-agreement
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Spearman ρ column**: for the H–H row this is individual-vs-individual ρ (the reference, already on the natural scale); for LLM rows it is ρ vs. the human *mean* (upward-biased because the mean is smoother than any individual rater). **ρ adj.**: Spearman-Brown corrected to individual-rater-equivalent scale (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper) — apply this correction to compare LLM rows fairly to H–H. H–H shows — in the ρ adj. column because no correction is needed. **95% CI**: Fisher-z. Bias = LLM − Human. †N < 15: unreliable."
+
+MIN_N <- 15
+
+if (nrow(scatter_data) > 0) {
+
+  # Helper: summarise one data frame into a table row per model
+  model_agreement_rows <- function(df) {
+    df |>
+      group_by(Model = model) |>
+      summarise(
+        N           = n(),
+        raw_rho     = cor(human_mid, midpoint, method = "spearman", use = "complete.obs"),
+        `Pearson r` = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
+        `Mean bias` = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
+        MAE         = sprintf("%.1f", mean(abs(midpoint - human_mid), na.rm = TRUE)),
+        .groups     = "drop"
+      ) |>
+      arrange(desc(raw_rho)) |>
+      mutate(
+        flag           = ifelse(N < MIN_N, "†", ""),
+        `Spearman ρ` = sprintf("%.3f%s", raw_rho, flag),
+        `ρ adj.`  = sprintf("%.3f%s", raw_rho * sb_factor, flag),
+        `95% CI`       = mapply(spearman_ci95, raw_rho, N)
+      ) |>
+      select(Model, N, `Spearman ρ`, `ρ adj.`, `95% CI`,
+             `Pearson r`, `Mean bias`, MAE)
+  }
+
+  # Matched sample: only papers where H-H comparison is also available (≥2 human raters)
+  lfl_set     <- hh_pairs$paper
+  llm_matched <- model_agreement_rows(scatter_data |> filter(paper %in% lfl_set))
+  llm_full    <- model_agreement_rows(scatter_data)
+
+  hh_row <- tibble(
+    Model          = "Human–Human",
+    N              = hh_n,
+    `Spearman ρ` = sprintf("%.3f", hh_spearman),
+    `ρ adj.`  = "—",
+    `95% CI`       = spearman_ci95(hh_spearman, hh_n),
+    `Pearson r`    = round(hh_pearson, 3),
+    `Mean bias`    = hh_bias,
+    MAE            = sprintf("%.1f", hh_mae)
+  )
+
+  n_matched <- nrow(llm_matched)
+  n_full    <- nrow(llm_full)
+
+  agreement_tbl <- bind_rows(hh_row, llm_matched, llm_full)
+
+  knitr::kable(agreement_tbl, align = c("l", rep("r", ncol(agreement_tbl) - 1))) |>
+    kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0") |>
+    kableExtra::pack_rows(
+      sprintf("Matched sample — same %d papers as H–H baseline (primary comparison)", hh_n),
+      1, 1 + n_matched, bold = TRUE, italic = FALSE, color = "black"
+    ) |>
+    kableExtra::pack_rows(
+      sprintf("Full opus sample — each model's own N (up to %d; secondary)", n_opus),
+      2 + n_matched, 1 + n_matched + n_full, bold = FALSE, italic = TRUE
+    )
+}
+```
+
+@tbl-agreement is organised in two groups. The **primary matched-sample group** restricts both the H–H baseline and all LLM rows to the same `r hh_n` papers that have ≥2 human raters — this is the only fair like-for-like comparison (same denominator for every row). The **secondary full-sample group** uses each model's own maximum N (up to `r n_opus`), which increases power at the cost of cross-row comparability. **Spearman ρ** is upward-biased relative to ρ_HH because LLMs are evaluated against the mean of `r round(k_raters, 1)` human raters; **ρ adj.** applies the Spearman-Brown correction (×`r sprintf("%.2f", sb_factor)`) for a fair comparison to the H–H *ρ* of `r hh_spearman`. 95% CIs (Fisher-z) are wide at these sample sizes. Models with N < 15 (†) are unreliable.
+
+@tbl-agreement-full repeats the same structure using each model's own maximum matched sample.
+
+```{r}
+#| label: tbl-agreement-full
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, using each model's own maximum matched sample (not restricted to the common `r n_opus`-paper set). Larger N per model but cross-model comparison is confounded by paper-set differences. Same column structure as @tbl-agreement: H–H Spearman *ρ* is individual-vs-individual; LLM Spearman *ρ* is vs. human mean (upward-biased); ρ adj. is Spearman-Brown corrected for fair comparison."
+
+if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
+
+  scatter_full <- llm_metrics |>
+    filter(criteria == "overall") |>
+    inner_join(human_avg |> select(paper, human_mid), by = "paper") |>
+    filter(!is.na(human_mid), !is.na(midpoint))
+
+  # HH baseline on all matched papers (not restricted to opus_papers)
+  hh_pairs_full <- metrics_human |>
+    filter(criteria == "overall", paper %in% unique(scatter_full$paper)) |>
+    select(paper, evaluator, mid) |>
+    distinct() |>
+    group_by(paper) |>
+    filter(n() >= 2) |>
+    mutate(slot = paste0("E", row_number())) |>
+    ungroup() |>
+    pivot_wider(names_from = slot, values_from = c(mid, evaluator)) |>
+    filter(!is.na(mid_E1), !is.na(mid_E2))
+
+  hh_rho_full <- round(cor(hh_pairs_full$mid_E1, hh_pairs_full$mid_E2,
+                             method = "spearman"), 3)
+
+  k_full <- metrics_human |>
+    filter(criteria == "overall", paper %in% unique(scatter_full$paper)) |>
+    group_by(paper) |>
+    summarise(k = n_distinct(evaluator), .groups = "drop") |>
+    summarise(k = mean(k)) |>
+    pull(k)
+  r_kk_full  <- k_full * hh_rho_full / (1 + (k_full - 1) * hh_rho_full)
+  sb_full    <- sqrt(hh_rho_full / r_kk_full)
+
+  lfl_set_full <- hh_pairs_full$paper  # papers with >=2 human raters in full matched set
+
+  model_agreement_rows_full <- function(df) {
+    df |>
+      group_by(Model = model) |>
+      summarise(
+        N           = n(),
+        raw_rho     = cor(human_mid, midpoint, method = "spearman", use = "complete.obs"),
+        `Pearson r` = round(cor(human_mid, midpoint, use = "complete.obs"), 3),
+        `Mean bias` = sprintf("%+.1f", mean(midpoint - human_mid, na.rm = TRUE)),
+        MAE         = sprintf("%.1f", mean(abs(midpoint - human_mid), na.rm = TRUE)),
+        .groups     = "drop"
+      ) |>
+      arrange(desc(raw_rho)) |>
+      mutate(
+        flag           = ifelse(N < 15, "†", ""),
+        `Spearman ρ` = sprintf("%.3f%s", raw_rho, flag),
+        `ρ adj.`  = sprintf("%.3f%s", raw_rho * sb_full, flag),
+        `95% CI`       = mapply(spearman_ci95, raw_rho, N)
+      ) |>
+      select(Model, N, `Spearman ρ`, `ρ adj.`, `95% CI`,
+             `Pearson r`, `Mean bias`, MAE)
+  }
+
+  llm_matched_full <- model_agreement_rows_full(scatter_full |> filter(paper %in% lfl_set_full))
+  llm_all_full     <- model_agreement_rows_full(scatter_full)
+
+  hh_row_full <- tibble(
+    Model               = "Human–Human",
+    N                   = nrow(hh_pairs_full),
+    `Spearman ρ` = sprintf("%.3f", hh_rho_full),
+    `ρ adj.`  = "—",
+    `95% CI`            = spearman_ci95(hh_rho_full, nrow(hh_pairs_full)),
+    `Pearson r`         = round(cor(hh_pairs_full$mid_E1, hh_pairs_full$mid_E2), 3),
+    `Mean bias`         = "—",
+    MAE                 = "—"
+  )
+
+  n_mf <- nrow(llm_matched_full)
+  n_af <- nrow(llm_all_full)
+
+  tbl_full <- bind_rows(hh_row_full, llm_matched_full, llm_all_full)
+
+  knitr::kable(tbl_full, align = c("l", rep("r", ncol(tbl_full) - 1))) |>
+    kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0") |>
+    kableExtra::pack_rows(
+      sprintf("Matched sample — same %d papers as H–H baseline (primary)", nrow(hh_pairs_full)),
+      1, 1 + n_mf, bold = TRUE, italic = FALSE, color = "black"
+    ) |>
+    kableExtra::pack_rows(
+      "Full per-model sample — each model's own maximum N (secondary)",
+      2 + n_mf, 1 + n_mf + n_af, bold = FALSE, italic = TRUE
+    ) |>
+    kableExtra::footnote(symbol = "† N < 15 papers; estimates unreliable.")
+}
+```
+
+**Human baseline context.** Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a "correct" score would be. @tbl-human-baseline quantifies this noise as Krippendorff's α~HH~. The α~HL~ columns show how close each LLM comes to that level. A model with α~HL~ ≈ α~HH~ on a criterion is generating signal comparable to a second human evaluator on that dimension. Criteria where α~HH~ is already low indicate genuine expert disagreement; low α~HL~ on those criteria is therefore expected, not a model failure.
 
 ```{r}
 #| label: tbl-human-baseline
-#| tbl-cap: "Krippendorff's α~HH~ (inter-human agreement, **bold**) vs α~HL~ (human–LLM agreement) by criterion, matched sample (N = `r n_opus` papers). α~HH~ is the empirical ceiling: an LLM with α~HL~ ≥ α~HH~ performs at or above the human inter-rater level for that criterion. Criteria where α~HH~ is already low indicate genuine evaluator disagreement. Models with fewer than 10 matched papers are omitted, as in the agreement table."
+#| tbl-cap: "Krippendorff's α~HH~ (agreement within the human-evaluator panel) vs α~HL~ (agreement when the LLM is added to that panel) by criterion. Both are computed on the same papers and use individual human rater scores—not the human mean—so the comparison is symmetric. If α~HL~ ≈ α~HH~, the LLM behaves like an additional human evaluator on that criterion. Column headers show N papers per model; models with N < 15 (marked †) are unreliable."
 #| code-fold: true
 
 if (requireNamespace("irr", quietly = TRUE)) {
@@ -511,34 +659,52 @@ if (requireNamespace("irr", quietly = TRUE)) {
     }, error = function(e) NA_real_)
   }
 
-  # Compute human-LLM alpha for a specific model
+  # Compute human-LLM alpha using full panel [H1, H2, ..., LLM].
+  # Adding LLM as an additional rater alongside individual humans (not the mean)
+  # removes the mean-vs-individual bias and answers: does the LLM behave like
+  # an additional human evaluator on this criterion?
   compute_hl_alpha <- function(criterion, model_name) {
-    human_mean <- metrics_human |>
+    # Individual human ratings: rows = evaluators, cols = papers
+    human_wide <- metrics_human |>
       filter(criteria == criterion, paper %in% opus_papers) |>
-      group_by(paper) |>
-      summarise(Human = mean(mid, na.rm = TRUE), .groups = "drop")
+      select(paper, evaluator, mid) |>
+      distinct() |>
+      pivot_wider(names_from = paper, values_from = mid)
 
-    llm_rating <- llm_metrics |>
+    if (nrow(human_wide) < 2 || ncol(human_wide) < 3) return(NA_real_)
+    M_human <- as.matrix(human_wide[, -1, drop = FALSE])
+
+    # LLM ratings as a named vector over the same papers
+    llm_vals <- llm_metrics |>
       filter(criteria == criterion, model == model_name, paper %in% opus_papers) |>
       select(paper, midpoint) |>
-      rename(LLM = midpoint)
+      distinct()
 
-    combined <- inner_join(human_mean, llm_rating, by = "paper")
-    if (nrow(combined) < 3) return(NA_real_)
+    if (nrow(llm_vals) < 3) return(NA_real_)
 
-    M <- rbind(Human = combined$Human, LLM = combined$LLM)
+    # Build LLM row aligned to same paper columns as M_human
+    llm_row <- matrix(NA_real_, nrow = 1, ncol = ncol(M_human))
+    colnames(llm_row) <- colnames(M_human)
+    common <- intersect(colnames(M_human), llm_vals$paper)
+    if (length(common) < 3) return(NA_real_)
+    llm_row[1, common] <- llm_vals$midpoint[match(common, llm_vals$paper)]
+
+    # Panel: all individual human raters + LLM as one additional rater
+    M <- rbind(M_human, llm_row)
     tryCatch({
       irr::kripp.alpha(M, method = "interval")$value
     }, error = function(e) NA_real_)
   }
 
-  # Only models with enough matched papers for stable agreement estimates
-  # (same threshold as tbl-agreement)
-  eligible_models <- scatter_data |>
-    count(model) |>
-    filter(n >= min_n_agreement) |>
-    pull(model)
-  llm_models <- intersect(unique(llm_metrics$model), eligible_models)
+  # Get unique LLM models and their paper counts (to flag low-N columns)
+  llm_models <- unique(llm_metrics$model)
+  model_n_df <- llm_metrics |>
+    filter(criteria == "overall", paper %in% opus_papers) |>
+    group_by(model) |>
+    summarise(n = n_distinct(paper), .groups = "drop")
+  model_n_map <- setNames(model_n_df$n, model_n_df$model)
+
+  MIN_N_ALPHA <- 15
 
   # Build comparison table
   baseline_results <- tibble(Criterion = criterion_labels[criteria_list]) |>
@@ -549,13 +715,17 @@ if (requireNamespace("irr", quietly = TRUE)) {
     ) |>
     ungroup()
 
-  # Add columns for each LLM model
+  # Add columns for each LLM model, labelled with N and flagged if N < MIN_N_ALPHA
   for (mod in llm_models) {
-    col_name <- paste0("α_HL (", mod, ")")
+    n_mod        <- if (mod %in% names(model_n_map)) as.integer(model_n_map[mod]) else 0L
+    n_label      <- if (n_mod < MIN_N_ALPHA) sprintf("n=%d†", n_mod) else sprintf("n=%d", n_mod)
+    col_raw      <- paste0("α_HL (", mod, ")")
+    col_labelled <- paste0("α_HL ", mod, " (", n_label, ")")
     baseline_results <- baseline_results |>
       rowwise() |>
-      mutate(!!col_name := compute_hl_alpha(criterion_key, mod)) |>
+      mutate(!!col_raw := compute_hl_alpha(criterion_key, mod)) |>
       ungroup()
+    names(baseline_results)[names(baseline_results) == col_raw] <- col_labelled
   }
 
   # Format for display — put α_HH immediately after Criterion column
@@ -565,16 +735,18 @@ if (requireNamespace("irr", quietly = TRUE)) {
 
   alpha_col_order <- c("Criterion", "\u03b1_HH",
                        sort(grep("^\u03b1_HL", names(baseline_display), value = TRUE)))
-  if (all(alpha_col_order %in% names(baseline_display))) {
-    baseline_display <- baseline_display |> select(all_of(alpha_col_order))
-  }
+  existing_cols <- alpha_col_order[alpha_col_order %in% names(baseline_display)]
+  baseline_display <- baseline_display |> select(all_of(existing_cols))
 
   knitr::kable(baseline_display, align = c("l", rep("r", ncol(baseline_display) - 1))) |>
-    kableExtra::column_spec(2, bold = TRUE)
+    kableExtra::column_spec(2, bold = TRUE) |>
+    kableExtra::footnote(
+      symbol = "\u2020 N < 15 papers; \u03b1_HL unreliable for this model."
+    )
 }
 ```
 
-Where α~HL~ ≥ α~HH~, the LLM is performing at or above the ceiling set by human inter-rater variability — its ratings are as consistent with the human reference as a second human evaluator would be. Criteria where α~HH~ is already low (indicating genuine evaluator disagreement) naturally cap how well any model can do, and low α~HL~ on those criteria reflects the difficulty of the task rather than a model failure. Extended agreement analysis — including CI coverage, bootstrap confidence intervals, and mutual information — is available in the supplementary material.
+Both α~HH~ and α~HL~ are computed on the same individual human-rater scores—not the human mean—making the comparison symmetric: α~HL~ asks whether adding the LLM to the human panel maintains the same level of agreement as the humans achieve among themselves. Where α~HL~ ≈ α~HH~, the LLM is behaving like an additional human evaluator. Criteria where α~HH~ is already low indicate genuine evaluator disagreement; low α~HL~ there reflects task difficulty rather than a model failure.
 
 **Criteria-level patterns.** @fig-criteria-heatmap displays the mean rating each evaluator type assigns across the seven criteria. Criteria where all models and humans converge (similar colour intensity) suggest robust agreement on that dimension; criteria with divergent columns indicate systematic differences in how humans and LLMs weigh that aspect of quality.
 

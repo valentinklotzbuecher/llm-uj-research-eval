@@ -66,6 +66,46 @@
 \fi
 \makeatother
 
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
 
 \usepackage{longtable,booktabs,array}
 \newcounter{none} % for unnumbered tables
@@ -161,6 +201,18 @@
 
 % Smaller figure/table captions
 \captionsetup{font=small, labelfont=bf}
+
+% Latin Modern lacks Greek glyphs in Unicode text mode (xelatex): map the
+% Greek/math characters used in prose to math-mode equivalents so they render
+% instead of silently disappearing.
+\usepackage{newunicodechar}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
 
 % --- Compact spacing for working paper ---
 \usepackage{titlesec}
@@ -258,7 +310,7 @@
 Structured Expert Review}
 \author{Valentin Klotzbücher \and David Reinstein \and Lorenzo
 Pacchiardi \and Tianmai Michael Zhang}
-\date{2026-07-06}
+\date{2026-07-07}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -286,6 +338,22 @@ for five additional models confirm the pattern across capability tiers.
 \bookmarksetup{startatroot}
 
 \section{Introduction}\label{introduction}
+
+\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{This is the working paper --- current analysis}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+
+This site
+(\url{https://valentinklotzbuecher.github.io/llm-uj-research-eval/}) is
+the \textbf{actively maintained working paper} with the latest
+statistical analysis and academic presentation.
+
+Our \textbf{project workspace} at
+\url{https://llm-uj-research-eval.netlify.app/} contains broader context
+--- grant proposal background, earlier analysis iterations, project
+goals, and team information --- but is not currently kept up-to-date
+with the latest results. This working paper is the authoritative version
+of the analysis.
+
+\end{tcolorbox}
 
 \emph{A collaboration with \href{https://www.unjournal.org/}{The
 Unjournal} (55+ open evaluation packages for global-priorities
@@ -399,6 +467,22 @@ human-vs-LLM horse race. Finally, The Unjournal's pipeline of future
 evaluations allows for clean out-of-training-data predictions, serving
 as a live testing lab for prospective validation.
 
+\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Unjournal impact: author engagement evidence}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+
+Do authors engage with and respond to Unjournal evaluations? Manual
+tracking of 57 evaluations finds that 16 papers received formal written
+responses and at least 5 show clear evidence of substantive revision in
+response to the feedback---including one paper with over 3,000 net line
+changes. A further 7 authors stated an intention to update their paper.
+
+See the \textbf{\href{paper_response_analysis.html}{full tabulation: did
+authors adjust their papers?}} for the interactive table and public
+author statements. For broader context, see
+\textbf{\href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence}{Evidence:
+do authors engage with evaluations?}} in The Unjournal's knowledge base.
+
+\end{tcolorbox}
+
 \bookmarksetup{startatroot}
 
 \section{Results}\label{results}
@@ -416,14 +500,16 @@ We do not treat human ratings as ground truth. Quantitative percentile
 scoring is genuinely difficult: even domain experts disagree, and
 individual scores reflect both signal about paper quality and
 idiosyncratic tendencies (severity, topic familiarity, interpretation of
-the scale). Our question is therefore whether an LLM provides signal
-\emph{comparable to an additional expert rater}. If two human evaluators
-agree at Spearman ρ ≈ 0.5, an LLM achieving comparable ρ against the
-human mean is performing within human inter-rater range. The
-Human--Human baseline row in Table~\ref{tbl-model-agreement-main} makes
-this explicit; Krippendorff's α\textsubscript{HH} in the
+the scale). Our question is whether an LLM provides signal
+\emph{comparable to an additional expert rater}. The Human--Human
+baseline row in Table~\ref{tbl-model-agreement-main} provides this
+reference. \textbf{Caution}: the LLM's \emph{ρ} is computed against the
+\emph{mean} of 1.9 human raters, which reduces noise and inflates
+apparent agreement relative to the individual-vs-individual ρ\_HH. The
+Spearman-Brown adjusted column corrects for this; the fair comparison is
+ρ adj. vs.~ρ\_HH. Krippendorff's α\textsubscript{HH} in the
 \href{results_ratings.qmd}{human-baseline table in Appendix A} provides
-the criterion-level ceiling.
+the criterion-level reference.
 
 \textbf{Per-paper overview.} Figure~\ref{fig-overview-combined} presents
 three complementary views of overall (0--100 percentile) ratings. Panel
@@ -506,16 +592,17 @@ assessed by GPT-5.2 Pro acting as an independent judge (see
 \href{methods.qmd}{Methods} for the judging protocol).
 
 Coverage and precision vary substantially across papers. Averaged over
-the focal papers, the model captures of human consensus issues (range ),
-while of model-raised issues match a substantive human concern. Low
-precision partly reflects the reference set: the human consensus list
-contains only the issues evaluation managers prioritised, so model
-issues flagged by individual evaluators but not curated into the
-consensus count against precision. Because these metrics are themselves
-LLM-assessed, they should be interpreted with the caveat that an LLM
-judge may systematically over- or under-credit matches relative to a
-human annotator; the repository includes a browser-based annotation tool
-for manual validation of these alignment scores, which is ongoing.
+the 14 focal papers, the model captures 75\% of human consensus issues
+(range 40--100\%), while 47\% of model-raised issues match a substantive
+human concern. Low precision partly reflects the reference set: the
+human consensus list contains only the issues evaluation managers
+prioritised, so model issues flagged by individual evaluators but not
+curated into the consensus count against precision. Because these
+metrics are themselves LLM-assessed, they should be interpreted with the
+caveat that an LLM judge may systematically over- or under-credit
+matches relative to a human annotator; the repository includes a
+browser-based annotation tool for manual validation of these alignment
+scores, which is ongoing.
 
 Detailed paper-by-paper comparisons---including matched issue pairs with
 severity labels, structural difference tables, and per-evaluator
@@ -528,72 +615,102 @@ reasoning traces and assessment summaries are available in
 \href{appendix_llm_traces.qmd}{Appendix C: LLM Traces}.
 
 \textbf{Agreement summary.} Table~\ref{tbl-model-agreement-main} shows
-GPT-5 Pro's agreement with the human mean on overall ratings, alongside
-the Human--Human baseline as an empirical ceiling. Full model comparison
-across all six models is in \href{results_ratings.qmd}{Appendix A}.
+GPT-5 Pro's agreement split into a \textbf{primary matched group} (same
+39 papers as the H--H baseline, enabling like-for-like comparison) and a
+\textbf{secondary full-sample group} (all 47 matched papers). In the
+Spearman \emph{ρ} column, the H--H row shows individual-vs-individual
+\emph{ρ} (the reference, already on the natural scale); GPT-5 Pro rows
+show \emph{ρ} vs.~the human mean, which is upward-biased. The \textbf{ρ
+adj.} column applies the Spearman-Brown correction to GPT-5 Pro rows
+only, making them directly comparable to H--H \emph{ρ}. Six-model
+comparison in \hyperref[tbl-agreement]{Appendix A, Table A2}.
 
-\begin{longtable}[t]{lrrrrrr}
+\begin{longtable}[t]{lrrrrrrr}
 
-\caption{\label{tbl-model-agreement-main}GPT-5 Pro agreement with human
-mean overall rating (N = \texttt{r\ n\_focal} matched papers).
-\textbf{Human--Human} row shows pairwise evaluator agreement as an
-empirical ceiling. Spearman \emph{ρ} (rank-based) and MAE (in percentile
-points) are primary metrics; Pearson \emph{r} shown for completeness.
-Bias = LLM − Human (positive = LLM more generous).}
+\caption{\label{tbl-model-agreement-main}GPT-5 Pro overall-rating
+agreement. \textbf{Primary (matched) group}: same 39 papers as the
+H\textless U+2013\textgreater H baseline (\textless U+2265\textgreater2
+human raters). \textbf{Secondary group}: all 47 matched papers.
+\textbf{Spearman \textless U+03C1\textgreater{} column}:
+H\textless U+2013\textgreater H row shows individual-vs-individual
+\textless U+03C1\textgreater{} (reference, natural scale;
+\textless U+03C1\textgreater{} adj. shows \textless U+2014\textgreater).
+GPT-5 Pro rows show \textless U+03C1\textgreater{} vs.~human mean
+\textless U+2014\textgreater{} upward-biased relative to
+H\textless U+2013\textgreater H. \textbf{\textless U+03C1\textgreater{}
+adj.}: Spearman-Brown corrected to individual-rater-equivalent
+(\textless U+00D7\textgreater0.83), making GPT-5 Pro rows directly
+comparable to H\textless U+2013\textgreater H. \textbf{95\% CI}:
+Fisher-z. Bias = LLM \textless U+2212\textgreater{} Human. Full
+six-model comparison in \href{results_ratings.qmd}{Appendix A}.}
 
 \tabularnewline
 
 \toprule
-Model & N & Spearman ρ & Pearson r & Mean bias & RMSE & MAE\\
+Model & N & Spearman ρ & ρ adj. & 95\% CI & Pearson r & Mean bias & MAE\\
 \midrule
-\cellcolor[HTML]{f0f8f0}{\textbf{Human–Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{37}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.432}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.565}} & \cellcolor[HTML]{f0f8f0}{\textbf{+4.1}} & \cellcolor[HTML]{f0f8f0}{\textbf{15.6}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.0}}\\
-GPT-5 Pro & 45 & 0.517 & 0.342 & +6.4 & 15.4 & 10.3\\
+\addlinespace[0.3em]
+\multicolumn{8}{l}{\textcolor{black}{\textbf{Matched sample <U+2014> same 39 papers as H<U+2013>H baseline (primary)}}}\\
+\hspace{1em}\cellcolor[HTML]{f0f8f0}{\textbf{Human<U+2013>Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{39}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.331}} & \cellcolor[HTML]{f0f8f0}{\textbf{<U+2014>}} & \cellcolor[HTML]{f0f8f0}{\textbf{{}[0.02, 0.59]}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.520}} & \cellcolor[HTML]{f0f8f0}{\textbf{+3.7}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.6}}\\
+\hspace{1em}GPT-5 Pro & 39 & 0.627 & 0.520 & {}[0.39, 0.79] & 0.577 & +6.6 & 8.4\\
+\addlinespace[0.3em]
+\multicolumn{8}{l}{\textit{Full sample <U+2014> all 47 GPT-5 Pro matched papers (secondary)}}\\
+\hspace{1em}GPT-5 Pro & 47 & 0.526 & 0.436 & {}[0.28, 0.71] & 0.348 & +6.4 & 10.1\\
 \bottomrule
 
 \end{longtable}
 
-To quantify the uncertainty in this comparison we use a paired bootstrap
-over papers (2,000 resamples): each draw resamples the matched sample
-with replacement and recomputes both the GPT-5 Pro--human rank
-correlation and the human--human pairwise rank correlation on the same
-draw. The GPT-5 Pro correlation is ρ = 0.52 with 95\% CI {[}0.27,
-0.71{]}, against a human--human baseline of ρ = 0.43 {[}0.12, 0.68{]}.
-The bootstrap distribution of the difference (LLM minus human--human)
-spans {[}-0.24, 0.44{]}: at this sample size we cannot statistically
-separate the model from an additional human rater---the two correlations
-are comparable, not demonstrably ordered. This is the precise sense in
-which GPT-5 Pro ``performs within the human inter-rater range.''
+The Fisher-z intervals in Table~\ref{tbl-model-agreement-main} quantify
+uncertainty in each correlation separately; to make an uncertainty
+statement about the \emph{comparison itself} we add a paired bootstrap
+over papers (2,000 resamples of the 39 matched-group papers). Each draw
+recomputes the GPT-5 Pro--human-mean rank correlation, applies that
+draw's own Spearman-Brown correction, and takes the difference against
+the human--human pairwise correlation on the same draw. The resulting
+distribution of the adjusted difference (ρ adj. − ρ\textsubscript{HH})
+spans {[}-0.11, 0.45{]}: the interval includes zero, so at this sample
+size we cannot statistically separate the model from an additional human
+rater---the two correlations are comparable, not demonstrably ordered.
+This is the precise sense in which GPT-5 Pro ``performs within the human
+inter-rater range.''
 
 Table~\ref{tbl-criteria-agreement-main} breaks the same agreement
-metrics down by evaluation criterion for GPT-5 Pro. Crucially, the
-\textbf{H-H ρ} column shows pairwise human-human Spearman ρ for each
-criterion --- the ceiling available to any model. Criteria where H-H ρ
-is itself low indicate genuine expert disagreement; low LLM agreement on
-those criteria is therefore expected rather than a model failure.
+metrics down by evaluation criterion for GPT-5 Pro. The \textbf{H-H ρ}
+column shows pairwise human-human Spearman ρ for each criterion as a
+reference --- note that raw LLM ρ is upward-biased relative to H-H ρ by
+the mean-vs-individual asymmetry (see
+Table~\ref{tbl-model-agreement-main}). Criteria where H-H ρ is itself
+low indicate genuine expert disagreement; low LLM agreement on those
+criteria is therefore expected rather than a model failure.
 
 \begin{longtable}[t]{l>{}rrrrr}
 
 \caption{\label{tbl-criteria-agreement-main}GPT-5 Pro agreement with
-human mean by criterion (N = \texttt{r\ n\_focal} matched papers).
-\textbf{H-H ρ} shows pairwise human evaluator Spearman \emph{ρ} (the
-ceiling for each criterion). Positive bias = GPT-5 Pro rates higher on
-average. Note the ceiling variation: human evaluators agree strongly on
-some dimensions and barely at all on others (Open Science), setting
-expectations for LLM performance.}
+human mean by criterion (N = 47 papers; N = 39 for
+H\textless U+2013\textgreater H). \textbf{H-H
+\textless U+03C1\textgreater{}}: pairwise human evaluator Spearman
+\textless U+03C1\textgreater{} (reference; computed on 39 papers with
+\textless U+2265\textgreater2 raters; raw LLM
+\textless U+03C1\textgreater{} is upward-biased vs.~H-H
+\textless U+03C1\textgreater\textless U+2014\textgreater see
+Table~\ref{tbl-model-agreement-main}). Positive bias = GPT-5 Pro rates
+higher on average. Note the variation across criteria: human evaluators
+agree strongly on some dimensions and barely at all on others (Open
+Science), setting expectations for LLM performance.}
 
 \tabularnewline
 
 \toprule
 Criterion & H-H ρ & Spearman ρ & Pearson r & Mean bias & RMSE\\
 \midrule
-Overall & \textbf{0.432} & 0.517 & 0.342 & +6.4 & 15.4\\
+Overall & \textbf{0.331} & 0.526 & 0.348 & +6.4 & 15.1\\
 Claims \& Evidence & \textbf{0.400} & 0.388 & 0.213 & +4.0 & 18.3\\
-Methods & \textbf{0.362} & 0.536 & 0.339 & +4.5 & 18.5\\
-Adv. Knowledge & \textbf{0.179} & 0.459 & 0.303 & +7.9 & 17.6\\
-Logic \& Comms & \textbf{0.225} & 0.276 & 0.187 & +9.6 & 16.5\\
+Methods & \textbf{0.375} & 0.562 & 0.356 & +4.5 & 18.1\\
+Adv. Knowledge & \textbf{0.148} & 0.454 & 0.304 & +7.9 & 17.3\\
+Logic \& Comms & \textbf{0.179} & 0.287 & 0.193 & +9.5 & 16.2\\
 \addlinespace
-Open Science & \textbf{-0.033} & 0.125 & 0.166 & -17.0 & 27.7\\
-Global Relevance & \textbf{0.130} & 0.429 & 0.345 & +6.1 & 16.0\\
+Open Science & \textbf{-0.065} & 0.150 & 0.177 & -16.8 & 27.3\\
+Global Relevance & \textbf{0.114} & 0.424 & 0.341 & +5.8 & 15.7\\
 \bottomrule
 
 \end{longtable}
@@ -1100,6 +1217,527 @@ supplement at
 Full LLM reasoning traces, assessment summaries, related work, and
 extended analyses are available in the online supplement at
 \url{https://llm-uj-research-eval.netlify.app/appendix_llm_traces.html}.
+
+\section{Did Authors Respond to Unjournal
+Evaluations?}\label{did-authors-respond-to-unjournal-evaluations}
+
+The interactive tables in this appendix are available in the online
+version at
+\url{https://valentinklotzbuecher.github.io/llm-uj-research-eval/paper_response_analysis.html}.
+
+\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+
+57 Unjournal evaluations tracked as of April 2026, drawing on two
+evidence streams: (a) manual staff assessment of author responses and
+paper revisions; (b) Claude Opus 4.6 change-attribution for 8 papers
+where pre/post PDFs were available. See
+\hyperref[combined-evidence]{Combined Evidence} below.
+
+\end{tcolorbox}
+
+\subsection{Overview}\label{overview}
+
+The Unjournal commissions open, structured evaluations of working papers
+in economics and social science. A natural question is whether this
+process changes research: do authors engage with feedback and revise
+their work?
+
+This page draws on manual classification of 57 tracked evaluations and,
+for a subset, automated PDF diffing and LLM attribution. Background:
+\href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence}{The
+Unjournal's knowledge base}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(readr)}
+\FunctionTok{library}\NormalTok{(DT)}
+\FunctionTok{library}\NormalTok{(tidyr)}
+\FunctionTok{library}\NormalTok{(stringr)}
+\FunctionTok{library}\NormalTok{(glue)}
+\FunctionTok{library}\NormalTok{(jsonlite)}
+
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"data/author\_adjustment\_manual.csv"}\NormalTok{, }\AttributeTok{show\_col\_types =} \ConstantTok{FALSE}\NormalTok{)}
+
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{rename}\NormalTok{(}
+    \AttributeTok{paper\_title    =}\NormalTok{ label\_paper\_title,}
+    \AttributeTok{pubpub\_link    =}\NormalTok{ dup\_pubpub\_final\_links,}
+    \AttributeTok{adj\_status     =} \StringTok{\textasciigrave{}}\AttributeTok{Adjusted\_paper?}\StringTok{\textasciigrave{}}\NormalTok{,}
+    \AttributeTok{updated\_manual =} \StringTok{\textasciigrave{}}\AttributeTok{Updated since UJ report {-}{-} manual confirmation}\StringTok{\textasciigrave{}}\NormalTok{,}
+    \AttributeTok{deposit\_after  =} \StringTok{\textasciigrave{}}\AttributeTok{deposit date \textgreater{} unjournal pub date}\StringTok{\textasciigrave{}}\NormalTok{,}
+    \AttributeTok{research\_area  =}\NormalTok{ main\_cause\_cat\_abbrev,}
+    \AttributeTok{nb\_link        =}\NormalTok{ notebookLM\_link,}
+    \AttributeTok{pub\_status     =}\NormalTok{ publication\_status,}
+    \AttributeTok{wp\_date        =}\NormalTok{ working\_paper\_release\_date,}
+    \AttributeTok{uj\_pub\_date    =}\NormalTok{ publication\_date\_unjournal}
+\NormalTok{  )}
+
+\NormalTok{adj\_labels }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"Evidence of updating"}\NormalTok{, }\StringTok{"Stated intention to update"}\NormalTok{,}
+  \StringTok{"Mixed / minor updating"}\NormalTok{, }\StringTok{"Unlikely to update"}\NormalTok{, }\StringTok{"Not yet assessed"}
+\NormalTok{)}
+
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{adj\_status\_clean =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{      adj\_status }\SpecialCharTok{==} \StringTok{"evidence of updating"}          \SpecialCharTok{\textasciitilde{}} \StringTok{"Evidence of updating"}\NormalTok{,}
+\NormalTok{      adj\_status }\SpecialCharTok{==} \StringTok{"Stated intention to update"}    \SpecialCharTok{\textasciitilde{}} \StringTok{"Stated intention to update"}\NormalTok{,}
+\NormalTok{      adj\_status }\SpecialCharTok{==} \StringTok{"mixed evidence/minor updating"} \SpecialCharTok{\textasciitilde{}} \StringTok{"Mixed / minor updating"}\NormalTok{,}
+\NormalTok{      adj\_status }\SpecialCharTok{==} \StringTok{"Unlikely to update"}            \SpecialCharTok{\textasciitilde{}} \StringTok{"Unlikely to update"}\NormalTok{,}
+      \ConstantTok{TRUE}                                          \SpecialCharTok{\textasciitilde{}} \StringTok{"Not yet assessed"}
+\NormalTok{    ),}
+    \AttributeTok{adj\_status\_clean =} \FunctionTok{factor}\NormalTok{(adj\_status\_clean, }\AttributeTok{levels =}\NormalTok{ adj\_labels),}
+    \AttributeTok{author\_response\_clean =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{      author\_response }\SpecialCharTok{==} \StringTok{"Formal response"} \SpecialCharTok{\textasciitilde{}} \StringTok{"Formal response"}\NormalTok{,}
+\NormalTok{      author\_response }\SpecialCharTok{==} \StringTok{"Informal"}        \SpecialCharTok{\textasciitilde{}} \StringTok{"Informal response"}\NormalTok{,}
+\NormalTok{      author\_response }\SpecialCharTok{==} \StringTok{"None?"}           \SpecialCharTok{\textasciitilde{}} \StringTok{"No response"}\NormalTok{,}
+      \ConstantTok{TRUE}                                 \SpecialCharTok{\textasciitilde{}} \StringTok{"Not yet coded"}
+\NormalTok{    )}
+\NormalTok{  )}
+
+\NormalTok{theme\_uj }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{12}\NormalTok{) \{}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =}\NormalTok{ base\_size) }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}\AttributeTok{panel.grid.minor =} \FunctionTok{element\_blank}\NormalTok{(),}
+          \AttributeTok{axis.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =}\NormalTok{ base\_size }\SpecialCharTok{*} \FloatTok{0.85}\NormalTok{),}
+          \AttributeTok{plot.caption =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =}\NormalTok{ base\_size }\SpecialCharTok{*} \FloatTok{0.75}\NormalTok{, }\AttributeTok{color =} \StringTok{"grey50"}\NormalTok{),}
+          \AttributeTok{legend.position =} \StringTok{"right"}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Combined Evidence of Paper
+Updating}\label{combined-evidence}
+
+Two evidence streams are combined: manual classification for all 57
+papers, and Claude Opus 4.6 LLM attribution for 8 papers where
+before/after PDFs were available and meaningful text changes were
+detected.
+
+\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Pipeline and caveats}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+
+\textbf{Scripts}: \texttt{scripts/fetch\_latest\_papers.py} →
+\texttt{scripts/run\_paper\_change\_llm.py}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Before version}: PDF sent to Unjournal evaluators
+  (\texttt{papers/}); \textbf{After version}: latest NBER/arxiv version,
+  fetched April 2026
+\item
+  \textbf{Model}: Claude Opus 4.6, temperature 0.2; conservative
+  instructions --- only flags ``direct'' or ``indirect'' attribution
+  with clear conceptual alignment to a specific evaluator suggestion
+\item
+  \textbf{Coverage}: 30 papers had fetchable DOIs; 8 had meaningful
+  changes (≥15 line edits or ≥0.5\% size change) and a matched
+  evaluation file; the 3 manually-confirmed updates were also
+  LLM-analyzed
+\item
+  \textbf{Temporal caveat}: a newer version does not imply changes were
+  evaluation-driven; some papers were already in revision
+\item
+  \textbf{LLM limitations}: text truncated at 60,000 chars/version;
+  figures and tables not visible to the model
+\end{itemize}
+
+\end{tcolorbox}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{nn }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, }\AttributeTok{default =} \ConstantTok{NA}\NormalTok{) }\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(x)) x }\ControlFlowTok{else}\NormalTok{ default}
+
+\NormalTok{llm\_results\_path }\OtherTok{\textless{}{-}} \StringTok{"data/paper\_change\_llm\_results.json"}
+
+\CommentTok{\# Signal tier labels used throughout — define once}
+\NormalTok{tier\_levels }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"Confirmed, LLM \textbackslash{}u226540\%"}\NormalTok{,}
+  \StringTok{"Confirmed, LLM \textless{}40\%"}\NormalTok{,}
+  \StringTok{"LLM \textbackslash{}u226530\% (not confirmed)"}\NormalTok{,}
+  \StringTok{"LLM 10\textbackslash{}u201329\%"}\NormalTok{,}
+  \StringTok{"LLM \textless{}10\%"}
+\NormalTok{)}
+
+\NormalTok{tier\_colors\_llm }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"Confirmed, LLM \textbackslash{}u226540\%"}      \OtherTok{=} \StringTok{"\#1a7a47"}\NormalTok{,}
+  \StringTok{"Confirmed, LLM \textless{}40\%"}           \OtherTok{=} \StringTok{"\#2D9D5E"}\NormalTok{,}
+  \StringTok{"LLM \textbackslash{}u226530\% (not confirmed)"} \OtherTok{=} \StringTok{"\#5AE08A"}\NormalTok{,}
+  \StringTok{"LLM 10\textbackslash{}u201329\%"}               \OtherTok{=} \StringTok{"\#a8d5b5"}\NormalTok{,}
+  \StringTok{"LLM \textless{}10\%"}                      \OtherTok{=} \StringTok{"\#d0e8d8"}
+\NormalTok{)}
+
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{file.exists}\NormalTok{(llm\_results\_path)) \{}
+\NormalTok{  llm\_raw }\OtherTok{\textless{}{-}} \FunctionTok{fromJSON}\NormalTok{(llm\_results\_path, }\AttributeTok{simplifyVector =} \ConstantTok{FALSE}\NormalTok{)}
+
+\NormalTok{  llm\_df }\OtherTok{\textless{}{-}} \FunctionTok{lapply}\NormalTok{(llm\_raw, }\ControlFlowTok{function}\NormalTok{(r) \{}
+\NormalTok{    oa }\OtherTok{\textless{}{-}}\NormalTok{ r}\SpecialCharTok{$}\NormalTok{overall\_assessment}
+    \FunctionTok{data.frame}\NormalTok{(}
+      \AttributeTok{paper\_title      =} \FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{paper\_title, }\StringTok{""}\NormalTok{),}
+      \AttributeTok{adj\_status\_csv   =} \FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{adj\_status, }\StringTok{""}\NormalTok{),}
+      \AttributeTok{deposit\_after\_uj =} \FunctionTok{isTRUE}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{deposit\_after\_uj),}
+      \AttributeTok{text\_chg\_pct     =} \FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{text\_length\_change\_pct, }\ConstantTok{NA\_real\_}\NormalTok{),}
+      \AttributeTok{additions        =} \FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{additions\_count, }\ConstantTok{NA\_integer\_}\NormalTok{),}
+      \AttributeTok{deletions        =} \FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{deletions\_count, }\ConstantTok{NA\_integer\_}\NormalTok{),}
+      \AttributeTok{n\_major\_changes  =} \FunctionTok{length}\NormalTok{(}\FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{major\_changes, }\FunctionTok{list}\NormalTok{())),}
+      \AttributeTok{n\_suggestions    =} \FunctionTok{length}\NormalTok{(}\FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{evaluator\_suggestions, }\FunctionTok{list}\NormalTok{())),}
+      \AttributeTok{pct\_influenced   =} \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(oa)) }\FunctionTok{nn}\NormalTok{(oa}\SpecialCharTok{$}\NormalTok{pct\_likely\_influenced, }\ConstantTok{NA\_real\_}\NormalTok{) }\ControlFlowTok{else} \ConstantTok{NA\_real\_}\NormalTok{,}
+      \AttributeTok{attr\_confidence  =} \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(oa)) }\FunctionTok{nn}\NormalTok{(oa}\SpecialCharTok{$}\NormalTok{confidence, }\ConstantTok{NA\_real\_}\NormalTok{) }\ControlFlowTok{else} \ConstantTok{NA\_real\_}\NormalTok{,}
+      \AttributeTok{narrative        =} \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(oa)) }\FunctionTok{nn}\NormalTok{(oa}\SpecialCharTok{$}\NormalTok{narrative, }\StringTok{""}\NormalTok{) }\ControlFlowTok{else} \StringTok{""}\NormalTok{,}
+      \AttributeTok{eval\_found       =} \SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{eval\_file) }\SpecialCharTok{\&\&} \FunctionTok{nchar}\NormalTok{(}\FunctionTok{nn}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{eval\_file, }\StringTok{""}\NormalTok{)) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{,}
+      \AttributeTok{skipped          =} \SpecialCharTok{!}\FunctionTok{is.null}\NormalTok{(r}\SpecialCharTok{$}\NormalTok{skipped\_reason),}
+      \AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}
+\NormalTok{    )}
+\NormalTok{  \}) }\SpecialCharTok{|\textgreater{}} \FunctionTok{bind\_rows}\NormalTok{()}
+
+\NormalTok{  llm\_analyzed }\OtherTok{\textless{}{-}}\NormalTok{ llm\_df }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{filter}\NormalTok{(}\SpecialCharTok{!}\NormalTok{skipped }\SpecialCharTok{\&}\NormalTok{ eval\_found }\SpecialCharTok{\&}\NormalTok{ n\_major\_changes }\SpecialCharTok{\textgreater{}} \DecValTok{0} \SpecialCharTok{\&} \SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(pct\_influenced))}
+
+\NormalTok{  llm\_enriched }\OtherTok{\textless{}{-}}\NormalTok{ llm\_analyzed }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{left\_join}\NormalTok{(df }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(paper\_title, research\_area, pubpub\_link), }\AttributeTok{by =} \StringTok{"paper\_title"}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}
+      \AttributeTok{manual\_tier =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{        adj\_status\_csv }\SpecialCharTok{==} \StringTok{"evidence of updating"}          \SpecialCharTok{\textasciitilde{}} \StringTok{"Confirmed update"}\NormalTok{,}
+\NormalTok{        adj\_status\_csv }\SpecialCharTok{==} \StringTok{"Stated intention to update"}    \SpecialCharTok{\textasciitilde{}} \StringTok{"Stated intention"}\NormalTok{,}
+\NormalTok{        adj\_status\_csv }\SpecialCharTok{==} \StringTok{"mixed evidence/minor updating"} \SpecialCharTok{\textasciitilde{}} \StringTok{"Mixed / minor"}\NormalTok{,}
+\NormalTok{        adj\_status\_csv }\SpecialCharTok{==} \StringTok{"Unlikely to update"}            \SpecialCharTok{\textasciitilde{}} \StringTok{"Unlikely"}\NormalTok{,}
+        \ConstantTok{TRUE}                                              \SpecialCharTok{\textasciitilde{}} \StringTok{"Unclassified"}
+\NormalTok{      ),}
+      \AttributeTok{combined\_tier =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{        manual\_tier }\SpecialCharTok{==} \StringTok{"Confirmed update"} \SpecialCharTok{\&}\NormalTok{ pct\_influenced }\SpecialCharTok{\textgreater{}=} \DecValTok{40} \SpecialCharTok{\textasciitilde{}}\NormalTok{ tier\_levels[}\DecValTok{1}\NormalTok{],}
+\NormalTok{        manual\_tier }\SpecialCharTok{==} \StringTok{"Confirmed update"}                        \SpecialCharTok{\textasciitilde{}}\NormalTok{ tier\_levels[}\DecValTok{2}\NormalTok{],}
+\NormalTok{        pct\_influenced }\SpecialCharTok{\textgreater{}=} \DecValTok{30}                                     \SpecialCharTok{\textasciitilde{}}\NormalTok{ tier\_levels[}\DecValTok{3}\NormalTok{],}
+\NormalTok{        pct\_influenced }\SpecialCharTok{\textgreater{}=} \DecValTok{10}                                     \SpecialCharTok{\textasciitilde{}}\NormalTok{ tier\_levels[}\DecValTok{4}\NormalTok{],}
+        \ConstantTok{TRUE}                                                     \SpecialCharTok{\textasciitilde{}}\NormalTok{ tier\_levels[}\DecValTok{5}\NormalTok{]}
+\NormalTok{      ),}
+      \AttributeTok{combined\_tier =} \FunctionTok{factor}\NormalTok{(combined\_tier, }\AttributeTok{levels =}\NormalTok{ tier\_levels)}
+\NormalTok{    )}
+
+\NormalTok{  n\_analyzed      }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(llm\_enriched)}
+\NormalTok{  n\_total\_fetched }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(llm\_df)}
+\NormalTok{  med\_pct         }\OtherTok{\textless{}{-}} \FunctionTok{median}\NormalTok{(llm\_enriched}\SpecialCharTok{$}\NormalTok{pct\_influenced, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  n\_high          }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(llm\_enriched}\SpecialCharTok{$}\NormalTok{pct\_influenced }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{\} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{  llm\_df }\OtherTok{\textless{}{-}}\NormalTok{ llm\_analyzed }\OtherTok{\textless{}{-}}\NormalTok{ llm\_enriched }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{()}
+\NormalTok{  n\_analyzed }\OtherTok{\textless{}{-}}\NormalTok{ n\_total\_fetched }\OtherTok{\textless{}{-}}\NormalTok{ n\_high }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{  med\_pct }\OtherTok{\textless{}{-}} \ConstantTok{NA\_real\_}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(llm\_enriched) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{  n\_confirmed }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(llm\_enriched}\SpecialCharTok{$}\NormalTok{manual\_tier }\SpecialCharTok{==} \StringTok{"Confirmed update"}\NormalTok{)}
+\NormalTok{  n\_llm\_high  }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(llm\_enriched}\SpecialCharTok{$}\NormalTok{manual\_tier }\SpecialCharTok{==} \StringTok{"Unclassified"} \SpecialCharTok{\&}
+\NormalTok{                       llm\_enriched}\SpecialCharTok{$}\NormalTok{pct\_influenced }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{)}
+  \FunctionTok{cat}\NormalTok{(glue}\SpecialCharTok{::}\FunctionTok{glue}\NormalTok{(}
+    \StringTok{"Of \{n\_total\_fetched\} papers with fetchable DOIs, \{n\_analyzed\} had meaningful text "}\NormalTok{,}
+    \StringTok{"changes and a matched evaluation. \{n\_confirmed\} are manually confirmed updates; "}\NormalTok{,}
+    \StringTok{"of the remaining \{n\_analyzed {-} n\_confirmed\}, the LLM finds \{n\_llm\_high\} with \textbackslash{}u226530\% "}\NormalTok{,}
+    \StringTok{"of changes likely driven by evaluator feedback (median across all: \{round(med\_pct)\}\%)."}
+\NormalTok{  ))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Of 22 papers with fetchable DOIs, 8 had meaningful text changes and a
+matched evaluation. 3 are manually confirmed updates; of the remaining
+5, the LLM finds 2 with \textless U+2265\textgreater30\% of changes
+likely driven by evaluator feedback (median across all: 22\%).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(llm\_enriched) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+  \CommentTok{\# Build one row per paper with tier assignment}
+\NormalTok{  waffle\_llm }\OtherTok{\textless{}{-}}\NormalTok{ llm\_enriched }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{select}\NormalTok{(paper\_title, combined\_tier) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{group =} \FunctionTok{as.character}\NormalTok{(combined\_tier))}
+
+\NormalTok{  waffle\_manual }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{filter}\NormalTok{(}\SpecialCharTok{!}\NormalTok{paper\_title }\SpecialCharTok{\%in\%}\NormalTok{ llm\_enriched}\SpecialCharTok{$}\NormalTok{paper\_title) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{group =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{      adj\_status\_clean }\SpecialCharTok{==} \StringTok{"Evidence of updating"}       \SpecialCharTok{\textasciitilde{}} \StringTok{"Confirmed (manual only)"}\NormalTok{,}
+\NormalTok{      adj\_status\_clean }\SpecialCharTok{==} \StringTok{"Stated intention to update"} \SpecialCharTok{\textasciitilde{}} \StringTok{"Stated intention"}\NormalTok{,}
+\NormalTok{      adj\_status\_clean }\SpecialCharTok{==} \StringTok{"Mixed / minor updating"}     \SpecialCharTok{\textasciitilde{}} \StringTok{"Mixed / minor"}\NormalTok{,}
+\NormalTok{      adj\_status\_clean }\SpecialCharTok{==} \StringTok{"Unlikely to update"}         \SpecialCharTok{\textasciitilde{}} \StringTok{"Unlikely"}\NormalTok{,}
+      \ConstantTok{TRUE}                                             \SpecialCharTok{\textasciitilde{}} \StringTok{"Not yet assessed"}
+\NormalTok{    )) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{select}\NormalTok{(paper\_title, group)}
+
+\NormalTok{  waffle\_all\_groups }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(tier\_levels,}
+    \StringTok{"Confirmed (manual only)"}\NormalTok{, }\StringTok{"Stated intention"}\NormalTok{,}
+    \StringTok{"Mixed / minor"}\NormalTok{, }\StringTok{"Unlikely"}\NormalTok{, }\StringTok{"Not yet assessed"}\NormalTok{)}
+
+\NormalTok{  waffle\_colors }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+\NormalTok{    tier\_colors\_llm,}
+    \StringTok{"Confirmed (manual only)"} \OtherTok{=} \StringTok{"\#2B7CE9"}\NormalTok{,}
+    \StringTok{"Stated intention"}        \OtherTok{=} \StringTok{"\#7EB8F7"}\NormalTok{,}
+    \StringTok{"Mixed / minor"}           \OtherTok{=} \StringTok{"\#E8722A"}\NormalTok{,}
+    \StringTok{"Unlikely"}                \OtherTok{=} \StringTok{"\#C45A1E"}\NormalTok{,}
+    \StringTok{"Not yet assessed"}        \OtherTok{=} \StringTok{"\#CBD5E1"}
+\NormalTok{  )}
+
+\NormalTok{  waffle\_data }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(waffle\_llm, waffle\_manual) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{group =} \FunctionTok{factor}\NormalTok{(group, }\AttributeTok{levels =}\NormalTok{ waffle\_all\_groups)) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{arrange}\NormalTok{(group) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{rank =} \FunctionTok{row\_number}\NormalTok{(),}
+           \AttributeTok{x =}\NormalTok{ (rank }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{) }\SpecialCharTok{\%\%} \DecValTok{9}\NormalTok{,}
+           \AttributeTok{y =} \SpecialCharTok{{-}}\NormalTok{((rank }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{) }\SpecialCharTok{\%/\%} \DecValTok{9}\NormalTok{))}
+
+  \FunctionTok{ggplot}\NormalTok{(waffle\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ y, }\AttributeTok{fill =}\NormalTok{ group)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_tile}\NormalTok{(}\AttributeTok{color =} \StringTok{"white"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{1.5}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{coord\_equal}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ waffle\_colors, }\AttributeTok{name =} \ConstantTok{NULL}\NormalTok{,}
+                      \AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{theme\_void}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"right"}\NormalTok{,}
+          \AttributeTok{legend.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{9}\NormalTok{),}
+          \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{11}\NormalTok{, }\AttributeTok{face =} \StringTok{"plain"}\NormalTok{,}
+                                    \AttributeTok{margin =} \FunctionTok{margin}\NormalTok{(}\AttributeTok{b =} \DecValTok{6}\NormalTok{))) }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"All 57 tracked papers — each square = 1 paper"}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+\caption{\label{fig-combined-waffle}All 57 tracked papers by combined
+evidence tier (each square = 1 paper). Green tones: papers where LLM
+analysis was run, shaded by attribution score and manual confirmation
+status. Blue: manually confirmed updates without LLM analysis.
+Orange/grey: stated intention, weak signal, or not yet assessed.}
+
+\pandocbounded{\includegraphics[keepaspectratio]{paper_response_analysis_files/figure-pdf/fig-combined-waffle-1.pdf}}
+
+\end{figure}%
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(llm\_enriched) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{  dot\_colors }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Confirmed update"} \OtherTok{=} \StringTok{"\#2D9D5E"}\NormalTok{, }\StringTok{"Unclassified"} \OtherTok{=} \StringTok{"\#2B7CE9"}\NormalTok{)}
+
+\NormalTok{  llm\_enriched }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{paper\_short =} \FunctionTok{str\_trunc}\NormalTok{(paper\_title, }\DecValTok{46}\NormalTok{)) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ pct\_influenced, }\AttributeTok{y =} \FunctionTok{reorder}\NormalTok{(paper\_short, pct\_influenced),}
+               \AttributeTok{color =}\NormalTok{ manual\_tier, }\AttributeTok{size =}\NormalTok{ text\_chg\_pct)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{30}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"grey55"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.5}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ dot\_colors, }\AttributeTok{name =} \StringTok{"Manual classification"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_size\_continuous}\NormalTok{(}\AttributeTok{range =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{9}\NormalTok{), }\AttributeTok{name =} \StringTok{"Text change \%"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{limits =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{72}\NormalTok{), }\AttributeTok{labels =}\NormalTok{ \textbackslash{}(x) }\FunctionTok{paste0}\NormalTok{(x, }\StringTok{"\%"}\NormalTok{),}
+                       \AttributeTok{breaks =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{15}\NormalTok{, }\DecValTok{30}\NormalTok{, }\DecValTok{50}\NormalTok{, }\DecValTok{70}\NormalTok{)) }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"\% of major changes attributed to evaluator feedback"}\NormalTok{, }\AttributeTok{y =} \ConstantTok{NULL}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{theme\_uj}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{, }\AttributeTok{legend.box =} \StringTok{"vertical"}\NormalTok{,}
+          \AttributeTok{legend.margin =} \FunctionTok{margin}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+\caption{\label{fig-combined-dot}LLM attribution for the 8 papers with
+pre/post versions compared. x-axis: estimated \% of major changes
+attributed to evaluator feedback (Claude Opus 4.6, conservative). Point
+size scales with text change magnitude. Green = manually confirmed
+update; blue = not yet manually classified. Dashed line at 30\%.}
+
+\pandocbounded{\includegraphics[keepaspectratio]{paper_response_analysis_files/figure-pdf/fig-combined-dot-1.pdf}}
+
+\end{figure}%
+
+\begin{table}
+
+\caption{\label{tbl-llm-attribution}Papers with LLM attribution results,
+sorted by \% of changes attributed to evaluator feedback. `Confirmed' =
+manually verified by Unjournal staff. Signal tier: `Confirmed, LLM
+\textless U+2265\textgreater40\%' = manually confirmed AND LLM finds
+strong corroboration; `Confirmed, LLM \textless40\%' = confirmed but
+weaker LLM signal; `LLM \textless U+2265\textgreater30\% (not
+confirmed)' = unconfirmed but LLM finds likely influence.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(llm\_enriched) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{  tier\_bg }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+    \StringTok{"Confirmed, LLM \textbackslash{}u226540\%"}      \OtherTok{=} \StringTok{"\#c8e6c9"}\NormalTok{,}
+    \StringTok{"Confirmed, LLM \textless{}40\%"}           \OtherTok{=} \StringTok{"\#d4edda"}\NormalTok{,}
+    \StringTok{"LLM \textbackslash{}u226530\% (not confirmed)"} \OtherTok{=} \StringTok{"\#e8f5e9"}\NormalTok{,}
+    \StringTok{"LLM 10\textbackslash{}u201329\%"}               \OtherTok{=} \StringTok{"\#fff3e0"}\NormalTok{,}
+    \StringTok{"LLM \textless{}10\%"}                      \OtherTok{=} \StringTok{"\#f8fafc"}
+\NormalTok{  )}
+
+\NormalTok{  tbl\_llm }\OtherTok{\textless{}{-}}\NormalTok{ llm\_enriched }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(pct\_influenced)) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{mutate}\NormalTok{(}
+      \AttributeTok{Title =} \FunctionTok{ifelse}\NormalTok{(}
+        \SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(pubpub\_link) }\SpecialCharTok{\&} \FunctionTok{nchar}\NormalTok{(pubpub\_link) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{,}
+        \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}\textless{}a href="\textquotesingle{}}\NormalTok{, pubpub\_link, }\StringTok{\textquotesingle{}" target="\_blank"\textgreater{}\textquotesingle{}}\NormalTok{,}
+               \FunctionTok{str\_trunc}\NormalTok{(paper\_title, }\DecValTok{60}\NormalTok{), }\StringTok{\textquotesingle{}\textless{}/a\textgreater{}\textquotesingle{}}\NormalTok{),}
+        \FunctionTok{str\_trunc}\NormalTok{(paper\_title, }\DecValTok{60}\NormalTok{)}
+\NormalTok{      ),}
+      \StringTok{\textasciigrave{}}\AttributeTok{Manual}\StringTok{\textasciigrave{}}      \OtherTok{=}\NormalTok{ manual\_tier,}
+      \StringTok{\textasciigrave{}}\AttributeTok{LLM \%}\StringTok{\textasciigrave{}}       \OtherTok{=} \FunctionTok{paste0}\NormalTok{(}\FunctionTok{round}\NormalTok{(pct\_influenced), }\StringTok{"\%"}\NormalTok{),}
+      \StringTok{\textasciigrave{}}\AttributeTok{Conf.}\StringTok{\textasciigrave{}}       \OtherTok{=} \FunctionTok{paste0}\NormalTok{(attr\_confidence, }\StringTok{"/5"}\NormalTok{),}
+      \StringTok{\textasciigrave{}}\AttributeTok{Signal tier}\StringTok{\textasciigrave{}} \OtherTok{=}\NormalTok{ combined\_tier,}
+      \StringTok{\textasciigrave{}}\AttributeTok{LLM narrative}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{str\_trunc}\NormalTok{(narrative, }\DecValTok{350}\NormalTok{)}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{select}\NormalTok{(Title, Manual, }\StringTok{\textasciigrave{}}\AttributeTok{LLM \%}\StringTok{\textasciigrave{}}\NormalTok{, Conf., }\StringTok{\textasciigrave{}}\AttributeTok{Signal tier}\StringTok{\textasciigrave{}}\NormalTok{, }\StringTok{\textasciigrave{}}\AttributeTok{LLM narrative}\StringTok{\textasciigrave{}}\NormalTok{)}
+
+  \FunctionTok{datatable}\NormalTok{(}
+\NormalTok{    tbl\_llm,}
+    \AttributeTok{escape   =} \ConstantTok{FALSE}\NormalTok{,}
+    \AttributeTok{rownames =} \ConstantTok{FALSE}\NormalTok{,}
+    \AttributeTok{options  =} \FunctionTok{list}\NormalTok{(}
+      \AttributeTok{pageLength =} \DecValTok{5}\NormalTok{,}
+      \AttributeTok{dom        =} \StringTok{"tip"}\NormalTok{,}
+      \AttributeTok{scrollX    =} \ConstantTok{TRUE}\NormalTok{,}
+      \AttributeTok{columnDefs =} \FunctionTok{list}\NormalTok{(}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"18\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{0}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"11\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{1}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"6\%"}\NormalTok{,  }\AttributeTok{targets =} \DecValTok{2}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"5\%"}\NormalTok{,  }\AttributeTok{targets =} \DecValTok{3}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"16\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{4}\NormalTok{),}
+        \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"44\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{5}\NormalTok{)}
+\NormalTok{      )}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{formatStyle}\NormalTok{(}\StringTok{"Signal tier"}\NormalTok{,}
+    \AttributeTok{backgroundColor =} \FunctionTok{styleEqual}\NormalTok{(}\FunctionTok{names}\NormalTok{(tier\_bg), }\FunctionTok{unname}\NormalTok{(tier\_bg)))}
+\NormalTok{\} }\ControlFlowTok{else}\NormalTok{ \{}
+  \FunctionTok{cat}\NormalTok{(}\StringTok{"*No LLM attribution results available yet.*"}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\end{table}%
+
+\subsection{Summary Statistics}\label{summary-statistics}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n\_total      }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(df)}
+\NormalTok{n\_assessed   }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(adj\_status\_clean }\SpecialCharTok{!=} \StringTok{"Not yet assessed"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{nrow}\NormalTok{()}
+\NormalTok{n\_evidence   }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(adj\_status\_clean }\SpecialCharTok{==} \StringTok{"Evidence of updating"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{nrow}\NormalTok{()}
+\NormalTok{n\_intention  }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(adj\_status\_clean }\SpecialCharTok{==} \StringTok{"Stated intention to update"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{nrow}\NormalTok{()}
+\NormalTok{n\_any\_positive }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{filter}\NormalTok{(adj\_status\_clean }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Evidence of updating"}\NormalTok{,}
+                                  \StringTok{"Stated intention to update"}\NormalTok{,}
+                                  \StringTok{"Mixed / minor updating"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} \FunctionTok{nrow}\NormalTok{()}
+\NormalTok{n\_formal  }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(author\_response\_clean }\SpecialCharTok{==} \StringTok{"Formal response"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{nrow}\NormalTok{()}
+\NormalTok{n\_any\_resp }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{filter}\NormalTok{(author\_response\_clean }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Formal response"}\NormalTok{, }\StringTok{"Informal response"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} \FunctionTok{nrow}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+Of 57 tracked evaluations, 22 have been manually assessed. Among these:
+5 show clear evidence of substantive updating, 7 authors stated
+intention to update, and 15 show at least some positive signal. On
+engagement: 19 papers received a formal or informal author response, of
+which 16 were formal written responses.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{resp\_colors }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"Formal response"}   \OtherTok{=} \StringTok{"\#2B7CE9"}\NormalTok{,}
+  \StringTok{"Informal response"} \OtherTok{=} \StringTok{"\#5DA3F5"}\NormalTok{,}
+  \StringTok{"No response"}       \OtherTok{=} \StringTok{"\#CBD5E1"}\NormalTok{,}
+  \StringTok{"Not yet coded"}     \OtherTok{=} \StringTok{"\#E2E8F0"}
+\NormalTok{)}
+
+\NormalTok{df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{count}\NormalTok{(author\_response\_clean) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{reorder}\NormalTok{(author\_response\_clean, }\SpecialCharTok{{-}}\NormalTok{n), }\AttributeTok{y =}\NormalTok{ n,}
+             \AttributeTok{fill =}\NormalTok{ author\_response\_clean)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{(}\AttributeTok{width =} \FloatTok{0.55}\NormalTok{, }\AttributeTok{show.legend =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =}\NormalTok{ n), }\AttributeTok{vjust =} \SpecialCharTok{{-}}\FloatTok{0.4}\NormalTok{, }\AttributeTok{size =} \FloatTok{3.5}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ resp\_colors) }\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_continuous}\NormalTok{(}\AttributeTok{expand =} \FunctionTok{expansion}\NormalTok{(}\AttributeTok{mult =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.12}\NormalTok{))) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \ConstantTok{NULL}\NormalTok{, }\AttributeTok{y =} \StringTok{"Number of papers"}\NormalTok{,}
+       \AttributeTok{title =} \StringTok{"Type of author response to evaluation"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_uj}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle =} \DecValTok{15}\NormalTok{, }\AttributeTok{hjust =} \DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+\caption{\label{fig-response-bar}Type of author response to Unjournal
+evaluation. `Not yet coded' indicates the response status has not been
+assessed for those papers (37 blanks in data); this is distinct from
+confirmed non-response (only 1 paper is explicitly coded as no
+response).}
+
+\pandocbounded{\includegraphics[keepaspectratio]{paper_response_analysis_files/figure-pdf/fig-response-bar-1.pdf}}
+
+\end{figure}%
+
+\subsection{Full Tabulation}\label{full-tabulation}
+
+\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{All 57 tracked evaluations}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+
+Click column headers to sort; use the search box to filter. Adjustment
+status is color-coded: green = positive signal, orange =
+minor/uncertain, grey = unlikely or not yet assessed.
+
+\begin{table}[H]
+
+\caption{\label{tbl-full}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tbl }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{title\_linked =} \FunctionTok{if\_else}\NormalTok{(}
+      \SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(pubpub\_link) }\SpecialCharTok{\&}\NormalTok{ pubpub\_link }\SpecialCharTok{!=} \StringTok{""}\NormalTok{,}
+      \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}\textless{}a href="\textquotesingle{}}\NormalTok{, pubpub\_link, }\StringTok{\textquotesingle{}" target="\_blank"\textgreater{}\textquotesingle{}}\NormalTok{,}
+             \FunctionTok{str\_trunc}\NormalTok{(paper\_title, }\DecValTok{72}\NormalTok{), }\StringTok{\textquotesingle{}\textless{}/a\textgreater{}\textquotesingle{}}\NormalTok{),}
+      \FunctionTok{str\_trunc}\NormalTok{(paper\_title, }\DecValTok{72}\NormalTok{)}
+\NormalTok{    ),}
+    \AttributeTok{authors\_short =} \FunctionTok{str\_trunc}\NormalTok{(authors, }\DecValTok{40}\NormalTok{),}
+    \AttributeTok{nb\_icon =} \FunctionTok{if\_else}\NormalTok{(}
+      \SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(nb\_link) }\SpecialCharTok{\&}\NormalTok{ nb\_link }\SpecialCharTok{!=} \StringTok{""}\NormalTok{,}
+      \FunctionTok{paste0}\NormalTok{(}\StringTok{\textquotesingle{}\textless{}a href="\textquotesingle{}}\NormalTok{, nb\_link, }\StringTok{\textquotesingle{}" target="\_blank" title="NotebookLM"\textgreater{}\&\#128214;\textless{}/a\textgreater{}\textquotesingle{}}\NormalTok{),}
+      \StringTok{""}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{select}\NormalTok{(}\AttributeTok{Paper =}\NormalTok{ title\_linked, }\AttributeTok{Authors =}\NormalTok{ authors\_short,}
+         \AttributeTok{Area =}\NormalTok{ research\_area, }\AttributeTok{Response =}\NormalTok{ author\_response\_clean,}
+         \AttributeTok{Adjustment =}\NormalTok{ adj\_status\_clean, }\StringTok{\textasciigrave{}}\AttributeTok{Pub.}\StringTok{\textasciigrave{}} \OtherTok{=}\NormalTok{ pub\_status, }\AttributeTok{NB =}\NormalTok{ nb\_icon)}
+
+\NormalTok{adj\_bg }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"Evidence of updating"}        \OtherTok{=} \StringTok{"\#d4edda"}\NormalTok{,}
+  \StringTok{"Stated intention to update"}  \OtherTok{=} \StringTok{"\#e8f5e9"}\NormalTok{,}
+  \StringTok{"Mixed / minor updating"}      \OtherTok{=} \StringTok{"\#fff3e0"}\NormalTok{,}
+  \StringTok{"Unlikely to update"}          \OtherTok{=} \StringTok{"\#fce4d4"}\NormalTok{,}
+  \StringTok{"Not yet assessed"}            \OtherTok{=} \StringTok{"\#f8fafc"}
+\NormalTok{)}
+
+\FunctionTok{datatable}\NormalTok{(tbl, }\AttributeTok{escape =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{rownames =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{filter =} \StringTok{"top"}\NormalTok{,}
+  \AttributeTok{options =} \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{pageLength =} \DecValTok{8}\NormalTok{, }\AttributeTok{autoWidth =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{scrollX =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{dom =} \StringTok{"lfrtip"}\NormalTok{,}
+    \AttributeTok{columnDefs =} \FunctionTok{list}\NormalTok{(}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"36\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{0}\NormalTok{),}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"18\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{1}\NormalTok{),}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"8\%"}\NormalTok{,  }\AttributeTok{targets =} \DecValTok{2}\NormalTok{),}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"11\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{3}\NormalTok{),}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"16\%"}\NormalTok{, }\AttributeTok{targets =} \DecValTok{4}\NormalTok{),}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"8\%"}\NormalTok{,  }\AttributeTok{targets =} \DecValTok{5}\NormalTok{),}
+      \FunctionTok{list}\NormalTok{(}\AttributeTok{width =} \StringTok{"3\%"}\NormalTok{,  }\AttributeTok{targets =} \DecValTok{6}\NormalTok{)}
+\NormalTok{    )}
+\NormalTok{  ),}
+  \AttributeTok{caption =} \StringTok{"All tracked Unjournal evaluations. NB = NotebookLM analysis link."}
+\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{formatStyle}\NormalTok{(}\StringTok{"Adjustment"}\NormalTok{,}
+    \AttributeTok{backgroundColor =} \FunctionTok{styleEqual}\NormalTok{(}\FunctionTok{names}\NormalTok{(adj\_bg), }\FunctionTok{unname}\NormalTok{(adj\_bg)))}
+\end{Highlighting}
+\end{Shaded}
+
+\end{table}%
+
+\end{tcolorbox}
 
 
 
