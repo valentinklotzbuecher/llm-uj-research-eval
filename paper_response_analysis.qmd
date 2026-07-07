@@ -116,19 +116,19 @@ llm_results_path <- "data/paper_change_llm_results.json"
 
 # Signal tier labels used throughout — define once
 tier_levels <- c(
-  "Confirmed, LLM \u226540%",
+  "Confirmed, LLM >=40%",
   "Confirmed, LLM <40%",
-  "LLM \u226530% (not confirmed)",
-  "LLM 10\u201329%",
+  "LLM >=30% (not confirmed)",
+  "LLM 10-29%",
   "LLM <10%"
 )
 
 tier_colors_llm <- c(
-  "Confirmed, LLM \u226540%"      = "#1a7a47",
-  "Confirmed, LLM <40%"           = "#2D9D5E",
-  "LLM \u226530% (not confirmed)" = "#5AE08A",
-  "LLM 10\u201329%"               = "#a8d5b5",
-  "LLM <10%"                      = "#d0e8d8"
+  "Confirmed, LLM >=40%"      = "#1a7a47",
+  "Confirmed, LLM <40%"       = "#2D9D5E",
+  "LLM >=30% (not confirmed)" = "#5AE08A",
+  "LLM 10-29%"                = "#a8d5b5",
+  "LLM <10%"                  = "#d0e8d8"
 )
 
 if (file.exists(llm_results_path)) {
@@ -200,7 +200,7 @@ if (nrow(llm_enriched) > 0) {
   cat(glue::glue(
     "Of {n_total_fetched} papers with fetchable DOIs, {n_analyzed} had meaningful text ",
     "changes and a matched evaluation. {n_confirmed} are manually confirmed updates; ",
-    "of the remaining {n_analyzed - n_confirmed}, the LLM finds {n_llm_high} with \u226530% ",
+    "of the remaining {n_analyzed - n_confirmed}, the LLM finds {n_llm_high} with at least 30% ",
     "of changes likely driven by evaluator feedback (median across all: {round(med_pct)}%)."
   ))
 }
@@ -289,7 +289,7 @@ if (nrow(llm_enriched) > 0) {
 
 ```{r}
 #| label: tbl-llm-attribution
-#| tbl-cap: "Papers with LLM attribution results, sorted by % of changes attributed to evaluator feedback. 'Confirmed' = manually verified by Unjournal staff. Signal tier: 'Confirmed, LLM ≥40%' = manually confirmed AND LLM finds strong corroboration; 'Confirmed, LLM <40%' = confirmed but weaker LLM signal; 'LLM ≥30% (not confirmed)' = unconfirmed but LLM finds likely influence."
+#| tbl-cap: "Papers with LLM attribution results, sorted by % of changes attributed to evaluator feedback. 'Confirmed' = manually verified by Unjournal staff. Signal tier: 'Confirmed, LLM >=40%' = manually confirmed AND LLM finds strong corroboration; 'Confirmed, LLM <40%' = confirmed but weaker LLM signal; 'LLM >=30% (not confirmed)' = unconfirmed but LLM finds likely influence."
 #| code-summary: "Combined evidence table"
 #| eval: !expr knitr::is_html_output()
 

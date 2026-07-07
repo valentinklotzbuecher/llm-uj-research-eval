@@ -395,24 +395,29 @@ fmt_ci <- function(ci) sprintf("[%.2f, %.2f]", ci[1], ci[2])
 
 # Table captions built as strings so numbers resolve in every output format
 # (inline `r` inside tbl-cap YAML is not evaluated in the PDF pass).
+# ASCII only: non-ASCII characters in chunk-option strings get serialized as
+# literal <U+XXXX> placeholders in the book PDF pass.
 cap_tbl_model_agreement <- paste0(
   "GPT-5 Pro overall-rating agreement. **Primary (matched) group**: same ", hh_n,
-  " papers as the H–H baseline (≥2 human raters). **Secondary group**: all ", n_focal,
-  " matched papers. **Spearman ρ column**: H–H row shows individual-vs-individual ρ ",
-  "(reference, natural scale; ρ adj. shows —). GPT-5 Pro rows show ρ vs. human mean — ",
-  "upward-biased relative to H–H. **ρ adj.**: Spearman-Brown corrected to ",
-  "individual-rater-equivalent (×", sprintf("%.2f", sb_factor),
-  "), making GPT-5 Pro rows directly comparable to H–H. **95% CI**: Fisher-z. ",
-  "Bias = LLM − Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."
+  " papers as the H-H baseline (papers with at least 2 human raters). ",
+  "**Secondary group**: all ", n_focal,
+  " matched papers. **Spearman rho column**: the H-H row shows individual-vs-individual ",
+  "rank correlation (the reference, already on the natural scale); GPT-5 Pro rows show ",
+  "correlation vs. the human mean, which is upward-biased relative to H-H. ",
+  "**rho adj.**: Spearman-Brown corrected to the individual-rater equivalent (factor ",
+  sprintf("%.2f", sb_factor),
+  "), making GPT-5 Pro rows directly comparable to H-H. **95% CI**: Fisher-z. ",
+  "Bias = LLM minus Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."
 )
 
 cap_tbl_criteria_agreement <- paste0(
   "GPT-5 Pro agreement with human mean by criterion (N = ", n_focal,
-  " papers; N = ", hh_n, " for H–H). **H-H ρ**: pairwise human evaluator Spearman ρ ",
-  "(reference; computed on ", hh_n, " papers with ≥2 raters; raw LLM ρ is upward-biased ",
-  "vs. H-H ρ—see @tbl-model-agreement-main). Positive bias = GPT-5 Pro rates higher on ",
-  "average. Note the variation across criteria: human evaluators agree strongly on some ",
-  "dimensions and barely at all on others (Open Science), setting expectations for LLM performance."
+  " papers; N = ", hh_n, " for H-H). **H-H rho**: pairwise human evaluator rank ",
+  "correlation (reference; computed on ", hh_n, " papers with at least 2 raters; raw ",
+  "LLM rho is upward-biased vs. H-H rho, see @tbl-model-agreement-main). Positive bias ",
+  "= GPT-5 Pro rates higher on average. Note the variation across criteria: human ",
+  "evaluators agree strongly on some dimensions and barely at all on others ",
+  "(Open Science), setting expectations for LLM performance."
 )
 ```
 
@@ -910,7 +915,7 @@ if (has_critique_data) {
 }
 ```
 
-Coverage and precision vary substantially across papers. Averaged over the `r if (has_critique_data) nrow(comparison_data |> filter(!is.na(coverage_pct)))` focal papers, the model captures `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))` of human consensus issues (range `r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`), while `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))` of model-raised issues match a substantive human concern. Low precision partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus count against precision. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.
+Coverage and precision vary substantially across papers. Averaged over the `r if (has_critique_data) sum(!is.na(comparison_data$coverage_pct))` focal papers, the model captures `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))` of human consensus issues (range `r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`), while `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))` of model-raised issues match a substantive human concern. Low precision partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus count against precision. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 
@@ -957,10 +962,10 @@ if (nrow(model_compare_data) > 0) {
   }
 
   hh_row_main <- tibble(
-    Model          = "Human–Human",
+    Model          = "Human-Human",
     N              = hh_n,
     `Spearman ρ` = sprintf("%.3f", hh_spearman),
-    `ρ adj.`  = "—",
+    `ρ adj.`  = "-",
     `95% CI`       = spearman_ci95(hh_spearman, hh_n),
     `Pearson r`    = round(hh_pearson, 3),
     `Mean bias`    = hh_bias,
@@ -977,11 +982,11 @@ if (nrow(model_compare_data) > 0) {
                booktabs = TRUE) |>
     kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0") |>
     kableExtra::pack_rows(
-      sprintf("Matched sample — same %d papers as H–H baseline (primary)", hh_n),
+      sprintf("Matched sample: same %d papers as H-H baseline (primary)", hh_n),
       1, 2, bold = TRUE, italic = FALSE, color = "black"
     ) |>
     kableExtra::pack_rows(
-      sprintf("Full sample — all %d GPT-5 Pro matched papers (secondary)", n_gpt),
+      sprintf("Full sample: all %d GPT-5 Pro matched papers (secondary)", n_gpt),
       3, 3, bold = FALSE, italic = TRUE
     )
 }

@@ -628,21 +628,16 @@ comparison in \hyperref[tbl-agreement]{Appendix A, Table A2}.
 \begin{longtable}[t]{lrrrrrrr}
 
 \caption{\label{tbl-model-agreement-main}GPT-5 Pro overall-rating
-agreement. \textbf{Primary (matched) group}: same 39 papers as the
-H\textless U+2013\textgreater H baseline (\textless U+2265\textgreater2
-human raters). \textbf{Secondary group}: all 47 matched papers.
-\textbf{Spearman \textless U+03C1\textgreater{} column}:
-H\textless U+2013\textgreater H row shows individual-vs-individual
-\textless U+03C1\textgreater{} (reference, natural scale;
-\textless U+03C1\textgreater{} adj. shows \textless U+2014\textgreater).
-GPT-5 Pro rows show \textless U+03C1\textgreater{} vs.~human mean
-\textless U+2014\textgreater{} upward-biased relative to
-H\textless U+2013\textgreater H. \textbf{\textless U+03C1\textgreater{}
-adj.}: Spearman-Brown corrected to individual-rater-equivalent
-(\textless U+00D7\textgreater0.83), making GPT-5 Pro rows directly
-comparable to H\textless U+2013\textgreater H. \textbf{95\% CI}:
-Fisher-z. Bias = LLM \textless U+2212\textgreater{} Human. Full
-six-model comparison in \href{results_ratings.qmd}{Appendix A}.}
+agreement. \textbf{Primary (matched) group}: same 39 papers as the H-H
+baseline (papers with at least 2 human raters). \textbf{Secondary
+group}: all 47 matched papers. \textbf{Spearman rho column}: the H-H row
+shows individual-vs-individual rank correlation (the reference, already
+on the natural scale); GPT-5 Pro rows show correlation vs.~the human
+mean, which is upward-biased relative to H-H. \textbf{rho adj.}:
+Spearman-Brown corrected to the individual-rater equivalent (factor
+0.83), making GPT-5 Pro rows directly comparable to H-H. \textbf{95\%
+CI}: Fisher-z. Bias = LLM minus Human. Full six-model comparison in
+\href{results_ratings.qmd}{Appendix A}.}
 
 \tabularnewline
 
@@ -650,11 +645,11 @@ six-model comparison in \href{results_ratings.qmd}{Appendix A}.}
 Model & N & Spearman ρ & ρ adj. & 95\% CI & Pearson r & Mean bias & MAE\\
 \midrule
 \addlinespace[0.3em]
-\multicolumn{8}{l}{\textcolor{black}{\textbf{Matched sample <U+2014> same 39 papers as H<U+2013>H baseline (primary)}}}\\
-\hspace{1em}\cellcolor[HTML]{f0f8f0}{\textbf{Human<U+2013>Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{39}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.331}} & \cellcolor[HTML]{f0f8f0}{\textbf{<U+2014>}} & \cellcolor[HTML]{f0f8f0}{\textbf{{}[0.02, 0.59]}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.520}} & \cellcolor[HTML]{f0f8f0}{\textbf{+3.7}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.6}}\\
+\multicolumn{8}{l}{\textcolor{black}{\textbf{Matched sample: same 39 papers as H-H baseline (primary)}}}\\
+\hspace{1em}\cellcolor[HTML]{f0f8f0}{\textbf{Human-Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{39}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.331}} & \cellcolor[HTML]{f0f8f0}{\textbf{-}} & \cellcolor[HTML]{f0f8f0}{\textbf{{}[0.02, 0.59]}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.520}} & \cellcolor[HTML]{f0f8f0}{\textbf{+3.7}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.6}}\\
 \hspace{1em}GPT-5 Pro & 39 & 0.627 & 0.520 & {}[0.39, 0.79] & 0.577 & +6.6 & 8.4\\
 \addlinespace[0.3em]
-\multicolumn{8}{l}{\textit{Full sample <U+2014> all 47 GPT-5 Pro matched papers (secondary)}}\\
+\multicolumn{8}{l}{\textit{Full sample: all 47 GPT-5 Pro matched papers (secondary)}}\\
 \hspace{1em}GPT-5 Pro & 47 & 0.526 & 0.436 & {}[0.28, 0.71] & 0.348 & +6.4 & 10.1\\
 \bottomrule
 
@@ -686,17 +681,13 @@ criteria is therefore expected rather than a model failure.
 \begin{longtable}[t]{l>{}rrrrr}
 
 \caption{\label{tbl-criteria-agreement-main}GPT-5 Pro agreement with
-human mean by criterion (N = 47 papers; N = 39 for
-H\textless U+2013\textgreater H). \textbf{H-H
-\textless U+03C1\textgreater{}}: pairwise human evaluator Spearman
-\textless U+03C1\textgreater{} (reference; computed on 39 papers with
-\textless U+2265\textgreater2 raters; raw LLM
-\textless U+03C1\textgreater{} is upward-biased vs.~H-H
-\textless U+03C1\textgreater\textless U+2014\textgreater see
-Table~\ref{tbl-model-agreement-main}). Positive bias = GPT-5 Pro rates
-higher on average. Note the variation across criteria: human evaluators
-agree strongly on some dimensions and barely at all on others (Open
-Science), setting expectations for LLM performance.}
+human mean by criterion (N = 47 papers; N = 39 for H-H). \textbf{H-H
+rho}: pairwise human evaluator rank correlation (reference; computed on
+39 papers with at least 2 raters; raw LLM rho is upward-biased vs.~H-H
+rho, see Table~\ref{tbl-model-agreement-main}). Positive bias = GPT-5
+Pro rates higher on average. Note the variation across criteria: human
+evaluators agree strongly on some dimensions and barely at all on others
+(Open Science), setting expectations for LLM performance.}
 
 \tabularnewline
 
@@ -1353,19 +1344,19 @@ detected.
 
 \CommentTok{\# Signal tier labels used throughout — define once}
 \NormalTok{tier\_levels }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
-  \StringTok{"Confirmed, LLM \textbackslash{}u226540\%"}\NormalTok{,}
+  \StringTok{"Confirmed, LLM \textgreater{}=40\%"}\NormalTok{,}
   \StringTok{"Confirmed, LLM \textless{}40\%"}\NormalTok{,}
-  \StringTok{"LLM \textbackslash{}u226530\% (not confirmed)"}\NormalTok{,}
-  \StringTok{"LLM 10\textbackslash{}u201329\%"}\NormalTok{,}
+  \StringTok{"LLM \textgreater{}=30\% (not confirmed)"}\NormalTok{,}
+  \StringTok{"LLM 10{-}29\%"}\NormalTok{,}
   \StringTok{"LLM \textless{}10\%"}
 \NormalTok{)}
 
 \NormalTok{tier\_colors\_llm }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
-  \StringTok{"Confirmed, LLM \textbackslash{}u226540\%"}      \OtherTok{=} \StringTok{"\#1a7a47"}\NormalTok{,}
-  \StringTok{"Confirmed, LLM \textless{}40\%"}           \OtherTok{=} \StringTok{"\#2D9D5E"}\NormalTok{,}
-  \StringTok{"LLM \textbackslash{}u226530\% (not confirmed)"} \OtherTok{=} \StringTok{"\#5AE08A"}\NormalTok{,}
-  \StringTok{"LLM 10\textbackslash{}u201329\%"}               \OtherTok{=} \StringTok{"\#a8d5b5"}\NormalTok{,}
-  \StringTok{"LLM \textless{}10\%"}                      \OtherTok{=} \StringTok{"\#d0e8d8"}
+  \StringTok{"Confirmed, LLM \textgreater{}=40\%"}      \OtherTok{=} \StringTok{"\#1a7a47"}\NormalTok{,}
+  \StringTok{"Confirmed, LLM \textless{}40\%"}       \OtherTok{=} \StringTok{"\#2D9D5E"}\NormalTok{,}
+  \StringTok{"LLM \textgreater{}=30\% (not confirmed)"} \OtherTok{=} \StringTok{"\#5AE08A"}\NormalTok{,}
+  \StringTok{"LLM 10{-}29\%"}                \OtherTok{=} \StringTok{"\#a8d5b5"}\NormalTok{,}
+  \StringTok{"LLM \textless{}10\%"}                  \OtherTok{=} \StringTok{"\#d0e8d8"}
 \NormalTok{)}
 
 \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{file.exists}\NormalTok{(llm\_results\_path)) \{}
@@ -1435,7 +1426,7 @@ detected.
   \FunctionTok{cat}\NormalTok{(glue}\SpecialCharTok{::}\FunctionTok{glue}\NormalTok{(}
     \StringTok{"Of \{n\_total\_fetched\} papers with fetchable DOIs, \{n\_analyzed\} had meaningful text "}\NormalTok{,}
     \StringTok{"changes and a matched evaluation. \{n\_confirmed\} are manually confirmed updates; "}\NormalTok{,}
-    \StringTok{"of the remaining \{n\_analyzed {-} n\_confirmed\}, the LLM finds \{n\_llm\_high\} with \textbackslash{}u226530\% "}\NormalTok{,}
+    \StringTok{"of the remaining \{n\_analyzed {-} n\_confirmed\}, the LLM finds \{n\_llm\_high\} with at least 30\% "}\NormalTok{,}
     \StringTok{"of changes likely driven by evaluator feedback (median across all: \{round(med\_pct)\}\%)."}
 \NormalTok{  ))}
 \NormalTok{\}}
@@ -1444,8 +1435,8 @@ detected.
 
 Of 22 papers with fetchable DOIs, 8 had meaningful text changes and a
 matched evaluation. 3 are manually confirmed updates; of the remaining
-5, the LLM finds 2 with \textless U+2265\textgreater30\% of changes
-likely driven by evaluator feedback (median across all: 22\%).
+5, the LLM finds 2 with at least 30\% of changes likely driven by
+evaluator feedback (median across all: 22\%).
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1553,10 +1544,10 @@ update; blue = not yet manually classified. Dashed line at 30\%.}
 \caption{\label{tbl-llm-attribution}Papers with LLM attribution results,
 sorted by \% of changes attributed to evaluator feedback. `Confirmed' =
 manually verified by Unjournal staff. Signal tier: `Confirmed, LLM
-\textless U+2265\textgreater40\%' = manually confirmed AND LLM finds
-strong corroboration; `Confirmed, LLM \textless40\%' = confirmed but
-weaker LLM signal; `LLM \textless U+2265\textgreater30\% (not
-confirmed)' = unconfirmed but LLM finds likely influence.}
+\textgreater=40\%' = manually confirmed AND LLM finds strong
+corroboration; `Confirmed, LLM \textless40\%' = confirmed but weaker LLM
+signal; `LLM \textgreater=30\% (not confirmed)' = unconfirmed but LLM
+finds likely influence.}
 
 \begin{Shaded}
 \begin{Highlighting}[]
