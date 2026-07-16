@@ -20,14 +20,14 @@ The interactive tables in this appendix are available in the online version at <
 :::
 
 ::: {.callout-note}
-57 Unjournal evaluations tracked as of April 2026, drawing on two evidence streams: (a) manual staff assessment of author responses and paper revisions; (b) Claude Opus 4.6 change-attribution for 8 papers where pre/post PDFs were available. See [Combined Evidence](#combined-evidence) below.
+This page reports an April 2026 snapshot of 57 tracked Unjournal evaluations: manual staff assessment for the full set, plus an exploratory LLM comparison of eight paper pairs. We are now rebuilding the comparison workflow around preserved source files, version checks, and human review. See [Combined Evidence](#combined-evidence) below.
 :::
 
 ## Overview
 
 The Unjournal commissions open, structured evaluations of working papers in economics and social science. A natural question is whether this process changes research: do authors engage with feedback and revise their work?
 
-This page draws on manual classification of 57 tracked evaluations and, for a subset, automated PDF diffing and LLM attribution. Background: [The Unjournal's knowledge base](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence).
+This page draws on manual classification of 57 tracked evaluations and, for a subset, automated PDF comparison and exploratory LLM screening. Background: [The Unjournal's knowledge base](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence).
 
 ```{r}
 #| label: setup
@@ -92,18 +92,25 @@ theme_uj <- function(base_size = 12) {
 
 ## Combined Evidence of Paper Updating {#combined-evidence}
 
-Two evidence streams are combined: manual classification for all 57 papers, and Claude Opus 4.6 LLM attribution for 8 papers where before/after PDFs were available and meaningful text changes were detected.
+Two evidence streams are shown together: manual classification for all 57 papers, and an exploratory Claude Opus 4.6 screen for eight papers where before/after PDFs were available and meaningful text changes were detected. The latter is a way to prioritize inspection, not a causal estimate.
+
+::: {.callout-important}
+## Current validation work (July 2026)
+
+The April figures below remain the historical snapshot. A current source refresh has captured 30 public current-paper versions, created nine before/after comparison records, and placed five records in a queue for agent-assisted triage after preliminary document, identity, and timing checks. These are coverage figures for a workflow, not findings that an evaluation caused a change.
+
+For each candidate, the revised workflow preserves PDF snapshots and hashes, checks that the documents are the same paper and in the right order, records page- and section-level changes, and requires human review before any public claim of evaluation-linked updating. A newer PDF, a textual difference, or a model suggestion is not enough on its own.
+:::
 
 ::: {.callout-note collapse="true"}
 ## Pipeline and caveats
 
-**Scripts**: `scripts/fetch_latest_papers.py` → `scripts/run_paper_change_llm.py`
+**Current scripts**: `scripts/paper_response_evidence.py` for source snapshots, validation, and comparison cards; `scripts/run_paper_response_agents.py` for bounded, review-only triage.
 
-- **Before version**: PDF sent to Unjournal evaluators (`papers/`); **After version**: latest NBER/arxiv version, fetched April 2026
-- **Model**: Claude Opus 4.6, temperature 0.2; conservative instructions — only flags "direct" or "indirect" attribution with clear conceptual alignment to a specific evaluator suggestion
-- **Coverage**: 30 papers had fetchable DOIs; 8 had meaningful changes (≥15 line edits or ≥0.5% size change) and a matched evaluation file; the 3 manually-confirmed updates were also LLM-analyzed
-- **Temporal caveat**: a newer version does not imply changes were evaluation-driven; some papers were already in revision
-- **LLM limitations**: text truncated at 60,000 chars/version; figures and tables not visible to the model
+- **Historical screen shown below**: before version = PDF sent to evaluators; after version = then-current NBER/arXiv PDF, fetched April 2026. Eight pairs had meaningful text changes and a matched evaluation file.
+- **Current validation**: the refresh keeps immutable PDF snapshots; verifies paper identity and chronology; produces page- and section-anchored change cards; and puts ambiguous cases into human review.
+- **Models**: the historical Opus screen used bounded extracted text, so it could not reliably assess figures, tables, or all document context. The current agent triage is also deliberately non-decisive: it can identify evidence to inspect, but cannot label causal influence.
+- **Interpretation**: a newer version does not imply that changes were evaluation-driven. Some papers are already being revised, and a substantial revision can have unrelated causes.
 :::
 
 ```{r}
@@ -257,8 +264,11 @@ if (nrow(llm_enriched) > 0) {
     theme(legend.position = "right",
           legend.text = element_text(size = 9),
           plot.title = element_text(size = 11, face = "plain",
-                                    margin = margin(b = 6))) +
-    labs(title = "All 57 tracked papers — each square = 1 paper")
+                                    margin = margin(b = 6)),
+          plot.caption = element_text(size = 8, color = "grey40",
+                                      hjust = 0, margin = margin(t = 8))) +
+    labs(title = "All 57 tracked papers — each square = 1 paper",
+         caption = "LLM % = share of major post-evaluation changes attributed to evaluator feedback (Claude Opus 4.6)")
 }
 ```
 

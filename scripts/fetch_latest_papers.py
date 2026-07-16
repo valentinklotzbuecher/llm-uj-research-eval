@@ -5,6 +5,9 @@ Fetch latest versions of Unjournal-evaluated papers from NBER and arxiv.
 Run from project root:
     conda run -n qpy311_arm python scripts/fetch_latest_papers.py
 
+To re-check remote sources even when a local PDF is already cached:
+    conda run -n qpy311_arm python scripts/fetch_latest_papers.py --refresh
+
 Outputs:
     data/latest_papers/*.pdf       (downloaded PDFs, git-ignored)
     data/paper_fetch_manifest.json (provenance manifest, committed)
@@ -118,9 +121,9 @@ def find_before_pdf(last_name: str, year: str) -> Path | None:
 # Downloading
 # ---------------------------------------------------------------------------
 
-def download_pdf(url: str, dest: Path) -> bool:
+def download_pdf(url: str, dest: Path, refresh: bool = False) -> bool:
     """Download a PDF to dest; return True on success."""
-    if dest.exists() and dest.stat().st_size > 10_000:
+    if not refresh and dest.exists() and dest.stat().st_size > 10_000:
         print(f"  [cached] {dest.name}")
         return True
     try:
@@ -150,6 +153,18 @@ def arxiv_url(ax_id: str) -> str:
 # ---------------------------------------------------------------------------
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Fetch current NBER and arXiv versions of tracked papers."
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Re-download PDFs even when a locally cached copy exists.",
+    )
+    args = parser.parse_args()
+
     rows = []
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -202,7 +217,7 @@ def main():
             dest = LATEST_DIR / f"{key}.pdf"
             print(f"{title[:60]}")
             print(f"  NBER w{nid} → {dest.name}")
-            ok = download_pdf(url, dest)
+            ok = download_pdf(url, dest, refresh=args.refresh)
             entry["after_pdf"] = str(dest.relative_to(REPO_ROOT)) if ok else None
             entry["fetch_status"] = "success" if ok else "failed"
             entry["fetch_reason"] = f"NBER w{nid}"
@@ -213,7 +228,7 @@ def main():
             dest = LATEST_DIR / f"{key}.pdf"
             print(f"{title[:60]}")
             print(f"  arxiv {aid} → {dest.name}")
-            ok = download_pdf(url, dest)
+            ok = download_pdf(url, dest, refresh=args.refresh)
             entry["after_pdf"] = str(dest.relative_to(REPO_ROOT)) if ok else None
             entry["fetch_status"] = "success" if ok else "failed"
             entry["fetch_reason"] = f"arxiv {aid}"

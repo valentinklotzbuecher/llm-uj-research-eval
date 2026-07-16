@@ -284,7 +284,13 @@ This file is sourced at the top of each `.qmd` document.
 
 ### Paper Response Analysis Pipeline
 
-This pipeline has been moved out of this repository to `unjournal_tools_interfaces` (see `side_projects/README.md` for links). Treat references in older commits as historical context only.
+The legacy exploratory PDF-diff utilities were moved to `unjournal_tools_interfaces` (see `side_projects/README.md`). The auditable evidence pipeline supporting the active `paper_response_analysis.qmd` appendix is maintained here:
+
+- `scripts/paper_response_evidence.py` — immutable version snapshots, provenance, identity/timeline checks, page-anchored deterministic change cards, and human review queue.
+- `scripts/run_paper_response_agents.py` — optional bounded Haiku/Sonnet review through locally authenticated headless Claude Code; tools disabled, no API keys, exact evidence validation, and mandatory human release gate.
+- `reference_materials/docs/PAPER_RESPONSE_EVIDENCE_PIPELINE.md` — operating and validation guide.
+
+Generated snapshots, extracted text, comparison packets, and agent traces are local/gitignored. Publish only human-reviewed aggregate results and short cited evidence.
 
 ### Side Projects
 
@@ -553,6 +559,13 @@ All R figures use `theme_uj()` (defined in each results file) with:
 **Python:** openai, anthropic, google-generativeai, pdfplumber, pandas, numpy, tiktoken, jupyter-cache
 **R:** tidyverse ecosystem (ggplot2, dplyr, tidyr), ggforce, patchwork, ggrepel, irr (Krippendorff's alpha), scales, kableExtra, janitor, jsonlite, renv for package management
 **Build:** Quarto (requires recent version with multi-engine support)
+
+## Scheduled job: paper-response evidence refresh
+
+- **Schedule:** Weekly, Sundays at 9:23am local time (when the Mac is awake).
+- **Job name:** `paper_response_refresh`; logs and status are managed by `cron_wrapper.py` in `~/Library/Logs/cron/` and `~/.cron_status/`.
+- **Action:** Runs `scripts/paper_response_evidence.py refresh --browser-resolve auto` in the `qpy311_arm` Conda environment. It preserves immutable public-PDF snapshots, records provenance/hashes, validates identities, produces deterministic change cards, and updates the local human review queue. Headless Chrome resolves non-direct DOI landing pages without metadata/model APIs.
+- **Deliberately excluded:** no model calls, causal labels, manual-status changes, Quarto rendering, Git commits/pushes, or publishing. Optional multi-agent review is a separate deliberate command and still requires human sign-off.
 
 ## Architecture Insights
 
