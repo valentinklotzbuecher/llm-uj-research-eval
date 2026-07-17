@@ -51,6 +51,7 @@ COMPARISON_DIR = EVIDENCE_DIR / "comparisons"
 REGISTRY_PATH = EVIDENCE_DIR / "registry.json"
 QUEUE_PATH = EVIDENCE_DIR / "review_queue.json"
 REPORT_PATH = EVIDENCE_DIR / "last_run_report.json"
+MANUAL_VALIDATIONS_PATH = DATA_DIR / "paper_response_manual_validations.json"
 
 DEFAULT_CHROME_PATHS = [
     Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
@@ -154,6 +155,43 @@ def identity_score(title: str, authors: str, extracted_text: str) -> dict[str, A
         "status": status,
         "title_token_coverage": round(title_coverage, 3),
         "first_author_found": author_found,
+    }
+
+
+def manual_timeline_status(
+    validation: dict[str, Any],
+    before_version: dict[str, Any] | None,
+    after_version: dict[str, Any] | None,
+) -> str | None:
+    """Return a manual decision only when it is bound to both exact snapshots."""
+    rule = validation.get("version_timeline", {})
+    if not before_version or not after_version:
+        return None
+    if (
+        rule.get("before_sha256") != before_version.get("sha256")
+        or rule.get("after_sha256") != after_version.get("sha256")
+    ):
+        return None
+    return {
+        "verified_post_evaluation": "manually_verified_post_evaluation",
+        "rejected_not_post_evaluation": "manually_rejected_not_post_evaluation",
+    }.get(rule.get("status"))
+
+
+def manual_public_documents(validation: dict[str, Any]) -> dict[str, Any] | None:
+    """Accept an exact manual mapping only when every referenced local file exists."""
+    docs = validation.get("public_documents", {})
+    paths = docs.get("evaluation_files", []) + docs.get("public_response_files", [])
+    if docs.get("status") != "exact_pubpub_mapping" or not paths:
+        return None
+    if not all((ROOT / path).exists() for path in paths):
+        return None
+    return {
+        "status": "exact_pubpub_mapping",
+        "summary_slug": docs.get("summary_slug"),
+        "evaluation_files": docs.get("evaluation_files", []),
+        "public_response_files": docs.get("public_response_files", []),
+        "validation_source": "manual_versioned_registry",
     }
 
 
@@ -634,6 +672,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             raise SystemExit(f"Paper ID not found: {args.paper_id}")
     report["papers_total"] = len(rows)
     legacy_manifest = load_json(DATA_DIR / "paper_fetch_manifest.json", {})
+    manual_validations = load_json(MANUAL_VALIDATIONS_PATH, {"papers": {}}).get("papers", {})
 
     for row in rows:
         title = (row.get("label_paper_title") or "").strip()
@@ -711,9 +750,18 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         else:
             review_reasons.append("no_supported_public_source")
 
-        timeline_status = "metadata_claim_post_evaluation" if str(row.get("deposit date > unjournal pub date", "")).casefold() == "true" else "needs_review"
+        manual_validation = manual_validations.get(paper_id, {})
+        manual_status = manual_timeline_status(manual_validation, before_version, after_version)
+        if manual_status == "manually_verified_post_evaluation":
+            timeline_status = manual_status
+        elif manual_status == "manually_rejected_not_post_evaluation":
+            timeline_status = manual_status
+            review_reasons.append("after_version_predates_evaluation")
+        else:
+            timeline_status = "metadata_claim_post_evaluation" if str(row.get("deposit date > unjournal pub date", "")).casefold() == "true" else "needs_review"
         entry["timeline_status"] = timeline_status
-        if timeline_status != "metadata_claim_post_evaluation":
+        entry["manual_validation"] = manual_validation or None
+        if timeline_status not in {"metadata_claim_post_evaluation", "manually_verified_post_evaluation", "manually_rejected_not_post_evaluation"}:
             review_reasons.append("timeline_not_verified")
 
         comparison = None
@@ -728,13 +776,17 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         if not material_count:
             review_reasons.append("no_material_change_cards")
         docs = entry["public_documents"]
+        validated_docs = manual_public_documents(manual_validation)
+        if validated_docs:
+            docs = validated_docs
+            entry["public_documents"] = docs
         if docs["status"] != "exact_pubpub_mapping":
             review_reasons.append("evaluation_documents_not_exactly_mapped")
 
         hard_blockers = {
             "ambiguous_before_version", "before_identity_not_verified", "before_version_missing",
             "after_identity_not_verified", "after_version_fetch_failed", "timeline_not_verified",
-            "evaluation_documents_not_exactly_mapped",
+            "after_version_predates_evaluation", "evaluation_documents_not_exactly_mapped",
         }
         ready = bool(comparison and material_count and not (set(review_reasons) & hard_blockers))
         queue_status = "ready_for_agent_triage" if ready else "needs_human_validation"

@@ -61,6 +61,37 @@ class PaperResponseEvidenceTests(unittest.TestCase):
             "https://example.org/downloads/paper.pdf",
         )
 
+    def test_manual_timeline_validation_is_bound_to_exact_snapshots(self):
+        validation = {"version_timeline": {
+            "status": "verified_post_evaluation",
+            "before_sha256": "before-hash",
+            "after_sha256": "after-hash",
+        }}
+        self.assertEqual(
+            MODULE.manual_timeline_status(
+                validation, {"sha256": "before-hash"}, {"sha256": "after-hash"}
+            ),
+            "manually_verified_post_evaluation",
+        )
+        self.assertIsNone(
+            MODULE.manual_timeline_status(
+                validation, {"sha256": "before-hash"}, {"sha256": "new-after-hash"}
+            )
+        )
+
+    def test_manual_timeline_rejection_is_a_distinct_status(self):
+        validation = {"version_timeline": {
+            "status": "rejected_not_post_evaluation",
+            "before_sha256": "before-hash",
+            "after_sha256": "after-hash",
+        }}
+        self.assertEqual(
+            MODULE.manual_timeline_status(
+                validation, {"sha256": "before-hash"}, {"sha256": "after-hash"}
+            ),
+            "manually_rejected_not_post_evaluation",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -46,6 +46,12 @@ numeric changes, and produces before/after excerpts with page and section
 anchors. It is a screening layer; tables, figures, OCR failures, ambiguous
 version identities, and uncertain timelines are routed to human validation.
 
+Exact manual checks of document mappings and chronology can be recorded in
+`data/paper_response_manual_validations.json`. Each timeline decision is bound
+to the SHA-256 hashes of both snapshots, so replacing either PDF automatically
+invalidates the decision. A manually verified pre-evaluation “after” version is
+recorded as a rejection and cannot enter agent triage.
+
 ## Optional multi-agent review without API keys
 
 After validating identity and timeline fields, list ready items from
@@ -100,4 +106,3 @@ Before using agent labels in aggregate statistics:
 3. double-code all proposed positive cases and a random sample of negatives;
 4. run shuffled-evaluation and mismatched-paper negative controls;
 5. report positive-claim precision, reviewer agreement, coverage, exclusions, and extraction failures.
-
