@@ -147,6 +147,66 @@ tbody tr:hover {
   background-color: rgba($unjournal-green, 0.06);
 }
 
+/* Wide evidence tables: allocate space by content density, not equal columns. */
+.evidence-comparison-table,
+.suggestion-review-table,
+.provenance-table {
+  position: relative;
+  left: 50%;
+  width: min(1100px, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  overflow-x: auto;
+}
+
+.evidence-comparison-table table,
+.suggestion-review-table table,
+.provenance-table table {
+  width: 100%;
+  table-layout: fixed;
+  line-height: 1.35;
+}
+
+.evidence-comparison-table table { min-width: 820px; }
+.evidence-comparison-table col:nth-child(1) { width: 31% !important; }
+.evidence-comparison-table col:nth-child(2) { width: 7% !important; }
+.evidence-comparison-table col:nth-child(3) { width: 7% !important; }
+.evidence-comparison-table col:nth-child(4) { width: 55% !important; }
+
+.suggestion-review-table table { min-width: 900px; }
+.suggestion-review-table col:nth-child(1) { width: 27% !important; }
+.suggestion-review-table col:nth-child(2) { width: 53% !important; }
+.suggestion-review-table col:nth-child(3) { width: 20% !important; }
+
+.provenance-table table { min-width: 680px; }
+.provenance-table col:nth-child(1) { width: 45% !important; }
+.provenance-table col:nth-child(2) { width: 55% !important; }
+
+.evidence-comparison-table th,
+.evidence-comparison-table td,
+.suggestion-review-table th,
+.suggestion-review-table td,
+.provenance-table th,
+.provenance-table td {
+  padding: 0.42rem 0.55rem;
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+
+.evidence-comparison-table th:nth-child(2),
+.evidence-comparison-table th:nth-child(3),
+.evidence-comparison-table td:nth-child(2),
+.evidence-comparison-table td:nth-child(3) {
+  text-align: center !important;
+}
+
+@media (max-width: 700px) {
+  .evidence-comparison-table,
+  .suggestion-review-table,
+  .provenance-table {
+    width: calc(100vw - 1rem);
+  }
+}
+
 /* --- TOC (right sidebar) ---------------------------------------------*/
 .toc-title {
   font-weight: 600;
