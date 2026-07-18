@@ -10,7 +10,7 @@ Run from the repository root:
 
 ```bash
 /opt/homebrew/Caskroom/miniforge/base/envs/qpy311_arm/bin/python \
-  scripts/paper_response_evidence.py refresh --browser-resolve auto
+  scripts/run_paper_response_refresh.py
 ```
 
 The refresh:
@@ -46,6 +46,16 @@ numeric changes, and produces before/after excerpts with page and section
 anchors. It is a screening layer; tables, figures, OCR failures, ambiguous
 version identities, and uncertain timelines are routed to human validation.
 
+After the endpoint refresh, `scripts/screen_paper_response_matches.py` builds a
+no-model correspondence-priority queue. It uses structured suggestion atoms
+when available and otherwise extracts sentence-level request cues. A candidate
+must have an exact evaluation mapping and eligible timeline; its evaluator quote
+must resolve to the stored source line. The matcher discounts concepts found in
+a local window anywhere in the earlier paper and compares each within-paper
+score with cross-paper placebo matches. Its JSON and CSV outputs are gitignored
+under `results/paper_response_evidence/`. High, medium, and low are inspection
+priorities only: no candidate is an influence label or an aggregate outcome.
+
 Exact manual checks of document mappings and chronology can be recorded in
 `data/paper_response_manual_validations.json`. Each timeline decision is bound
 to the SHA-256 hashes of both snapshots, so replacing either PDF automatically
@@ -65,6 +75,11 @@ recorded as **verified no observed document change** only after checking that
 the local input is credibly the evaluated draft, independently retrieving the
 current public PDF, and binding the finding to their shared SHA-256 hash. If
 the evaluated-draft provenance is unresolved, the pair remains in human review.
+
+If a previously captured current endpoint fails transiently, the refresh keeps
+the last selected snapshot and comparison in the queue with an explicit
+`after_refresh_failed_using_cached_snapshot` warning. Cached reuse preserves
+review work but does not count as a successful current-endpoint check.
 
 When a DOI or arXiv endpoint is known to be stale, a reviewed public endpoint
 override can be recorded in the same validation registry. The override requires

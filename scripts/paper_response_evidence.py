@@ -743,6 +743,31 @@ def legacy_latest_for_entry(entry: dict[str, Any]) -> Path | None:
     return None
 
 
+def cached_selected_after(
+    entry: dict[str, Any], root: Path = ROOT
+) -> tuple[bytes, dict[str, Any]] | None:
+    """Return the last selected after snapshot when a refresh endpoint fails.
+
+    A transient publisher or browser failure must not erase a previously captured
+    comparison from the review queue. The caller records that the cached snapshot
+    was reused so it cannot be mistaken for a successful current-endpoint check.
+    """
+    selected_id = entry.get("selected_after_version_id")
+    version = next(
+        (candidate for candidate in entry.get("versions", []) if candidate.get("version_id") == selected_id),
+        None,
+    )
+    if not version or not version.get("snapshot_path"):
+        return None
+    path = root / version["snapshot_path"]
+    if not path.exists():
+        return None
+    content = path.read_bytes()
+    if not content.startswith(b"%PDF"):
+        return None
+    return content, version
+
+
 def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     registry = load_json(REGISTRY_PATH, {"schema_version": 1, "papers": {}, "runs": []})
@@ -751,6 +776,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         "started_at": utc_now(), "network_enabled": not args.no_network,
         "browser_resolve": args.browser_resolve, "papers_total": 0,
         "after_snapshots_available": 0, "comparisons_created": 0,
+        "cached_after_snapshots_used": 0,
         "ready_for_agent_triage": 0, "verified_no_observed_document_change": 0,
         "needs_human_validation": 0,
         "errors": [],
@@ -829,6 +855,24 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
                 "legacy_path": str(legacy_path.relative_to(ROOT)),
                 "network_failure": fetch_result if fetch_result.get("status") == "failed" else None,
             }
+        used_cached_after = False
+        if content is None:
+            cached_after = cached_selected_after(entry)
+            if cached_after:
+                content, cached_version = cached_after
+                prior_failure = fetch_result if fetch_result.get("status") == "failed" else None
+                prior_events = cached_version.get("retrieval_events", [])
+                last_event = prior_events[-1] if prior_events else {}
+                fetch_result = {
+                    "status": "success",
+                    "retrieval_method": "cached_previous_snapshot",
+                    "source_url": source_url,
+                    "resolved_url": last_event.get("resolved_url"),
+                    "cached_version_id": cached_version.get("version_id"),
+                    "network_failure": prior_failure,
+                }
+                used_cached_after = True
+
         after_version = None
         if content is not None and content.startswith(b"%PDF"):
             after_version = store_snapshot(paper_id, content, "candidate_post_evaluation", fetch_result, entry)
@@ -842,6 +886,9 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             report["after_snapshots_available"] += 1
             if after_version["identity"]["status"] != "verified":
                 review_reasons.append("after_identity_not_verified")
+            if used_cached_after:
+                review_reasons.append("after_refresh_failed_using_cached_snapshot")
+                report["cached_after_snapshots_used"] += 1
         elif source_url:
             review_reasons.append("after_version_fetch_failed")
             if fetch_result.get("status") == "failed":
