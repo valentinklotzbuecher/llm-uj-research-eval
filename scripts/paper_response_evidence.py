@@ -53,6 +53,11 @@ QUEUE_PATH = EVIDENCE_DIR / "review_queue.json"
 REPORT_PATH = EVIDENCE_DIR / "last_run_report.json"
 MANUAL_VALIDATIONS_PATH = DATA_DIR / "paper_response_manual_validations.json"
 
+# Preserve IDs already used in stored evidence when repairing legacy metadata.
+LEGACY_PAPER_ID_ALIASES = {
+    "10.3386/w31899": "the-effect-of-public-science-on-corpor-ef23c268d6",
+}
+
 DEFAULT_CHROME_PATHS = [
     Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
     Path("/Applications/Chromium.app/Contents/MacOS/Chromium"),
@@ -120,7 +125,10 @@ def slugify(value: str, limit: int = 48) -> str:
 
 
 def stable_paper_id(title: str, doi: str = "") -> str:
-    canonical = normalize_doi(doi).casefold() or re.sub(r"\s+", " ", title.casefold()).strip()
+    normalized_doi = normalize_doi(doi).casefold()
+    if normalized_doi in LEGACY_PAPER_ID_ALIASES:
+        return LEGACY_PAPER_ID_ALIASES[normalized_doi]
+    canonical = normalized_doi or re.sub(r"\s+", " ", title.casefold()).strip()
     digest = hashlib.sha256(canonical.encode()).hexdigest()[:10]
     return f"{slugify(title, 38)}-{digest}"
 
@@ -217,6 +225,37 @@ def manual_no_change_status(
     ):
         return None
     return "manually_verified_no_observed_document_change"
+
+
+def manual_public_source_url(validation: dict[str, Any]) -> str | None:
+    """Return a reviewed endpoint override, never a model-discovered URL."""
+    rule = validation.get("current_public_source", {})
+    url = rule.get("url", "")
+    if (
+        rule.get("status") != "verified_override"
+        or not re.match(r"^https://", url, re.I)
+        or not rule.get("evidence")
+        or not rule.get("checked_at")
+    ):
+        return None
+    return url
+
+
+def manual_endpoint_status(
+    validation: dict[str, Any], after_version: dict[str, Any] | None
+) -> str | None:
+    """Flag a known revised endpoint that is not publicly retrievable."""
+    rule = validation.get("endpoint_assessment", {})
+    if not after_version:
+        return None
+    if (
+        rule.get("status") != "known_revised_version_unavailable"
+        or rule.get("stale_public_sha256") != after_version.get("sha256")
+        or not rule.get("evidence")
+        or not rule.get("checked_at")
+    ):
+        return None
+    return "known_revised_version_unavailable"
 
 
 def nber_url(doi: str) -> str | None:
@@ -720,6 +759,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             "manual_adjustment_status": row.get("Adjusted_paper?", ""),
         })
         entry["public_documents"] = public_document_mapping(entry["pubpub_url"])
+        manual_validation = manual_validations.get(paper_id, {})
         review_reasons: list[str] = []
 
         before_choice = choose_before_pdf(row)
@@ -740,7 +780,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         else:
             review_reasons.append("before_version_missing")
 
-        source_url = source_url_for_doi(doi)
+        source_url = manual_public_source_url(manual_validation) or source_url_for_doi(doi)
         fetch_result: dict[str, Any] = {"status": "skipped", "reason": "network disabled"}
         content: bytes | None = None
         if source_url and not args.no_network:
@@ -782,10 +822,13 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         else:
             review_reasons.append("no_supported_public_source")
 
-        manual_validation = manual_validations.get(paper_id, {})
         manual_status = manual_timeline_status(manual_validation, before_version, after_version)
         no_change_status = manual_no_change_status(manual_validation, before_version, after_version)
-        if no_change_status:
+        endpoint_status = manual_endpoint_status(manual_validation, after_version)
+        if endpoint_status:
+            timeline_status = endpoint_status
+            review_reasons.append("known_revised_endpoint_unavailable")
+        elif no_change_status:
             timeline_status = no_change_status
         elif manual_status == "manually_verified_post_evaluation":
             timeline_status = manual_status
@@ -800,6 +843,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             "metadata_claim_post_evaluation", "manually_verified_post_evaluation",
             "manually_rejected_not_post_evaluation",
             "manually_verified_no_observed_document_change",
+            "known_revised_version_unavailable",
         }:
             review_reasons.append("timeline_not_verified")
 
@@ -812,7 +856,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             review_reasons.append("before_after_hashes_identical")
 
         material_count = comparison["summary"]["material_change_cards"] if comparison else 0
-        if not material_count and not no_change_status:
+        if not material_count and not no_change_status and not endpoint_status:
             review_reasons.append("no_material_change_cards")
         docs = entry["public_documents"]
         validated_docs = manual_public_documents(manual_validation)
@@ -825,7 +869,8 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         hard_blockers = {
             "ambiguous_before_version", "before_identity_not_verified", "before_version_missing",
             "after_identity_not_verified", "after_version_fetch_failed", "timeline_not_verified",
-            "after_version_predates_evaluation", "evaluation_documents_not_exactly_mapped",
+            "after_version_predates_evaluation", "known_revised_endpoint_unavailable",
+            "evaluation_documents_not_exactly_mapped",
         }
         ready = bool(comparison and material_count and not (set(review_reasons) & hard_blockers))
         no_change_ready = bool(

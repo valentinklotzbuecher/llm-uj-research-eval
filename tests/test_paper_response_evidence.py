@@ -16,6 +16,13 @@ class PaperResponseEvidenceTests(unittest.TestCase):
             MODULE.normalize_doi("doig.org/10.3386/w31899"),
             "10.3386/w31899",
         )
+        self.assertEqual(
+            MODULE.stable_paper_id(
+                "The Effect of Public Science on Corporate R&D",
+                "doig.org/10.3386/w31899",
+            ),
+            "the-effect-of-public-science-on-corpor-ef23c268d6",
+        )
 
     def test_stable_paper_id_prefers_normalized_doi(self):
         first = MODULE.stable_paper_id("A Paper Title", "https://doi.org/10.1234/ABC")
@@ -129,6 +136,35 @@ class PaperResponseEvidenceTests(unittest.TestCase):
             MODULE.manual_no_change_status(
                 validation, {"sha256": "same-hash"}, {"sha256": "same-hash"}
             )
+        )
+
+    def test_manual_public_source_override_requires_review_metadata(self):
+        validation = {"current_public_source": {
+            "status": "verified_override",
+            "url": "https://example.org/revised.pdf",
+            "evidence": "The public author response identifies this revised endpoint.",
+            "checked_at": "2026-07-17",
+        }}
+        self.assertEqual(
+            MODULE.manual_public_source_url(validation),
+            "https://example.org/revised.pdf",
+        )
+        validation["current_public_source"]["url"] = "http://example.org/revised.pdf"
+        self.assertIsNone(MODULE.manual_public_source_url(validation))
+
+    def test_manual_endpoint_status_is_bound_to_stale_public_hash(self):
+        validation = {"endpoint_assessment": {
+            "status": "known_revised_version_unavailable",
+            "stale_public_sha256": "stale-hash",
+            "evidence": "The public author response says the paper was revised.",
+            "checked_at": "2026-07-17",
+        }}
+        self.assertEqual(
+            MODULE.manual_endpoint_status(validation, {"sha256": "stale-hash"}),
+            "known_revised_version_unavailable",
+        )
+        self.assertIsNone(
+            MODULE.manual_endpoint_status(validation, {"sha256": "new-hash"})
         )
 
     def test_public_document_mapping_recognizes_authors_response(self):

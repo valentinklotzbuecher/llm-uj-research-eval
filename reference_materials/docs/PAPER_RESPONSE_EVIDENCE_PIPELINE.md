@@ -58,6 +58,12 @@ the local input is credibly the evaluated draft, independently retrieving the
 current public PDF, and binding the finding to their shared SHA-256 hash. If
 the evaluated-draft provenance is unresolved, the pair remains in human review.
 
+When a DOI or arXiv endpoint is known to be stale, a reviewed public endpoint
+override can be recorded in the same validation registry. The override requires
+an HTTPS URL, evidence explaining why it is the correct version, and a check
+date. This is intended for author-linked revisions and versions of record, not
+automated URL guessing.
+
 ## Optional multi-agent review without API keys
 
 After validating identity and timeline fields, list ready items from
