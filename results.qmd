@@ -846,7 +846,7 @@ if (length(ord_p) > 0) {
 
 Rows with uniformly green or orange tiles indicate papers where humans and GPT-5 Pro disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases---for instance, if "Open Science" is green across nearly all papers, humans may systematically reward data-sharing practices more than the model does. Multi-model comparisons in [Appendix A](results_ratings.qmd) reveal whether these disagreement patterns are GPT-5 Pro--specific or shared across frontier LLMs.
 
-**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against precision---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see [Methods](methods.qmd) for the judging protocol). One of the 14 originally curated pairs (Peterman et al. 2025) is excluded: the judge flagged---and we verified against the paper---that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.
+**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against the LLM overlap rate---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see [Methods](methods.qmd) for the judging protocol). One of the 14 originally curated pairs (Peterman et al. 2025) is excluded: the judge flagged---and we verified against the paper---that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.
 
 ```{r}
 #| label: load-critique-data
@@ -891,7 +891,7 @@ if (!is.na(comparison_results_file)) {
 
 ```{r}
 #| label: fig-coverage-precision-main
-#| fig-cap: "Coverage (% of human-identified issues that the LLM also raised) vs Precision (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques."
+#| fig-cap: "Coverage (% of human-identified issues that the LLM also raised) vs LLM overlap rate (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques."
 #| fig-width: 10
 #| fig-height: 7
 
@@ -909,13 +909,13 @@ if (has_critique_data) {
     scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
     labs(
       x = "Coverage (%) \u2014 Human issues captured by LLM",
-      y = "Precision (%) \u2014 LLM issues that are substantive"
+      y = "LLM overlap rate (%)"
     ) +
     theme_uj()
 }
 ```
 
-Coverage and precision vary substantially across papers. Averaged over the `r if (has_critique_data) sum(!is.na(comparison_data$coverage_pct))` focal papers, the model captures `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))` of human consensus issues (range `r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`), while `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))` of model-raised issues match a substantive human concern. Low precision partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus count against precision. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.
+Coverage and the LLM overlap rate vary substantially across papers. Averaged over the `r if (has_critique_data) sum(!is.na(comparison_data$coverage_pct))` focal papers, the model captures `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))` of human consensus issues (range `r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`), while `r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))` of model-raised issues match a substantive human concern. A low LLM overlap rate partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus reduce the overlap rate. An unmatched model concern is not necessarily incorrect. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 

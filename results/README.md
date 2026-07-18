@@ -65,3 +65,16 @@ results/
 2. Treat `llm_runs_metadata.csv` as the source of truth for run state.
 3. When adding a new run to manuscript comparisons, update `model_dirs` in `results.qmd`.
 
+## Exploratory concordance runs
+
+The `concordance_codex_*_jul2026` directories contain exploratory
+subscription-backed Terra → Sol judgments, kept separate from confirmatory API
+results. Public run packages retain the input manifest, configuration and
+telemetry, eligibility notes, and consolidated judgments. Raw Codex JSONL event
+streams and stderr logs remain local because they include machine-specific
+thread and configuration metadata.
+
+The latest screened increment is
+`concordance_codex_three_candidate_screened_batch_jul2026`. Its compact methods
+note is at `docs/concordance_three_candidate_methods_note_jul2026.md`, and its
+public interpretation appears in `headless_codex_pilot.qmd`.

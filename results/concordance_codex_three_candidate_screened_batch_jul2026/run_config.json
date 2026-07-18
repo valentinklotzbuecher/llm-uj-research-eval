@@ -1,0 +1,93 @@
+{
+  "run_id": "concordance_codex_three_candidate_screened_batch_jul2026",
+  "started_at": "2026-07-18T20:37:11.165509+00:00",
+  "status": "completed",
+  "procedure": "Terra first pass; ambiguous pair-level cases only to Sol",
+  "codex_binary": "/Applications/ChatGPT.app/Contents/Resources/codex",
+  "codex_version": "codex-cli 0.144.5",
+  "auth_surface": "ChatGPT/Codex subscription; API keys removed from child environment",
+  "inputs": {
+    "source": "tools/issue_annotation_ui/data.json",
+    "source_sha256": "cc9b9870ccb78354f38f34bf23418d714dff29ea7dc27e42f4a26882d4446b7e",
+    "source_format": "issue_annotation_ui",
+    "selected_papers": [
+      "Acemoglu_et_al._2024",
+      "Adena_and_Hager_2024"
+    ],
+    "stable_issue_ids": true,
+    "external_prompt_anonymized": true,
+    "human_issue_count": 10,
+    "llm_issue_count": 24
+  },
+  "configuration": {
+    "paper_count": 2,
+    "paper_ids": [
+      "Acemoglu_et_al._2024",
+      "Adena_and_Hager_2024"
+    ],
+    "terra_batch_size": 3,
+    "terra_batch_count": 1,
+    "terra_prompt_chars_by_batch": [
+      14194
+    ],
+    "terra_prompt_chars_total": 14194,
+    "terra_model": "gpt-5.6-terra",
+    "terra_effort": "high",
+    "sol_mode": "ambiguous",
+    "max_sol_judgments": 3
+  },
+  "completed_at": "2026-07-18T20:37:11.214293+00:00",
+  "calls": [
+    {
+      "call_name": "terra_batch_001",
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "prompt_chars": 14194,
+      "duration_seconds": 60.333,
+      "usage": {
+        "input_tokens": 22077,
+        "cached_input_tokens": 0,
+        "output_tokens": 3152,
+        "reasoning_output_tokens": 1034
+      },
+      "completed_at": "2026-07-18T20:34:11.581697+00:00",
+      "auth_surface": "ChatGPT/Codex subscription",
+      "api_key_environment_removed": true,
+      "artifact_reused_this_execution": true
+    },
+    {
+      "call_name": "sol_ambiguous_001",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "prompt_chars": 5813,
+      "duration_seconds": 30.253,
+      "usage": {
+        "input_tokens": 19916,
+        "cached_input_tokens": 0,
+        "output_tokens": 849,
+        "reasoning_output_tokens": 195
+      },
+      "completed_at": "2026-07-18T20:34:41.836282+00:00",
+      "auth_surface": "ChatGPT/Codex subscription",
+      "api_key_environment_removed": true,
+      "artifact_reused_this_execution": true
+    }
+  ],
+  "total_usage": {
+    "input_tokens": 41993,
+    "cached_input_tokens": 0,
+    "output_tokens": 4001,
+    "reasoning_output_tokens": 1229
+  },
+  "new_usage_this_execution": {
+    "input_tokens": 0,
+    "cached_input_tokens": 0,
+    "output_tokens": 0,
+    "reasoning_output_tokens": 0
+  },
+  "new_model_call_count": 0,
+  "artifact_reused_call_count": 2,
+  "sol_candidate_count": 3,
+  "sol_call_made": true,
+  "output": "results/concordance_codex_three_candidate_screened_batch_jul2026/concordance_results.json"
+}

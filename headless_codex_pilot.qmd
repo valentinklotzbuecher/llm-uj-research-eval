@@ -41,6 +41,23 @@ For this first run, the combined metrics were:
 
 The model also correctly noted in its assessment that the text had been truncated and widened uncertainty accordingly. This is the behavior we want from an exploratory runner: it should surface input limitations rather than presenting the output as equivalent to a full native-PDF evaluation.
 
+## Terra → Sol concordance follow-up
+
+We also tested a two-stage concordance workflow for comparing separately enumerated human issues with LLM-generated issues. A high-effort Terra pass checked input alignment and proposed mappings; only three ambiguous pair judgments were escalated to a high-effort Sol pass. The workflow used stable issue IDs, retained a historical overlap threshold of 30, recorded exact Codex telemetry, and kept all outputs separate from the confirmatory API results.
+
+We fixed the candidate set as the first three records in source order before inspecting concordance. A manual title/PDF/issue screen excluded Bénabou et al. before judgment: the recorded title and human issues concerned *Willful Ignorance and Moral Behavior*, while the local PDF and LLM issues concerned *Ends versus Means: Kantians, Utilitarians, and Moral Decisions*. Acemoglu et al. and Adena–Hager passed the screen and were processed together in one Terra batch.
+
+| Result | Acemoglu et al. | Adena–Hager | Pooled eligible issues |
+|---|---:|---:|---:|
+| Human-issue coverage | 2/3 (66.7%) | 6/7 (85.7%) | 8/10 (80.0%) |
+| LLM overlap rate | 3/12 (25.0%) | 6/12 (50.0%) | 9/24 (37.5%) |
+
+The LLM overlap rate is the fraction of unique LLM issue IDs with at least one non-distinct mapping scoring 30 or higher. It is not an estimate of whether unmatched LLM concerns are incorrect. Sol changed one threshold-sensitive mapping out of the three escalated pairs: an Adena–Hager mapping moved from 31 to 27, lowering the pooled LLM overlap rate from 41.7% to 37.5%. Human-issue coverage was unchanged because that human issue retained another qualifying match.
+
+The original Terra and Sol calls used 41,993 input tokens and 4,001 output tokens, including 1,229 reasoning-output tokens. An identical verification run reused both completed artifacts and made no new model calls. The compact [methods note](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/concordance_three_candidate_methods_note_jul2026.md), [eligibility screen](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/eligibility_screen.md), and [structured final judgments](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/concordance_results.json) are retained in the repository.
+
+This increment supports preparing a larger preregistered-style study, but not running the full corpus yet. The remaining inputs should first receive the same alignment audit, and the protocol should freeze eligibility, compound-issue handling, aggregation, ambiguity ranking under an escalation cap, and treatment of ambiguous pairs that are not escalated.
+
 ## Replicability and consistency
 
 The main concern is real: this approach is less standardized than the API-based approach.

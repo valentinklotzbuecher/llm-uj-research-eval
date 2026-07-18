@@ -1,0 +1,80 @@
+{
+  "run_id": "concordance_codex_atomic_pilot_jul2026",
+  "started_at": "2026-07-13T15:23:19.060327+00:00",
+  "status": "completed",
+  "procedure": "Terra first pass; ambiguous pair-level cases only to Sol",
+  "codex_binary": "/Applications/ChatGPT.app/Contents/Resources/codex",
+  "codex_version": "codex-cli 0.144.0-alpha.4",
+  "auth_surface": "ChatGPT/Codex subscription; API keys removed from child environment",
+  "inputs": {
+    "source": "tools/issue_annotation_ui/data.json",
+    "source_sha256": "cc9b9870ccb78354f38f34bf23418d714dff29ea7dc27e42f4a26882d4446b7e",
+    "source_format": "issue_annotation_ui",
+    "selected_papers": [
+      "Benabou_et_al._2023"
+    ],
+    "stable_issue_ids": true,
+    "human_issue_count": 2,
+    "llm_issue_count": 10
+  },
+  "configuration": {
+    "paper_count": 1,
+    "paper_ids": [
+      "Benabou_et_al._2023"
+    ],
+    "terra_batch_size": 3,
+    "terra_batch_count": 1,
+    "terra_prompt_chars_by_batch": [
+      6998
+    ],
+    "terra_prompt_chars_total": 6998,
+    "terra_model": "gpt-5.6-terra",
+    "terra_effort": "high",
+    "sol_mode": "ambiguous",
+    "max_sol_judgments": 1
+  },
+  "completed_at": "2026-07-13T15:23:19.097448+00:00",
+  "calls": [
+    {
+      "call_name": "terra_batch_001",
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "prompt_chars": 6631,
+      "duration_seconds": 37.742,
+      "usage": {
+        "input_tokens": 20058,
+        "cached_input_tokens": 0,
+        "output_tokens": 1109,
+        "reasoning_output_tokens": 516
+      },
+      "completed_at": "2026-07-13T15:19:16.929663+00:00",
+      "auth_surface": "ChatGPT/Codex subscription",
+      "api_key_environment_removed": true
+    },
+    {
+      "call_name": "sol_ambiguous_001",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "high",
+      "prompt_chars": 2843,
+      "duration_seconds": 25.017,
+      "usage": {
+        "input_tokens": 19121,
+        "cached_input_tokens": 0,
+        "output_tokens": 426,
+        "reasoning_output_tokens": 160
+      },
+      "completed_at": "2026-07-13T15:20:22.703388+00:00",
+      "auth_surface": "ChatGPT/Codex subscription",
+      "api_key_environment_removed": true
+    }
+  ],
+  "total_usage": {
+    "input_tokens": 39179,
+    "cached_input_tokens": 0,
+    "output_tokens": 1535,
+    "reasoning_output_tokens": 676
+  },
+  "sol_candidate_count": 1,
+  "sol_call_made": true,
+  "output": "results/concordance_codex_atomic_pilot_jul2026/concordance_results.json"
+}
