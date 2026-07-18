@@ -287,6 +287,8 @@ This file is sourced at the top of each `.qmd` document.
 The legacy exploratory PDF-diff utilities were moved to `unjournal_tools_interfaces` (see `side_projects/README.md`). The auditable evidence pipeline supporting the active `paper_response_analysis.qmd` appendix is maintained here:
 
 - `scripts/paper_response_evidence.py` — immutable version snapshots, provenance, identity/timeline checks, page-anchored deterministic change cards, and human review queue.
+- `scripts/screen_paper_response_matches.py` — no-model suggestion-to-change candidate screen with line-anchor validation, whole-earlier-document controls, and cross-paper placebo benchmarking. Outputs are review priorities, never influence labels.
+- `scripts/run_paper_response_refresh.py` — weekly runner that refreshes endpoints and then rebuilds the deterministic screen.
 - `scripts/run_paper_response_agents.py` — optional bounded Haiku/Sonnet review through locally authenticated headless Claude Code; tools disabled, no API keys, exact evidence validation, and mandatory human release gate.
 - `reference_materials/docs/PAPER_RESPONSE_EVIDENCE_PIPELINE.md` — operating and validation guide.
 
@@ -564,7 +566,7 @@ All R figures use `theme_uj()` (defined in each results file) with:
 
 - **Schedule:** Weekly, Sundays at 9:23am local time (when the Mac is awake).
 - **Job name:** `paper_response_refresh`; logs and status are managed by `cron_wrapper.py` in `~/Library/Logs/cron/` and `~/.cron_status/`.
-- **Action:** Runs `scripts/paper_response_evidence.py refresh --browser-resolve auto` in the `qpy311_arm` Conda environment. It preserves immutable public-PDF snapshots, records provenance/hashes, validates identities, produces deterministic change cards, and updates the local human review queue. Headless Chrome resolves non-direct DOI landing pages without metadata/model APIs.
+- **Action:** Runs `scripts/run_paper_response_refresh.py` in the `qpy311_arm` Conda environment. It refreshes immutable public-PDF snapshots, records provenance/hashes, validates identities, produces deterministic change cards, updates the local human review queue, and rebuilds the conservative suggestion-to-change priority screen. Headless Chrome resolves non-direct DOI landing pages without metadata/model APIs.
 - **Deliberately excluded:** no model calls, causal labels, manual-status changes, Quarto rendering, Git commits/pushes, or publishing. Optional multi-agent review is a separate deliberate command and still requires human sign-off.
 
 ## Architecture Insights

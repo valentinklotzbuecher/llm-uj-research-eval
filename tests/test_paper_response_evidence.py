@@ -1,5 +1,6 @@
 import importlib.util
 import pathlib
+import tempfile
 import unittest
 
 
@@ -197,6 +198,25 @@ class PaperResponseEvidenceTests(unittest.TestCase):
             "data/unjournal_evaluations/authorsresponsepublicscience.md",
             mapping["public_response_files"],
         )
+
+    def test_cached_after_snapshot_survives_transient_refresh_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            snapshot = root / "data" / "snapshots" / "after.pdf"
+            snapshot.parent.mkdir(parents=True)
+            snapshot.write_bytes(b"%PDF-cached-comparison")
+            entry = {
+                "selected_after_version_id": "after-id",
+                "versions": [{
+                    "version_id": "after-id",
+                    "snapshot_path": "data/snapshots/after.pdf",
+                }],
+            }
+            cached = MODULE.cached_selected_after(entry, root)
+            self.assertIsNotNone(cached)
+            assert cached
+            self.assertEqual(cached[0], b"%PDF-cached-comparison")
+            self.assertEqual(cached[1]["version_id"], "after-id")
 
 
 if __name__ == "__main__":
