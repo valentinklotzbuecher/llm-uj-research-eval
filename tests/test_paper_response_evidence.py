@@ -43,6 +43,28 @@ class PaperResponseEvidenceTests(unittest.TestCase):
         )
         self.assertEqual(mismatch["status"], "mismatch")
 
+    def test_identity_score_accepts_only_explicit_title_aliases(self):
+        canonical = "Cash Transfers for Child Development: Experimental Evidence from India"
+        renamed = "Early-Life Cash and Child Development in India"
+        text = f"{renamed} — Jeffrey Weaver and Sandip Sukhtankar"
+        without_alias = MODULE.identity_score(
+            canonical, "Jeffrey Weaver,Sandip Sukhtankar", text
+        )
+        with_alias = MODULE.identity_score(
+            canonical,
+            "Jeffrey Weaver,Sandip Sukhtankar",
+            text,
+            [renamed],
+        )
+        self.assertNotEqual(without_alias["status"], "verified")
+        self.assertEqual(with_alias["status"], "verified")
+        self.assertEqual(with_alias["matched_title"], renamed)
+        self.assertTrue(with_alias["matched_title_is_alias"])
+        self.assertLess(
+            with_alias["canonical_title_token_coverage"],
+            with_alias["title_token_coverage"],
+        )
+
     def test_change_cards_anchor_numeric_result_change(self):
         before = [{
             "page": 5,

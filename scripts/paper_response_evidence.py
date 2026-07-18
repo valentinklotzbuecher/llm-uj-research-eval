@@ -146,10 +146,23 @@ def title_tokens(title: str) -> set[str]:
     }
 
 
-def identity_score(title: str, authors: str, extracted_text: str) -> dict[str, Any]:
-    expected = title_tokens(title)
+def identity_score(
+    title: str,
+    authors: str,
+    extracted_text: str,
+    title_aliases: list[str] | None = None,
+) -> dict[str, Any]:
+    candidate_titles = [title] + [
+        alias for alias in (title_aliases or [])
+        if alias and alias.casefold().strip() != title.casefold().strip()
+    ]
     observed = set(re.findall(r"[a-z0-9]+", extracted_text[:15000].casefold()))
-    title_coverage = len(expected & observed) / max(len(expected), 1)
+    coverage_by_title = {
+        candidate: len(title_tokens(candidate) & observed) / max(len(title_tokens(candidate)), 1)
+        for candidate in candidate_titles
+    }
+    matched_title = max(coverage_by_title, key=coverage_by_title.get)
+    title_coverage = coverage_by_title[matched_title]
     surname = first_author_last(authors)
     author_found = bool(surname and surname in observed)
     score = round(0.82 * title_coverage + 0.18 * float(author_found), 3)
@@ -163,6 +176,9 @@ def identity_score(title: str, authors: str, extracted_text: str) -> dict[str, A
         "score": score,
         "status": status,
         "title_token_coverage": round(title_coverage, 3),
+        "canonical_title_token_coverage": round(coverage_by_title[title], 3),
+        "matched_title": matched_title,
+        "matched_title_is_alias": matched_title != title,
         "first_author_found": author_found,
     }
 
@@ -521,13 +537,20 @@ def candidate_before_pdfs(authors: str, title: str) -> list[Path]:
     return [path for _, path in sorted(candidates, key=lambda pair: (-pair[0], pair[1].name))]
 
 
-def choose_before_pdf(row: dict[str, str]) -> dict[str, Any]:
+def choose_before_pdf(
+    row: dict[str, str], title_aliases: list[str] | None = None
+) -> dict[str, Any]:
     candidates = candidate_before_pdfs(row.get("authors", ""), row.get("label_paper_title", ""))
     scored: list[dict[str, Any]] = []
     for path in candidates[:8]:
         try:
             text = first_pages_text(path)
-            identity = identity_score(row.get("label_paper_title", ""), row.get("authors", ""), text)
+            identity = identity_score(
+                row.get("label_paper_title", ""),
+                row.get("authors", ""),
+                text,
+                title_aliases,
+            )
         except Exception as exc:
             identity = {"score": 0.0, "status": "mismatch", "error": str(exc)}
         scored.append({"path": str(path.relative_to(ROOT)), "identity": identity})
@@ -760,9 +783,11 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         })
         entry["public_documents"] = public_document_mapping(entry["pubpub_url"])
         manual_validation = manual_validations.get(paper_id, {})
+        title_aliases = manual_validation.get("title_aliases", [])
+        entry["title_aliases"] = title_aliases
         review_reasons: list[str] = []
 
-        before_choice = choose_before_pdf(row)
+        before_choice = choose_before_pdf(row, title_aliases)
         entry["before_selection"] = before_choice
         before_version = None
         if before_choice.get("selected"):
@@ -809,7 +834,9 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             after_version = store_snapshot(paper_id, content, "candidate_post_evaluation", fetch_result, entry)
             after_extract = load_json(ROOT / after_version["extraction"]["path"], {})
             first_text = "\n".join(page.get("text", "") for page in after_extract.get("pages", [])[:2])
-            after_version["identity"] = identity_score(title, entry["authors"], first_text)
+            after_version["identity"] = identity_score(
+                title, entry["authors"], first_text, title_aliases
+            )
             entry["selected_after_version_id"] = after_version["version_id"]
             entry["source_url"] = source_url
             report["after_snapshots_available"] += 1

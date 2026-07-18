@@ -52,6 +52,14 @@ to the SHA-256 hashes of both snapshots, so replacing either PDF automatically
 invalidates the decision. A manually verified pre-evaluation “after” version is
 recorded as a rejection and cannot enter agent triage.
 
+Paper identity is anchored to the normalized DOI where available, so a later
+title does not create a new paper record. PDF title checks compare against the
+canonical tracked title and any explicitly reviewed `title_aliases` in the
+manual validation registry. The output records which title matched, along with
+canonical and best-match token coverage. The pipeline never infers an alias
+merely from title similarity, and first-author evidence is still required for
+automatic verification.
+
 A byte-identical pair is not automatically a no-change finding. It can be
 recorded as **verified no observed document change** only after checking that
 the local input is credibly the evaluated draft, independently retrieving the

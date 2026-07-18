@@ -49,6 +49,16 @@ library(glue)
 library(jsonlite)
 
 df <- read_csv("data/author_adjustment_manual.csv", show_col_types = FALSE)
+reviewed_outcomes <- read_csv(
+  "data/paper_response_reviewed_outcomes.csv",
+  show_col_types = FALSE
+)
+
+stopifnot(
+  nrow(reviewed_outcomes) == 22,
+  sum(reviewed_outcomes$public_version_status == "no_observed_public_change") == 13,
+  sum(reviewed_outcomes$public_version_status == "later_public_version_reviewed") == 9
+)
 
 df <- df |>
   rename(
@@ -129,6 +139,84 @@ For each of the initial seven cases, separate passes extracted exact suggestions
 :::
 
 The nine reviewed comparisons now include one direct documented correction, two reasonably specific content alignments with attribution unconfirmed, three weaker correspondences, and three cases with no supported substantive match. Only the proof correction has explicit public evidence connecting the evaluation to the change.
+
+### Overall and conditional response rates
+
+The 22 reviewed endpoints support a more useful distinction than “changed” versus “unchanged.” The five outcome categories below are mutually exclusive.
+
+::: {.outcome-summary-table}
+
+| Reviewed endpoint outcome | Cases | Share of 22 |
+|---|---:|---:|
+| No observed public document change | 13 | 59% |
+| Later version, but no supported substantive implementation | 3 | 14% |
+| Later version with weaker correspondence | 3 | 14% |
+| Later version with a reasonably specific alignment; attribution unconfirmed | 2 | 9% |
+| Explicit public author link between evaluation and correction | 1 | 5% |
+
+:::
+
+Percentages are rounded; the counts are primary.
+
+Overall, six of 22 reviewed endpoints (27%) show at least some correspondence between an evaluation point and a later change. Three of 22 (14%) show either a specific alignment or an explicit link, and one of 22 (5%) has an explicit public author statement connecting the evaluation to the correction.
+
+Conditional on the nine papers with a genuine later public version, six (67%) show at least some correspondence, three (33%) show a specific or explicit alignment, and one (11%) has an explicit author link. Three of nine (33%) have no supported substantive implementation in the versions we reviewed.
+
+These are descriptive rates for a small, selected, source-available set, not estimates for all 57 tracked evaluations. “Later version, but no supported implementation” is also not equivalent to “the authors ignored the suggestions.” Authors may have considered and rejected a suggestion, responded privately, revised a document we have not found, or changed the paper for unrelated reasons.
+
+The identity checks now follow normalized DOIs where available and permit explicit, manually reviewed title aliases. They do not depend on exact title equality or infer aliases from a similar title. The evidence record stores the canonical title, any reviewed aliases, and which title matched the PDF; this matters for small changes such as “vs.” to “versus” and for future substantive retitling.
+
+### Exploratory differences across research areas
+
+The table counts only the 22 reviewed endpoints. “Any correspondence” includes weak correspondences and therefore should not be read as demonstrated influence.
+
+::: {.field-pattern-table}
+
+| Tracked research area | Reviewed endpoints | Later public version | Any correspondence overall | Any correspondence, conditional on update |
+|---|---:|---:|---:|---:|
+| Environment | 3 | 3 | 2/3 | 2/3 |
+| Dev. economics / governance (LMICs) | 6 | 3 | 2/6 | 2/3 |
+| Social impact of technology / AI | 2 | 1 | 1/2 | 1/1 |
+| Innovation and meta-science | 4 | 1 | 0/4 | 0/1 |
+| Global health (LMICs) | 6 | 1 | 1/6 | 1/1 |
+| Economics, welfare, miscellaneous | 1 | 0 | 0/1 | — |
+
+:::
+
+Environment papers were more likely to have a later public version in this reviewed set, while global-health papers were less likely. Conditional response patterns cannot be ranked credibly: most area-specific denominators are one or three updated papers, and case selection partly reflects whether usable public versions could be recovered. The table is best treated as a prompt for stratified sampling as coverage expands.
+
+### What kinds of evaluation points aligned with changes?
+
+For an initial qualitative comparison, we assigned one primary evaluation aspect to each of the nine updated cases. This simplifies evaluations that often raised several distinct issues.
+
+::: {.aspect-pattern-table}
+
+| Primary evaluation aspect | Cases | Strongest observed result | Pattern in this review |
+|---|---:|---|---|
+| Correctable proof error | 1 | Explicit documented link | The clearest result was precise, checkable, and acknowledged publicly. |
+| Specified additional analysis | 2 | Specific alignment, attribution unconfirmed | Both later papers added a closely related analysis, but neither linked it publicly to the evaluation. |
+| Robustness, confounding, or measurement check | 3 | Weaker correspondence | Later checks overlapped with the concern, but standard-practice explanations remained plausible. |
+| Broad theory, mechanisms, welfare, framing, or interpretation | 3 | No supported substantive implementation | The later versions changed, but the broad requested extensions were not clearly carried out. |
+
+:::
+
+The tentative pattern is that concrete, falsifiable requests are easier both to act on and to verify. This does not show that they cause more responsiveness: specificity is confounded with feasibility, observability, and the cost of the requested work. A credible next analysis should code all validated suggestions into a common taxonomy, double-code a sample, and compare response rates within updated papers.
+
+### Pilot check for later related work
+
+We also ran a targeted search for later work extending three updated papers where the reviewed version showed no supported substantive implementation. This is a separate outcome from revision of the evaluated paper.
+
+::: {.later-work-table}
+
+| Evaluated case | Public continuation checked | Pilot result |
+|---|---|---|
+| *A Welfare Analysis of Policies Impacting Climate Change* | The [July 2026 AER version of record](https://www.aeaweb.org/articles?id=10.1257%2Faer.20250166) and the October 2025 NBER full text | The AER item is the same paper, not a separate extension. Its full text was not publicly accessible in our check, so the content assessment still rests on the public NBER revision. We did not identify a separate later extension by the author team. |
+| *The Pivot Penalty in Research* | The [May 2025 Nature paper](https://www.nature.com/articles/s41586-025-09048-1), supplement, and related records | This is the final version of the evaluated research line, not later separate work. It was accepted before the public Unjournal evaluation, and we did not identify a subsequent author-team extension addressing the unmatched suggestions. |
+| *Zero-Sum Environments, the Evolution of Effort-Suppressing Beliefs, and Economic Development* | The [August 2025 NBER revision](https://www.nber.org/papers/w31663) and targeted title/author searches | The NBER revision is the same paper and is already included in the comparison above. We did not identify clearly attributable later work by the overlapping author team that implements the unmatched suggestions. |
+
+:::
+
+This pilot is deliberately phrased as “not identified,” not “does not exist.” Related-work tracking is harder than version tracking: titles, author teams, and empirical settings can all change. A scalable extension should record search dates and queries, require meaningful author overlap and a documented intellectual link, and keep “same paper,” “later extension,” and “unrelated related literature” as separate categories.
 
 #### Detailed aligned review: *The Pivot Penalty in Research*
 
