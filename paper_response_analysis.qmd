@@ -97,7 +97,7 @@ Two evidence streams are shown together: manual classification for all 57 papers
 ::: {.callout-important}
 ## Current validation work (July 2026)
 
-The April figures below remain the historical snapshot. A current source refresh has captured 30 public current-paper versions and created nine before/after comparison records. Seven records passed preliminary document, identity, and timing checks; we completed a careful review of these by July 17. These are coverage figures for a workflow, not findings that an evaluation caused a change.
+The April figures below remain the historical snapshot. A current source refresh has captured 30 public current-paper versions and created nine before/after comparison records. Seven records passed preliminary document, identity, and timing checks; we completed a careful review of these by July 17. We also audited all 17 cases where the local input and current public PDF were byte-identical. Eight support a limited “no observed public document change” finding; five remain unresolved, and four were invalid comparisons. These are coverage figures for a workflow, not findings that an evaluation caused a change.
 
 For each candidate, the revised workflow preserves PDF snapshots and hashes, checks that the documents are the same paper and in the right order, records page- and section-level changes, and requires human review before any public claim of evaluation-linked updating. A newer PDF, a textual difference, or a model suggestion is not enough on its own.
 :::
@@ -117,6 +117,25 @@ For each of the seven cases, separate passes extracted exact suggestions, classi
 | *Urban Forests: Environmental Health Value and Disparities* | 23 | 16 | **Possible topical correspondences, attribution unconfirmed.** New wind-direction checks overlap with a confounding concern, and an NDVI footnote partly overlaps with a request about alternative vegetation measures. The strongest automated site-selection match was excluded because its source quote failed validation. |
 
 The main result from this re-review is not “seven updates.” It is two reasonably specific content alignments, three weaker correspondences, and two cases with no supported match. Even the strongest alignments do not establish that an evaluation caused a revision. We would need an author response, revision memo, version history, or similarly direct evidence to make that stronger claim.
+
+### Audit of byte-identical cases (July 17, 2026)
+
+An identical current PDF is potentially informative, but only if the local input is credibly the document that was evaluated. Repository history was not enough: all 17 local inputs entered this repository after their evaluations. We therefore checked official version histories, archived pre-evaluation PDFs, distinctive page-level references in the evaluations, and fresh publisher downloads.
+
+Eight cases now support the limited statement **“no observed public document change as of July 17, 2026.”** This does not imply that authors ignored the evaluation. They may have revised another manuscript, made changes that are not publicly available, or decided that no revision was warranted.
+
+| Paper | Evidence binding the evaluated and current documents |
+|---|---|
+| *Pharmaceutical Pricing and R&D as a Global Public Good* | The official NBER record retains its May 2023 issue date with no revision date; a fresh publisher download has the same hash. |
+| *Towards Best Practices in AGI Safety and Governance* | arXiv lists only version 1 (May 11, 2023); the current PDF is byte-identical. |
+| *Choose Your Moments: NIH Peer Review and Scientific Risk Taking* | The official NBER record retains its June 2023 issue date with no revision date; a fresh publisher download has the same hash. |
+| *The Returns to Science in the Presence of Technological Risks* | The evaluation identifies arXiv version 2 (May 9, 2024); arXiv lists no later version. |
+| *Effects of Emigration on Rural Labor Markets* | The evaluation quotes distinctive page-level text in the October 2017 NBER PDF; the current file has the same hash. |
+| *Legalizing Entrepreneurship* | The evaluation cites distinctive page-specific text, including an unusual typo, in the March 2023 revision; the current file has the same hash. |
+| *The Benefits and Costs of Guest Worker Programs* | A pre-evaluation Wayback capture and the current NBER PDF are byte-identical. |
+| *The Comparative Impact of Cash Transfers and a Psychotherapy Program* | A pre-evaluation Wayback capture and the current NBER PDF are byte-identical. |
+
+The other nine identical pairs should not be counted as no-change findings. Five lack a reliable link to the exact evaluated draft. Four failed for more basic reasons: two had a later version at a different endpoint, one had a separate corrected version acknowledged by the authors, and one had no completed evaluation. These failures are useful: they show why a hash comparison without source-history checks can give the wrong answer.
 
 ::: {.callout-note collapse="true"}
 ## Pipeline and caveats

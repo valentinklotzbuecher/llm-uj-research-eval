@@ -52,6 +52,12 @@ to the SHA-256 hashes of both snapshots, so replacing either PDF automatically
 invalidates the decision. A manually verified pre-evaluation “after” version is
 recorded as a rejection and cannot enter agent triage.
 
+A byte-identical pair is not automatically a no-change finding. It can be
+recorded as **verified no observed document change** only after checking that
+the local input is credibly the evaluated draft, independently retrieving the
+current public PDF, and binding the finding to their shared SHA-256 hash. If
+the evaluated-draft provenance is unresolved, the pair remains in human review.
+
 ## Optional multi-agent review without API keys
 
 After validating identity and timeline fields, list ready items from

@@ -107,7 +107,8 @@ def normalize_doi(raw: str) -> str:
     if not raw:
         return ""
     value = raw.strip().replace(" ", "")
-    value = re.sub(r"^(https?://)?(dx\.)?doi\.org/", "", value, flags=re.I)
+    # A small number of legacy rows contain the common `doig.org` typo.
+    value = re.sub(r"^(https?://)?(dx\.)?doig?\.org/", "", value, flags=re.I)
     value = re.sub(r"^doi:\s*", "", value, flags=re.I)
     return value.rstrip("/.,")
 
@@ -193,6 +194,29 @@ def manual_public_documents(validation: dict[str, Any]) -> dict[str, Any] | None
         "public_response_files": docs.get("public_response_files", []),
         "validation_source": "manual_versioned_registry",
     }
+
+
+def manual_no_change_status(
+    validation: dict[str, Any],
+    before_version: dict[str, Any] | None,
+    after_version: dict[str, Any] | None,
+) -> str | None:
+    """Accept a no-change finding only for one exact, independently checked hash."""
+    rule = validation.get("no_change_observation", {})
+    if not before_version or not after_version:
+        return None
+    required_evidence = (
+        "evaluation_date", "before_version_date", "current_checked_at",
+        "current_source_url", "evidence",
+    )
+    if (
+        rule.get("status") != "verified_no_observed_document_change"
+        or before_version.get("sha256") != after_version.get("sha256")
+        or rule.get("sha256") != before_version.get("sha256")
+        or not all(rule.get(field) for field in required_evidence)
+    ):
+        return None
+    return "manually_verified_no_observed_document_change"
 
 
 def nber_url(doi: str) -> str | None:
@@ -592,7 +616,10 @@ def public_document_mapping(pubpub_url: str) -> dict[str, Any]:
             "reason": "exact PubPub summary export not found",
         }
     text = summary_path.read_text(errors="replace")
-    linked_slugs = sorted(set(re.findall(r"unjournal\.pubpub\.org/pub/([^/?#\"')]+)", text, re.I)))
+    linked_slugs = sorted({
+        slug.strip()
+        for slug in re.findall(r"unjournal\.pubpub\.org/pub/([^/?#\"')]+)", text, re.I)
+    })
     evaluation_files = [summary_path]
     response_files: list[Path] = []
     for slug in linked_slugs:
@@ -600,7 +627,11 @@ def public_document_mapping(pubpub_url: str) -> dict[str, Any]:
         if not path.exists() or path == summary_path:
             continue
         head = path.read_text(errors="replace")[:2500]
-        if re.search(r"author.?s?\s+response|response\s+to", head, re.I):
+        if re.search(
+            r"author(?:s['’]?|['’]s)?\s+response|response\s+(?:to|from)",
+            head,
+            re.I,
+        ):
             response_files.append(path)
         else:
             evaluation_files.append(path)
@@ -658,7 +689,8 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         "started_at": utc_now(), "network_enabled": not args.no_network,
         "browser_resolve": args.browser_resolve, "papers_total": 0,
         "after_snapshots_available": 0, "comparisons_created": 0,
-        "ready_for_agent_triage": 0, "needs_human_validation": 0,
+        "ready_for_agent_triage": 0, "verified_no_observed_document_change": 0,
+        "needs_human_validation": 0,
         "errors": [],
     }
     with CSV_PATH.open(newline="", encoding="utf-8") as f:
@@ -752,7 +784,10 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
 
         manual_validation = manual_validations.get(paper_id, {})
         manual_status = manual_timeline_status(manual_validation, before_version, after_version)
-        if manual_status == "manually_verified_post_evaluation":
+        no_change_status = manual_no_change_status(manual_validation, before_version, after_version)
+        if no_change_status:
+            timeline_status = no_change_status
+        elif manual_status == "manually_verified_post_evaluation":
             timeline_status = manual_status
         elif manual_status == "manually_rejected_not_post_evaluation":
             timeline_status = manual_status
@@ -761,7 +796,11 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             timeline_status = "metadata_claim_post_evaluation" if str(row.get("deposit date > unjournal pub date", "")).casefold() == "true" else "needs_review"
         entry["timeline_status"] = timeline_status
         entry["manual_validation"] = manual_validation or None
-        if timeline_status not in {"metadata_claim_post_evaluation", "manually_verified_post_evaluation", "manually_rejected_not_post_evaluation"}:
+        if timeline_status not in {
+            "metadata_claim_post_evaluation", "manually_verified_post_evaluation",
+            "manually_rejected_not_post_evaluation",
+            "manually_verified_no_observed_document_change",
+        }:
             review_reasons.append("timeline_not_verified")
 
         comparison = None
@@ -773,7 +812,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             review_reasons.append("before_after_hashes_identical")
 
         material_count = comparison["summary"]["material_change_cards"] if comparison else 0
-        if not material_count:
+        if not material_count and not no_change_status:
             review_reasons.append("no_material_change_cards")
         docs = entry["public_documents"]
         validated_docs = manual_public_documents(manual_validation)
@@ -789,7 +828,17 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             "after_version_predates_evaluation", "evaluation_documents_not_exactly_mapped",
         }
         ready = bool(comparison and material_count and not (set(review_reasons) & hard_blockers))
-        queue_status = "ready_for_agent_triage" if ready else "needs_human_validation"
+        no_change_ready = bool(
+            no_change_status
+            and docs["status"] == "exact_pubpub_mapping"
+            and not (set(review_reasons) & hard_blockers)
+        )
+        if ready:
+            queue_status = "ready_for_agent_triage"
+        elif no_change_ready:
+            queue_status = "verified_no_observed_document_change"
+        else:
+            queue_status = "needs_human_validation"
         report[queue_status] += 1
         queue.append({
             "paper_id": paper_id, "paper_title": title, "status": queue_status,

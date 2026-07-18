@@ -11,6 +11,12 @@ SPEC.loader.exec_module(MODULE)
 
 
 class PaperResponseEvidenceTests(unittest.TestCase):
+    def test_normalize_doi_handles_legacy_typo(self):
+        self.assertEqual(
+            MODULE.normalize_doi("doig.org/10.3386/w31899"),
+            "10.3386/w31899",
+        )
+
     def test_stable_paper_id_prefers_normalized_doi(self):
         first = MODULE.stable_paper_id("A Paper Title", "https://doi.org/10.1234/ABC")
         second = MODULE.stable_paper_id("A Paper Title", "10.1234/abc")
@@ -90,6 +96,48 @@ class PaperResponseEvidenceTests(unittest.TestCase):
                 validation, {"sha256": "before-hash"}, {"sha256": "after-hash"}
             ),
             "manually_rejected_not_post_evaluation",
+        )
+
+    def test_manual_no_change_validation_requires_exact_hash_and_evidence(self):
+        validation = {"no_change_observation": {
+            "status": "verified_no_observed_document_change",
+            "sha256": "same-hash",
+            "evaluation_date": "2025-01-01",
+            "before_version_date": "2024-12",
+            "current_checked_at": "2026-07-17",
+            "current_source_url": "https://example.org/paper.pdf",
+            "evidence": "The evaluated draft date and current public source were checked.",
+        }}
+        self.assertEqual(
+            MODULE.manual_no_change_status(
+                validation, {"sha256": "same-hash"}, {"sha256": "same-hash"}
+            ),
+            "manually_verified_no_observed_document_change",
+        )
+        self.assertIsNone(
+            MODULE.manual_no_change_status(
+                validation, {"sha256": "same-hash"}, {"sha256": "different-hash"}
+            )
+        )
+
+    def test_manual_no_change_validation_rejects_incomplete_evidence(self):
+        validation = {"no_change_observation": {
+            "status": "verified_no_observed_document_change",
+            "sha256": "same-hash",
+        }}
+        self.assertIsNone(
+            MODULE.manual_no_change_status(
+                validation, {"sha256": "same-hash"}, {"sha256": "same-hash"}
+            )
+        )
+
+    def test_public_document_mapping_recognizes_authors_response(self):
+        mapping = MODULE.public_document_mapping(
+            "https://unjournal.pubpub.org/pub/evalsumpublicscience/release/1"
+        )
+        self.assertIn(
+            "data/unjournal_evaluations/authorsresponsepublicscience.md",
+            mapping["public_response_files"],
         )
 
 
