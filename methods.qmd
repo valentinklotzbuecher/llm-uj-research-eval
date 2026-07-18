@@ -26,7 +26,7 @@ The sample comprises working papers spanning 2017--2025 in development economics
 
 The output is constrained by a strict JSON Schema enforcing the same nine fields that human evaluators complete: seven percentile metrics (each with `midpoint`, `lower_bound`, `upper_bound`) and two journal-tier predictions (each with `score`, `ci_lower`, `ci_upper`). Additionally, the model produces an `assessment_summary` of approximately 1,000 words that must precede scoring---a "think first, score second" protocol designed to ground numeric ratings in specific textual evidence. The extended schema used for our GPT-5.2 Pro focal run adds a `key_issues` array of concise, ranked issue statements for downstream critique comparison.
 
-**Agreement and reliability statistics.** We quantify human--LLM agreement using several complementary measures. *Pearson's r* captures linear association between paired ratings and is sensitive to proportional biases but not to constant offsets. *Spearman's ρ* measures rank-order agreement and is robust to outliers and non-linear monotone relationships. *Mean bias* (LLM minus human) indicates the direction and magnitude of any systematic offset. *Root mean squared error* (RMSE) and *mean absolute error* (MAE) measure typical prediction error in the original scale units; RMSE penalises large deviations more heavily. To contextualise human--LLM agreement we report *Krippendorff's alpha* ($\alpha$), a chance-corrected reliability coefficient that generalises across varying numbers of raters, accommodates missing data, and applies to any measurement level (nominal, ordinal, interval, or ratio). An $\alpha$ of 1 indicates perfect agreement, 0 indicates agreement no better than chance, and values below 0 indicate systematic disagreement. We compute $\alpha_{\text{HH}}$ (among human evaluators only) as a ceiling: if human evaluators agree with each other at only $\alpha = 0.5$ on a given criterion, expecting an LLM to exceed that level would be unrealistic. We then report $\alpha_{\text{HL}}$ (between the human mean and each LLM) to assess how close machine ratings come to this ceiling. For the qualitative key-issue comparison, *coverage* denotes the fraction of human-identified issues that received a match score $\geq 30\%$ from the LLM judge, and *precision* denotes the fraction of LLM-generated issues that matched at least one human issue.
+**Agreement and reliability statistics.** We quantify human--LLM agreement using several complementary measures. *Pearson's r* captures linear association between paired ratings and is sensitive to proportional biases but not to constant offsets. *Spearman's ρ* measures rank-order agreement and is robust to outliers and non-linear monotone relationships. *Mean bias* (LLM minus human) indicates the direction and magnitude of any systematic offset. *Root mean squared error* (RMSE) and *mean absolute error* (MAE) measure typical prediction error in the original scale units; RMSE penalises large deviations more heavily. To contextualise human--LLM agreement we report *Krippendorff's alpha* ($\alpha$), a chance-corrected reliability coefficient that generalises across varying numbers of raters, accommodates missing data, and applies to any measurement level (nominal, ordinal, interval, or ratio). An $\alpha$ of 1 indicates perfect agreement, 0 indicates agreement no better than chance, and values below 0 indicate systematic disagreement. We compute $\alpha_{\text{HH}}$ (among human evaluators only) as a ceiling: if human evaluators agree with each other at only $\alpha = 0.5$ on a given criterion, expecting an LLM to exceed that level would be unrealistic. We then report $\alpha_{\text{HL}}$ (between the human mean and each LLM) to assess how close machine ratings come to this ceiling. For the qualitative key-issue comparison, *coverage* denotes the fraction of human-identified issues that received a match score $\geq 30\%$ from the LLM judge. The *LLM overlap rate* denotes the fraction of LLM-generated issues that matched at least one human issue; unmatched LLM concerns are not necessarily incorrect.
 
 ```{python}
 #| label: llm-setup-all
@@ -944,7 +944,7 @@ run_all_models()
 
 ```
 
-**Focal run with key-issue extraction.** For a subset of 14 papers with rich human critiques, we ran an extended evaluation using GPT-5.2 Pro. The schema for this focal run adds a `key_issues` array---a ranked list of concise issue statements identifying the most important methodological, interpretive, or evidential concerns---alongside the standard metrics. This structured output enables direct comparison between machine-generated and human-identified issues. One curated pair (Peterman et al. 2025) was later excluded from the comparison after the LLM judge flagged, and we verified, that its human critique had been misattributed to a different manuscript during curation; the coverage/precision analysis therefore covers 13 papers.
+**Focal run with key-issue extraction.** For a subset of 14 papers with rich human critiques, we ran an extended evaluation using GPT-5.2 Pro. The schema for this focal run adds a `key_issues` array---a ranked list of concise issue statements identifying the most important methodological, interpretive, or evidential concerns---alongside the standard metrics. This structured output enables direct comparison between machine-generated and human-identified issues. One curated pair (Peterman et al. 2025) was later excluded from the comparison after the LLM judge flagged, and we verified, that its human critique had been misattributed to a different manuscript during curation; the coverage/overlap analysis therefore covers 13 papers.
 
 ```{python}
 #| label: focal-config
@@ -1168,7 +1168,7 @@ print(f"\nStatus: {counts}")
 
 **Key-issue comparison with human critiques.** To validate how well the LLM identifies substantive concerns, we compare its `key_issues` output against human expert critiques drawn from The Unjournal's Coda database. These human critiques---produced by paid domain experts and synthesized by evaluation managers---provide a high-quality but noisy reference standard for issue identification; accordingly, we treat them as a comparative signal rather than ground truth.
 
-The comparison proceeds in two stages. First, we parse and align the data sources: LLM key issues are extracted from the focal-run JSON responses, while human critiques are drawn from a manually curated markdown document pairing each paper's machine and expert assessments. Second, we use an LLM judge (GPT-5.2 Pro with schema-enforced structured output) to systematically assess the degree of alignment between each human-identified issue and the set of machine-generated issues, producing issue-by-issue match scores, coverage estimates (fraction of human issues captured), and precision estimates (fraction of LLM issues that are genuinely substantive).
+The comparison proceeds in two stages. First, we parse and align the data sources: LLM key issues are extracted from the focal-run JSON responses, while human critiques are drawn from a manually curated markdown document pairing each paper's machine and expert assessments. Second, we use an LLM judge (GPT-5.2 Pro with schema-enforced structured output) to systematically assess the degree of alignment between each human-identified issue and the set of machine-generated issues, producing issue-by-issue match scores, coverage estimates (fraction of human issues captured), and LLM overlap-rate estimates (fraction of LLM issues that match the curated human concern set).
 
 ```{python}
 #| label: key-issues-comparison
@@ -1343,7 +1343,7 @@ Create a detailed issue-by-issue comparison. For each human issue, identify whic
    - detailed_discussion: 3-5 sentences comparing how human vs LLM framed the issue
 3. List unmatched_human issues (not captured by LLM) with brief_description and why_missed
 4. List unmatched_llm issues (not in human critique) with brief_description and why_extra
-5. Calculate coverage_pct (% of human issues with match_quality >= 30) and precision_pct (% of LLM issues that match)
+5. Calculate coverage_pct (% of human issues with match_quality >= 30) and the legacy precision_pct field (% of LLM issues that match), reported as the LLM overlap rate
 
 Be precise about which issues match. Related but distinct concerns should have lower match_quality scores (40-60%) with explanation of the distinction."""
 
@@ -1449,7 +1449,7 @@ for item in matched_data:
         n_matched = len(comparison.get('matched_pairs', []))
         n_unmatched_h = len(comparison.get('unmatched_human', []))
         n_unmatched_l = len(comparison.get('unmatched_llm', []))
-        print(f"  Coverage: {comparison['coverage_pct']}%, Precision: {comparison['precision_pct']}%, Rating: {comparison['overall_rating']}")
+        print(f"  Coverage: {comparison['coverage_pct']}%, LLM overlap rate: {comparison['precision_pct']}%, Rating: {comparison['overall_rating']}")
         print(f"  Matched pairs: {n_matched}, Unmatched human: {n_unmatched_h}, Unmatched LLM: {n_unmatched_l}")
     else:
         print(f"  Skipped or error: {comparison.get('error', 'unknown')}")
@@ -1468,19 +1468,19 @@ print(f"\nComparison results saved to: {comparison_output}")
 valid_results = [r for r in comparison_results if r['comparison'].get('coverage_pct') is not None]
 if valid_results:
     avg_coverage = sum(r['comparison']['coverage_pct'] for r in valid_results) / len(valid_results)
-    avg_precision = sum(r['comparison']['precision_pct'] for r in valid_results) / len(valid_results)
+    avg_overlap = sum(r['comparison']['precision_pct'] for r in valid_results) / len(valid_results)
     ratings = [r['comparison']['overall_rating'] for r in valid_results]
 
     print(f"\n{'='*60}")
     print(f"SUMMARY ({len(valid_results)}/{len(comparison_results)} papers with valid comparisons)")
     print(f"Average Coverage: {avg_coverage:.1f}%")
-    print(f"Average Precision: {avg_precision:.1f}%")
+    print(f"Average LLM overlap rate: {avg_overlap:.1f}%")
     print(f"Rating distribution: {dict((r, ratings.count(r)) for r in set(ratings))}")
 else:
     print("\nNo valid comparison results to summarize.")
 ```
 
-The comparison pipeline takes a manually curated markdown file pairing each paper's LLM issues with human critiques and produces two structured outputs: a parsed JSON dataset (`key_issues_comparison.json`) and an LLM-assessed alignment report (`key_issues_comparison_results.json`) containing per-paper coverage, precision, matched-pair explanations, and an overall quality rating. Together, these outputs feed the qualitative analysis presented in [Appendix B: Critiques & Key Issues](results_critiques.qmd).
+The comparison pipeline takes a manually curated markdown file pairing each paper's LLM issues with human critiques and produces two structured outputs: a parsed JSON dataset (`key_issues_comparison.json`) and an LLM-assessed alignment report (`key_issues_comparison_results.json`) containing per-paper coverage, LLM overlap rate, matched-pair explanations, and an overall quality rating. Together, these outputs feed the qualitative analysis presented in [Appendix B: Critiques & Key Issues](results_critiques.qmd).
 
 ```{=latex}
 \normalsize

@@ -76,10 +76,10 @@ truncate_text <- function(text, max_chars = 80) {
 }
 ```
 
-This chapter reports preliminary results from comparing LLM-identified key issues against human expert critiques. The analysis uses LLM-based assessment (GPT-5.2 Pro as judge) to measure coverage and precision; human validation of these alignment scores is underway.
+This chapter reports preliminary results from comparing LLM-identified key issues against human expert critiques. The analysis uses LLM-based assessment (GPT-5.2 Pro as judge) to measure human-issue coverage and the LLM overlap rate; human validation of these alignment scores is underway.
 
 ::: callout-warning
-This section is under active development. Coverage and precision metrics below are LLM-assessed; manual annotation is in progress.
+This section is under active development. Human-issue coverage and LLM overlap-rate estimates below are LLM-assessed; manual annotation is in progress.
 :::
 
 **Data sources.** We compare GPT-5.2 Pro key issues (structured output from the focal evaluation run, January 2026) against human expert critiques curated from The Unjournal's internal tracking database, where evaluation managers synthesize evaluator feedback using severity labels ("Necessary", "Optional but important", "Unsure"). The focal run covered 14 papers; one pair (Peterman et al. 2025) is excluded from the analysis because the curated human critique was misattributed---it belongs to The Unjournal's evaluation of a different manuscript ("Maternal cash transfers for gender equity and child development"), which is not part of this study's sample. The GPT-5.2 Pro judge itself flagged the mismatch, and we verified it against the paper PDF; the excluded pair is documented in `results/key_issues_comparison.md`.
@@ -105,7 +105,8 @@ if (file.exists(comparison_file)) {
   n_papers <- 0
 }
 
-# Load LLM-based comparison results (coverage/precision) if available
+# Load LLM-based comparison results if available. The legacy precision_pct
+# field is displayed as the LLM overlap rate.
 if (!is.null(comparison_data) && !is.na(comparison_results_file)) {
   llm_results_raw <- fromJSON(comparison_results_file)
   llm_results <- llm_results_raw |>
@@ -136,16 +137,16 @@ if (!is.null(comparison_data)) {
 
 We matched **`r n_papers` papers** with both GPT-5.2 Pro key issues and human expert critiques.
 
-**LLM-based assessment.** The comparison was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and precision (whether GPT issues are substantive).
+**LLM-based assessment.** The comparison was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and the LLM overlap rate (what proportion of LLM issues matched a curated human concern).
 
 -   **Coverage**: Proportion of *consensus* human issues that have any LLM match (match quality >= 30%)
 -   **Weighted Coverage**: Mean match quality across all human issues (treating unmatched issues as 0%)
--   **Precision**: Proportion of LLM issues that match a human concern
+-   **LLM overlap rate**: Proportion of LLM issues that match a curated human concern
 
 ::: callout-note
-## Caveat on Precision
+## Caveat on the LLM overlap rate
 
-"Precision" only reflects whether LLM issues match the *consensus* human issues curated in Coda---those prioritized by evaluation managers as the most important concerns. Many LLM-identified issues may have been noted by one or more individual human evaluators but were not included in this curated set. A low precision score does not necessarily mean the LLM raised irrelevant concerns; it may simply reflect issues that weren't prioritized in the consensus summary.
+The LLM overlap rate only reflects whether LLM issues match the *consensus* human issues curated in Coda---those prioritized by evaluation managers as the most important concerns. Many LLM-identified issues may have been noted by one or more individual human evaluators but were not included in this curated set. A low overlap rate does not mean the LLM raised irrelevant or incorrect concerns; it may simply reflect issues that were not prioritized in the consensus summary.
 :::
 
 ```{r}
@@ -172,9 +173,9 @@ if (has_llm_results) {
     summarise(
       `Papers Assessed` = n(),
       `Mean Coverage (%)` = round(mean(coverage_pct, na.rm = TRUE), 1),
-      `Mean Precision (%)` = round(mean(precision_pct, na.rm = TRUE), 1),
+      `Mean LLM overlap rate (%)` = round(mean(precision_pct, na.rm = TRUE), 1),
       `Coverage Range` = paste0(min(coverage_pct, na.rm = TRUE), "-", max(coverage_pct, na.rm = TRUE)),
-      `Precision Range` = paste0(min(precision_pct, na.rm = TRUE), "-", max(precision_pct, na.rm = TRUE))
+      `LLM overlap-rate range` = paste0(min(precision_pct, na.rm = TRUE), "-", max(precision_pct, na.rm = TRUE))
     ) |>
     mutate(across(everything(), as.character)) |>
     pivot_longer(everything(), names_to = "Metric", values_to = "Value")
@@ -185,7 +186,7 @@ if (has_llm_results) {
 
 ```{r}
 #| label: fig-coverage-precision
-#| fig-cap: "Coverage (% of human-identified issues captured by the LLM) vs Precision (% of LLM-raised issues matching a substantive human concern), as assessed by GPT-5.2 Pro acting as judge. Each point is one paper. Dashed blue lines mark cross-paper means. Papers in the upper-right show strong human\u2013LLM critique alignment."
+#| fig-cap: "Coverage (% of human-identified issues captured by the LLM) vs LLM overlap rate (% of LLM-raised issues matching a curated human concern), as assessed by GPT-5.2 Pro acting as judge. Each point is one paper. Dashed blue lines mark cross-paper means. Papers in the upper-right show strong human\u2013LLM critique alignment."
 #| fig-width: 10
 #| fig-height: 7
 
@@ -203,7 +204,7 @@ if (has_llm_results) {
     scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
     labs(
       x = "Coverage (%) \u2014 Human issues captured by LLM",
-      y = "Precision (%) \u2014 LLM issues that are substantive"
+      y = "LLM overlap rate (%)"
     ) +
     theme_uj()
 }
@@ -213,10 +214,10 @@ if (has_llm_results) {
 ## Interpretation Guide
 
 -   **Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.
--   **Precision**: Percentage of GPT issues that are substantive rather than generic or spurious. Higher = GPT's critiques are more targeted.
--   **Overall Rating**: Qualitative assessment (Excellent/Good/Moderate/Poor) based on both coverage and precision metrics.
+-   **LLM overlap rate**: Percentage of GPT issues that match the curated human concern set. Higher means more overlap, but unmatched concerns are not necessarily incorrect.
+-   **Overall Rating**: Qualitative assessment (Excellent/Good/Moderate/Poor) based on both coverage and overlap metrics.
 :::
 
-The coverage-precision figure above shows substantial variation across papers: some papers achieve high coverage and precision, while others show the LLM missing key human concerns or raising issues not in the expert consensus. Paper-by-paper comparisons with matched issue pairs, structural difference tables, and the manual annotation tool are available in the [full online version](https://llm-uj-research-eval.netlify.app/results_critiques.html).
+The coverage-overlap figure above shows substantial variation across papers: some papers achieve high coverage and overlap, while others show the LLM missing key human concerns or raising issues not in the expert consensus. Paper-by-paper comparisons with matched issue pairs, structural difference tables, and the manual annotation tool are available in the [full online version](https://llm-uj-research-eval.netlify.app/results_critiques.html).
 
 :::

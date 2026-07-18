@@ -79,9 +79,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-2a367172f4fe7d9182ebf8e09f85cb4e.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-2a2f11e46f031166afea9e0046f1aae6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-271a71a72d1a04a6238fc30b92dc61a3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-2a2f11e46f031166afea9e0046f1aae6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-47a27caf1adfdc188925ebe92d1a682e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -110,6 +110,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script>
 
 
 </head>
@@ -389,6 +395,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#what-we-tried" id="toc-what-we-tried" class="nav-link active" data-scroll-target="#what-we-tried">What we tried</a></li>
+  <li><a href="#terra-sol-concordance-follow-up" id="toc-terra-sol-concordance-follow-up" class="nav-link" data-scroll-target="#terra-sol-concordance-follow-up">Terra → Sol concordance follow-up</a></li>
   <li><a href="#replicability-and-consistency" id="toc-replicability-and-consistency" class="nav-link" data-scroll-target="#replicability-and-consistency">Replicability and consistency</a></li>
   <li><a href="#practical-guardrails" id="toc-practical-guardrails" class="nav-link" data-scroll-target="#practical-guardrails">Practical guardrails</a></li>
   </ul>
@@ -507,6 +514,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p>The model also correctly noted in its assessment that the text had been truncated and widened uncertainty accordingly. This is the behavior we want from an exploratory runner: it should surface input limitations rather than presenting the output as equivalent to a full native-PDF evaluation.</p>
+</section>
+<section id="terra-sol-concordance-follow-up" class="level2">
+<h2 class="anchored" data-anchor-id="terra-sol-concordance-follow-up">Terra → Sol concordance follow-up</h2>
+<p>We also tested a two-stage concordance workflow for comparing separately enumerated human issues with LLM-generated issues. A high-effort Terra pass checked input alignment and proposed mappings; only three ambiguous pair judgments were escalated to a high-effort Sol pass. The workflow used stable issue IDs, retained a historical overlap threshold of 30, recorded exact Codex telemetry, and kept all outputs separate from the confirmatory API results.</p>
+<p>We fixed the candidate set as the first three records in source order before inspecting concordance. A manual title/PDF/issue screen excluded Bénabou et al.&nbsp;before judgment: the recorded title and human issues concerned <em>Willful Ignorance and Moral Behavior</em>, while the local PDF and LLM issues concerned <em>Ends versus Means: Kantians, Utilitarians, and Moral Decisions</em>. Acemoglu et al.&nbsp;and Adena–Hager passed the screen and were processed together in one Terra batch.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Result</th>
+<th style="text-align: right;">Acemoglu et al.</th>
+<th style="text-align: right;">Adena–Hager</th>
+<th style="text-align: right;">Pooled eligible issues</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Human-issue coverage</td>
+<td style="text-align: right;">2/3 (66.7%)</td>
+<td style="text-align: right;">6/7 (85.7%)</td>
+<td style="text-align: right;">8/10 (80.0%)</td>
+</tr>
+<tr class="even">
+<td>LLM overlap rate</td>
+<td style="text-align: right;">3/12 (25.0%)</td>
+<td style="text-align: right;">6/12 (50.0%)</td>
+<td style="text-align: right;">9/24 (37.5%)</td>
+</tr>
+</tbody>
+</table>
+<p>The LLM overlap rate is the fraction of unique LLM issue IDs with at least one non-distinct mapping scoring 30 or higher. It is not an estimate of whether unmatched LLM concerns are incorrect. Sol changed one threshold-sensitive mapping out of the three escalated pairs: an Adena–Hager mapping moved from 31 to 27, lowering the pooled LLM overlap rate from 41.7% to 37.5%. Human-issue coverage was unchanged because that human issue retained another qualifying match.</p>
+<p>The original Terra and Sol calls used 41,993 input tokens and 4,001 output tokens, including 1,229 reasoning-output tokens. An identical verification run reused both completed artifacts and made no new model calls. The compact <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/concordance_three_candidate_methods_note_jul2026.md">methods note</a>, <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/eligibility_screen.md">eligibility screen</a>, and <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/concordance_results.json">structured final judgments</a> are retained in the repository.</p>
+<p>This increment supports preparing a larger preregistered-style study, but not running the full corpus yet. The remaining inputs should first receive the same alignment audit, and the protocol should freeze eligibility, compound-issue handling, aggregation, ambiguity ranking under an escalation cap, and treatment of ambiguous pairs that are not escalated.</p>
 </section>
 <section id="replicability-and-consistency" class="level2">
 <h2 class="anchored" data-anchor-id="replicability-and-consistency">Replicability and consistency</h2>
@@ -1074,47 +1113,64 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>The model also correctly noted in its assessment that the text had been truncated and widened uncertainty accordingly. This is the behavior we want from an exploratory runner: it should surface input limitations rather than presenting the output as equivalent to a full native-PDF evaluation.</span>
 <span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="fu">## Replicability and consistency</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="fu">## Terra → Sol concordance follow-up</span></span>
 <span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>The main concern is real: this approach is less standardized than the API-based approach.</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>We also tested a two-stage concordance workflow for comparing separately enumerated human issues with LLM-generated issues. A high-effort Terra pass checked input alignment and proposed mappings; only three ambiguous pair judgments were escalated to a high-effort Sol pass. The workflow used stable issue IDs, retained a historical overlap threshold of 30, recorded exact Codex telemetry, and kept all outputs separate from the confirmatory API results.</span>
 <span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>The API workflow is better for strict replication because it gives us a cleaner contract: explicit model identifiers, structured-output enforcement, direct request and response payloads, file IDs or native PDF inputs, usage metadata, and a provider surface designed for programmatic runs. It is also easier to re-run from a clean environment, pin defaults, and audit failures.</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>We fixed the candidate set as the first three records in source order before inspecting concordance. A manual title/PDF/issue screen excluded Bénabou et al. before judgment: the recorded title and human issues concerned *Willful Ignorance and Moral Behavior*, while the local PDF and LLM issues concerned *Ends versus Means: Kantians, Utilitarians, and Moral Decisions*. Acemoglu et al. and Adena–Hager passed the screen and were processed together in one Terra batch.</span>
 <span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>The headless Codex workflow is attractive for exploration because it can use subscription access and avoid metered API costs. But several details make it less directly replicable:</span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The execution surface is the Codex CLI, not the model API.</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Subscription entitlements and rate limits can vary by account and over time.</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Default behavior may change with Codex releases unless we pin command flags and record the CLI version.</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The pilot currently uses extracted text, not native PDF input, so figures, tables, equations, and layout can be degraded.</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The first run intentionally truncated the extracted text; this must be treated as a pilot constraint, not a production setting.</span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`codex exec`</span> is an agentic wrapper around a model call. Even when prompted not to use tools, it is not as minimal as a direct API request.</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Result <span class="pp">|</span> Acemoglu et al. <span class="pp">|</span> Adena–Hager <span class="pp">|</span> Pooled eligible issues <span class="pp">|</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|---:|</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Human-issue coverage <span class="pp">|</span> 2/3 (66.7%) <span class="pp">|</span> 6/7 (85.7%) <span class="pp">|</span> 8/10 (80.0%) <span class="pp">|</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> LLM overlap rate <span class="pp">|</span> 3/12 (25.0%) <span class="pp">|</span> 6/12 (50.0%) <span class="pp">|</span> 9/24 (37.5%) <span class="pp">|</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>The LLM overlap rate is the fraction of unique LLM issue IDs with at least one non-distinct mapping scoring 30 or higher. It is not an estimate of whether unmatched LLM concerns are incorrect. Sol changed one threshold-sensitive mapping out of the three escalated pairs: an Adena–Hager mapping moved from 31 to 27, lowering the pooled LLM overlap rate from 41.7% to 37.5%. Human-issue coverage was unchanged because that human issue retained another qualifying match.</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>The original Terra and Sol calls used 41,993 input tokens and 4,001 output tokens, including 1,229 reasoning-output tokens. An identical verification run reused both completed artifacts and made no new model calls. The compact <span class="co">[</span><span class="ot">methods note</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/concordance_three_candidate_methods_note_jul2026.md)</span>, <span class="co">[</span><span class="ot">eligibility screen</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/eligibility_screen.md)</span>, and <span class="co">[</span><span class="ot">structured final judgments</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/concordance_results.json)</span> are retained in the repository.</span>
 <span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>This does not make the approach unusable. It means we should use it with a different evidential status. It is well suited for:</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>This increment supports preparing a larger preregistered-style study, but not running the full corpus yet. The remaining inputs should first receive the same alignment audit, and the protocol should freeze eligibility, compound-issue handling, aggregation, ambiguity ranking under an escalation cap, and treatment of ambiguous pairs that are not escalated.</span>
 <span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>cheap preliminary screening;</span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>prompt iteration before API spending;</span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>exploratory robustness checks;</span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>identifying candidate papers for deeper API-based evaluation;</span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>running larger informal batches where exact comparability is not the goal.</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## Replicability and consistency</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>The main concern is real: this approach is less standardized than the API-based approach.</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>The API workflow is better for strict replication because it gives us a cleaner contract: explicit model identifiers, structured-output enforcement, direct request and response payloads, file IDs or native PDF inputs, usage metadata, and a provider surface designed for programmatic runs. It is also easier to re-run from a clean environment, pin defaults, and audit failures.</span>
 <span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>It is less suited for:</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>The headless Codex workflow is attractive for exploration because it can use subscription access and avoid metered API costs. But several details make it less directly replicable:</span>
 <span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>headline quantitative comparisons with human evaluators;</span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>claims about model-vs-model performance;</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>strict reproduction of the native-PDF GPT-5 Pro runs;</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>archival baselines where future re-runs must be as close as possible to the original call.</span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="fu">## Practical guardrails</span></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The execution surface is the Codex CLI, not the model API.</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Subscription entitlements and rate limits can vary by account and over time.</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Default behavior may change with Codex releases unless we pin command flags and record the CLI version.</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The pilot currently uses extracted text, not native PDF input, so figures, tables, equations, and layout can be degraded.</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The first run intentionally truncated the extracted text; this must be treated as a pilot constraint, not a production setting.</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`codex exec`</span> is an agentic wrapper around a model call. Even when prompted not to use tools, it is not as minimal as a direct API request.</span>
 <span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>For any larger headless batch, we should keep the following guardrails:</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>This does not make the approach unusable. It means we should use it with a different evidential status. It is well suited for:</span>
 <span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Record the Codex CLI version, model flag, auth mode, run timestamp, prompt version, PDF hash, text-extraction command, input character count, and truncation status.</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Keep the output in a separate <span class="in">`results/&lt;run_id&gt;/`</span> directory with <span class="in">`input_modality`</span> clearly marked.</span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Do not merge headless/text-extraction results into the main model-comparison plots without a visible modality label.</span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Use API-based runs for confirmatory comparisons or for any result we expect others to reproduce exactly.</span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Avoid browser automation or ChatGPT web scraping; use documented Codex non-interactive execution instead.</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>cheap preliminary screening;</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>prompt iteration before API spending;</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>exploratory robustness checks;</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>identifying candidate papers for deeper API-based evaluation;</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>running larger informal batches where exact comparability is not the goal.</span>
 <span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>The appropriate interpretation is therefore: headless Codex is a useful exploration and cost-control tool, not a drop-in replacement for the API-based evidence pipeline.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>It is less suited for:</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>headline quantitative comparisons with human evaluators;</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>claims about model-vs-model performance;</span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>strict reproduction of the native-PDF GPT-5 Pro runs;</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>archival baselines where future re-runs must be as close as possible to the original call.</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## Practical guardrails</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>For any larger headless batch, we should keep the following guardrails:</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Record the Codex CLI version, model flag, auth mode, run timestamp, prompt version, PDF hash, text-extraction command, input character count, and truncation status.</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Keep the output in a separate <span class="in">`results/&lt;run_id&gt;/`</span> directory with <span class="in">`input_modality`</span> clearly marked.</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Do not merge headless/text-extraction results into the main model-comparison plots without a visible modality label.</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Use API-based runs for confirmatory comparisons or for any result we expect others to reproduce exactly.</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Avoid browser automation or ChatGPT web scraping; use documented Codex non-interactive execution instead.</span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>The appropriate interpretation is therefore: headless Codex is a useful exploration and cost-control tool, not a drop-in replacement for the API-based evidence pipeline.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

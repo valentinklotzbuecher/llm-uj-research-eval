@@ -2,16 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.8.27">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
 <title>Results – Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -72,18 +69,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="./index.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-6d40f8af7092f34acea1908532066003.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-cac0433bb97fa58dc0fc6599c25c149a.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-6d40f8af7092f34acea1908532066003.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2a367172f4fe7d9182ebf8e09f85cb4e.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-7fb59815a1c41eec7c034637f0c35ff0.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2a367172f4fe7d9182ebf8e09f85cb4e.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-a12690c0efde29c143ad4d3f4b7d6bb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-1f719efd985223eb5c1b4c7ef5eb8259.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-a12690c0efde29c143ad4d3f4b7d6bb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-47a27caf1adfdc188925ebe92d1a682e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -112,6 +110,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script>
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 <link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
@@ -1126,7 +1130,7 @@ Figure&nbsp;2.2: Human minus GPT-5 Pro rating difference for every paper (column
 </div>
 </div>
 <p>Rows with uniformly green or orange tiles indicate papers where humans and GPT-5 Pro disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases—for instance, if “Open Science” is green across nearly all papers, humans may systematically reward data-sharing practices more than the model does. Multi-model comparisons in <a href="./results_ratings.html">Appendix A</a> reveal whether these disagreement patterns are GPT-5 Pro–specific or shared across frontier LLMs.</p>
-<p><strong>Qualitative critique comparison.</strong> Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage—the fraction of human-identified concerns that the LLM also raised in some form—against precision—the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see <a href="./methods.html">Methods</a> for the judging protocol). One of the 14 originally curated pairs (Peterman et al.&nbsp;2025) is excluded: the judge flagged—and we verified against the paper—that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.</p>
+<p><strong>Qualitative critique comparison.</strong> Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage—the fraction of human-identified concerns that the LLM also raised in some form—against the LLM overlap rate—the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see <a href="./methods.html">Methods</a> for the judging protocol). One of the 14 originally curated pairs (Peterman et al.&nbsp;2025) is excluded: the judge flagged—and we verified against the paper—that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Load critique comparison data</summary>
@@ -1182,7 +1186,7 @@ Figure&nbsp;2.2: Human minus GPT-5 Pro rating difference for every paper (column
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Coverage (%) \u2014 Human issues captured by LLM"</span>,</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Precision (%) \u2014 LLM issues that are substantive"</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"LLM overlap rate (%)"</span></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1194,13 +1198,13 @@ Figure&nbsp;2.2: Human minus GPT-5 Pro rating difference for every paper (column
 <img src="results_files/figure-html/fig-coverage-precision-main-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-coverage-precision-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.3: Coverage (% of human-identified issues that the LLM also raised) vs Precision (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques.
+Figure&nbsp;2.3: Coverage (% of human-identified issues that the LLM also raised) vs LLM overlap rate (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Coverage and precision vary substantially across papers. Averaged over the 13 focal papers, the model captures 78% of human consensus issues (range 50–100%), while 49% of model-raised issues match a substantive human concern. Low precision partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus count against precision. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.</p>
+<p>Coverage and the LLM overlap rate vary substantially across papers. Averaged over the 13 focal papers, the model captures 78% of human consensus issues (range 50–100%), while 49% of model-raised issues match a substantive human concern. A low LLM overlap rate partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus reduce the overlap rate. An unmatched model concern is not necessarily incorrect. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.</p>
 <p>Detailed paper-by-paper comparisons—including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns—appear in <a href="./results_critiques.html">Appendix B: Critiques &amp; Key Issues</a>. Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in <a href="./results_ratings.html">Appendix A: Results Ratings</a>. The full LLM reasoning traces and assessment summaries are available in <a href="./appendix_llm_traces.html">Appendix C: LLM Traces</a>.</p>
 <p><strong>Agreement summary.</strong> <a href="#tbl-model-agreement-main" class="quarto-xref">Table&nbsp;<span>2.1</span></a> shows GPT-5 Pro’s agreement split into a <strong>primary matched group</strong> (same 39 papers as the H–H baseline, enabling like-for-like comparison) and a <strong>secondary full-sample group</strong> (all 47 matched papers). In the Spearman <em>ρ</em> column, the H–H row shows individual-vs-individual <em>ρ</em> (the reference, already on the natural scale); GPT-5 Pro rows show <em>ρ</em> vs.&nbsp;the human mean, which is upward-biased. The <strong>ρ adj.</strong> column applies the Spearman-Brown correction to GPT-5 Pro rows only, making them directly comparable to H–H <em>ρ</em>. Six-model comparison in <a href="./results_ratings.html#tbl-agreement">Appendix A, Table A2</a>.</p>
 <div class="cell">
@@ -1278,7 +1282,7 @@ Table&nbsp;2.1: GPT-5 Pro overall-rating agreement. <strong>Primary (matched) gr
 </figcaption>
 <div aria-describedby="tbl-model-agreement-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<table class="cell caption-top table table-sm table-striped small">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">Model</th>
@@ -1296,14 +1300,14 @@ Table&nbsp;2.1: GPT-5 Pro overall-rating agreement. <strong>Primary (matched) gr
 <td colspan="8" style="border-bottom: 1px solid; color: black !important"><strong>Matched sample: same 39 papers as H-H baseline (primary)</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important; padding-left: 2em;" data-indentlevel="1">Human-Human</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">39</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">0.331</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">-</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">[0.02, 0.59]</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">0.520</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">+3.7</td>
-<td style="text-align: right; font-weight: bold; background-color: rgba(240, 248, 240, 255) !important;">11.6</td>
+<td style="text-align: left; font-weight: bold; background-color: #f0f8f0 !important; padding-left: 2em;" data-indentlevel="1">Human-Human</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">39</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">0.331</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">-</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">[0.02, 0.59]</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">0.520</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">+3.7</td>
+<td style="text-align: right; font-weight: bold; background-color: #f0f8f0 !important;">11.6</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left; padding-left: 2em;" data-indentlevel="1">GPT-5 Pro</td>
@@ -1408,7 +1412,7 @@ Table&nbsp;2.2: GPT-5 Pro agreement with human mean by criterion (N = 47 papers;
 </figcaption>
 <div aria-describedby="tbl-criteria-agreement-main-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<table class="cell caption-top table table-sm table-striped small">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">Criterion</th>
@@ -1507,75 +1511,68 @@ Table&nbsp;2.3: Papers with resolved publication outcomes: predicted vs realized
 </figcaption>
 <div aria-describedby="tbl-tier-outcomes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<table class="cell caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 29%">
-<col style="width: 13%">
-<col style="width: 16%">
-<col style="width: 20%">
-</colgroup>
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;">Paper</th>
-<th style="text-align: left;">Recorded outcome</th>
-<th style="text-align: right;">Realized tier</th>
-<th style="text-align: right;">Human prediction</th>
-<th style="text-align: right;">GPT-5 Pro prediction</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Paper</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Recorded outcome</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Realized tier</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Human prediction</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">GPT-5 Pro prediction</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Alatas et al.&nbsp;2019</td>
+<td style="text-align: left;">Alatas et al. 2019</td>
 <td style="text-align: left;">Published, ~top journal</td>
 <td style="text-align: right;">4.5</td>
 <td style="text-align: right;">3.50</td>
 <td style="text-align: right;">3.9</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Barker et al.&nbsp;2021</td>
+<td style="text-align: left;">Barker et al. 2021</td>
 <td style="text-align: left;">Published, ~top journal</td>
 <td style="text-align: right;">4.5</td>
 <td style="text-align: right;">4.00</td>
 <td style="text-align: right;">3.7</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Buntaine et al.&nbsp;2023</td>
+<td style="text-align: left;">Buntaine et al. 2023</td>
 <td style="text-align: left;">Published, ~top journal</td>
 <td style="text-align: right;">4.5</td>
 <td style="text-align: right;">4.70</td>
 <td style="text-align: right;">4.5</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Hill et al.&nbsp;2024</td>
+<td style="text-align: left;">Hill et al. 2024</td>
 <td style="text-align: left;">Published, ~top journal</td>
 <td style="text-align: right;">4.5</td>
 <td style="text-align: right;">4.50</td>
 <td style="text-align: right;">4.6</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Jack et al.&nbsp;2022</td>
+<td style="text-align: left;">Jack et al. 2022</td>
 <td style="text-align: left;">Published, ~top journal</td>
 <td style="text-align: right;">4.5</td>
 <td style="text-align: right;">4.00</td>
 <td style="text-align: right;">4.5</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Fangwa et al.&nbsp;2023</td>
+<td style="text-align: left;">Fangwa et al. 2023</td>
 <td style="text-align: left;">published, decent journal</td>
 <td style="text-align: right;">3.0</td>
 <td style="text-align: right;">3.60</td>
 <td style="text-align: right;">4.0</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Kremer et al.&nbsp;2020</td>
+<td style="text-align: left;">Kremer et al. 2020</td>
 <td style="text-align: left;">published, decent journal</td>
 <td style="text-align: right;">3.0</td>
 <td style="text-align: right;">4.00</td>
 <td style="text-align: right;">3.9</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Caviola et al.&nbsp;2022</td>
+<td style="text-align: left;">Caviola et al. 2022</td>
 <td style="text-align: left;">Published: Psychology journal</td>
 <td style="text-align: right;">2.5</td>
 <td style="text-align: right;">4.35</td>
@@ -2919,7 +2916,7 @@ Table&nbsp;2.3: Papers with resolved publication outcomes: predicted vs realized
 <span id="cb11-862"><a href="#cb11-862" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-863"><a href="#cb11-863" aria-hidden="true" tabindex="-1"></a>Rows with uniformly green or orange tiles indicate papers where humans and GPT-5 Pro disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases---for instance, if "Open Science" is green across nearly all papers, humans may systematically reward data-sharing practices more than the model does. Multi-model comparisons in <span class="co">[</span><span class="ot">Appendix A</span><span class="co">](results_ratings.qmd)</span> reveal whether these disagreement patterns are GPT-5 Pro--specific or shared across frontier LLMs.</span>
 <span id="cb11-864"><a href="#cb11-864" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-865"><a href="#cb11-865" aria-hidden="true" tabindex="-1"></a>**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against precision---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see <span class="co">[</span><span class="ot">Methods</span><span class="co">](methods.qmd)</span> for the judging protocol). One of the 14 originally curated pairs (Peterman et al. 2025) is excluded: the judge flagged---and we verified against the paper---that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.</span>
+<span id="cb11-865"><a href="#cb11-865" aria-hidden="true" tabindex="-1"></a>**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against the LLM overlap rate---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see <span class="co">[</span><span class="ot">Methods</span><span class="co">](methods.qmd)</span> for the judging protocol). One of the 14 originally curated pairs (Peterman et al. 2025) is excluded: the judge flagged---and we verified against the paper---that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.</span>
 <span id="cb11-866"><a href="#cb11-866" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-869"><a href="#cb11-869" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb11-870"><a href="#cb11-870" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load-critique-data</span></span>
@@ -2964,7 +2961,7 @@ Table&nbsp;2.3: Papers with resolved publication outcomes: predicted vs realized
 <span id="cb11-909"><a href="#cb11-909" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-912"><a href="#cb11-912" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb11-913"><a href="#cb11-913" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-coverage-precision-main</span></span>
-<span id="cb11-914"><a href="#cb11-914" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Coverage (% of human-identified issues that the LLM also raised) vs Precision (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques."</span></span>
+<span id="cb11-914"><a href="#cb11-914" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Coverage (% of human-identified issues that the LLM also raised) vs LLM overlap rate (% of LLM-raised issues that match a substantive human concern) for each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the cross-paper mean for each axis. Papers in the upper-right quadrant show strong alignment between human and LLM critiques."</span></span>
 <span id="cb11-915"><a href="#cb11-915" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
 <span id="cb11-916"><a href="#cb11-916" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
 <span id="cb11-917"><a href="#cb11-917" aria-hidden="true" tabindex="-1"></a></span>
@@ -2982,13 +2979,13 @@ Table&nbsp;2.3: Papers with resolved publication outcomes: predicted vs realized
 <span id="cb11-929"><a href="#cb11-929" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
 <span id="cb11-930"><a href="#cb11-930" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb11-931"><a href="#cb11-931" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Coverage (%) \u2014 Human issues captured by LLM"</span>,</span>
-<span id="cb11-932"><a href="#cb11-932" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Precision (%) \u2014 LLM issues that are substantive"</span></span>
+<span id="cb11-932"><a href="#cb11-932" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"LLM overlap rate (%)"</span></span>
 <span id="cb11-933"><a href="#cb11-933" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb11-934"><a href="#cb11-934" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
 <span id="cb11-935"><a href="#cb11-935" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb11-936"><a href="#cb11-936" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb11-937"><a href="#cb11-937" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-938"><a href="#cb11-938" aria-hidden="true" tabindex="-1"></a>Coverage and precision vary substantially across papers. Averaged over the <span class="in">`r if (has_critique_data) sum(!is.na(comparison_data$coverage_pct))`</span> focal papers, the model captures <span class="in">`r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))`</span> of human consensus issues (range <span class="in">`r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`</span>), while <span class="in">`r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))`</span> of model-raised issues match a substantive human concern. Low precision partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus count against precision. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.</span>
+<span id="cb11-938"><a href="#cb11-938" aria-hidden="true" tabindex="-1"></a>Coverage and the LLM overlap rate vary substantially across papers. Averaged over the <span class="in">`r if (has_critique_data) sum(!is.na(comparison_data$coverage_pct))`</span> focal papers, the model captures <span class="in">`r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$coverage_pct, na.rm = TRUE))`</span> of human consensus issues (range <span class="in">`r if (has_critique_data) sprintf("%.0f--%.0f%%", min(comparison_data$coverage_pct, na.rm = TRUE), max(comparison_data$coverage_pct, na.rm = TRUE))`</span>), while <span class="in">`r if (has_critique_data) sprintf("%.0f%%", mean(comparison_data$precision_pct, na.rm = TRUE))`</span> of model-raised issues match a substantive human concern. A low LLM overlap rate partly reflects the reference set: the human consensus list contains only the issues evaluation managers prioritised, so model issues flagged by individual evaluators but not curated into the consensus reduce the overlap rate. An unmatched model concern is not necessarily incorrect. Because these metrics are themselves LLM-assessed, they should be interpreted with the caveat that an LLM judge may systematically over- or under-credit matches relative to a human annotator; the repository includes a browser-based annotation tool for manual validation of these alignment scores, which is ongoing.</span>
 <span id="cb11-939"><a href="#cb11-939" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-940"><a href="#cb11-940" aria-hidden="true" tabindex="-1"></a>Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in <span class="co">[</span><span class="ot">Appendix B: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>. Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in <span class="co">[</span><span class="ot">Appendix A: Results Ratings</span><span class="co">](results_ratings.qmd)</span>. The full LLM reasoning traces and assessment summaries are available in <span class="co">[</span><span class="ot">Appendix C: LLM Traces</span><span class="co">](appendix_llm_traces.qmd)</span>.</span>
 <span id="cb11-941"><a href="#cb11-941" aria-hidden="true" tabindex="-1"></a></span>
