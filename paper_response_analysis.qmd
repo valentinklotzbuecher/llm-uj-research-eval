@@ -20,14 +20,20 @@ The interactive tables in this appendix are available in the online version at <
 :::
 
 ::: {.callout-note}
-This page reports an April 2026 snapshot of 57 tracked Unjournal evaluations: manual staff assessment for the full set, plus an exploratory LLM comparison of eight paper pairs. We are now rebuilding the comparison workflow around preserved source files, version checks, and human review. See [Combined Evidence](#combined-evidence) below.
+This page reports an April 2026 tracking snapshot covering 57 Unjournal evaluations. Adjustment status had been assessed for 22 of them, not the full set; completing and re-validating the remaining staff assessment is an ongoing goal. The page also includes an exploratory LLM comparison of eight paper pairs and the more careful July 2026 checks described below. See [Combined Evidence](#combined-evidence).
+:::
+
+::: {.callout-note}
+## Comment or flag a correction
+
+This page has Hypothes.is enabled. Select text and open the annotation sidebar from the upper-right edge of the page to leave an inline comment. We especially welcome corrections to document/version matching, missing public revisions, or our interpretation of whether a change reflects a suggestion. A free Hypothes.is account is required to post.
 :::
 
 ## Overview
 
 The Unjournal commissions open, structured evaluations of working papers in economics and social science. A natural question is whether this process changes research: do authors engage with feedback and revise their work?
 
-This page draws on manual classification of 57 tracked evaluations and, for a subset, automated PDF comparison and exploratory LLM screening. Background: [The Unjournal's knowledge base](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence).
+This page draws on a tracking file covering 57 evaluations. In the April snapshot, 22 had an assessed adjustment status and 35 remained unassessed. For a subset, we also use automated PDF comparison and exploratory LLM screening. Background: [The Unjournal's knowledge base](https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence).
 
 ```{r}
 #| label: setup
@@ -92,12 +98,12 @@ theme_uj <- function(base_size = 12) {
 
 ## Combined Evidence of Paper Updating {#combined-evidence}
 
-Two evidence streams are shown together: manual classification for all 57 papers, and an exploratory Claude Opus 4.6 screen for eight papers where before/after PDFs were available and meaningful text changes were detected. The latter is a way to prioritize inspection, not a causal estimate.
+Two evidence streams are shown together: April tracking categories for 57 papers, of which 22 had an assessed adjustment status, and an exploratory Claude Opus 4.6 screen for eight papers where before/after PDFs were available and meaningful text changes were detected. The latter is a way to prioritize inspection, not a causal estimate.
 
 ::: {.callout-important}
 ## Current validation work (July 2026)
 
-The April figures below remain the historical snapshot. A current source refresh has captured 30 public current-paper versions and created 11 before/after comparison records. Nine records passed preliminary document, identity, and timing checks. We also audited all 17 cases where the initially selected input and current public PDF were byte-identical. Eight support a limited “no observed public document change” finding; five remain unresolved. Two apparent no-change cases were repaired by locating the correct later endpoint, one revised endpoint remains unavailable, and one record had no completed evaluation. These are coverage figures for a workflow, not findings that an evaluation caused a change.
+The April figures below remain the historical, partly assessed snapshot. A current source refresh has captured 30 public current-paper versions and created 11 before/after comparison records. Nine records passed preliminary document, identity, and timing checks. We also audited all 17 cases where the initially selected input and current public PDF were byte-identical. Thirteen support a limited “no observed public document change” finding. Two apparent no-change cases were repaired by locating the correct later endpoint, one revised endpoint remains unavailable, and one record had no completed evaluation. These are coverage figures for a workflow, not findings that an evaluation caused a change.
 
 For each candidate, the revised workflow preserves PDF snapshots and hashes, checks that the documents are the same paper and in the right order, records page- and section-level changes, and requires human review before any public claim of evaluation-linked updating. A newer PDF, a textual difference, or a model suggestion is not enough on its own.
 :::
@@ -286,7 +292,7 @@ if (nrow(llm_enriched) > 0) {
 
 ```{r}
 #| label: fig-combined-waffle
-#| fig-cap: "All 57 tracked papers by combined evidence tier (each square = 1 paper). Green tones: papers where LLM analysis was run, shaded by attribution score and manual confirmation status. Blue: manually confirmed updates without LLM analysis. Orange/grey: stated intention, weak signal, or not yet assessed."
+#| fig-cap: "April tracking snapshot for all 57 papers (each square = 1 paper); adjustment status had been assessed for 22. Green tones: papers where LLM analysis was run, shaded by attribution score and recorded confirmation status. Blue: recorded updates without LLM analysis. Orange/grey: stated intention, weak signal, or not yet assessed."
 #| fig-height: 4.5
 
 if (nrow(llm_enriched) > 0) {
@@ -357,7 +363,7 @@ if (nrow(llm_enriched) > 0) {
                color = manual_tier, size = text_chg_pct)) +
     geom_vline(xintercept = 30, linetype = "dashed", color = "grey55", linewidth = 0.5) +
     geom_point(alpha = 0.85) +
-    scale_color_manual(values = dot_colors, name = "Manual classification") +
+    scale_color_manual(values = dot_colors, name = "April tracking category") +
     scale_size_continuous(range = c(3, 9), name = "Text change %") +
     scale_x_continuous(limits = c(0, 72), labels = \(x) paste0(x, "%"),
                        breaks = c(0, 15, 30, 50, 70)) +
@@ -444,7 +450,7 @@ n_any_resp <- df |>
   filter(author_response_clean %in% c("Formal response", "Informal response")) |> nrow()
 ```
 
-Of `r n_total` tracked evaluations, `r n_assessed` have been manually assessed. Among these: `r n_evidence` show clear evidence of substantive updating, `r n_intention` authors stated intention to update, and `r n_any_positive` show at least some positive signal. On engagement: `r n_any_resp` papers received a formal or informal author response, of which `r n_formal` were formal written responses.
+Of `r n_total` tracked evaluations, `r n_assessed` have an assessed adjustment status. Among these: `r n_evidence` are coded as showing clear evidence of substantive updating, `r n_intention` as stating an intention to update, and `r n_any_positive` as showing at least some positive signal. Response status is recorded for only part of the set: `r n_any_resp` papers have a recorded formal or informal response, of which `r n_formal` are formal written responses.
 
 ```{r}
 #| label: fig-response-bar
