@@ -10,7 +10,7 @@
 <meta name="author" content="David Reinstein">
 <meta name="author" content="Lorenzo Pacchiardi">
 <meta name="author" content="Tianmai Michael Zhang">
-<meta name="dcterms.date" content="2026-07-18">
+<meta name="dcterms.date" content="2026-07-23">
 
 <title>Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review</title>
 <style>
@@ -103,9 +103,9 @@ div.csl-indent {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-2a367172f4fe7d9182ebf8e09f85cb4e.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-7dfab6ee44012476721c6507ae10ea92.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-fd1bbb16de08ca4b104212991017d5a2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-7dfab6ee44012476721c6507ae10ea92.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-47a27caf1adfdc188925ebe92d1a682e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -334,6 +334,9 @@ div.csl-indent {
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review</a> 
         <div class="sidebar-tools-main tools-wide">
+    <a href="https://valentinklotzbuecher.github.io/llm-uj-research-eval/" title="Current Working Paper" class="quarto-navigation-tool px-1" aria-label="Current Working Paper"><i class="bi bi-file-earmark-text"></i></a>
+    <a href="https://llm-uj-research-eval-project.netlify.app/" title="Full Project &amp; Grant Proposal" class="quarto-navigation-tool px-1" aria-label="Full Project &amp; Grant Proposal"><i class="bi bi-folder2-open"></i></a>
+    <a href="https://llm-uj-concordance-judgments.netlify.app/" title="Concordance Evidence" class="quarto-navigation-tool px-1" aria-label="Concordance Evidence"><i class="bi bi-diagram-3"></i></a>
     <a href="https://www.unjournal.org/" title="The Unjournal" class="quarto-navigation-tool px-1" aria-label="The Unjournal"><i class="bi bi-rocket"></i></a>
     <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
     <a href="./Just-Ask-the-Model--One-Shot-LLM-Research-Evaluation-and-Structured-Expert-Review.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
@@ -478,7 +481,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 18, 2026</p>
+      <p class="date">July 23, 2026</p>
     </div>
   </div>
   
@@ -498,7 +501,7 @@ div.csl-indent {
 
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<!-- Hosted at https://llm-uj-research-eval.netlify.app/ as of Sept 2025 -->
+<!-- The working paper is hosted at both the GitHub Pages and primary Netlify URLs. -->
 <div class="cell">
 <details class="code-fold">
 <summary>Include global setup and parameters</summary>
@@ -511,13 +514,16 @@ div.csl-indent {
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>This is the working paper — current analysis
+<span class="screen-reader-only">Note</span>Choose the right project view
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This site (<a href="https://valentinklotzbuecher.github.io/llm-uj-research-eval/" class="uri">https://valentinklotzbuecher.github.io/llm-uj-research-eval/</a>) is the <strong>actively maintained working paper</strong> with the latest statistical analysis and academic presentation.</p>
-<p>Our <strong>project workspace</strong> at <a href="https://llm-uj-research-eval.netlify.app/" class="uri">https://llm-uj-research-eval.netlify.app/</a> contains broader context — grant proposal background, earlier analysis iterations, project goals, and team information — but is not currently kept up-to-date with the latest results. This working paper is the authoritative version of the analysis.</p>
-<p>We are also maintaining a small <strong><a href="headless_codex_pilot.html">headless Codex evaluation pilot</a></strong> as an exploratory extension. This is deliberately separated from the main API-based evidence because subscription-backed headless runs are useful for low-cost exploration but are less standardized and less directly replicable than the native API workflow.</p>
+<ul>
+<li><strong>Current working paper:</strong> this is the authoritative version of the statistical analysis and academic presentation. It is available at <a href="https://valentinklotzbuecher.github.io/llm-uj-research-eval/">GitHub Pages</a> and the <a href="https://llm-uj-research-eval.netlify.app/">primary Netlify URL</a>.</li>
+<li><strong>Full project workspace and grant proposal:</strong> see the <a href="https://llm-uj-research-eval-project.netlify.app/">broader project site</a> for project goals, team and funding context, earlier analysis, and appendices. Grant reviewers can go <a href="https://llm-uj-research-eval-project.netlify.app/proposal.html">directly to the proposal</a>. This material is retained for context and is not the authoritative source for the latest results.</li>
+<li><strong>LLM–human critique concordance:</strong> see the <a href="https://llm-uj-concordance-judgments.netlify.app/">public concordance evidence site</a> for the exploratory issue-mapping judgments and methods notes.</li>
+</ul>
+<p>We are also maintaining a small <strong><a href="headless_codex_pilot.html">headless Codex evaluation pilot</a></strong> as an exploratory extension. It is deliberately separated from the main API-based evidence because subscription-backed headless runs are useful for low-cost exploration but are less standardized and less directly replicable than the native API workflow.</p>
 </div>
 </div>
 <p><em>A collaboration with <a href="https://www.unjournal.org/">The Unjournal</a> (55+ open evaluation packages for global-priorities research). Funding: Survival and Flourishing Fund, Long Term Future Fund, EA Funds.</em></p>
@@ -1080,7 +1086,7 @@ Zhang, Tianmai M, and Neil F Abernethy, <span>“<a href="https://arxiv.org/abs/
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Introduction</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- Hosted at https://llm-uj-research-eval.netlify.app/ as of Sept 2025 --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- The working paper is hosted at both the GitHub Pages and primary Netlify URLs. --&gt;</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup call</span></span>
@@ -1090,13 +1096,13 @@ Zhang, Tianmai M, and Neil F Abernethy, <span>“<a href="https://arxiv.org/abs/
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## This is the working paper — current analysis</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## Choose the right project view</span></span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>This site (<span class="ot">&lt;https://valentinklotzbuecher.github.io/llm-uj-research-eval/&gt;</span>) is the **actively maintained working paper** with the latest statistical analysis and academic presentation.</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>Our **project workspace** at <span class="ot">&lt;https://llm-uj-research-eval.netlify.app/&gt;</span> contains broader context — grant proposal background, earlier analysis iterations, project goals, and team information — but is not currently kept up-to-date with the latest results. This working paper is the authoritative version of the analysis.</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Current working paper:** this is the authoritative version of the statistical analysis and academic presentation. It is available at <span class="co">[</span><span class="ot">GitHub Pages</span><span class="co">](https://valentinklotzbuecher.github.io/llm-uj-research-eval/)</span> and the <span class="co">[</span><span class="ot">primary Netlify URL</span><span class="co">](https://llm-uj-research-eval.netlify.app/)</span>.</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Full project workspace and grant proposal:** see the <span class="co">[</span><span class="ot">broader project site</span><span class="co">](https://llm-uj-research-eval-project.netlify.app/)</span> for project goals, team and funding context, earlier analysis, and appendices. Grant reviewers can go <span class="co">[</span><span class="ot">directly to the proposal</span><span class="co">](https://llm-uj-research-eval-project.netlify.app/proposal.html)</span>. This material is retained for context and is not the authoritative source for the latest results.</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**LLM–human critique concordance:** see the <span class="co">[</span><span class="ot">public concordance evidence site</span><span class="co">](https://llm-uj-concordance-judgments.netlify.app/)</span> for the exploratory issue-mapping judgments and methods notes.</span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>We are also maintaining a small **[headless Codex evaluation pilot](headless_codex_pilot.html)** as an exploratory extension. This is deliberately separated from the main API-based evidence because subscription-backed headless runs are useful for low-cost exploration but are less standardized and less directly replicable than the native API workflow.</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>We are also maintaining a small **[headless Codex evaluation pilot](headless_codex_pilot.html)** as an exploratory extension. It is deliberately separated from the main API-based evidence because subscription-backed headless runs are useful for low-cost exploration but are less standardized and less directly replicable than the native API workflow.</span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>*A collaboration with [The Unjournal](https://www.unjournal.org/) (55+ open evaluation packages for global-priorities research). Funding: Survival and Flourishing Fund, Long Term Future Fund, EA Funds.*</span>
