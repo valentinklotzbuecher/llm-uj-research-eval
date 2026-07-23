@@ -1,7 +1,8 @@
-# Hosting Reconciliation Plan
+# Hosting and public signposting
 
-**Last updated:** 2026-04-28  
-**Context:** The project currently has two hosted sites that have drifted out of sync. This document explains the situation and what Valentin needs to do.
+**Last updated:** 2026-07-23
+
+The project has separate public surfaces for the current paper, broader project context, and concordance evidence. Keep these roles explicit in navigation and prose.
 
 ---
 
@@ -9,34 +10,29 @@
 
 | Site | URL | Branch | Status |
 |------|-----|--------|--------|
-| Netlify (project space) | https://llm-uj-research-eval.netlify.app | `main` | Stale — ~6 months behind. Has broader context (grant proposal, project background) but not current analysis. A notice has been added directing visitors to the working paper. |
-| GitHub Pages (working paper) | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | `working-paper` | **Current** — all active development happens here. Has latest analysis, corrected agreement tables, academic presentation. |
+| Primary Netlify URL | https://llm-uj-research-eval.netlify.app | `working-paper` | Current working paper |
+| GitHub Pages | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | `working-paper` | Current working paper; same role as the primary Netlify URL |
+| Full project workspace | https://llm-uj-research-eval-project.netlify.app | `main` / `project` snapshot | Broader project context, grant proposal, earlier analysis, goals, and team information |
+| Grant proposal | https://llm-uj-research-eval-project.netlify.app/proposal.html | `main` / `project` snapshot | Direct link for grant reviewers |
+| Concordance evidence | https://llm-uj-concordance-judgments.netlify.app | separate generated site | Exploratory LLM–human critique mappings and methods notes |
 
 **Neither site auto-renders.** Both serve pre-built `_book/` HTML committed to git. To update a site: run `quarto render`, then commit `_book/`, then push. The working-paper branch is the one to update.
 
 ---
 
-## What Valentin needs to do (Phase 2 — the key action)
+## Signposting convention
 
-### Switch Netlify to deploy from `working-paper`
+On the working paper, label the three destinations as:
 
-This is a single setting change. It makes the grant-application URL (`llm-uj-research-eval.netlify.app`) show the current analysis permanently, without any further manual synchronisation.
+1. **Current working paper** — authoritative statistical analysis.
+2. **Full project and grant proposal** — broader and partly historical project context.
+3. **Concordance evidence** — exploratory issue-mapping evidence, not a confirmatory result.
 
-**Steps:**
-1. Log in to [netlify.com](https://netlify.com) and open the `llm-uj-research-eval` site
-2. Go to **Site configuration → Build & deploy → Branches and deploy contexts**
-3. Under **Production branch**, change `main` → `working-paper`
-4. Click **Save** — Netlify will immediately re-deploy from the current `_book/` in `working-paper`
-5. Verify at https://llm-uj-research-eval.netlify.app — should now show "Just Ask the Model..." title and current results
-
-That's it. After this change:
-- Both URLs serve the same content from the same branch
-- Only one branch (`working-paper`) needs to be maintained
-- The `main` branch becomes an archive (do not delete — historical record)
+Never describe `https://llm-uj-research-eval.netlify.app` as the project workspace: it now serves the working paper. Link grant reviewers directly to the separate project site or its `proposal.html` page.
 
 ---
 
-## How to update the site going forward (after Phase 2)
+## How to update the working-paper site
 
 After any code/analysis change on `working-paper`:
 
@@ -52,7 +48,7 @@ Netlify also updates automatically as soon as it detects the new `_book/` (~1 mi
 
 ---
 
-## Phase 3 — Clean up navigation (optional, low priority)
+## Navigation maintenance
 
 The `paper_response_analysis.qmd` page (author engagement evidence) is currently in the book's sidebar navigation but doesn't belong in the academic working paper. To remove it from the navigation while keeping the URL alive:
 
@@ -60,13 +56,7 @@ In `_quarto.yml` on `working-paper`, remove `paper_response_analysis.qmd` from t
 
 ---
 
-## Background: why two sites exist
-
-The original intent was:
-- **Netlify** = full project workspace (grant context, exploratory analysis, team info)
-- **GitHub Pages** = clean self-contained working paper for academic sharing
-
-In practice, all active development moved to the `working-paper` branch and `main` was never kept up to date. The two-branch setup added maintenance overhead without meaningful benefit. Phase 2 above collapses them back to one.
+The original Netlify URL changed roles and now mirrors the working paper. The broader, partly historical project workspace remains available at its separate `-project` Netlify URL so the grant proposal and project context are not lost.
 
 ---
 
@@ -76,6 +66,9 @@ These have been shared externally and must remain accessible:
 
 | URL | Content | Status |
 |-----|---------|--------|
-| https://llm-uj-research-eval.netlify.app | Project space / working paper (after Phase 2) | Must stay live |
+| https://llm-uj-research-eval.netlify.app | Current working paper | Must stay live |
+| https://llm-uj-research-eval-project.netlify.app | Full project workspace | Must stay live |
+| https://llm-uj-research-eval-project.netlify.app/proposal.html | Grant proposal | Must stay live |
+| https://llm-uj-concordance-judgments.netlify.app | Concordance evidence | Must stay live |
 | https://valentinklotzbuecher.github.io/llm-uj-research-eval/paper_response_analysis.html | Author engagement evidence | Must stay live — shared in grant applications |
 | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | Working paper | Must stay live |
