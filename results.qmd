@@ -12,6 +12,7 @@ engine: knitr
 #| warning: false
 
 source("setup_params.R")
+source("scripts/analysis_checks.R")
 
 library("tidyverse")
 library("janitor")
@@ -313,7 +314,7 @@ hh_pairs <- metrics_human |>
 
 hh_n        <- nrow(hh_pairs)
 hh_pearson  <- round(cor(hh_pairs$mid_E1, hh_pairs$mid_E2), 3)
-hh_spearman <- round(cor(hh_pairs$mid_E1, hh_pairs$mid_E2, method = "spearman"), 3)
+hh_spearman <- cor(hh_pairs$mid_E1, hh_pairs$mid_E2, method = "spearman")
 hh_mae      <- round(mean(abs(hh_pairs$mid_E1 - hh_pairs$mid_E2), na.rm = TRUE), 1)
 hh_rmse     <- round(sqrt(mean((hh_pairs$mid_E1 - hh_pairs$mid_E2)^2, na.rm = TRUE)), 1)
 hh_bias     <- sprintf("%+.1f", mean(hh_pairs$mid_E1 - hh_pairs$mid_E2, na.rm = TRUE))
@@ -330,15 +331,14 @@ hh_baseline_row <- tibble(
 
 # Spearman-Brown correction factor (same logic as Appendix A).
 # GPT-5 Pro rho is computed against the k-rater human mean; rho_HH compares
-# individual raters. Multiply raw rho_HL by sb_factor for a fair comparison.
+# individual raters. The factor is an assumption-dependent approximation.
 k_raters <- metrics_human |>
-  filter(criteria == "overall", paper %in% focal_papers) |>
+  filter(criteria == "overall", paper %in% hh_pairs$paper) |>
   group_by(paper) |>
   summarise(k = n_distinct(evaluator), .groups = "drop") |>
   summarise(k = mean(k)) |>
   pull(k)
-r_kk      <- k_raters * hh_spearman / (1 + (k_raters - 1) * hh_spearman)
-sb_factor <- sqrt(hh_spearman / r_kk)
+sb_factor <- sb_sensitivity_factor(hh_spearman, k_raters)
 
 spearman_ci95 <- function(rho, n) {
   if (is.na(rho) || n < 4) return("—")
@@ -355,7 +355,7 @@ spearman_ci95 <- function(rho, n) {
 # Paired bootstrap over papers, on the same matched group as the H-H baseline
 # (papers with >=2 human raters). Each draw resamples papers with replacement,
 # recomputes (a) GPT-5 Pro vs human-mean Spearman rho with that draw's own
-# Spearman-Brown correction and (b) pooled human-human pairwise rho, so the
+# Spearman-Brown correction and (b) first-two-rater human-human rho, so the
 # adjusted difference is evaluated on matched resamples. Draws where the
 # human-human correlation is non-positive leave the correction undefined and
 # are dropped.
@@ -364,8 +364,12 @@ B <- 2000
 
 llm_overall_boot <- llm_metrics |>
   filter(criteria == "overall", model == "GPT-5 Pro", paper %in% hh_pairs$paper) |>
-  inner_join(human_avg |> select(paper, human_mid), by = "paper") |>
-  select(paper, midpoint, human_mid)
+  inner_join(human_avg |> select(paper, human_mid, n_human),
+             by = "paper", relationship = "one-to-one") |>
+  select(paper, midpoint, human_mid, n_human)
+
+stopifnot(setequal(llm_overall_boot$paper, hh_pairs$paper),
+          !anyDuplicated(llm_overall_boot$paper))
 
 boot_draws <- replicate(B, {
   bp <- sample(llm_overall_boot$paper, replace = TRUE)
@@ -379,8 +383,7 @@ boot_draws <- replicate(B, {
                          method = "spearman", use = "complete.obs"))
   } else NA_real_
   r_adj <- if (!is.na(r_hh) && r_hh > 0) {
-    r_kk_d <- k_raters * r_hh / (1 + (k_raters - 1) * r_hh)
-    r_llm * sqrt(r_hh / r_kk_d)
+    r_llm * sb_sensitivity_factor(r_hh, mean(d_llm$n_human))
   } else NA_real_
   c(r_llm = r_llm, r_hh = r_hh, r_adj = r_adj)
 })
@@ -404,9 +407,9 @@ cap_tbl_model_agreement <- paste0(
   " matched papers. **Spearman rho column**: the H-H row shows individual-vs-individual ",
   "rank correlation (the reference, already on the natural scale); GPT-5 Pro rows show ",
   "correlation vs. the human mean, which is upward-biased relative to H-H. ",
-  "**rho adj.**: Spearman-Brown corrected to the individual-rater equivalent (factor ",
-  sprintf("%.2f", sb_factor),
-  "), making GPT-5 Pro rows directly comparable to H-H. **95% CI**: Fisher-z. ",
+  "**rho adj.**: approximate Spearman-Brown sensitivity adjustment using each row's mean panel size ",
+  "(matched-group factor ", sprintf("%.2f", sb_factor), "). ",
+  "**95% CI**: approximate Fisher-z interval for the raw correlation, not the adjusted value. ",
   "Bias = LLM minus Human. Full six-model comparison in [Appendix A](results_ratings.qmd)."
 )
 
@@ -423,13 +426,13 @@ cap_tbl_criteria_agreement <- paste0(
 
 We evaluate GPT-5 Pro against human expert reviews from [The Unjournal](https://unjournal.pubpub.org) on `r n_focal` matched papers (papers with both GPT-5 Pro and human evaluations). The model receives the same PDF, system prompt mirroring The Unjournal rubric, and JSON schema requiring a diagnostic summary plus numeric midpoints and 90% credible intervals for every metric. Results for five additional models are reported in [Appendix A](results_ratings.qmd). Full methodological details appear in [Methods](methods.qmd).
 
-We do not treat human ratings as ground truth. Quantitative percentile scoring is genuinely difficult: even domain experts disagree, and individual scores reflect both signal about paper quality and idiosyncratic tendencies (severity, topic familiarity, interpretation of the scale). Our question is whether an LLM provides signal *comparable to an additional expert rater*. The Human–Human baseline row in @tbl-model-agreement-main provides this reference. **Caution**: the LLM's *ρ* is computed against the *mean* of `r round(k_raters, 1)` human raters, which reduces noise and inflates apparent agreement relative to the individual-vs-individual ρ_HH. The Spearman-Brown adjusted column corrects for this; the fair comparison is ρ adj. vs. ρ_HH. Krippendorff's α~HH~ in the [human-baseline table in Appendix A](results_ratings.qmd) provides the criterion-level reference.
+We do not treat human ratings as ground truth. Quantitative percentile scoring is genuinely difficult: even domain experts disagree, and individual scores reflect both signal about paper quality and idiosyncratic tendencies (severity, topic familiarity, interpretation of the scale). Our question is whether an LLM provides signal *comparable to an additional expert rater*. The Human–Human baseline row in @tbl-model-agreement-main provides this reference. **Caution**: the primary comparison computes the LLM's *ρ* against the *mean* of `r round(k_raters, 1)` human raters, which reduces noise and inflates apparent agreement relative to the individual-vs-individual ρ_HH. The Spearman-Brown column provides an approximate sensitivity adjustment. Its classical reliability assumptions (exchangeable raters and independent errors around a common target) need not hold here, and applying it to rank correlations with unequal panel sizes is not an exact correction. Krippendorff's α~HH~ in the [human-baseline table in Appendix A](results_ratings.qmd) provides the criterion-level reference.
 
-**Per-paper overview.** @fig-overview-combined presents three complementary views of overall (0--100 percentile) ratings. Panel (a) displays individual human evaluator ratings alongside GPT-5 Pro (orange diamonds) for each paper, revealing inter-rater variability---the self-reported 90% credible intervals from individual evaluators often span 20--40 percentile points. In most cases the LLM falls within the range of human opinions, though several papers show substantial divergence. Panel (b) plots all pairwise human evaluator combinations, making the human-human agreement ceiling directly visible. Panel (c) compares GPT-5 Pro ratings against human mean ratings with per-paper labels.
+**Per-paper overview.** @fig-overview-combined presents three complementary views of overall (0--100 percentile) ratings. Panel (a) displays individual human evaluator ratings alongside GPT-5 Pro (orange diamonds) for each paper, revealing inter-rater variability---the self-reported 90% credible intervals from individual evaluators often span 20--40 percentile points. In most cases the LLM falls within the range of human opinions, though several papers show substantial divergence. Panel (b) plots all pairwise human evaluator combinations, showing the observed human-human agreement baseline. Panel (c) compares GPT-5 Pro ratings against human mean ratings with per-paper labels.
 
 ```{r}
 #| label: fig-overview-combined
-#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with each evaluator's self-reported 90% credible interval (reflecting their own uncertainty about the true score; the vertical separation between green dots per paper reflects inter-rater disagreement) and GPT-5 Pro (orange diamonds with CI), sorted by descending human mean. Dotted horizontal lines show grand means. **(b)** Pairwise human evaluator agreement: each point is one evaluator pair (papers with 3 raters contribute 3 points). **(c)** Human mean vs GPT-5 Pro overall rating; dashed diagonal is the identity line. Compare panels (b) and (c) directly to see whether LLM-human scatter is tighter than human-human scatter."
+#| fig-cap: "Per-paper overall ratings (0--100 percentile). **(a)** Individual human evaluator midpoints (green circles) with each evaluator's self-reported 90% credible interval (reflecting their own uncertainty about the true score; the vertical separation between green dots per paper reflects inter-rater disagreement) and GPT-5 Pro (orange diamonds with CI), sorted by descending human mean. Dotted horizontal lines show grand means. **(b)** Pairwise human evaluator agreement: each point is one evaluator pair (papers with 3 raters contribute 3 points). **(c)** Human mean vs GPT-5 Pro overall rating; dashed diagonal is the identity line. Panel (c) uses an averaged human target, so tighter scatter does not by itself establish equivalence to an individual evaluator."
 #| fig-width: 14
 #| fig-height: 14
 #| code-fold: true
@@ -613,7 +616,7 @@ bottom_row <- wrap_plots(p_hh, p_scatter, widths = c(1, 1))
 (p_forest / bottom_row) + plot_layout(heights = c(1, 0.85))
 ```
 
-Panel (b) makes the human-human ceiling directly visible: the scatter of evaluator pairs is no tighter than the GPT-5 Pro--human scatter in panel (c), and individual pairs disagree by as much as 30--40 percentile points on individual papers. GPT-5 Pro clusters around the identity line in the 40--80 range but diverges more at the extremes, compressing ratings toward the centre of the scale relative to humans---a pattern consistent with alignment training that discourages extreme outputs. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics for all six models appear in [Appendix A](results_ratings.qmd).
+Panel (b) displays human-human disagreement, with differences of as much as 30--40 percentile points on individual papers. Panel (c) uses a human mean, so the two scatterplots compare different targets and do not by themselves establish equivalent rater performance. GPT-5 Pro clusters around the identity line in the 40--80 range but diverges more at the extremes, compressing ratings toward the centre of the scale relative to humans---a descriptive pattern whose mechanism is not identified by this comparison. Where humans rate a paper very highly or very harshly, the LLM typically pulls toward the middle. Full agreement metrics for all six models appear in [Appendix A](results_ratings.qmd).
 
 <!-- DROPPED FOR CONFERENCE VERSION — rank slopegraph (Fig 2)
 **Rank comparison.** @fig-rankslope-main places human rankings in the centre column with GPT-5 Pro on the left and Claude Opus 4.6 on the right, restricted to the N papers with Claude Opus 4.6 evaluations. Each paper appears as a pair of S-curves connecting its human rank to its rank under each LLM. Horizontal curves indicate agreement; curves that climb toward the top indicate the LLM ranked the paper higher (better) than humans did. Colour encodes the rank shift: green when humans rank it higher, orange (left, GPT-5 Pro) or purple (right, Opus) when the LLM does. The triptych layout makes it easy to spot papers where both LLMs agree with each other but disagree with humans (both curves slope the same way), versus papers where the two LLMs diverge.
@@ -754,7 +757,7 @@ if (n_papers_slope > 0) {
 }
 ```
 
-Papers where both curves slope the same direction indicate systematic human--LLM disagreement; papers where left and right curves diverge indicate model-specific differences—GPT and Claude "see" the paper differently, not just differently from humans. Horizontal curves indicate agreement with the human ordering. The criteria-level Krippendorff's alpha analysis in the [human baseline table in Appendix A](results_ratings.qmd) quantifies where human--LLM agreement approaches the ceiling set by human inter-rater variability.
+Papers where both curves slope the same direction indicate systematic human--LLM disagreement; papers where left and right curves diverge indicate model-specific differences—GPT and Claude "see" the paper differently, not just differently from humans. Horizontal curves indicate agreement with the human ordering. The criteria-level Krippendorff's alpha analysis in the [human baseline table in Appendix A](results_ratings.qmd) describes how panel reliability changes when a model is added to the observed human evaluators.
 END DROPPED SECTION -->
 
 **Rating differences by paper and criterion.** @fig-gap-heatmap-main unpacks Human − GPT-5 Pro differences across all seven criteria simultaneously. Each column is a paper, each row a criterion, and tile colour encodes the signed difference (human mean minus GPT-5 Pro midpoint). Green tiles indicate the human panel rated the paper higher; orange tiles indicate GPT-5 Pro was more generous. Papers are sorted by overall difference.
@@ -846,7 +849,7 @@ if (length(ord_p) > 0) {
 
 Rows with uniformly green or orange tiles indicate papers where humans and GPT-5 Pro disagree systematically across all criteria, not just on one dimension. Columns with consistent colour suggest criteria-level biases---for instance, if "Open Science" is green across nearly all papers, humans may systematically reward data-sharing practices more than the model does. Multi-model comparisons in [Appendix A](results_ratings.qmd) reveal whether these disagreement patterns are GPT-5 Pro--specific or shared across frontier LLMs.
 
-**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against the LLM overlap rate---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro acting as an independent judge (see [Methods](methods.qmd) for the judging protocol). One of the 14 originally curated pairs (Peterman et al. 2025) is excluded: the judge flagged---and we verified against the paper---that the curated human critique belonged to a different manuscript, so results are reported for the remaining 13 pairs.
+**Qualitative critique comparison.** Beyond numeric ratings, we compare the substantive critiques each model raises against the consensus issues identified by human experts. The figure below plots coverage---the fraction of human-identified concerns that the LLM also raised in some form---against the LLM overlap rate---the fraction of LLM-raised issues that correspond to a substantive human concern. These metrics are assessed by GPT-5.2 Pro in a separate judging call (the same model that generated the focal critiques) (see [Methods](methods.qmd) for the judging protocol). Two of the 14 originally curated pairs are excluded for manuscript-identity mismatches: Peterman et al. 2025 and Bénabou et al. 2023. The latter was identified in the July 2026 concordance audit: its human critiques concern *Willful Ignorance and Moral Behavior*, while the PDF and model critiques concern *Ends versus Means: Kantians, Utilitarians, and Moral Decisions*. The remaining 12 pairs contribute to the analysis. These exclusions concern critique pairings and do not by themselves establish an error in the separate quantitative ratings joins.
 
 ```{r}
 #| label: load-critique-data
@@ -865,7 +868,7 @@ has_critique_data <- FALSE
 if (!is.na(comparison_results_file)) {
   comparison_file <- here("results", "key_issues_comparison.json")
   if (file.exists(comparison_file)) {
-    comparison_data <- fromJSON(comparison_file)
+    comparison_data <- exclude_misaligned_critiques(fromJSON(comparison_file))
     llm_results_raw <- fromJSON(comparison_results_file)
     llm_results <- llm_results_raw |>
       as_tibble() |>
@@ -881,7 +884,7 @@ if (!is.na(comparison_results_file)) {
         detailed_notes
       )
     comparison_data <- comparison_data |>
-      left_join(llm_results, by = "gpt_paper")
+      left_join(llm_results, by = "gpt_paper", relationship = "one-to-one")
     has_critique_data <- nrow(comparison_data) > 0 &&
       "coverage_pct" %in% names(comparison_data) &&
       any(!is.na(comparison_data$coverage_pct))
@@ -919,7 +922,7 @@ Coverage and the LLM overlap rate vary substantially across papers. Averaged ove
 
 Detailed paper-by-paper comparisons---including matched issue pairs with severity labels, structural difference tables, and per-evaluator breakdowns---appear in [Appendix B: Critiques & Key Issues](results_critiques.qmd). Extended quantitative analysis including all six models, per-criterion correlations, bootstrap confidence intervals, tier prediction accuracy, and cost-quality trade-offs is reported in [Appendix A: Results Ratings](results_ratings.qmd). The full LLM reasoning traces and assessment summaries are available in [Appendix C: LLM Traces](appendix_llm_traces.qmd).
 
-**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement split into a **primary matched group** (same `r hh_n` papers as the H–H baseline, enabling like-for-like comparison) and a **secondary full-sample group** (all `r n_focal` matched papers). In the Spearman *ρ* column, the H–H row shows individual-vs-individual *ρ* (the reference, already on the natural scale); GPT-5 Pro rows show *ρ* vs. the human mean, which is upward-biased. The **ρ adj.** column applies the Spearman-Brown correction to GPT-5 Pro rows only, making them directly comparable to H–H *ρ*. Six-model comparison in [Appendix A, Table A2](results_ratings.qmd#tbl-agreement).
+**Agreement summary.** @tbl-model-agreement-main shows GPT-5 Pro's agreement split into a **primary matched group** (same `r hh_n` papers as the H–H baseline, enabling like-for-like comparison) and a **secondary full-sample group** (all `r n_focal` matched papers). In the Spearman *ρ* column, the H–H row shows individual-vs-individual *ρ* (the reference, already on the natural scale); GPT-5 Pro rows show *ρ* vs. the human mean, which is upward-biased. The **ρ adj.** column applies the Spearman-Brown correction to GPT-5 Pro rows only, as an assumption-dependent sensitivity analysis. Six-model comparison in [Appendix A, Table A2](results_ratings.qmd#tbl-agreement).
 
 ```{r}
 #| label: tbl-model-agreement-main
@@ -929,7 +932,7 @@ Detailed paper-by-paper comparisons---including matched issue pairs with severit
 model_compare_data <- llm_metrics |>
   filter(criteria == "overall", model == "GPT-5 Pro", paper %in% focal_papers) |>
   left_join(
-    human_avg |> select(paper, human_mid),
+    human_avg |> select(paper, human_mid, n_human),
     by = "paper"
   ) |>
   filter(!is.na(human_mid))
@@ -953,7 +956,7 @@ if (nrow(model_compare_data) > 0) {
       Model          = label,
       N              = n_papers,
       `Spearman ρ` = sprintf("%.3f", rho),
-      `ρ adj.`  = sprintf("%.3f", rho * sb_factor),
+      `ρ adj.`  = sprintf("%.3f", rho * sb_sensitivity_factor(hh_spearman, mean(data$n_human))),
       `95% CI`       = spearman_ci95(rho, n_papers),
       `Pearson r`    = round(cor(data$human_mid, data$midpoint, use = "complete.obs"), 3),
       `Mean bias`    = sprintf("%+.1f", mean(data$midpoint - data$human_mid, na.rm = TRUE)),
@@ -992,9 +995,9 @@ if (nrow(model_compare_data) > 0) {
 }
 ```
 
-The Fisher-z intervals in @tbl-model-agreement-main quantify uncertainty in each correlation separately; to make an uncertainty statement about the *comparison itself* we add a paired bootstrap over papers (2,000 resamples of the `r hh_n` matched-group papers). Each draw recomputes the GPT-5 Pro--human-mean rank correlation, applies that draw's own Spearman-Brown correction, and takes the difference against the human--human pairwise correlation on the same draw. The resulting distribution of the adjusted difference (ρ adj. − ρ~HH~) spans `r fmt_ci(boot_ci_diff)`: the interval includes zero, so at this sample size we cannot statistically separate the model from an additional human rater---the two correlations are comparable, not demonstrably ordered. This is the precise sense in which GPT-5 Pro "performs within the human inter-rater range."
+The Fisher-z intervals in @tbl-model-agreement-main quantify uncertainty in each correlation separately; to make an uncertainty statement about the *comparison itself* we add a paired bootstrap over papers (2,000 resamples of the `r hh_n` matched-group papers). Each draw recomputes the GPT-5 Pro--human-mean rank correlation, applies that draw's own Spearman-Brown correction, and takes the difference against the human--human pairwise correlation on the same draw. The mean panel size is recomputed within each draw. The estimated 95% interval for the adjusted difference (ρ adj. − ρ~HH~) is `r fmt_ci(boot_ci_diff)`, based on `r boot_n_valid` of `r B` draws. The remaining `r B - boot_n_valid` draws have an undefined correlation or non-positive human reliability and cannot support this adjustment; the interval is conditional on valid draws. This analysis estimates uncertainty in an approximate comparison. An interval containing zero does not establish equivalence or non-inferiority to an additional expert. Such a claim requires a justified margin specified before testing and an interval narrow enough to rule out a practically important deficit. The present bootstrap also conditions on the observed evaluators and first-two-rater ordering; it does not measure uncertainty from recruiting a new evaluator panel.
 
-@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. The **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion as a reference — note that raw LLM ρ is upward-biased relative to H-H ρ by the mean-vs-individual asymmetry (see @tbl-model-agreement-main). Criteria where H-H ρ is itself low indicate genuine expert disagreement; low LLM agreement on those criteria is therefore expected rather than a model failure.
+@tbl-criteria-agreement-main breaks the same agreement metrics down by evaluation criterion for GPT-5 Pro. The **H-H ρ** column shows pairwise human-human Spearman ρ for each criterion as a reference — note that raw LLM ρ is upward-biased relative to H-H ρ by the mean-vs-individual asymmetry (see @tbl-model-agreement-main). Criteria where H-H ρ is itself low indicate genuine expert disagreement; these rows alone cannot distinguish reference disagreement from model failure.
 
 ```{r}
 #| label: tbl-criteria-agreement-main
@@ -1013,7 +1016,7 @@ criteria_labels <- c(
   gp_relevance = "Global Relevance"
 )
 
-# Human-human pairwise Spearman rho per criterion (ceiling reference)
+# Human-human pairwise Spearman rho per criterion (descriptive reference)
 hh_crit_pairs <- metrics_human |>
   filter(criteria %in% criteria_order, paper %in% focal_papers) |>
   select(paper, criteria, evaluator, mid) |>

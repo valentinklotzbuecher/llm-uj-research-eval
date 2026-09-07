@@ -18,6 +18,7 @@ Detailed paper-by-paper critique comparisons (matched issue pairs, severity labe
 #| message: false
 #| warning: false
 
+source("scripts/analysis_checks.R")
 library("tidyverse")
 library("jsonlite")
 library("knitr")
@@ -82,7 +83,7 @@ This chapter reports preliminary results from comparing LLM-identified key issue
 This section is under active development. Human-issue coverage and LLM overlap-rate estimates below are LLM-assessed; manual annotation is in progress.
 :::
 
-**Data sources.** We compare GPT-5.2 Pro key issues (structured output from the focal evaluation run, January 2026) against human expert critiques curated from The Unjournal's internal tracking database, where evaluation managers synthesize evaluator feedback using severity labels ("Necessary", "Optional but important", "Unsure"). The focal run covered 14 papers; one pair (Peterman et al. 2025) is excluded from the analysis because the curated human critique was misattributed---it belongs to The Unjournal's evaluation of a different manuscript ("Maternal cash transfers for gender equity and child development"), which is not part of this study's sample. The GPT-5.2 Pro judge itself flagged the mismatch, and we verified it against the paper PDF; the excluded pair is documented in `results/key_issues_comparison.md`.
+**Data sources.** We compare GPT-5.2 Pro key issues (structured output from the focal evaluation run, January 2026) against human expert critiques curated from The Unjournal's internal tracking database, where evaluation managers synthesize evaluator feedback using severity labels ("Necessary", "Optional but important", "Unsure"). The focal run covered 14 papers. Two critique pairings are excluded: Peterman et al. 2025 (the human critique concerns a different manuscript) and Bénabou et al. 2023 (human critiques of *Willful Ignorance and Moral Behavior* paired with model critiques of *Ends versus Means: Kantians, Utilitarians, and Moral Decisions*). The exclusions are documented in `results/key_issues_comparison.md` and `docs/concordance_three_candidate_methods_note_jul2026.md`. A shared check excludes both keys before analysis, retaining the original responses for provenance. The resulting analysis covers 12 pairs; it remains exploratory pending an identity audit of the full corpus and independent human validation.
 
 ```{r}
 #| label: load-comparison-data
@@ -98,7 +99,7 @@ comparison_results_file <- c(
 comparison_results_file <- comparison_results_file[file.exists(comparison_results_file)][1]
 
 if (file.exists(comparison_file)) {
-  comparison_data <- fromJSON(comparison_file)
+  comparison_data <- exclude_misaligned_critiques(fromJSON(comparison_file))
   n_papers <- nrow(comparison_data)
 } else {
   comparison_data <- NULL
@@ -126,7 +127,7 @@ if (!is.null(comparison_data) && !is.na(comparison_results_file)) {
     )
 
   comparison_data <- comparison_data |>
-    left_join(llm_results, by = "gpt_paper")
+    left_join(llm_results, by = "gpt_paper", relationship = "one-to-one")
 }
 
 # Update paper count after loading

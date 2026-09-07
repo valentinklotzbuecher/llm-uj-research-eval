@@ -19,6 +19,7 @@ Extended ratings analysis (per-criterion correlations, agreement metrics, human 
 #| warning: false
 
 source("setup_params.R")
+source("scripts/analysis_checks.R")
 
 library("tidyverse")
 library("janitor")
@@ -320,8 +321,8 @@ matched_papers <- intersect(
 n_matched <- length(matched_papers)
 
 # Opus sample: papers evaluated by Claude Opus 4.6 AND humans
-# Agreement tables and Krippendorff alpha use this sample so all
-# models are compared on the same set of papers.
+# Agreement tables and Krippendorff alpha use this eligibility set;
+# models with missing responses contribute smaller subsets.
 opus_papers <- intersect(
   llm_metrics |> filter(model == "Claude Opus 4.6") |> pull(paper) |> unique(),
   unique(metrics_human$paper)
@@ -353,9 +354,9 @@ model_summary <- cost_data |>
   )
 ```
 
-We compare quantitative ratings from `r n_llm_models` frontier LLMs (`r llm_model_list`) against human expert reviews from [The Unjournal](https://unjournal.pubpub.org). Across all models, `r n_matched` papers have both human and LLM evaluations. Agreement metrics and Krippendorff's alpha below are computed on the `r n_opus`-paper matched sample with Claude Opus 4.6 evaluations, so that all models are compared on identical papers.
+We compare quantitative ratings from `r n_llm_models` frontier LLMs (`r llm_model_list`) against human expert reviews from [The Unjournal](https://unjournal.pubpub.org). Across all models, `r n_matched` papers have both human and LLM evaluations. Agreement metrics and Krippendorff's alpha below are computed on the `r n_opus`-paper matched sample with Claude Opus 4.6 evaluations, with each model contributing its available observations within that set. This is not necessarily a common intersection across all models; the N column reports actual row-specific availability.
 
-We submit each PDF through a single, schema-enforced API call. The system prompt mirrors The Unjournal rubric, blocks extrinsic priors (authors, venue, web context), and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric.^[0–100 percentiles relative to a reference group of ~'all serious work you have read in this area in the last three years', overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), and global_relevance (decision and priority usefulness). Journal tiers: (0–5, continuous) capture where the work should publish vs. will publish.] Each numeric field carries a midpoint (model's 50% belief) and a 90% credible interval; wide intervals indicate acknowledged uncertainty.
+We submit each PDF through a single, schema-enforced API call. The system prompt mirrors The Unjournal rubric, instructs models to disregard extrinsic priors (authors, venue, web context), without ensuring that prior knowledge is removed, and requires strict JSON: a ~1k-word diagnostic summary plus numeric midpoints and 90% credible intervals for every metric.^[0–100 percentiles relative to a reference group of ~'all serious work you have read in this area in the last three years', overall (global quality/impact), claims_evidence (claim clarity/support), methods (design/identification/robustness), advancing_knowledge (contribution to field/practice), logic_communication (internal consistency and exposition), open_science (reproducibility, data/code availability), and global_relevance (decision and priority usefulness). Journal tiers: (0–5, continuous) capture where the work should publish vs. will publish.] Each numeric field carries a midpoint (model's 50% belief) and a 90% credible interval; wide intervals indicate acknowledged uncertainty.
 
 **Cost and token usage.** Token costs are computed from API-reported input/output tokens (GPT-5 Pro runs with `reasoning` = high).
 
@@ -423,7 +424,7 @@ hh_pairs <- metrics_human |>
 
 hh_n        <- nrow(hh_pairs)
 hh_pearson  <- round(cor(hh_pairs$mid_E1, hh_pairs$mid_E2), 3)
-hh_spearman <- round(cor(hh_pairs$mid_E1, hh_pairs$mid_E2, method = "spearman"), 3)
+hh_spearman <- cor(hh_pairs$mid_E1, hh_pairs$mid_E2, method = "spearman")
 hh_mae      <- round(mean(abs(hh_pairs$mid_E1 - hh_pairs$mid_E2), na.rm = TRUE), 1)
 hh_rmse     <- round(sqrt(mean((hh_pairs$mid_E1 - hh_pairs$mid_E2)^2, na.rm = TRUE)), 1)
 hh_bias     <- sprintf("%+.1f", mean(hh_pairs$mid_E1 - hh_pairs$mid_E2, na.rm = TRUE))
@@ -441,15 +442,14 @@ hh_baseline_row <- tibble(
 # Spearman-Brown correction factor.
 # LLM rho is computed against the k-rater human mean (smoother signal) while
 # rho_HH compares individual raters. Multiply raw rho_HL by sb_factor to
-# convert to the individual-rater-equivalent scale for a fair comparison.
+# provide an assumption-dependent sensitivity adjustment.
 k_raters <- metrics_human |>
   filter(criteria == "overall", paper %in% opus_papers) |>
   group_by(paper) |>
   summarise(k = n_distinct(evaluator), .groups = "drop") |>
   summarise(k = mean(k)) |>
   pull(k)
-r_kk      <- k_raters * hh_spearman / (1 + (k_raters - 1) * hh_spearman)
-sb_factor <- sqrt(hh_spearman / r_kk)
+sb_factor <- sb_sensitivity_factor(hh_spearman, k_raters)
 
 # Fisher-z 95% CI for Spearman rho
 spearman_ci95 <- function(rho, n) {
@@ -460,11 +460,11 @@ spearman_ci95 <- function(rho, n) {
 }
 ```
 
-**Agreement metrics.** We report Spearman *ρ*, MAE, mean bias, and Pearson *r*. The **H–H row** shows individual-vs-individual *ρ* — it is already on the natural scale and serves as the reference. **LLM rows** show *ρ* against the human *mean* rating (of `r round(k_raters, 1)` raters/paper), which is upward-biased relative to H–H because averaging suppresses noise. The **ρ adj.** column applies the Spearman-Brown correction to LLM rows only (×`r sprintf("%.2f", sb_factor)`), converting them to the individual-rater-equivalent scale so they are directly comparable to the H–H *ρ*.
+**Agreement metrics.** We report Spearman *ρ*, MAE, mean bias, and Pearson *r*. The **H–H row** shows individual-vs-individual *ρ* — it is already on the natural scale and serves as the reference. **LLM rows** show *ρ* against the human *mean* rating (of `r round(k_raters, 1)` raters/paper), which is upward-biased relative to H–H because averaging suppresses noise. The **ρ adj.** column applies the Spearman-Brown correction to LLM rows only (×`r sprintf("%.2f", sb_factor)`), as an approximate sensitivity analysis. Classical reliability assumptions, rank transformation, unequal panel sizes, and differing paper subsets limit its interpretation as an individual-rater comparison.
 
 ```{r}
 #| label: tbl-agreement
-#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Spearman ρ column**: for the H–H row this is individual-vs-individual ρ (the reference, already on the natural scale); for LLM rows it is ρ vs. the human *mean* (upward-biased because the mean is smoother than any individual rater). **ρ adj.**: Spearman-Brown corrected to individual-rater-equivalent scale (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper) — apply this correction to compare LLM rows fairly to H–H. H–H shows — in the ρ adj. column because no correction is needed. **95% CI**: Fisher-z. Bias = LLM − Human. †N < 15: unreliable."
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, matched sample (N = `r n_opus`). **Spearman ρ column**: for the H–H row this is individual-vs-individual ρ (the reference, already on the natural scale); for LLM rows it is ρ vs. the human *mean* (upward-biased because the mean is smoother than any individual rater). **ρ adj.**: Spearman-Brown corrected to individual-rater-equivalent scale (×`r sprintf('%.2f', sb_factor)` for k≈`r round(k_raters, 1)` raters/paper) — an assumption-dependent sensitivity adjustment using a shared reference factor. H–H shows — in the ρ adj. column because no correction is needed. **95% CI**: Fisher-z. Bias = LLM − Human. †N < 15: unreliable."
 
 MIN_N <- 15
 
@@ -517,7 +517,7 @@ if (nrow(scatter_data) > 0) {
   knitr::kable(agreement_tbl, align = c("l", rep("r", ncol(agreement_tbl) - 1))) |>
     kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0") |>
     kableExtra::pack_rows(
-      sprintf("Matched sample — same %d papers as H–H baseline (primary comparison)", hh_n),
+      sprintf("Restricted sample — available subset of %d H–H papers", hh_n),
       1, 1 + n_matched, bold = TRUE, italic = FALSE, color = "black"
     ) |>
     kableExtra::pack_rows(
@@ -527,13 +527,13 @@ if (nrow(scatter_data) > 0) {
 }
 ```
 
-@tbl-agreement is organised in two groups. The **primary matched-sample group** restricts both the H–H baseline and all LLM rows to the same `r hh_n` papers that have ≥2 human raters — this is the only fair like-for-like comparison (same denominator for every row). The **secondary full-sample group** uses each model's own maximum N (up to `r n_opus`), which increases power at the cost of cross-row comparability. **Spearman ρ** is upward-biased relative to ρ_HH because LLMs are evaluated against the mean of `r round(k_raters, 1)` human raters; **ρ adj.** applies the Spearman-Brown correction (×`r sprintf("%.2f", sb_factor)`) for a fair comparison to the H–H *ρ* of `r hh_spearman`. 95% CIs (Fisher-z) are wide at these sample sizes. Models with N < 15 (†) are unreliable.
+@tbl-agreement is organised in two groups. The **primary matched-sample group** restricts LLM rows to the `r hh_n`-paper H–H eligibility set that have ≥2 human raters — each model contributes only the available papers in this set, so actual denominators and paper identities can differ across rows. The **secondary full-sample group** uses each model's own maximum N (up to `r n_opus`), which increases power at the cost of cross-row comparability. **Spearman ρ** is upward-biased relative to ρ_HH because LLMs are evaluated against the mean of `r round(k_raters, 1)` human raters; **ρ adj.** applies the Spearman-Brown correction (×`r sprintf("%.2f", sb_factor)`) as a sensitivity analysis relative to H–H *ρ* = `r sprintf("%.3f", hh_spearman)`. The appendix uses a shared reference factor; it is not a model-specific matched-panel adjustment. 95% CIs (Fisher-z) are wide at these sample sizes. Models with N < 15 (†) are unreliable.
 
 @tbl-agreement-full repeats the same structure using each model's own maximum matched sample.
 
 ```{r}
 #| label: tbl-agreement-full
-#| tbl-cap: "Agreement between each LLM and human mean overall rating, using each model's own maximum matched sample (not restricted to the common `r n_opus`-paper set). Larger N per model but cross-model comparison is confounded by paper-set differences. Same column structure as @tbl-agreement: H–H Spearman *ρ* is individual-vs-individual; LLM Spearman *ρ* is vs. human mean (upward-biased); ρ adj. is Spearman-Brown corrected for fair comparison."
+#| tbl-cap: "Agreement between each LLM and human mean overall rating, using each model's own maximum matched sample (not restricted to the common `r n_opus`-paper set). Larger N per model but cross-model comparison is confounded by paper-set differences. Same column structure as @tbl-agreement: H–H Spearman *ρ* is individual-vs-individual; LLM Spearman *ρ* is vs. human mean (upward-biased); ρ adj. is an approximate Spearman-Brown sensitivity adjustment using a shared reference factor."
 
 if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
 
@@ -563,8 +563,7 @@ if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
     summarise(k = n_distinct(evaluator), .groups = "drop") |>
     summarise(k = mean(k)) |>
     pull(k)
-  r_kk_full  <- k_full * hh_rho_full / (1 + (k_full - 1) * hh_rho_full)
-  sb_full    <- sqrt(hh_rho_full / r_kk_full)
+  sb_full <- sb_sensitivity_factor(hh_rho_full, k_full)
 
   lfl_set_full <- hh_pairs_full$paper  # papers with >=2 human raters in full matched set
 
@@ -612,7 +611,7 @@ if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
   knitr::kable(tbl_full, align = c("l", rep("r", ncol(tbl_full) - 1))) |>
     kableExtra::row_spec(1, bold = TRUE, background = "#f0f8f0") |>
     kableExtra::pack_rows(
-      sprintf("Matched sample — same %d papers as H–H baseline (primary)", nrow(hh_pairs_full)),
+      sprintf("Restricted sample — available subset of %d H–H papers", nrow(hh_pairs_full)),
       1, 1 + n_mf, bold = TRUE, italic = FALSE, color = "black"
     ) |>
     kableExtra::pack_rows(
@@ -623,11 +622,11 @@ if (nrow(llm_metrics) > 0 && nrow(human_avg) > 0) {
 }
 ```
 
-**Human baseline context.** Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a "correct" score would be. @tbl-human-baseline quantifies this noise as Krippendorff's α~HH~. The α~HL~ columns show how close each LLM comes to that level. A model with α~HL~ ≈ α~HH~ on a criterion is generating signal comparable to a second human evaluator on that dimension. Criteria where α~HH~ is already low indicate genuine expert disagreement; low α~HL~ on those criteria is therefore expected, not a model failure.
+**Human baseline context.** Human percentile ratings are a noisy reference signal, not ground truth: even expert evaluators given the same paper differ systematically, reflecting genuine uncertainty in what a "correct" score would be. @tbl-human-baseline quantifies this noise as Krippendorff's α~HH~. The α~HL~ columns show how close each LLM comes to that level. Here α~HL~ is the reliability of the augmented panel, so its similarity to α~HH~ is a descriptive stability check rather than evidence of evaluator equivalence. Models with sparse coverage change only part of that panel. Low values alone cannot distinguish reference disagreement from model failure.
 
 ```{r}
 #| label: tbl-human-baseline
-#| tbl-cap: "Krippendorff's α~HH~ (agreement within the human-evaluator panel) vs α~HL~ (agreement when the LLM is added to that panel) by criterion. Both are computed on the same papers and use individual human rater scores—not the human mean—so the comparison is symmetric. If α~HL~ ≈ α~HH~, the LLM behaves like an additional human evaluator on that criterion. Column headers show N papers per model; models with N < 15 (marked †) are unreliable."
+#| tbl-cap: "Krippendorff's α~HH~ (agreement within the human-evaluator panel) vs α~HL~ (agreement when the LLM is added to that panel) by criterion. Both retain individual human ratings within the Opus-defined paper set; the added model row has missing values where model ratings are unavailable. Similar values describe panel stability and do not establish human-model equivalence. Column headers show N papers per model; models with N < 15 (marked †) are unreliable."
 #| code-fold: true
 
 if (requireNamespace("irr", quietly = TRUE)) {
@@ -661,8 +660,8 @@ if (requireNamespace("irr", quietly = TRUE)) {
 
   # Compute human-LLM alpha using full panel [H1, H2, ..., LLM].
   # Adding LLM as an additional rater alongside individual humans (not the mean)
-  # removes the mean-vs-individual bias and answers: does the LLM behave like
-  # an additional human evaluator on this criterion?
+  # avoids substituting a human mean, but measures augmented-panel reliability,
+  # not equivalence between the model and an individual human.
   compute_hl_alpha <- function(criterion, model_name) {
     # Individual human ratings: rows = evaluators, cols = papers
     human_wide <- metrics_human |>

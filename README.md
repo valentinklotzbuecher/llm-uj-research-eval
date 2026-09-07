@@ -12,6 +12,7 @@ This Quarto book studies how well frontier LLMs evaluate social-science research
 - [DATA_PROVENANCE.md](DATA_PROVENANCE.md): Data lineage and run provenance
 - [results/README.md](results/README.md): Run tracking and output conventions
 - [data/README.md](data/README.md): Human-reference and archival data notes
+- [September 2026 project review](docs/project_review_2026-09-07.md): Findings, corrections, and research priorities
 
 ## What This Project Does
 
@@ -48,7 +49,7 @@ This project uses both R and Python in Quarto.
 
 `_quarto.yml` currently points to `.venv/bin/python`. You can either:
 
-1. Use the checked-in `.venv` workflow, or
+1. Create a local virtual environment (the `.venv` directory is git-ignored), or
 2. Use conda and override Quarto's Python:
 
 ```bash
@@ -88,9 +89,25 @@ python track_llm_run.py start --model gpt-5-pro --prompt-version v1 --descriptio
 python track_llm_run.py list
 ```
 
-## Current Status (Feb 2026)
+## Offline verification
 
+Run these from the repository root with the project Python and R dependencies installed:
+
+```bash
+python -m unittest discover -s tests
+Rscript tests/test_analysis_checks.R
+```
+
+These checks make no model calls. Rendering the Results chapters reads stored
+responses; the model-generation chunks in `methods.qmd` have `eval: false`.
+The checked-in GitHub Pages workflow deploys `_book/` without rendering it, so
+source edits need an explicit render before a publication update.
+
+## Current analysis (reviewed September 2026)
+
+- **One maintained source:** `working-paper` holds the manuscript, analysis, tools, and documentation. Other editions and branches are historical snapshots or temporary work; see [the branch policy](WORKING_PAPER_STRATEGY.md).
 - Active branch: `working-paper`
 - Main manuscript: one-shot, structured LLM-vs-human evaluation working paper
 - Included models in current results pipeline: GPT-5 Pro, GPT-5.2 Pro, GPT-4o-mini, Claude Sonnet 4, Claude Opus 4.6, Gemini 2.0 Flash
-
+- Main comparison: 47 human-matched GPT-5 Pro papers, 39 with at least two evaluators. Critique analysis: 12 eligible GPT-5.2 Pro pairings after two documented identity exclusions.
+- Human agreement is a noisy reference; the present analysis does not establish equivalence to another expert evaluator. Model-specific sample availability limits comparisons across models.

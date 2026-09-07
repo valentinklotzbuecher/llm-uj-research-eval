@@ -443,6 +443,16 @@ def codex_version(binary: pathlib.Path) -> str:
     return (proc.stdout or proc.stderr).strip()
 
 
+def call_fingerprint(prompt: str, schema: dict[str, Any], model: str, effort: str) -> str:
+    """Identify the actual judgment request, independently of its output filename."""
+    payload = json.dumps(
+        {"prompt": prompt, "schema": schema, "model": model, "effort": effort},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def run_codex_call(
     *,
     call_name: str,
@@ -462,15 +472,22 @@ def run_codex_call(
     jsonl_path = calls_dir / f"{call_name}.events.jsonl"
     stderr_path = calls_dir / f"{call_name}.stderr.log"
     meta_path = calls_dir / f"{call_name}.meta.json"
-    schema_path.write_text(json.dumps(schema, indent=2))
+    fingerprint = call_fingerprint(prompt, schema, model, effort)
 
     if final_path.exists() and meta_path.exists() and not force:
         cached_meta = json.loads(meta_path.read_text())
+        if cached_meta.get("request_sha256") != fingerprint:
+            raise ValueError(
+                f"{call_name}: cached request differs or has no request fingerprint. "
+                "Use a new --run-id to preserve the earlier artifacts, or explicitly "
+                "use --force to regenerate. No model call was made."
+            )
         return (
             json.loads(final_path.read_text()),
             {**cached_meta, "artifact_reused_this_execution": True},
         )
 
+    schema_path.write_text(json.dumps(schema, indent=2))
     isolated_dir = run_dir / "isolated_codex_workdir"
     isolated_dir.mkdir(parents=True, exist_ok=True)
     cmd = [
@@ -516,6 +533,7 @@ def run_codex_call(
         "model": model,
         "reasoning_effort": effort,
         "prompt_chars": len(prompt),
+        "request_sha256": fingerprint,
         "duration_seconds": duration,
         "usage": read_jsonl_usage(jsonl_path),
         "completed_at": utc_now(),
@@ -675,7 +693,6 @@ def main() -> int:
         "human_issue_count": sum(len(case["human_issues"]) for case in cases),
         "llm_issue_count": sum(len(case["llm_issues"]) for case in cases),
     }
-    (run_dir / "input_manifest.json").write_text(json.dumps(input_manifest, indent=2))
 
     batches = chunk_cases(cases, args.terra_batch_size)
     terra_prompts = [build_terra_prompt(batch) for batch in batches]
@@ -695,6 +712,13 @@ def main() -> int:
         print(json.dumps(preview, indent=2))
         return 0
 
+    # Preserve the previous completed run's provenance if request validation
+    # rejects reuse or a resumed call fails. New runs still record their inputs.
+    manifest_path = run_dir / "input_manifest.json"
+    config_path = run_dir / "run_config.json"
+    if not manifest_path.exists():
+        manifest_path.write_text(json.dumps(input_manifest, indent=2))
+
     run_config: dict[str, Any] = {
         "run_id": args.run_id,
         "started_at": utc_now(),
@@ -706,7 +730,8 @@ def main() -> int:
         "inputs": input_manifest,
         "configuration": preview,
     }
-    (run_dir / "run_config.json").write_text(json.dumps(run_config, indent=2))
+    if not config_path.exists():
+        config_path.write_text(json.dumps(run_config, indent=2))
 
     terra_papers: list[dict[str, Any]] = []
     call_meta: list[dict[str, Any]] = []
@@ -774,7 +799,8 @@ def main() -> int:
             "output": str((run_dir / "concordance_results.json").relative_to(ROOT)),
         }
     )
-    (run_dir / "run_config.json").write_text(json.dumps(run_config, indent=2))
+    manifest_path.write_text(json.dumps(input_manifest, indent=2))
+    config_path.write_text(json.dumps(run_config, indent=2))
     print(json.dumps({"run_dir": str(run_dir), **run_config["total_usage"]}, indent=2))
     return 0
 

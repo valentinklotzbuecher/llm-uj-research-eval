@@ -91,6 +91,9 @@ class ConcordanceCodexCacheTests(unittest.TestCase):
                 json.dumps(
                     {
                         "call_name": "cached",
+                        "request_sha256": MODULE.call_fingerprint(
+                            "not sent", {"type": "object"}, "unused", "high"
+                        ),
                         "usage": {
                             "input_tokens": 12,
                             "cached_input_tokens": 3,
@@ -116,6 +119,40 @@ class ConcordanceCodexCacheTests(unittest.TestCase):
             self.assertEqual(result, {"papers": []})
             self.assertTrue(meta["artifact_reused_this_execution"])
             self.assertEqual(meta["usage"]["input_tokens"], 12)
+
+    def test_changed_or_legacy_request_cannot_reuse_cached_judgment(self):
+        base = dict(prompt="original", schema={"type": "object"}, model="model-a", effort="high")
+        changes = [
+            {"prompt": "changed"},
+            {"schema": {"type": "array"}},
+            {"model": "model-b"},
+            {"effort": "low"},
+            {},  # Legacy artifact has no fingerprint.
+        ]
+        for change in changes:
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                run_dir = pathlib.Path(directory)
+                calls_dir = run_dir / "calls"
+                calls_dir.mkdir()
+                final_path = calls_dir / "cached.final.json"
+                final_path.write_text('{"papers": []}')
+                schema_path = calls_dir / "cached.schema.json"
+                schema_path.write_text("original schema")
+                meta = {"request_sha256": MODULE.call_fingerprint(**base)} if change else {}
+                (calls_dir / "cached.meta.json").write_text(json.dumps(meta))
+                with self.assertRaisesRegex(ValueError, "No model call was made"):
+                    MODULE.run_codex_call(
+                        call_name="cached", **(base | change), run_dir=run_dir,
+                        binary=pathlib.Path("/binary/is/not/invoked"), timeout=1, force=False,
+                    )
+                self.assertEqual(schema_path.read_text(), "original schema")
+                self.assertEqual(final_path.read_text(), '{"papers": []}')
+
+    def test_fingerprint_ignores_schema_dictionary_key_order(self):
+        self.assertEqual(
+            MODULE.call_fingerprint("p", {"type": "object", "required": []}, "m", "high"),
+            MODULE.call_fingerprint("p", {"required": [], "type": "object"}, "m", "high"),
+        )
 
 
 if __name__ == "__main__":
