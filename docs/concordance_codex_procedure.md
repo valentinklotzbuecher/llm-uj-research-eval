@@ -41,7 +41,10 @@ rate,” not precision, because a model-only concern is not necessarily wrong.
 - Sol sees only ambiguous candidates, capped by `--max-sol-judgments`.
 - `--sol-mode none` permits a Terra-only screening run.
 - `--dry-run` reports prompt size without making a model call.
-- Completed call artifacts are reused unless `--force` is supplied.
+- Completed call artifacts are reused only when a SHA-256 fingerprint matches
+  the prompt, schema, model, and reasoning effort. A changed request or a legacy
+  artifact without a fingerprint stops before a model call; use a new run ID
+  to preserve prior evidence. `--force` explicitly permits regeneration.
 - API-key environment variables are removed from child processes.
 - Reviewer/evaluator attribution markers are removed from human issue text
   before it is placed in an external Codex prompt; the raw source remains local.
@@ -54,7 +57,7 @@ Prepare a one-paper pilot without spending quota:
 
 ```bash
 python3 scripts/run_concordance_codex.py \
-  --paper Benabou_et_al._2023 \
+  --paper Acemoglu_et_al._2024 \
   --run-id concordance_codex_terra_sol_pilot_jul2026 \
   --max-sol-judgments 1 \
   --dry-run
@@ -64,7 +67,7 @@ Run Terra only first:
 
 ```bash
 python3 scripts/run_concordance_codex.py \
-  --paper Benabou_et_al._2023 \
+  --paper Acemoglu_et_al._2024 \
   --run-id concordance_codex_terra_sol_pilot_jul2026 \
   --sol-mode none
 ```
@@ -73,7 +76,7 @@ To allow one hard case to be escalated to Sol, rerun with a new run ID:
 
 ```bash
 python3 scripts/run_concordance_codex.py \
-  --paper Benabou_et_al._2023 \
+  --paper Acemoglu_et_al._2024 \
   --run-id concordance_codex_terra_sol_pilot_with_sol_jul2026 \
   --max-sol-judgments 1
 ```

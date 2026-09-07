@@ -1,5 +1,15 @@
 # Data Provenance and Organization
 
+> September 2026 status: the production labels and model/date assignments in
+> the historical notes below are not a verified description of the active
+> analysis. Current Results chapters read human data from
+> `data/rsx_evalr_rating.csv`, `data/research.csv`, and `data/UJ_map.csv`, and
+> model responses from the six directories listed in each chapter's
+> `model_dirs`. `setup_params.R` sets paths; it does not load those datasets.
+> See [the project review](docs/project_review_2026-09-07.md) for current
+> denominator checks and remaining provenance work. Historical notes and
+> author comments below are retained rather than silently reassigning runs.
+
 This document explains the origin, structure, and metadata for all LLM evaluation data in this repository.
 
 ## Quick Reference: Active Data Files
@@ -231,5 +241,4 @@ See `CLAUDE.md` for detailed architecture notes and `README.md` for setup instru
 - ... also tracked with meta-data
 
 3. Cleaned analysis data/ 'analysis sets'
-
 

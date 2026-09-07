@@ -10,6 +10,18 @@ This is a research project that uses LLMs to evaluate academic research papers b
 
 **Current manuscript focus:** A concise working-paper structure centered on one-shot, structured LLM-vs-human evaluation comparisons.
 
+### September 2026 review
+
+See `docs/project_review_2026-09-07.md` for verified numerical checks and
+research priorities. `scripts/analysis_checks.R` contains shared critique
+identity exclusions and the approximate reliability factor. Do not reintroduce
+the excluded Bénabou or Peterman critique pairings through a data refresh, or
+describe an interval containing zero as evidence of evaluator equivalence.
+
+Offline checks: `python -m unittest discover -s tests` in the project Python
+environment, and `Rscript tests/test_analysis_checks.R`. The current analysis
+sources, rather than historical provenance summaries, determine active inputs.
+
 ### Dual Hosting Setup
 
 The project maintains two hosted versions from different branches:
@@ -457,7 +469,7 @@ Human reference data is loaded from `data/` (primarily `rsx_evalr_rating.csv`, `
 
 ### To run paper response analysis
 
-Use the migrated repository referenced in `side_projects/README.md` (`unjournal_tools_interfaces`). This pipeline is no longer maintained in this repo.
+Use `scripts/paper_response_evidence.py` and the operating guide at `reference_materials/docs/PAPER_RESPONSE_EVIDENCE_PIPELINE.md`. The active evidence pipeline is maintained here; only legacy exploratory PDF-diff utilities moved to `unjournal_tools_interfaces`.
 
 ## Important Notes
 
@@ -477,6 +489,12 @@ Use the migrated repository referenced in `side_projects/README.md` (`unjournal_
 
 This is a collaborative research project. Active development currently happens on `working-paper`.
 
+`working-paper` is the sole maintained source branch, per David's September
+2026 instruction. Keep this checkout on it after integrating completed work.
+Do not maintain independent manuscript or analysis versions on `main`,
+`project`, or feature branches. See `WORKING_PAPER_STRATEGY.md`; older dual-site
+descriptions document hosting history, not a requirement for parallel edits.
+
 When committing:
 - Follow the existing commit message style (see `git log`)
 - LLM evaluations can be expensive to regenerate; be careful with changes to `methods.qmd` that would invalidate results
@@ -489,18 +507,18 @@ The project uses dual hosting:
 ### Netlify (main branch)
 - **URL:** https://llm-uj-research-eval.netlify.app
 - **Trigger:** Pushes to `main` branch
-- **Notes:**
-  - `embed-resources: true` embeds all assets as base64 (larger but self-contained files)
-  - Hypothesis disabled on main (conflicts with embed-resources)
-  - Large HTML files (>100MB) cannot be pushed to GitHub; Netlify renders from source
+- **Notes:** The checked-in `netlify.toml` specifies `_book/` as its publish
+  directory and no build command. Source edits alone do not regenerate this
+  directory. Hosted account settings must be verified separately.
 
 ### GitHub Pages (working-paper branch)
 - **URL:** https://valentinklotzbuecher.github.io/llm-uj-research-eval/
 - **Trigger:** GitHub Actions workflow on push to `working-paper` branch
-- **Workflow:** `.github/workflows/gh-pages.yml`
+- **Workflow:** `.github/workflows/publish-gh-pages.yml`
 - **Notes:**
   - `hypothesis: true` enabled for collaborative annotation
-  - Renders both HTML and PDF
+  - Deploys prebuilt `_book/`; it does not render HTML or PDF. Render locally
+    and review the artifacts before updating published output.
   - Self-contained research paper format (4 chapters)
   - Annotations tagged `migrated` and `todo` track unresolved feedback from earlier review
 
