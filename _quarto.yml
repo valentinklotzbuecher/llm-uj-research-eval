@@ -1,12 +1,20 @@
 project:
   type: book
   output-dir: _book
+  resources:
+    - llms.txt
 
 python:
   executable: .venv/bin/python
 
 book:
   title: "Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review"
+  description: "A working paper comparing structured one-shot research evaluations by GPT-5 Pro with paid expert review packages from The Unjournal, on percentile ratings and narrative critiques of economics and social-science working papers."
+  # Canonical host. GitHub Pages serves the same _book/ from this branch; its
+  # pages carry canonical links pointing here.
+  site-url: https://llm-uj-research-eval.netlify.app/
+  open-graph: true
+  twitter-card: true
   author:
     - name: "Valentin Klotzbücher"
       orcid: 0000-0001-9382-6757
@@ -72,6 +80,10 @@ link-citations: true
 
 format:
   html:
+    canonical-url: true
+    # No auto-detected social preview image: Quarto would otherwise pick the
+    # base64 ORCID icon in the title block and emit a broken og:image URL.
+    image: false
     comments:
       hypothesis: true
     theme:
