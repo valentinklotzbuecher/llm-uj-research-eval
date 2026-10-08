@@ -1,6 +1,8 @@
 # AI governance research: evaluation priorities
 
-**Evidence checked October 2, 2026. AI-assisted working recommendations, not official Unjournal decisions or completed referee evaluations.**
+**Initial screening October 2, updated through October 8, 2026. AI-assisted working recommendations, not official Unjournal decisions or completed referee evaluations.**
+
+**Latest:** [October 8 synthesis and corrections](aggregate-update-2026-10-08.md), including a verified Brookings link to *Toward an Evaluation Science*, the West Point version/press clarification, and confirmation that no independent GPT Pro evaluation has been executed.
 
 This collection assesses all 31 entries in the [AI-governance dashboard](https://uj-prioritization-dashboard.netlify.app/ai-governance/). It starts with the dashboard's existing shortlist, then gives a separate proposed work queue. Page order is not represented as a numerical human-vote ranking.
 
@@ -11,10 +13,10 @@ This collection assesses all 31 entries in the [AI-governance dashboard](https:/
 | [Existing shortlist](01-existing-shortlist.md) | 7 | AGI race; cooperation against catastrophe; Weil; Trout; public preferences; FRI forecasts; Epoch compute smuggling |
 | [Getting attention now](02-current-debates.md) | 6 | European release delays; why AI is contentious; recursive self-improvement; governed access; intelligence explosion; Anthropic economic scenarios |
 | [Alternates](03-alternates.md) | 3 | Who evaluates AI; middle-power governance; safety frameworks |
-| [Other dashboard candidates](04-dashboard-candidates.md) | 9 | Staged access; counting AIs; acting AI; technological containment; GPU enforcement; fragmentation; military automation bias; whistleblowers; national regulation |
+| [Other dashboard candidates](04-dashboard-candidates.md) | 9 | Index linking stored individual notes or original papers; four previously missing items now indexed, with additional source checks in the October 8 synthesis |
 | [Older work still worth considering](05-older-papers.md) | 6 | METR task horizons; biology trial; evaluation science; competition and welfare; learning about harms; copyright |
 
-Each report states the recommendation, observed attention, version, reading depth, proposed evaluation questions, evaluator fit, and what would change its priority. Sources explain what they establish. Author willingness remains unverified throughout; nobody was contacted.
+The depth of individual screening varies. Longer reports discuss observed attention and proposed evaluation questions; shorter notes serve as source-linked screening records, not full referee reports. Author willingness remains unverified; nobody was contacted.
 
 ## Recommended first commissions
 
@@ -63,10 +65,10 @@ Public preprints, revisions, and code can make an evaluation easier, but they do
 
 ## Independent evaluations: status and handoff
 
-See [the evaluation handoff](EVALUATION_HANDOFF.md). It specifies fresh-context first-pass reviews, subsequent verification, the current Unjournal metric mapping, and provenance requirements. **No independent GPT Pro run was launched in the originating session.** The available tools exposed no Pro session launcher or callable evaluation runner. Preparation is not delegation or completion.
+See [the evaluation handoff](EVALUATION_HANDOFF.md). It specifies fresh-context first-pass reviews, subsequent verification, the current Unjournal metric mapping, and provenance requirements. **No independent GPT Pro evaluation has been confirmed through October 8; an evaluation specification is not a model execution.** The available tools exposed no Pro session launcher or callable evaluation runner. Preparation is not delegation or completion.
 
 Any scheduled continuation is separate from Pro execution and must disclose the actual model used. First-pass evaluators should not receive this prioritization report, its rankings, or its proposed criticisms until their independent outputs have been saved.
 
 ## Storage and integration
 
-This collection is on the isolated branch `ai-governance-prioritization-2026-10-02`, under `side_projects/ai_governance_prioritization/2026-10-02/`. It does not modify production evaluation datasets, merge into `main`, or deploy either live site. The accompanying conversation artifacts provide a searchable HTML edition, individual Markdown, full Markdown, structured JSON, a continuation manifest, and a ZIP bundle. Preserve original dashboard identifiers and human ratings when integrating; proposed queue positions are not replacement votes or quality scores.
+This collection is on the isolated branch `ai-governance-prioritization-2026-10-02`, under `side_projects/ai_governance_prioritization/2026-10-02/`. It does not modify production evaluation datasets, merge into `main`, or deploy either live site. Some companion artifacts were produced outside this branch. The repository now contains dated updates and the restored indices. This isolated branch has **not** been merged or deployed to the public dashboard. Preserve original dashboard identifiers and human ratings when integrating; proposed queue positions are not replacement votes or quality scores.
