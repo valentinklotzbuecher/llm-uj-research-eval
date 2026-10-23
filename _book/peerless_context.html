@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="A working paper comparing structured one-shot research evaluations by GPT-5 Pro with paid expert review packages from The Unjournal, on percentile ratings and narrative critiques of economics and social-science working papers.">
+
+<title>Appendix E — King and Worthington (2026): implications for this project – Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./paper_response_analysis.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2a367172f4fe7d9182ebf8e09f85cb4e.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-7fb59815a1c41eec7c034637f0c35ff0.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2a367172f4fe7d9182ebf8e09f85cb4e.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-47a27caf1adfdc188925ebe92d1a682e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-b48cde637ee87415e90a22e0acf6600e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script>
+
+
+<meta property="og:title" content="Appendix E — King and Worthington (2026): implications for this project – Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review">
+<meta property="og:description" content="A working paper comparing structured one-shot research evaluations by GPT-5 Pro with paid expert review packages from The Unjournal, on percentile ratings and narrative critiques of economics and social-science working papers.">
+<meta property="og:site_name" content="Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review">
+<meta name="twitter:title" content="Appendix E — King and Worthington (2026): implications for this project – Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review">
+<meta name="twitter:description" content="A working paper comparing structured one-shot research evaluations by GPT-5 Pro with paid expert review packages from The Unjournal, on percentile ratings and narrative critiques of economics and social-science working papers.">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://llm-uj-research-eval.netlify.app/peerless_context.html">
+</head>
+
+<body class="nav-sidebar docked quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./results_ratings.html">Appendices</a></li><li class="breadcrumb-item"><a href="./peerless_context.html"><span class="chapter-title">King and Worthington (2026): implications for this project</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Just Ask the Model: One-Shot LLM Research Evaluation and Structured Expert Review</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://valentinklotzbuecher.github.io/llm-uj-research-eval/" title="Current Working Paper" class="quarto-navigation-tool px-1" aria-label="Current Working Paper"><i class="bi bi-file-earmark-text"></i></a>
+    <a href="https://llm-uj-research-eval-project.netlify.app/" title="Full Project &amp; Grant Proposal" class="quarto-navigation-tool px-1" aria-label="Full Project &amp; Grant Proposal"><i class="bi bi-folder2-open"></i></a>
+    <a href="https://llm-uj-concordance-judgments.netlify.app/" title="Concordance Evidence" class="quarto-navigation-tool px-1" aria-label="Concordance Evidence"><i class="bi bi-diagram-3"></i></a>
+    <a href="./results_critiques.html#sec-paper-comparison" title="Issue Finding Results" class="quarto-navigation-tool px-1" aria-label="Issue Finding Results"><i class="bi bi-list-check"></i></a>
+    <a href="https://www.unjournal.org/" title="The Unjournal" class="quarto-navigation-tool px-1" aria-label="The Unjournal"><i class="bi bi-rocket"></i></a>
+    <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="./Just-Ask-the-Model--One-Shot-LLM-Research-Evaluation-and-Structured-Expert-Review.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./results.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Results</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./discussion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Discussion</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Methods</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./headless_codex_pilot.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Headless Codex Pilot</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./results_ratings.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Results: Ratings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./results_critiques.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Results: Critiques &amp; Key Issues</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix_llm_traces.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Supplementary Material</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./paper_response_analysis.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Did Authors Respond to Unjournal Evaluations?</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./peerless_context.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">King and Worthington (2026): implications for this project</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#what-the-study-establishes" id="toc-what-the-study-establishes" class="nav-link active" data-scroll-target="#what-the-study-establishes">What the study establishes</a></li>
+  <li><a href="#where-the-unjournal-project-differs" id="toc-where-the-unjournal-project-differs" class="nav-link" data-scroll-target="#where-the-unjournal-project-differs">Where the Unjournal project differs</a></li>
+  <li><a href="#proposed-priorities-for-further-research" id="toc-proposed-priorities-for-further-research" class="nav-link" data-scroll-target="#proposed-priorities-for-further-research">Proposed priorities for further research</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./results_ratings.html">Appendices</a></li><li class="breadcrumb-item"><a href="./peerless_context.html"><span class="chapter-title">King and Worthington (2026): implications for this project</span></a></li></ol></nav>
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-peerless-context" class="quarto-section-identifier">Appendix E — King and Worthington (2026): implications for this project</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>AI-generated research note · October 23, 2026
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Written by OpenAI Codex at David Reinstein’s request, based on the October 22, 2026 paper and supplementary appendix. This is an AI-generated interpretation and proposed research agenda, not a new empirical result or an agreed revision of the team’s plans.</p>
+</div>
+</div>
+<p><strong>Assessment.</strong> The study by <span class="citation" data-cites="kingWorthington2026Peerless">King and Worthington (<a href="references.html#ref-kingWorthington2026Peerless" role="doc-biblioref">2026</a>)</span> substantially overlaps with this project’s motivation and weakens novelty claims based on comparing AI with unusually good, paid human reviewers. The existing Unjournal study still contributes a transparent baseline for structured research ratings and critique agreement. The strongest case for further work is to establish when AI judgments are correct, calibrated, and useful for consequential research decisions, and what additional human effort buys.</p>
+<section id="what-the-study-establishes" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-study-establishes">What the study establishes</h2>
+<p>King and Worthington analyze 124 rapidPeer submissions from 2019–2026, with 134 commissioned human reviews. They report generating reviews with Claude Opus 4.8 at maximum reasoning effort, using either the original reviewer instructions without tools or a tailored prompt with web retrieval. GPT-5.5 judges the comparisons; these model names and settings are as reported in the paper. Three former journal editors also judge ten randomly selected review pairs. The human reviewers were paid, carefully selected, and asked for comprehensive, constructive feedback (main text, sections 2–3).</p>
+<p>The AI reviews win every decided overall comparison in the headline AI-judged analysis and 26 of 30 editor judgments (87%). Those 30 judgments concern ten pairs assessed by three editors, not 30 independent manuscripts. The editors see the reviews without the manuscripts (supplement, Appendix A). Their choices therefore support the perceived quality of the reviews, but do not independently verify their technical claims against the underlying research.</p>
+<p>The evidence goes beyond preferences over fluent prose. Checks address review length, rewriting human reviews in AI style, judging with manuscript access, submission year, stochastic variation, and different generating and judging model families. A blinded audit flags 5.5% of AI claim assessments and 15.9% of human claim assessments as contradicted by the manuscript; a human check agrees on 87 of 90 sampled claims. Appendix F.7 and Table S6 define this error measure narrowly: opinions, suggestions, and claims not verifiable from the manuscript remain in the denominator without counting as errors. It is not a measure of the validity or usefulness of every critique. Moreover, 46 of 124 AI reviews contain at least one flagged error. The controlled-error experiment shows detection of explicit inserted contradictions; it does not establish equivalent sensitivity to subtle failures of identification or external validity.</p>
+<p><strong>Version detail.</strong> The main text reports 132/132 decided overall AI comparisons, whereas Figure 1 labels this 134/134. This note preserves the common qualitative finding and flags the denominator discrepancy rather than silently resolving it. Sources: <a href="https://gking.harvard.edu/files/peerless.pdf">paper</a>, sections 2–4 and Figure 1; <a href="https://gking.harvard.edu/files/peerless-supp.pdf">supplement</a>, Appendices A and F.4–F.10.</p>
+</section>
+<section id="where-the-unjournal-project-differs" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-unjournal-project-differs">Where the Unjournal project differs</h2>
+<p><strong>Ratings of research and their uncertainty.</strong> The working paper compares seven percentile ratings, uncertainty intervals, and journal-tier predictions under the same rubric. King and Worthington’s seven headline areas assess the quality of reviews; they are not seven ratings of the underlying papers. A convincing report can coexist with compressed scores, unstable rankings, or poorly calibrated forecasts. Our current agreement estimates describe these patterns; they do not establish true research quality or calibrated uncertainty.</p>
+<p><strong>Correct, important critiques and complementary information.</strong> Our critique analysis asks which human concerns the model recovers and which model concerns have no human match. This is a different outcome from overall review preference, but it is not yet a decisive advantage: the current analysis has only 12 eligible pairings and uses an LLM judge. An unmatched model critique can be valuable, and a shared critique can be wrong. The useful extension is blinded, independent adjudication of correctness, severity, actionability, and genuinely new information for both human and AI concerns, including checks of data or code where relevant. Their claim audit makes a stronger validation standard necessary for ours.</p>
+<p><strong>Prospective predictions and decisions.</strong> The proposed pipeline can register predictions before human evaluations or publication outcomes are available. It should also check earlier public versions and reviews; a new intake date alone does not prevent contamination. Publication venues are verifiable outcomes, with their own selection mechanisms and biases, rather than ground truth about scientific merit. Research prioritization adds a separate question: which work deserves scarce evaluation effort because it could inform important decisions? Agreement with internal prioritization is descriptive evidence, not proof of social value.</p>
+<p><strong>Human–AI collaboration and downstream effects.</strong> King and Worthington explicitly leave publication decisions, improvements in subsequent revisions, and collective effects unmeasured. Proposed Unjournal trials could compare unaided human evaluation, AI-only evaluation, and human evaluation with AI assistance. Relevant outcomes include independently validated issue detection, harmful false positives, evaluator time, author revisions, and usefulness to research users. Author satisfaction and textual revision alone would not establish scientific improvement. These trials and broader impact measures remain proposed work.</p>
+<p>The combination of these questions is a credible contribution. Paid expert reports, broad social-science relevance, or a simple no-tools baseline alone are weak differentiators: rapidPeer already provides substantial overlap on those features. The current study’s smaller sample and older model runs also limit claims about today’s best achievable review quality. Its findings and rapidPeer’s can both hold because the tasks, models, and outcome measures differ.</p>
+</section>
+<section id="proposed-priorities-for-further-research" class="level2">
+<h2 class="anchored" data-anchor-id="proposed-priorities-for-further-research">Proposed priorities for further research</h2>
+<ol type="1">
+<li><strong>Validate a focused set of consequential critiques.</strong> Use independent domain experts, blinded to review source, to adjudicate AI-only, human-only, and shared concerns. Preserve disagreements and distinguish factual contradictions from contested methodological judgments. Prioritize serious errors and useful additions over another overall preference score.</li>
+<li><strong>Register a prospective comparison.</strong> Freeze manuscripts, prompts, model identifiers, access to tools and supplementary material, predictions, and scoring rules. Compare a current fixed-rubric baseline with a stronger retrieval-assisted approach on held-out papers. Cluster uncertainty by paper when multiple reviews or judges share a manuscript; report ties, missing judgments, and sensitivity to judge choice.</li>
+<li><strong>Estimate the value of human effort after AI assistance.</strong> In a randomized pilot, measure additional validated issues and useful decisions per unit of evaluator time and total cost, including adjudication and correction costs. Specify contamination controls, assignment units, and primary outcomes before collecting results.</li>
+<li><strong>Test preferences and resistance to manipulation.</strong> Vary prestige cues, prompt framing, and adversarial instructions while holding research content fixed. Measure whether assistance homogenizes judgments or suppresses useful minority objections. These address concerns King and Worthington also raise; they are motivated extensions, not untouched topics.</li>
+</ol>
+<p><strong>Funding implication (AI assessment).</strong> A smaller, well-validated prospective study would now be easier to justify than a large expansion devoted mainly to repeating human–LLM agreement comparisons. The existing proposal’s structured measurement, adjudication, prospective validation, prioritization, and collaboration components remain useful, but their value depends on executing them. This note does not change the proposal’s budget or claim those studies have been completed.</p>
+<p>See the <a href="./index.html">current working paper</a>, <a href="./discussion.html#sec-peerless">discussion</a>, and <a href="https://llm-uj-research-eval-project.netlify.app/proposal.html">broader project and grant proposal</a>. The working paper remains the source for current results; the broader site preserves earlier project context.</p>
+
+
+<!-- -->
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-kingWorthington2026Peerless" class="csl-entry" role="listitem">
+King, Gary, and Steven Worthington, <span>“<a href="https://gking.harvard.edu/files/peerless.pdf"><span class="nocase">AI Article Reviews Dominate Human Peer Reviews at Their Best: Evidence and Policy Choices</span></a>,”</span> 2026.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/llm-uj-research-eval\.netlify\.app\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./paper_response_analysis.html" class="pagination-link" aria-label="Did Authors Respond to Unjournal Evaluations?">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Did Authors Respond to Unjournal Evaluations?</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># King and Worthington (2026): implications for this project {#sec-peerless-context}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">## AI-generated research note · October 23, 2026</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>Written by OpenAI Codex at David Reinstein's request, based on the October 22, 2026 paper and supplementary appendix. This is an AI-generated interpretation and proposed research agenda, not a new empirical result or an agreed revision of the team's plans.</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>**Assessment.** The study by @kingWorthington2026Peerless substantially overlaps with this project's motivation and weakens novelty claims based on comparing AI with unusually good, paid human reviewers. The existing Unjournal study still contributes a transparent baseline for structured research ratings and critique agreement. The strongest case for further work is to establish when AI judgments are correct, calibrated, and useful for consequential research decisions, and what additional human effort buys.</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## What the study establishes</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>King and Worthington analyze 124 rapidPeer submissions from 2019–2026, with 134 commissioned human reviews. They report generating reviews with Claude Opus 4.8 at maximum reasoning effort, using either the original reviewer instructions without tools or a tailored prompt with web retrieval. GPT-5.5 judges the comparisons; these model names and settings are as reported in the paper. Three former journal editors also judge ten randomly selected review pairs. The human reviewers were paid, carefully selected, and asked for comprehensive, constructive feedback (main text, sections 2–3).</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>The AI reviews win every decided overall comparison in the headline AI-judged analysis and 26 of 30 editor judgments (87%). Those 30 judgments concern ten pairs assessed by three editors, not 30 independent manuscripts. The editors see the reviews without the manuscripts (supplement, Appendix A). Their choices therefore support the perceived quality of the reviews, but do not independently verify their technical claims against the underlying research.</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>The evidence goes beyond preferences over fluent prose. Checks address review length, rewriting human reviews in AI style, judging with manuscript access, submission year, stochastic variation, and different generating and judging model families. A blinded audit flags 5.5% of AI claim assessments and 15.9% of human claim assessments as contradicted by the manuscript; a human check agrees on 87 of 90 sampled claims. Appendix F.7 and Table S6 define this error measure narrowly: opinions, suggestions, and claims not verifiable from the manuscript remain in the denominator without counting as errors. It is not a measure of the validity or usefulness of every critique. Moreover, 46 of 124 AI reviews contain at least one flagged error. The controlled-error experiment shows detection of explicit inserted contradictions; it does not establish equivalent sensitivity to subtle failures of identification or external validity.</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>**Version detail.** The main text reports 132/132 decided overall AI comparisons, whereas Figure 1 labels this 134/134. This note preserves the common qualitative finding and flags the denominator discrepancy rather than silently resolving it. Sources: <span class="co">[</span><span class="ot">paper</span><span class="co">](https://gking.harvard.edu/files/peerless.pdf)</span>, sections 2–4 and Figure 1; <span class="co">[</span><span class="ot">supplement</span><span class="co">](https://gking.harvard.edu/files/peerless-supp.pdf)</span>, Appendices A and F.4–F.10.</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## Where the Unjournal project differs</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>**Ratings of research and their uncertainty.** The working paper compares seven percentile ratings, uncertainty intervals, and journal-tier predictions under the same rubric. King and Worthington's seven headline areas assess the quality of reviews; they are not seven ratings of the underlying papers. A convincing report can coexist with compressed scores, unstable rankings, or poorly calibrated forecasts. Our current agreement estimates describe these patterns; they do not establish true research quality or calibrated uncertainty.</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>**Correct, important critiques and complementary information.** Our critique analysis asks which human concerns the model recovers and which model concerns have no human match. This is a different outcome from overall review preference, but it is not yet a decisive advantage: the current analysis has only 12 eligible pairings and uses an LLM judge. An unmatched model critique can be valuable, and a shared critique can be wrong. The useful extension is blinded, independent adjudication of correctness, severity, actionability, and genuinely new information for both human and AI concerns, including checks of data or code where relevant. Their claim audit makes a stronger validation standard necessary for ours.</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>**Prospective predictions and decisions.** The proposed pipeline can register predictions before human evaluations or publication outcomes are available. It should also check earlier public versions and reviews; a new intake date alone does not prevent contamination. Publication venues are verifiable outcomes, with their own selection mechanisms and biases, rather than ground truth about scientific merit. Research prioritization adds a separate question: which work deserves scarce evaluation effort because it could inform important decisions? Agreement with internal prioritization is descriptive evidence, not proof of social value.</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>**Human–AI collaboration and downstream effects.** King and Worthington explicitly leave publication decisions, improvements in subsequent revisions, and collective effects unmeasured. Proposed Unjournal trials could compare unaided human evaluation, AI-only evaluation, and human evaluation with AI assistance. Relevant outcomes include independently validated issue detection, harmful false positives, evaluator time, author revisions, and usefulness to research users. Author satisfaction and textual revision alone would not establish scientific improvement. These trials and broader impact measures remain proposed work.</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>The combination of these questions is a credible contribution. Paid expert reports, broad social-science relevance, or a simple no-tools baseline alone are weak differentiators: rapidPeer already provides substantial overlap on those features. The current study's smaller sample and older model runs also limit claims about today's best achievable review quality. Its findings and rapidPeer's can both hold because the tasks, models, and outcome measures differ.</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Proposed priorities for further research</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Validate a focused set of consequential critiques.** Use independent domain experts, blinded to review source, to adjudicate AI-only, human-only, and shared concerns. Preserve disagreements and distinguish factual contradictions from contested methodological judgments. Prioritize serious errors and useful additions over another overall preference score.</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Register a prospective comparison.** Freeze manuscripts, prompts, model identifiers, access to tools and supplementary material, predictions, and scoring rules. Compare a current fixed-rubric baseline with a stronger retrieval-assisted approach on held-out papers. Cluster uncertainty by paper when multiple reviews or judges share a manuscript; report ties, missing judgments, and sensitivity to judge choice.</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Estimate the value of human effort after AI assistance.** In a randomized pilot, measure additional validated issues and useful decisions per unit of evaluator time and total cost, including adjudication and correction costs. Specify contamination controls, assignment units, and primary outcomes before collecting results.</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Test preferences and resistance to manipulation.** Vary prestige cues, prompt framing, and adversarial instructions while holding research content fixed. Measure whether assistance homogenizes judgments or suppresses useful minority objections. These address concerns King and Worthington also raise; they are motivated extensions, not untouched topics.</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>**Funding implication (AI assessment).** A smaller, well-validated prospective study would now be easier to justify than a large expansion devoted mainly to repeating human–LLM agreement comparisons. The existing proposal's structured measurement, adjudication, prospective validation, prioritization, and collaboration components remain useful, but their value depends on executing them. This note does not change the proposal's budget or claim those studies have been completed.</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>See the <span class="co">[</span><span class="ot">current working paper</span><span class="co">](index.qmd)</span>, <span class="co">[</span><span class="ot">discussion</span><span class="co">](discussion.qmd#sec-peerless)</span>, and <span class="co">[</span><span class="ot">broader project and grant proposal</span><span class="co">](https://llm-uj-research-eval-project.netlify.app/proposal.html)</span>. The working paper remains the source for current results; the broader site preserves earlier project context.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

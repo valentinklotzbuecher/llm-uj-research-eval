@@ -56,7 +56,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -394,6 +414,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <a href="./paper_response_analysis.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Did Authors Respond to Unjournal Evaluations?</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./peerless_context.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">King and Worthington (2026): implications for this project</span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -401,8 +426,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-peerless" id="toc-sec-peerless" class="nav-link active" data-scroll-target="#sec-peerless">Related evidence: rapidPeer</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -432,10 +463,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Implications.</strong> Even a reasoning-capable model costing several dollars per paper is orders of magnitude cheaper than human expert review. The qualitative gaps we observe—missed critiques, generic issues, and central compression of ratings—argue against full automation of peer review. AI evaluation appears most promising as a supplement: providing fast structured feedback, flagging potential concerns for human reviewers, and enabling systematic comparison across large paper sets that would be infeasible with human effort alone.</p>
 <p><strong>Governance and attack surface.</strong> As AI review tools move from research prototypes to deployed products, the attack surface expands. Prompt-injection techniques—embedding hidden instructions in a manuscript’s metadata, footnotes, or even white-on-white text—could steer model outputs toward inflated ratings or suppressed critiques. Because our pipeline (and similar commercial services) routes unpublished manuscripts through third-party APIs, confidentiality depends on provider access, retention and training policies, contractual protections, and deployment configuration; encryption in transit alone does not prevent access during inference. Over-reliance on AI scores introduces a further governance risk: if editorial decisions weight model ratings, authors may optimise papers for the model rather than for scientific rigour, creating a Goodhart dynamic. Finally, current evaluations reflect a single model checkpoint; model updates, alignment changes, or fine-tuning can shift ratings in ways that are invisible to users. We recommend that any operational deployment include adversarial red-teaming of prompts, formal confidentiality agreements with API providers, transparent disclosure of AI involvement in review, and periodic re-calibration against fresh human evaluations.</p>
 <p><strong>Future directions.</strong> All LLM evaluations reported here are single-run; multi-run robustness and prompt-sensitivity analysis would directly address the key open methodological question. Prospective validation should archive the input PDF, model identifier, prompt, and prediction timestamp before human evaluations and publication outcomes become available. Entry into The Unjournal’s pipeline after a training cutoff is insufficient if an earlier manuscript or related review was already public. The qualitative human-issue coverage and LLM overlap-rate estimates are themselves LLM-assessed (GPT-5.2 Pro as judge); human validation of these scores is needed to close the model-dependence loop. Finally, the tier-prediction comparison in Results is a first step toward externally verifiable accuracy measurement: roughly thirty papers with registered predictions from both evaluator types have not yet resolved, and scoring those predictions as publication outcomes accrue can strengthen external validation. Eligibility requires checking that each prediction predates any publicly known outcome or venue cue. A fixed follow-up window and a rule for unresolved papers are needed to avoid selectively scoring early publications.</p>
+<section id="sec-peerless" class="level2">
+<h2 class="anchored" data-anchor-id="sec-peerless">Related evidence: rapidPeer</h2>
+<p><em>AI-generated note by OpenAI Codex, October 23, 2026, added at David Reinstein’s request. Interpretation and proposed directions; not new findings or an agreed change to the research plan.</em></p>
+<p><span class="citation" data-cites="kingWorthington2026Peerless">King and Worthington (<a href="references.html#ref-kingWorthington2026Peerless" role="doc-biblioref">2026</a>)</span> report that AI-generated reviews outperform paid rapidPeer experts in overall AI-judged comparisons and in 26 of 30 judgments by three former journal editors assessing ten review pairs. Their checks include manuscript-based claim audits, a human audit sample, and controls for length, style, model choice, and submission year. This is substantial evidence for the quality of constructive AI feedback in their setting, and overlaps with our use of incentivized expert evaluations. Our older one-shot results should not be read as a limit on current AI review capability.</p>
+<p>The outcomes differ: their review-quality comparisons do not establish calibrated ratings of research, sound research prioritization, or improvements in subsequent manuscripts. Our structured ratings and uncertainty estimates address part of that gap, while our small, LLM-judged critique comparison still needs independent validation. Human agreement is a reference signal, not a correctness criterion; an AI concern absent from the human reports may be valuable. The strongest proposed extensions are prospective scoring, blinded adjudication of critique validity and importance, and randomized tests of the additional value and cost of human evaluation after AI assistance. The <a href="./peerless_context.html#sec-peerless-context">detailed AI-generated comparison</a> separates current evidence from these proposals and discusses the study’s strengths and limits.</p>
 
 
 <!-- -->
 
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-kingWorthington2026Peerless" class="csl-entry" role="listitem">
+King, Gary, and Steven Worthington, <span>“<a href="https://gking.harvard.edu/files/peerless.pdf"><span class="nocase">AI Article Reviews Dominate Human Peer Reviews at Their Best: Evidence and Policy Choices</span></a>,”</span> 2026.
+</div>
+</div>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -575,7 +617,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/llm-uj-research-eval\.netlify\.app\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -924,7 +966,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>**Governance and attack surface.** As AI review tools move from research prototypes to deployed products, the attack surface expands. Prompt-injection techniques---embedding hidden instructions in a manuscript's metadata, footnotes, or even white-on-white text---could steer model outputs toward inflated ratings or suppressed critiques. Because our pipeline (and similar commercial services) routes unpublished manuscripts through third-party APIs, confidentiality depends on provider access, retention and training policies, contractual protections, and deployment configuration; encryption in transit alone does not prevent access during inference. Over-reliance on AI scores introduces a further governance risk: if editorial decisions weight model ratings, authors may optimise papers for the model rather than for scientific rigour, creating a Goodhart dynamic. Finally, current evaluations reflect a single model checkpoint; model updates, alignment changes, or fine-tuning can shift ratings in ways that are invisible to users. We recommend that any operational deployment include adversarial red-teaming of prompts, formal confidentiality agreements with API providers, transparent disclosure of AI involvement in review, and periodic re-calibration against fresh human evaluations.</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>**Future directions.** All LLM evaluations reported here are single-run; multi-run robustness and prompt-sensitivity analysis would directly address the key open methodological question. Prospective validation should archive the input PDF, model identifier, prompt, and prediction timestamp before human evaluations and publication outcomes become available. Entry into The Unjournal's pipeline after a training cutoff is insufficient if an earlier manuscript or related review was already public. The qualitative human-issue coverage and LLM overlap-rate estimates are themselves LLM-assessed (GPT-5.2 Pro as judge); human validation of these scores is needed to close the model-dependence loop. Finally, the tier-prediction comparison in Results is a first step toward externally verifiable accuracy measurement: roughly thirty papers with registered predictions from both evaluator types have not yet resolved, and scoring those predictions as publication outcomes accrue can strengthen external validation. Eligibility requires checking that each prediction predates any publicly known outcome or venue cue. A fixed follow-up window and a rule for unresolved papers are needed to avoid selectively scoring early publications.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>**Future directions.** All LLM evaluations reported here are single-run; multi-run robustness and prompt-sensitivity analysis would directly address the key open methodological question. Prospective validation should archive the input PDF, model identifier, prompt, and prediction timestamp before human evaluations and publication outcomes become available. Entry into The Unjournal's pipeline after a training cutoff is insufficient if an earlier manuscript or related review was already public. The qualitative human-issue coverage and LLM overlap-rate estimates are themselves LLM-assessed (GPT-5.2 Pro as judge); human validation of these scores is needed to close the model-dependence loop. Finally, the tier-prediction comparison in Results is a first step toward externally verifiable accuracy measurement: roughly thirty papers with registered predictions from both evaluator types have not yet resolved, and scoring those predictions as publication outcomes accrue can strengthen external validation. Eligibility requires checking that each prediction predates any publicly known outcome or venue cue. A fixed follow-up window and a rule for unresolved papers are needed to avoid selectively scoring early publications.</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">## Related evidence: rapidPeer {#sec-peerless}</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>*AI-generated note by OpenAI Codex, October 23, 2026, added at David Reinstein's request. Interpretation and proposed directions; not new findings or an agreed change to the research plan.*</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>@kingWorthington2026Peerless report that AI-generated reviews outperform paid rapidPeer experts in overall AI-judged comparisons and in 26 of 30 judgments by three former journal editors assessing ten review pairs. Their checks include manuscript-based claim audits, a human audit sample, and controls for length, style, model choice, and submission year. This is substantial evidence for the quality of constructive AI feedback in their setting, and overlaps with our use of incentivized expert evaluations. Our older one-shot results should not be read as a limit on current AI review capability.</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>The outcomes differ: their review-quality comparisons do not establish calibrated ratings of research, sound research prioritization, or improvements in subsequent manuscripts. Our structured ratings and uncertainty estimates address part of that gap, while our small, LLM-judged critique comparison still needs independent validation. Human agreement is a reference signal, not a correctness criterion; an AI concern absent from the human reports may be valuable. The strongest proposed extensions are prospective scoring, blinded adjudication of critique validity and importance, and randomized tests of the additional value and cost of human evaluation after AI assistance. The <span class="co">[</span><span class="ot">detailed AI-generated comparison</span><span class="co">](peerless_context.qmd#sec-peerless-context)</span> separates current evidence from these proposals and discusses the study's strengths and limits.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

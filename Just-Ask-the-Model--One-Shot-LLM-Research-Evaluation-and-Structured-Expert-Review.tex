@@ -108,7 +108,6 @@
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
 
 \usepackage{longtable,booktabs,array}
-\newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -216,6 +215,12 @@
 
 % --- Compact spacing for working paper ---
 \usepackage{titlesec}
+% Pandoc redefines paragraph headings before this header. Give titlesec
+% explicit formats so level-four/five appendix headings remain renderable.
+\titleformat{\paragraph}[block]{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titleformat{\subparagraph}[block]{\normalfont\normalsize\bfseries}{\thesubparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{1.0ex plus 0.3ex minus 0.2ex}{0.4ex}
+\titlespacing*{\subparagraph}{0pt}{1.0ex plus 0.3ex minus 0.2ex}{0.4ex}
 \titlespacing*{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{0.8ex plus 0.2ex}
 \titlespacing*{\subsection}{0pt}{1.2ex plus 0.3ex minus 0.2ex}{0.5ex plus 0.1ex}
 \usepackage{booktabs}
@@ -310,7 +315,7 @@
 Structured Expert Review}
 \author{Valentin Klotzbücher \and David Reinstein \and Lorenzo
 Pacchiardi \and Tianmai Michael Zhang}
-\date{2026-07-07}
+\date{2026-10-23}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -326,12 +331,13 @@ evaluations as a high-quality but noisy reference signal, we find that
 GPT-5 Pro approaches the agreement levels observed among human
 evaluators themselves on several criteria, while exhibiting consistent
 failure modes: compressed rating scales, uneven criterion coverage, and
-variable identification of expert-flagged concerns. Our results suggest
-that even a minimal one-shot setup---a single prompt with a fixed
-rubric, no iteration or retrieval augmentation---yields LLM ratings
-comparable to an additional expert rater, though central compression and
-uneven qualitative coverage indicate clear limitations. Appendix results
-for five additional models confirm the pattern across capability tiers.
+variable identification of expert-flagged concerns. A minimal one-shot
+setup---a single prompt with a fixed rubric, no iteration or retrieval
+augmentation---yields ratings associated with the human panel,
+supporting further tests of supplementary use. Uncertainty in the human
+benchmark and assumptions underlying the reliability adjustment prevent
+an equivalence claim. Appendix results describe five additional models
+with differing sample coverage.
 \end{abstract}
 
 
@@ -339,19 +345,51 @@ for five additional models confirm the pattern across capability tiers.
 
 \section{Introduction}\label{introduction}
 
-\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{This is the working paper --- current analysis}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Choose the right project view}, colback=white, arc=.35mm]
 
-This site
-(\url{https://valentinklotzbuecher.github.io/llm-uj-research-eval/}) is
-the \textbf{actively maintained working paper} with the latest
-statistical analysis and academic presentation.
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Current working paper:} this is the authoritative version of
+  the statistical analysis and academic presentation. It is available at
+  \href{https://valentinklotzbuecher.github.io/llm-uj-research-eval/}{GitHub
+  Pages} and the
+  \href{https://llm-uj-research-eval.netlify.app/}{primary Netlify URL}.
+\item
+  \textbf{Full project workspace and grant proposal:} see the
+  \href{https://llm-uj-research-eval-project.netlify.app/}{broader
+  project site} for project goals, team and funding context, earlier
+  analysis, and appendices. Grant reviewers can go
+  \href{https://llm-uj-research-eval-project.netlify.app/proposal.html}{directly
+  to the proposal}. This material is retained for context and is not the
+  authoritative source for the latest results.
+\item
+  \textbf{LLM--human critique concordance:} see the
+  \href{https://llm-uj-concordance-judgments.netlify.app/}{public
+  concordance evidence site} for the exploratory issue-mapping judgments
+  and methods notes.
+\end{itemize}
 
-Our \textbf{project workspace} at
-\url{https://llm-uj-research-eval.netlify.app/} contains broader context
---- grant proposal background, earlier analysis iterations, project
-goals, and team information --- but is not currently kept up-to-date
-with the latest results. This working paper is the authoritative version
-of the analysis.
+We are also maintaining a small
+\textbf{\href{headless_codex_pilot.html}{headless Codex evaluation
+pilot}} as an exploratory extension. It is deliberately separated from
+the main API-based evidence because subscription-backed headless runs
+are useful for low-cost exploration but are less standardized and less
+directly replicable than the native API workflow.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-tip-color!10!white, colframe=quarto-callout-tip-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-tip-color}{\faLightbulb}\hspace{0.5em}{Can the model find the issues experts find?}, colback=white, arc=.35mm]
+
+In 12 eligible paper comparisons, GPT-5.2 Pro identified \textbf{80\% of
+the curated human consensus issues on average} (range: 50--100\%).
+Conversely, \textbf{52\% of the issues raised by the model matched the
+curated human concern set}. The comparison is exploratory and currently
+uses GPT-5.2 Pro as the judge; unmatched model concerns are not
+necessarily wrong.
+
+\hyperref[sec-paper-comparison]{Explore the paper-by-paper issue
+comparisons →}
 
 \end{tcolorbox}
 
@@ -359,6 +397,20 @@ of the analysis.
 Unjournal} (55+ open evaluation packages for global-priorities
 research). Funding: Survival and Flourishing Fund, Long Term Future
 Fund, EA Funds.}
+
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Related work update · AI-generated, October 23, 2026}, colback=white, arc=.35mm]
+
+King and Worthington (\citeproc{ref-kingWorthington2026Peerless}{2026})
+report strong AI review performance against paid rapidPeer experts. This
+substantially overlaps with our high-quality human comparison; our
+clearest distinctions concern structured research ratings, uncertainty,
+and proposed prospective and human--AI studies. See the
+\hyperref[sec-peerless-context]{AI-generated comparison and research
+priorities} and \hyperref[sec-peerless]{discussion}. These notes were
+written by OpenAI Codex at David Reinstein's request and are not new
+empirical findings or agreed changes to the research plan.
+
+\end{tcolorbox}
 
 Peer review is under strain. Reviewers are hard to find, turnaround
 times are lengthening, and the system costs an estimated \$1.5 billion
@@ -417,37 +469,34 @@ multi-dimensional rather than implicit.
 We use \href{https://www.unjournal.org/}{The Unjournal's} structured
 human evaluations as a reference signal. We prompt GPT-5 Pro---a
 frontier reasoning model---with the same rubric and guidelines used by
-human evaluators, then compare the resulting quantitative ratings and
-qualitative critiques against expert evaluations for 60 economics and
-social-science working papers. We ask whether a frontier LLM evaluation
-can approximate expert judgment, where systematic differences arise, and
-whether the model reveals characteristic AI preferences over research.
-Our headline finding is that GPT-5 Pro's rank agreement with the human
-panel on overall quality is statistically indistinguishable from
-pairwise human inter-rater agreement: a paired bootstrap over papers
-cannot separate the LLM-human correlation from the human-human
-correlation, which is the appropriate benchmark given substantial
-disagreement among human evaluators themselves. Appendix results for
-five additional models spanning different capability and cost tiers
-confirm the pattern. This suggests that top reasoning models can
-currently serve as supplementary raters in structured evaluation
-pipelines, even under our minimal one-shot setup.
+human evaluators, then compare its ratings with available expert
+evaluations. The main run covers 60 economics and social-science working
+papers, with 47 human-matched papers; critique overlap is a separate
+GPT-5.2 Pro analysis of 12 eligible pairings. We ask whether a frontier
+LLM evaluation can approximate expert judgment, where systematic
+differences arise, and whether the model reveals characteristic AI
+preferences over research. GPT-5 Pro shows positive rank agreement with
+the human panel, alongside compressed ratings and uneven coverage of
+expert concerns. A paired bootstrap places uncertainty around an
+approximate comparison with human inter-rater agreement; it does not
+establish equivalence to an additional expert. Appendix results describe
+five additional models spanning different capability and cost tiers,
+with sample availability varying by model. These findings motivate
+testing LLMs as supplementary raters in structured evaluation pipelines.
 
 Our approach is minimal by design: each model receives the same PDF and
 a fixed rubric in a single prompt, with no iteration, retrieval
 augmentation, chain-of-thought scaffolding, or multi-step agentic loop.
-This makes our results a conservative lower bound on what LLM-based
-evaluation can currently achieve. If frontier models already yield
-meaningful agreement with expert reviewers under the simplest possible
-setup, more sophisticated pipelines---structured measurement schemas
+This provides a baseline for testing more elaborate evaluation
+procedures. Structured measurement schemas
 (\citeproc{ref-AsirvathamMokskiShleifer2026GPTMeasurement}{Asirvatham,
-Mokski, and Shleifer 2026}), iterative quality-checking workflows
-(\citeproc{ref-Zhang2025}{Zhang and Abernethy 2025}), or the kind of
-prompt-robustness engineering motivated by specification-search concerns
+Mokski, and Shleifer 2026}), iterative quality checks
+(\citeproc{ref-Zhang2025}{Zhang and Abernethy 2025}), and
+prompt-sensitivity controls
 (\citeproc{ref-AsherMalzahnPersanoPaschalMyersHall2026P_Hack}{Asher et
-al. 2026})---should improve further. Quantifying how much headroom
-remains above this one-shot baseline, and which pipeline elements unlock
-it, is a key direction for future work.
+al. 2026}) could improve performance, but added complexity could also
+amplify shared errors or introduce new biases. Their incremental value
+requires comparison on held-out papers.
 
 The Unjournal setting is particularly well suited for this comparison.
 It commissions paid expert evaluations using a structured rubric
@@ -467,13 +516,15 @@ human-vs-LLM horse race. Finally, The Unjournal's pipeline of future
 evaluations allows for clean out-of-training-data predictions, serving
 as a live testing lab for prospective validation.
 
-\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Unjournal impact: author engagement evidence}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Unjournal impact: author engagement evidence}, colback=white, arc=.35mm]
 
-Do authors engage with and respond to Unjournal evaluations? Manual
-tracking of 57 evaluations finds that 16 papers received formal written
-responses and at least 5 show clear evidence of substantive revision in
-response to the feedback---including one paper with over 3,000 net line
-changes. A further 7 authors stated an intention to update their paper.
+Do authors engage with and respond to Unjournal evaluations? An April
+2026 tracking file covers 57 evaluations, but adjustment status had been
+assessed for 22 rather than the full set. Within that partly assessed
+snapshot, 16 papers have a recorded formal written response, at least 5
+are coded as showing clear evidence of substantive revision, and 7
+authors stated an intention to update. A full staff reassessment remains
+an ongoing goal.
 
 See the \textbf{\href{paper_response_analysis.html}{full tabulation: did
 authors adjust their papers?}} for the interactive table and public
@@ -503,13 +554,16 @@ idiosyncratic tendencies (severity, topic familiarity, interpretation of
 the scale). Our question is whether an LLM provides signal
 \emph{comparable to an additional expert rater}. The Human--Human
 baseline row in Table~\ref{tbl-model-agreement-main} provides this
-reference. \textbf{Caution}: the LLM's \emph{ρ} is computed against the
-\emph{mean} of 1.9 human raters, which reduces noise and inflates
-apparent agreement relative to the individual-vs-individual ρ\_HH. The
-Spearman-Brown adjusted column corrects for this; the fair comparison is
-ρ adj. vs.~ρ\_HH. Krippendorff's α\textsubscript{HH} in the
-\href{results_ratings.qmd}{human-baseline table in Appendix A} provides
-the criterion-level reference.
+reference. \textbf{Caution}: the primary comparison computes the LLM's
+\emph{ρ} against the \emph{mean} of 2.1 human raters, which reduces
+noise and inflates apparent agreement relative to the
+individual-vs-individual ρ\_HH. The Spearman-Brown column provides an
+approximate sensitivity adjustment. Its classical reliability
+assumptions (exchangeable raters and independent errors around a common
+target) need not hold here, and applying it to rank correlations with
+unequal panel sizes is not an exact correction. Krippendorff's
+α\textsubscript{HH} in the \href{results_ratings.qmd}{human-baseline
+table in Appendix A} provides the criterion-level reference.
 
 \textbf{Per-paper overview.} Figure~\ref{fig-overview-combined} presents
 three complementary views of overall (0--100 percentile) ratings. Panel
@@ -519,9 +573,9 @@ variability---the self-reported 90\% credible intervals from individual
 evaluators often span 20--40 percentile points. In most cases the LLM
 falls within the range of human opinions, though several papers show
 substantial divergence. Panel (b) plots all pairwise human evaluator
-combinations, making the human-human agreement ceiling directly visible.
-Panel (c) compares GPT-5 Pro ratings against human mean ratings with
-per-paper labels.
+combinations, showing the observed human-human agreement baseline. Panel
+(c) compares GPT-5 Pro ratings against human mean ratings with per-paper
+labels.
 
 \begin{figure}
 
@@ -535,23 +589,23 @@ descending human mean. Dotted horizontal lines show grand means.
 \textbf{(b)} Pairwise human evaluator agreement: each point is one
 evaluator pair (papers with 3 raters contribute 3 points). \textbf{(c)}
 Human mean vs GPT-5 Pro overall rating; dashed diagonal is the identity
-line. Compare panels (b) and (c) directly to see whether LLM-human
-scatter is tighter than human-human scatter.}
+line. Panel (c) uses an averaged human target, so tighter scatter does
+not by itself establish equivalence to an individual evaluator.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-overview-combined-1.pdf}}
 
 \end{figure}%
 
-Panel (b) makes the human-human ceiling directly visible: the scatter of
-evaluator pairs is no tighter than the GPT-5 Pro--human scatter in panel
-(c), and individual pairs disagree by as much as 30--40 percentile
-points on individual papers. GPT-5 Pro clusters around the identity line
-in the 40--80 range but diverges more at the extremes, compressing
-ratings toward the centre of the scale relative to humans---a pattern
-consistent with alignment training that discourages extreme outputs.
-Where humans rate a paper very highly or very harshly, the LLM typically
-pulls toward the middle. Full agreement metrics for all six models
-appear in \href{results_ratings.qmd}{Appendix A}.
+Panel (b) displays human-human disagreement, with differences of as much
+as 30--40 percentile points on individual papers. Panel (c) uses a human
+mean, so the two scatterplots compare different targets and do not by
+themselves establish equivalent rater performance. GPT-5 Pro clusters
+around the identity line in the 40--80 range but diverges more at the
+extremes, compressing ratings toward the centre of the scale relative to
+humans---a descriptive pattern whose mechanism is not identified by this
+comparison. Where humans rate a paper very highly or very harshly, the
+LLM typically pulls toward the middle. Full agreement metrics for all
+six models appear in \href{results_ratings.qmd}{Appendix A}.
 
 \textbf{Rating differences by paper and criterion.}
 Figure~\ref{fig-gap-heatmap-main} unpacks Human − GPT-5 Pro differences
@@ -582,44 +636,62 @@ than the model does. Multi-model comparisons in
 \href{results_ratings.qmd}{Appendix A} reveal whether these disagreement
 patterns are GPT-5 Pro--specific or shared across frontier LLMs.
 
-\textbf{Qualitative critique comparison.} Beyond numeric ratings, we
-compare the substantive critiques each model raises against the
-consensus issues identified by human experts. The figure below plots
-coverage---the fraction of human-identified concerns that the LLM also
-raised in some form---against precision---the fraction of LLM-raised
-issues that correspond to a substantive human concern. These metrics are
-assessed by GPT-5.2 Pro acting as an independent judge (see
-\href{methods.qmd}{Methods} for the judging protocol). One of the 14
-originally curated pairs (Peterman et al.~2025) is excluded: the judge
-flagged---and we verified against the paper---that the curated human
-critique belonged to a different manuscript, so results are reported for
-the remaining 13 pairs.
+\subsection{Does the model find the issues experts
+find?}\label{sec-qualitative-critique-comparison}
+
+Beyond numeric ratings, we compare the substantive critiques each model
+raises against the consensus issues identified by human experts. The
+figure below plots coverage---the fraction of human-identified concerns
+that the LLM also raised in some form---against the LLM overlap
+rate---the fraction of LLM-raised issues that correspond to a
+substantive human concern. These metrics are assessed by GPT-5.2 Pro in
+a separate judging call (the same model that generated the focal
+critiques) (see \href{methods.qmd}{Methods} for the judging protocol).
+Two of the 14 originally curated pairs are excluded for
+manuscript-identity mismatches: Peterman et al.~2025 and Bénabou et
+al.~2023. The latter was identified in the July 2026 concordance audit:
+its human critiques concern \emph{Willful Ignorance and Moral Behavior},
+while the PDF and model critiques concern \emph{Ends versus Means:
+Kantians, Utilitarians, and Moral Decisions}. The remaining 12 pairs
+contribute to the analysis. These exclusions concern critique pairings
+and do not by themselves establish an error in the separate quantitative
+ratings joins.
 
 \begin{figure}
 
 \caption{\label{fig-coverage-precision-main}Coverage (\% of
-human-identified issues that the LLM also raised) vs Precision (\% of
-LLM-raised issues that match a substantive human concern) for each
-paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines mark the
-cross-paper mean for each axis. Papers in the upper-right quadrant show
-strong alignment between human and LLM critiques.}
+human-identified issues that the LLM also raised) vs LLM overlap rate
+(\% of LLM-raised issues that match a substantive human concern) for
+each paper, as assessed by GPT-5.2 Pro acting as judge. Dashed lines
+mark the cross-paper mean for each axis. Papers in the upper-right
+quadrant show strong alignment between human and LLM critiques.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{results_files/figure-pdf/fig-coverage-precision-main-1.pdf}}
 
 \end{figure}%
 
-Coverage and precision vary substantially across papers. Averaged over
-the 13 focal papers, the model captures 78\% of human consensus issues
-(range 50--100\%), while 49\% of model-raised issues match a substantive
-human concern. Low precision partly reflects the reference set: the
-human consensus list contains only the issues evaluation managers
-prioritised, so model issues flagged by individual evaluators but not
-curated into the consensus count against precision. Because these
-metrics are themselves LLM-assessed, they should be interpreted with the
-caveat that an LLM judge may systematically over- or under-credit
-matches relative to a human annotator; the repository includes a
-browser-based annotation tool for manual validation of these alignment
-scores, which is ongoing.
+Coverage and the LLM overlap rate vary substantially across papers.
+Averaged over the 12 focal papers, the model captures 80\% of human
+consensus issues (range 50--100\%), while 52\% of model-raised issues
+match a substantive human concern. A low LLM overlap rate partly
+reflects the reference set: the human consensus list contains only the
+issues evaluation managers prioritised, so model issues flagged by
+individual evaluators but not curated into the consensus reduce the
+overlap rate. An unmatched model concern is not necessarily incorrect.
+Because these metrics are themselves LLM-assessed, they should be
+interpreted with the caveat that an LLM judge may systematically over-
+or under-credit matches relative to a human annotator; the repository
+includes a browser-based annotation tool for manual validation of these
+alignment scores, which is ongoing.
+
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-tip-color!10!white, colframe=quarto-callout-tip-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-tip-color}{\faLightbulb}\hspace{0.5em}{Examine what was found and missed}, colback=white, arc=.35mm]
+
+The \hyperref[sec-paper-comparison]{paper-by-paper comparison} shows
+every matched human--model issue, missed human concern, and additional
+model concern for each eligible paper. This is the most direct evidence
+behind the aggregate coverage and overlap rates.
+
+\end{tcolorbox}
 
 Detailed paper-by-paper comparisons---including matched issue pairs with
 severity labels, structural difference tables, and per-evaluator
@@ -639,10 +711,10 @@ Spearman \emph{ρ} column, the H--H row shows individual-vs-individual
 \emph{ρ} (the reference, already on the natural scale); GPT-5 Pro rows
 show \emph{ρ} vs.~the human mean, which is upward-biased. The \textbf{ρ
 adj.} column applies the Spearman-Brown correction to GPT-5 Pro rows
-only, making them directly comparable to H--H \emph{ρ}. Six-model
+only, as an assumption-dependent sensitivity analysis. Six-model
 comparison in \hyperref[tbl-agreement]{Appendix A, Table A2}.
 
-\begin{longtable}[t]{lrrrrrrr}
+\begin{table}
 
 \caption{\label{tbl-model-agreement-main}GPT-5 Pro overall-rating
 agreement. \textbf{Primary (matched) group}: same 39 papers as the H-H
@@ -651,26 +723,27 @@ group}: all 47 matched papers. \textbf{Spearman rho column}: the H-H row
 shows individual-vs-individual rank correlation (the reference, already
 on the natural scale); GPT-5 Pro rows show correlation vs.~the human
 mean, which is upward-biased relative to H-H. \textbf{rho adj.}:
-Spearman-Brown corrected to the individual-rater equivalent (factor
-0.83), making GPT-5 Pro rows directly comparable to H-H. \textbf{95\%
-CI}: Fisher-z. Bias = LLM minus Human. Full six-model comparison in
+approximate Spearman-Brown sensitivity adjustment using each row's mean
+panel size (matched-group factor 0.81). \textbf{95\% CI}: approximate
+Fisher-z interval for the raw correlation, not the adjusted value. Bias
+= LLM minus Human. Full six-model comparison in
 \href{results_ratings.qmd}{Appendix A}.}
 
-\tabularnewline
-
+\begin{tabular}{lrrrrrrr}
 \toprule
 Model & N & Spearman ρ & ρ adj. & 95\% CI & Pearson r & Mean bias & MAE\\
 \midrule
 \addlinespace[0.3em]
 \multicolumn{8}{l}{\textcolor{black}{\textbf{Matched sample: same 39 papers as H-H baseline (primary)}}}\\
 \hspace{1em}\cellcolor[HTML]{f0f8f0}{\textbf{Human-Human}} & \cellcolor[HTML]{f0f8f0}{\textbf{39}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.331}} & \cellcolor[HTML]{f0f8f0}{\textbf{-}} & \cellcolor[HTML]{f0f8f0}{\textbf{{}[0.02, 0.59]}} & \cellcolor[HTML]{f0f8f0}{\textbf{0.520}} & \cellcolor[HTML]{f0f8f0}{\textbf{+3.7}} & \cellcolor[HTML]{f0f8f0}{\textbf{11.6}}\\
-\hspace{1em}GPT-5 Pro & 39 & 0.627 & 0.520 & {}[0.39, 0.79] & 0.577 & +6.6 & 8.4\\
+\hspace{1em}GPT-5 Pro & 39 & 0.627 & 0.508 & {}[0.39, 0.79] & 0.577 & +6.6 & 8.4\\
 \addlinespace[0.3em]
 \multicolumn{8}{l}{\textit{Full sample: all 47 GPT-5 Pro matched papers (secondary)}}\\
 \hspace{1em}GPT-5 Pro & 47 & 0.526 & 0.436 & {}[0.28, 0.71] & 0.348 & +6.4 & 10.1\\
 \bottomrule
+\end{tabular}
 
-\end{longtable}
+\end{table}%
 
 The Fisher-z intervals in Table~\ref{tbl-model-agreement-main} quantify
 uncertainty in each correlation separately; to make an uncertainty
@@ -678,13 +751,19 @@ statement about the \emph{comparison itself} we add a paired bootstrap
 over papers (2,000 resamples of the 39 matched-group papers). Each draw
 recomputes the GPT-5 Pro--human-mean rank correlation, applies that
 draw's own Spearman-Brown correction, and takes the difference against
-the human--human pairwise correlation on the same draw. The resulting
-distribution of the adjusted difference (ρ adj. − ρ\textsubscript{HH})
-spans {[}-0.11, 0.45{]}: the interval includes zero, so at this sample
-size we cannot statistically separate the model from an additional human
-rater---the two correlations are comparable, not demonstrably ordered.
-This is the precise sense in which GPT-5 Pro ``performs within the human
-inter-rater range.''
+the human--human pairwise correlation on the same draw. The mean panel
+size is recomputed within each draw. The estimated 95\% interval for the
+adjusted difference (ρ adj. − ρ\textsubscript{HH}) is {[}-0.12, 0.43{]},
+based on 1965 of 2000 draws. The remaining 35 draws have an undefined
+correlation or non-positive human reliability and cannot support this
+adjustment; the interval is conditional on valid draws. This analysis
+estimates uncertainty in an approximate comparison. An interval
+containing zero does not establish equivalence or non-inferiority to an
+additional expert. Such a claim requires a justified margin specified
+before testing and an interval narrow enough to rule out a practically
+important deficit. The present bootstrap also conditions on the observed
+evaluators and first-two-rater ordering; it does not measure uncertainty
+from recruiting a new evaluator panel.
 
 Table~\ref{tbl-criteria-agreement-main} breaks the same agreement
 metrics down by evaluation criterion for GPT-5 Pro. The \textbf{H-H ρ}
@@ -692,10 +771,10 @@ column shows pairwise human-human Spearman ρ for each criterion as a
 reference --- note that raw LLM ρ is upward-biased relative to H-H ρ by
 the mean-vs-individual asymmetry (see
 Table~\ref{tbl-model-agreement-main}). Criteria where H-H ρ is itself
-low indicate genuine expert disagreement; low LLM agreement on those
-criteria is therefore expected rather than a model failure.
+low indicate genuine expert disagreement; these rows alone cannot
+distinguish reference disagreement from model failure.
 
-\begin{longtable}[t]{l>{}rrrrr}
+\begin{table}
 
 \caption{\label{tbl-criteria-agreement-main}GPT-5 Pro agreement with
 human mean by criterion (N = 47 papers; N = 39 for H-H). \textbf{H-H
@@ -706,22 +785,27 @@ Pro rates higher on average. Note the variation across criteria: human
 evaluators agree strongly on some dimensions and barely at all on others
 (Open Science), setting expectations for LLM performance.}
 
-\tabularnewline
-
-\toprule
+\begin{tabular}{l|>{}r|r|r|r|r}
+\hline
 Criterion & H-H ρ & Spearman ρ & Pearson r & Mean bias & RMSE\\
-\midrule
+\hline
 Overall & \textbf{0.331} & 0.526 & 0.348 & +6.4 & 15.1\\
+\hline
 Claims \& Evidence & \textbf{0.400} & 0.388 & 0.213 & +4.0 & 18.3\\
+\hline
 Methods & \textbf{0.375} & 0.562 & 0.356 & +4.5 & 18.1\\
+\hline
 Adv. Knowledge & \textbf{0.148} & 0.454 & 0.304 & +7.9 & 17.3\\
+\hline
 Logic \& Comms & \textbf{0.179} & 0.287 & 0.193 & +9.5 & 16.2\\
-\addlinespace
+\hline
 Open Science & \textbf{-0.065} & 0.150 & 0.177 & -16.8 & 27.3\\
+\hline
 Global Relevance & \textbf{0.114} & 0.424 & 0.341 & +5.8 & 15.7\\
-\bottomrule
+\hline
+\end{tabular}
 
-\end{longtable}
+\end{table}%
 
 \textbf{Journal-tier predictions and verifiable outcomes.} Beyond
 percentile ratings, both evaluator types predict where each paper
@@ -740,14 +824,7 @@ absolute error against the realized tier is 0.62 tiers for GPT-5 Pro and
 0.71 for the human panel mean---both track outcomes to within roughly
 two-thirds of a tier, and the sample is far too small to rank the two.
 
-{
-
-\begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2039}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2913}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1359}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1650}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2039}}@{}}
+\begin{table}
 
 \caption{\label{tbl-tier-outcomes}Papers with resolved publication
 outcomes: predicted vs realized journal tier (0--5 scale). Realized tier
@@ -756,42 +833,29 @@ journal' = 4.5, `decent journal' = 3.0, field journal = 2.5. Ambiguous
 statuses, R\&R/forthcoming, and book chapters are treated as unresolved
 and excluded. Human prediction is the evaluator mean.}
 
-\tabularnewline
+\begin{tabular}{l|l|r|r|r}
+\hline
+Paper & Recorded outcome & Realized tier & Human prediction & GPT-5 Pro prediction\\
+\hline
+Alatas et al. 2019 & Published, \textasciitilde{}top journal & 4.5 & 3.50 & 3.9\\
+\hline
+Barker et al. 2021 & Published, \textasciitilde{}top journal & 4.5 & 4.00 & 3.7\\
+\hline
+Buntaine et al. 2023 & Published, \textasciitilde{}top journal & 4.5 & 4.70 & 4.5\\
+\hline
+Hill et al. 2024 & Published, \textasciitilde{}top journal & 4.5 & 4.50 & 4.6\\
+\hline
+Jack et al. 2022 & Published, \textasciitilde{}top journal & 4.5 & 4.00 & 4.5\\
+\hline
+Fangwa et al. 2023 & published, decent journal & 3.0 & 3.60 & 4.0\\
+\hline
+Kremer et al. 2020 & published, decent journal & 3.0 & 4.00 & 3.9\\
+\hline
+Caviola et al. 2022 & Published: Psychology journal & 2.5 & 4.35 & 4.1\\
+\hline
+\end{tabular}
 
-\toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedright
-Paper
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Recorded outcome
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Realized tier
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Human prediction
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-GPT-5 Pro prediction
-\end{minipage} \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Alatas et al.~2019 & Published, \textasciitilde top journal & 4.5 & 3.50
-& 3.9 \\
-Barker et al.~2021 & Published, \textasciitilde top journal & 4.5 & 4.00
-& 3.7 \\
-Buntaine et al.~2023 & Published, \textasciitilde top journal & 4.5 &
-4.70 & 4.5 \\
-Hill et al.~2024 & Published, \textasciitilde top journal & 4.5 & 4.50 &
-4.6 \\
-Jack et al.~2022 & Published, \textasciitilde top journal & 4.5 & 4.00 &
-4.5 \\
-Fangwa et al.~2023 & published, decent journal & 3.0 & 3.60 & 4.0 \\
-Kremer et al.~2020 & published, decent journal & 3.0 & 4.00 & 3.9 \\
-Caviola et al.~2022 & Published: Psychology journal & 2.5 & 4.35 &
-4.1 \\
-
-\end{longtable}
-
-}
+\end{table}%
 
 Two caveats apply. First, most of these papers were published before the
 model's training cutoff, so GPT-5 Pro may partly \emph{recall} venues
@@ -814,21 +878,22 @@ Source code and data are hosted at
 
 \section{Discussion}\label{discussion}
 
-GPT-5 Pro achieves moderate-to-strong agreement with human expert
-evaluators: a paired bootstrap cannot distinguish its rank agreement
-with the human panel from the agreement observed between human
-evaluators themselves. Central compression---the tendency to pull
-extreme ratings toward the middle of the scale---is the most consistent
-pattern, likely reflecting alignment training that discourages confident
-extreme outputs. Journal-tier predictions are the dimension where human
-and model judgments align most closely, and on the small set of papers
-whose publication outcomes have already resolved, both predict realized
-venues with broadly similar accuracy. Qualitative coverage varies widely
-across papers: on some, the model captures nearly all consensus human
-concerns; on others, it misses key critiques or raises issues absent
-from the expert consensus. Appendix results for five additional models
-confirm these patterns across capability tiers, with reasoning-capable
-models outperforming lightweight ones.
+GPT-5 Pro shows positive rank agreement with human expert evaluations.
+The comparison with human inter-rater agreement remains uncertain: the
+paired bootstrap uses an approximate reliability adjustment, and failure
+to detect a difference does not establish equivalence to an additional
+expert. Central compression---the tendency to pull extreme ratings
+toward the middle of the scale---is the most consistent pattern, whose
+mechanism this observational comparison cannot identify. Journal-tier
+predictions are the dimension where human and model judgments align most
+closely, and on the small set of papers whose publication outcomes have
+already resolved, both predict realized venues with broadly similar
+accuracy. Qualitative coverage varies widely across papers: on some, the
+model captures nearly all consensus human concerns; on others, it misses
+key critiques or raises issues absent from the expert consensus.
+Appendix results describe five additional models, but differences in
+paper availability and run configurations limit comparisons across
+models.
 
 \textbf{Limitations.} Several caveats temper these conclusions. Our
 sample comprises 60 social-science papers evaluated by the model, of
@@ -837,20 +902,22 @@ all were specifically selected by The Unjournal for evaluation, not a
 random draw from the research literature; performance may differ in
 other fields or on less polished manuscripts. Human evaluations are
 themselves a noisy reference signal rather than ground truth, with
-substantial inter-rater variation that caps achievable agreement. We
-cannot fully rule out knowledge contamination: while we instruct the
-model to ignore prior knowledge about authors, institutions, or
-publication history in the system prompt, the models' training data may
-include fragments of these papers or related discussions. Robustness
-checks with models whose training cutoffs predate the papers, or
-out-of-time validation on papers entering The Unjournal's pipeline after
-model training, would help address this concern. Alignment training
-likely contributes to score inflation and narrower credible intervals
-than humans provide. All LLM evaluations are single-run; aggregating
-across multiple runs or temperature settings could change the picture.
-Finally, the qualitative coverage and precision metrics are themselves
-LLM-assessed (GPT-5.2 Pro as judge), introducing a further layer of
-model dependence.
+substantial inter-rater variation; agreement with a panel mean need not
+be bounded by pairwise human agreement. We cannot fully rule out
+knowledge contamination: while we instruct the model to ignore prior
+knowledge about authors, institutions, or publication history in the
+system prompt, the models' training data may include fragments of these
+papers or related discussions. Robustness checks with models whose
+training cutoffs predate the papers, or out-of-time validation on papers
+entering The Unjournal's pipeline after model training, would help
+address this concern. Prompt wording, reference-group interpretation,
+training, and shrinkage toward typical scores are possible explanations
+for rating patterns; this design does not separate them. Self-reported
+interval width alone does not establish calibration. All LLM evaluations
+are single-run; aggregating across multiple runs or temperature settings
+could change the picture. Finally, the qualitative human-issue coverage
+and LLM overlap-rate estimates are themselves LLM-assessed (GPT-5.2 Pro
+as judge), introducing a further layer of model dependence.
 
 \textbf{Implications.} Even a reasoning-capable model costing several
 dollars per paper is orders of magnitude cheaper than human expert
@@ -867,32 +934,70 @@ Prompt-injection techniques---embedding hidden instructions in a
 manuscript's metadata, footnotes, or even white-on-white text---could
 steer model outputs toward inflated ratings or suppressed critiques.
 Because our pipeline (and similar commercial services) routes
-unpublished manuscripts through third-party APIs, confidentiality cannot
-be guaranteed without end-to-end encryption or on-premise deployment.
-Over-reliance on AI scores introduces a further governance risk: if
-editorial decisions weight model ratings, authors may optimise papers
-for the model rather than for scientific rigour, creating a Goodhart
-dynamic. Finally, current evaluations reflect a single model checkpoint;
-model updates, alignment changes, or fine-tuning can shift ratings in
-ways that are invisible to users. We recommend that any operational
-deployment include adversarial red-teaming of prompts, formal
-confidentiality agreements with API providers, transparent disclosure of
-AI involvement in review, and periodic re-calibration against fresh
-human evaluations.
+unpublished manuscripts through third-party APIs, confidentiality
+depends on provider access, retention and training policies, contractual
+protections, and deployment configuration; encryption in transit alone
+does not prevent access during inference. Over-reliance on AI scores
+introduces a further governance risk: if editorial decisions weight
+model ratings, authors may optimise papers for the model rather than for
+scientific rigour, creating a Goodhart dynamic. Finally, current
+evaluations reflect a single model checkpoint; model updates, alignment
+changes, or fine-tuning can shift ratings in ways that are invisible to
+users. We recommend that any operational deployment include adversarial
+red-teaming of prompts, formal confidentiality agreements with API
+providers, transparent disclosure of AI involvement in review, and
+periodic re-calibration against fresh human evaluations.
 
 \textbf{Future directions.} All LLM evaluations reported here are
 single-run; multi-run robustness and prompt-sensitivity analysis would
-directly address the key open methodological question. Out-of-time
-validation on papers entering The Unjournal's pipeline after model
-training cutoffs would eliminate residual contamination concerns. The
-qualitative coverage and precision metrics are themselves LLM-assessed
-(GPT-5.2 Pro as judge); human validation of these scores is needed to
-close the model-dependence loop. Finally, the tier-prediction comparison
-in Results is a first step toward externally verifiable accuracy
+directly address the key open methodological question. Prospective
+validation should archive the input PDF, model identifier, prompt, and
+prediction timestamp before human evaluations and publication outcomes
+become available. Entry into The Unjournal's pipeline after a training
+cutoff is insufficient if an earlier manuscript or related review was
+already public. The qualitative human-issue coverage and LLM
+overlap-rate estimates are themselves LLM-assessed (GPT-5.2 Pro as
+judge); human validation of these scores is needed to close the
+model-dependence loop. Finally, the tier-prediction comparison in
+Results is a first step toward externally verifiable accuracy
 measurement: roughly thirty papers with registered predictions from both
 evaluator types have not yet resolved, and scoring those predictions as
-publication outcomes accrue provides a contamination-free horse race
-that strengthens with time.
+publication outcomes accrue can strengthen external validation.
+Eligibility requires checking that each prediction predates any publicly
+known outcome or venue cue. A fixed follow-up window and a rule for
+unresolved papers are needed to avoid selectively scoring early
+publications.
+
+\subsection{Related evidence: rapidPeer}\label{sec-peerless}
+
+\emph{AI-generated note by OpenAI Codex, October 23, 2026, added at
+David Reinstein's request. Interpretation and proposed directions; not
+new findings or an agreed change to the research plan.}
+
+King and Worthington (\citeproc{ref-kingWorthington2026Peerless}{2026})
+report that AI-generated reviews outperform paid rapidPeer experts in
+overall AI-judged comparisons and in 26 of 30 judgments by three former
+journal editors assessing ten review pairs. Their checks include
+manuscript-based claim audits, a human audit sample, and controls for
+length, style, model choice, and submission year. This is substantial
+evidence for the quality of constructive AI feedback in their setting,
+and overlaps with our use of incentivized expert evaluations. Our older
+one-shot results should not be read as a limit on current AI review
+capability.
+
+The outcomes differ: their review-quality comparisons do not establish
+calibrated ratings of research, sound research prioritization, or
+improvements in subsequent manuscripts. Our structured ratings and
+uncertainty estimates address part of that gap, while our small,
+LLM-judged critique comparison still needs independent validation. Human
+agreement is a reference signal, not a correctness criterion; an AI
+concern absent from the human reports may be valuable. The strongest
+proposed extensions are prospective scoring, blinded adjudication of
+critique validity and importance, and randomized tests of the additional
+value and cost of human evaluation after AI assistance. The
+\hyperref[sec-peerless-context]{detailed AI-generated comparison}
+separates current evidence from these proposals and discusses the
+study's strengths and limits.
 
 \bookmarksetup{startatroot}
 
@@ -930,12 +1035,28 @@ their epistemic uncertainty.
 
 The sample comprises working papers spanning 2017--2025 in development
 economics, health policy, environmental economics, and related fields
-that The Unjournal identified as high-impact. All papers have completed
-The Unjournal's full evaluation process, meaning the authors received
-evaluations that have been publicly posted. For our analysis we
-extracted the individual evaluator scores, aggregated them by taking the
-arithmetic mean per paper per criterion, and retained the range of
-individual scores to characterise inter-rater spread.
+that The Unjournal identified as high-impact. The quantitative
+human-comparison sample is restricted to papers with published
+evaluation packages and available matched ratings; the broader
+model-evaluated set also contains papers without a usable human match.
+For our analysis we extracted the individual evaluator scores,
+aggregated them by taking the arithmetic mean per paper per criterion,
+and retained the range of individual scores to characterise inter-rater
+spread.
+
+\textbf{Comparison with an individual evaluator.} The main
+overall-rating table compares the model with the human mean and reports
+human-human correlation using the first two available evaluator rows on
+the matched papers. Its Spearman-Brown adjustment is a sensitivity
+analysis based on classical reliability assumptions, extended
+approximately to rank correlations and unequal panel sizes. The mean
+panel size is calculated for the relevant model row and recomputed
+within each paired bootstrap draw. Draws with non-positive human
+reliability or undefined correlations are reported as invalid. An
+interval including zero for the adjusted difference is not an
+equivalence test. A stronger design would compare the model and a
+held-out human against the same remaining panel, with a prespecified
+non-inferiority margin and uncertainty clustered by paper.
 
 \textbf{LLM evaluation pipeline.} We evaluate six frontier models
 spanning three providers: GPT-5 Pro and GPT-5.2 Pro (OpenAI,
@@ -961,10 +1082,11 @@ downstream critique comparison.
 
 \textbf{Agreement and reliability statistics.} We quantify human--LLM
 agreement using several complementary measures. \emph{Pearson's r}
-captures linear association between paired ratings and is sensitive to
-proportional biases but not to constant offsets. \emph{Spearman's ρ}
-measures rank-order agreement and is robust to outliers and non-linear
-monotone relationships. \emph{Mean bias} (LLM minus human) indicates the
+captures linear association between paired ratings; it is invariant to
+positive linear rescaling and constant offsets, so it does not detect
+all forms of rating bias. \emph{Spearman's ρ} measures rank-order
+agreement and is robust to outliers and non-linear monotone
+relationships. \emph{Mean bias} (LLM minus human) indicates the
 direction and magnitude of any systematic offset. \emph{Root mean
 squared error} (RMSE) and \emph{mean absolute error} (MAE) measure
 typical prediction error in the original scale units; RMSE penalises
@@ -975,15 +1097,19 @@ raters, accommodates missing data, and applies to any measurement level
 (nominal, ordinal, interval, or ratio). An \(\alpha\) of 1 indicates
 perfect agreement, 0 indicates agreement no better than chance, and
 values below 0 indicate systematic disagreement. We compute
-\(\alpha_{\text{HH}}\) (among human evaluators only) as a ceiling: if
-human evaluators agree with each other at only \(\alpha = 0.5\) on a
-given criterion, expecting an LLM to exceed that level would be
-unrealistic. We then report \(\alpha_{\text{HL}}\) (between the human
-mean and each LLM) to assess how close machine ratings come to this
-ceiling. For the qualitative key-issue comparison, \emph{coverage}
-denotes the fraction of human-identified issues that received a match
-score \(\geq 30\%\) from the LLM judge, and \emph{precision} denotes the
-fraction of LLM-generated issues that matched at least one human issue.
+\(\alpha_{\text{HH}}\) (among human evaluators only) as a descriptive
+reference. The appendix also reports \(\alpha_{\text{HL}}\) for the
+panel formed by adding each LLM to the individual human evaluators. This
+describes the reliability of the augmented panel, not a stand-alone
+model-human coefficient. The reference is not a mathematical ceiling,
+and a similar augmented-panel value does not establish that a model is
+interchangeable with a human evaluator. Model availability varies within
+the appendix paper set. For the qualitative key-issue comparison,
+\emph{coverage} denotes the fraction of human-identified issues that
+received a match score \(\geq 30\%\) from the LLM judge. The \emph{LLM
+overlap rate} denotes the fraction of LLM-generated issues that matched
+at least one human issue; unmatched LLM concerns are not necessarily
+incorrect.
 
 \textbf{JSON Schema.} The output schema enforces that every paper is
 scored on identical fields with identical types and bounds. Credible
@@ -1067,11 +1193,13 @@ Pro. The schema for this focal run adds a \texttt{key\_issues} array---a
 ranked list of concise issue statements identifying the most important
 methodological, interpretive, or evidential concerns---alongside the
 standard metrics. This structured output enables direct comparison
-between machine-generated and human-identified issues. One curated pair
-(Peterman et al.~2025) was later excluded from the comparison after the
-LLM judge flagged, and we verified, that its human critique had been
-misattributed to a different manuscript during curation; the
-coverage/precision analysis therefore covers 13 papers.
+between machine-generated and human-identified issues. Two curated
+pairings (Peterman et al.~2025 and Bénabou et al.~2023) were
+subsequently excluded because their human and model critiques concerned
+different manuscripts; the coverage/overlap analysis therefore covers 12
+papers. The Bénabou mismatch was identified in the July 2026 concordance
+audit. Raw responses are retained, with exclusions applied consistently
+in both results chapters.
 
 \textbf{Key-issue comparison with human critiques.} To validate how well
 the LLM identifies substantive concerns, we compare its
@@ -1090,19 +1218,265 @@ Second, we use an LLM judge (GPT-5.2 Pro with schema-enforced structured
 output) to systematically assess the degree of alignment between each
 human-identified issue and the set of machine-generated issues,
 producing issue-by-issue match scores, coverage estimates (fraction of
-human issues captured), and precision estimates (fraction of LLM issues
-that are genuinely substantive).
+human issues captured), and LLM overlap-rate estimates (fraction of LLM
+issues that match the curated human concern set).
 
 The comparison pipeline takes a manually curated markdown file pairing
 each paper's LLM issues with human critiques and produces two structured
 outputs: a parsed JSON dataset (\texttt{key\_issues\_comparison.json})
 and an LLM-assessed alignment report
 (\texttt{key\_issues\_comparison\_results.json}) containing per-paper
-coverage, precision, matched-pair explanations, and an overall quality
-rating. Together, these outputs feed the qualitative analysis presented
-in \href{results_critiques.qmd}{Appendix B: Critiques \& Key Issues}.
+coverage, LLM overlap rate, matched-pair explanations, and an overall
+quality rating. Together, these outputs feed the qualitative analysis
+presented in \href{results_critiques.qmd}{Appendix B: Critiques \& Key
+Issues}.
 
 \normalsize
+
+\bookmarksetup{startatroot}
+
+\section{Headless Codex Pilot}\label{headless-codex-pilot}
+
+This page records a small exploratory extension to the main evaluation
+pipeline: running the same broad research-evaluation scaffold through
+\texttt{codex\ exec} using ChatGPT/Codex subscription access rather than
+metered OpenAI API calls.
+
+This is not part of the main evidence base. The primary results in this
+working paper use API-based model calls with controlled inputs, recorded
+model identifiers, and native PDF ingestion where available. The
+headless Codex pilot is useful for low-cost exploration, prompt
+development, and deciding whether further evaluations are worth running,
+but it should be treated as a separate input modality and execution
+surface.
+
+\subsection{What we tried}\label{what-we-tried}
+
+We added a small runner:
+
+\begin{itemize}
+\tightlist
+\item
+  Script: \texttt{scripts/run\_headless\_codex\_eval.py}
+\item
+  Pilot run: \texttt{results/codex\_gpt55\_headless\_pilot\_jul2026/}
+\item
+  Model surface: \texttt{gpt-5.5} via \texttt{codex\ exec},
+  authenticated through ChatGPT/Codex rather than an API key
+\item
+  Prompt version: \texttt{v4\_assessment\_current\_text\_extraction}
+\item
+  Input modality: \texttt{pdftotext}-extracted text, truncated at 60,000
+  characters for the first pilot
+\item
+  First paper: \texttt{Bruers\_2021.pdf}
+\end{itemize}
+
+The runner deliberately marks the result as
+\texttt{pdftotext\_extracted\_text}, stores the source PDF hash, writes
+a \texttt{run\_config.json}, and emits JSON in a compatibility shape
+that the existing analysis code can read. The aggregation helper now
+reads both older OpenAI response payloads and the newer \texttt{parsed}
+/ \texttt{output\_text} shape used by this pilot.
+
+The one-paper pilot produced the expected artifacts:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{json/Bruers\_2021.response.json}
+\item
+  \texttt{metrics\_long.csv}
+\item
+  \texttt{tiers\_long.csv}
+\item
+  \texttt{combined\_long.csv}
+\item
+  \texttt{assessment\_summaries.csv}
+\end{itemize}
+
+For this first run, the combined metrics were:
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule\noalign{}
+Metric & Midpoint & Lower & Upper \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Overall & 46 & 32 & 61 \\
+Claims and evidence & 42 & 27 & 58 \\
+Methods & 34 & 20 & 50 \\
+Advancing knowledge & 57 & 40 & 72 \\
+Logic and communication & 62 & 48 & 75 \\
+Open science & 36 & 20 & 55 \\
+Global relevance & 70 & 55 & 82 \\
+Tier should & 2.3 & 1.5 & 3.2 \\
+Tier will & 2.4 & 1.4 & 3.4 \\
+\end{longtable}
+
+The model also correctly noted in its assessment that the text had been
+truncated and widened uncertainty accordingly. This is the behavior we
+want from an exploratory runner: it should surface input limitations
+rather than presenting the output as equivalent to a full native-PDF
+evaluation.
+
+\subsection{Terra → Sol concordance
+follow-up}\label{terra-sol-concordance-follow-up}
+
+We also tested a two-stage concordance workflow for comparing separately
+enumerated human issues with LLM-generated issues. A high-effort Terra
+pass checked input alignment and proposed mappings; only three ambiguous
+pair judgments were escalated to a high-effort Sol pass. The workflow
+used stable issue IDs, retained a historical overlap threshold of 30,
+recorded exact Codex telemetry, and kept all outputs separate from the
+confirmatory API results.
+
+We fixed the candidate set as the first three records in source order
+before inspecting concordance. A manual title/PDF/issue screen excluded
+Bénabou et al.~before judgment: the recorded title and human issues
+concerned \emph{Willful Ignorance and Moral Behavior}, while the local
+PDF and LLM issues concerned \emph{Ends versus Means: Kantians,
+Utilitarians, and Moral Decisions}. Acemoglu et al.~and Adena--Hager
+passed the screen and were processed together in one Terra batch.
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule\noalign{}
+Result & Acemoglu et al. & Adena--Hager & Pooled eligible issues \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Human-issue coverage & 2/3 (66.7\%) & 6/7 (85.7\%) & 8/10 (80.0\%) \\
+LLM overlap rate & 3/12 (25.0\%) & 6/12 (50.0\%) & 9/24 (37.5\%) \\
+\end{longtable}
+
+The LLM overlap rate is the fraction of unique LLM issue IDs with at
+least one non-distinct mapping scoring 30 or higher. It is not an
+estimate of whether unmatched LLM concerns are incorrect. Sol changed
+one threshold-sensitive mapping out of the three escalated pairs: an
+Adena--Hager mapping moved from 31 to 27, lowering the pooled LLM
+overlap rate from 41.7\% to 37.5\%. Human-issue coverage was unchanged
+because that human issue retained another qualifying match.
+
+The original Terra and Sol calls used 41,993 input tokens and 4,001
+output tokens, including 1,229 reasoning-output tokens. An identical
+verification run reused both completed artifacts and made no new model
+calls. The compact
+\href{https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/concordance_three_candidate_methods_note_jul2026.md}{methods
+note},
+\href{https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/eligibility_screen.md}{eligibility
+screen}, and
+\href{https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/results/concordance_codex_three_candidate_screened_batch_jul2026/concordance_results.json}{structured
+final judgments} are retained in the repository.
+
+This increment supports preparing a larger preregistered-style study,
+but not running the full corpus yet. The remaining inputs should first
+receive the same alignment audit, and the protocol should freeze
+eligibility, compound-issue handling, aggregation, ambiguity ranking
+under an escalation cap, and treatment of ambiguous pairs that are not
+escalated.
+
+\subsection{Replicability and
+consistency}\label{replicability-and-consistency}
+
+The main concern is real: this approach is less standardized than the
+API-based approach.
+
+The API workflow is better for strict replication because it gives us a
+cleaner contract: explicit model identifiers, structured-output
+enforcement, direct request and response payloads, file IDs or native
+PDF inputs, usage metadata, and a provider surface designed for
+programmatic runs. It is also easier to re-run from a clean environment,
+pin defaults, and audit failures.
+
+The headless Codex workflow is attractive for exploration because it can
+use subscription access and avoid metered API costs. But several details
+make it less directly replicable:
+
+\begin{itemize}
+\tightlist
+\item
+  The execution surface is the Codex CLI, not the model API.
+\item
+  Subscription entitlements and rate limits can vary by account and over
+  time.
+\item
+  Default behavior may change with Codex releases unless we pin command
+  flags and record the CLI version.
+\item
+  The pilot currently uses extracted text, not native PDF input, so
+  figures, tables, equations, and layout can be degraded.
+\item
+  The first run intentionally truncated the extracted text; this must be
+  treated as a pilot constraint, not a production setting.
+\item
+  \texttt{codex\ exec} is an agentic wrapper around a model call. Even
+  when prompted not to use tools, it is not as minimal as a direct API
+  request.
+\end{itemize}
+
+This does not make the approach unusable. It means we should use it with
+a different evidential status. It is well suited for:
+
+\begin{itemize}
+\tightlist
+\item
+  cheap preliminary screening;
+\item
+  prompt iteration before API spending;
+\item
+  exploratory robustness checks;
+\item
+  identifying candidate papers for deeper API-based evaluation;
+\item
+  running larger informal batches where exact comparability is not the
+  goal.
+\end{itemize}
+
+It is less suited for:
+
+\begin{itemize}
+\tightlist
+\item
+  headline quantitative comparisons with human evaluators;
+\item
+  claims about model-vs-model performance;
+\item
+  strict reproduction of the native-PDF GPT-5 Pro runs;
+\item
+  archival baselines where future re-runs must be as close as possible
+  to the original call.
+\end{itemize}
+
+\subsection{Practical guardrails}\label{practical-guardrails}
+
+For any larger headless batch, we should keep the following guardrails:
+
+\begin{itemize}
+\tightlist
+\item
+  Record the Codex CLI version, model flag, auth mode, run timestamp,
+  prompt version, PDF hash, text-extraction command, input character
+  count, and truncation status.
+\item
+  Keep the output in a separate
+  \texttt{results/\textless{}run\_id\textgreater{}/} directory with
+  \texttt{input\_modality} clearly marked.
+\item
+  Do not merge headless/text-extraction results into the main
+  model-comparison plots without a visible modality label.
+\item
+  Use API-based runs for confirmatory comparisons or for any result we
+  expect others to reproduce exactly.
+\item
+  Avoid browser automation or ChatGPT web scraping; use documented Codex
+  non-interactive execution instead.
+\end{itemize}
+
+The appropriate interpretation is therefore: headless Codex is a useful
+exploration and cost-control tool, not a drop-in replacement for the
+API-based evidence pipeline.
 
 \bookmarksetup{startatroot}
 
@@ -1111,7 +1485,7 @@ in \href{results_critiques.qmd}{Appendix B: Critiques \& Key Issues}.
 
 \markboth{References}{References}
 
-\protect\phantomsection\label{refs}
+\phantomsection\label{refs}
 \begin{CSLReferences}{1}{0}
 \bibitem[\citeproctext]{ref-aczel2021billion}
 Aczel, Balazs, Barnabas Szaszi, and Alex O Holcombe, {``A billion-dollar
@@ -1139,9 +1513,9 @@ text injection and peer review by AI models},''} \emph{JAMA Network
 Open}, 9 (2026), e2552099.
 
 \bibitem[\citeproctext]{ref-elsevierAIPolicy2025}
-Elsevier, {``Generative AI policies for journals,''}
-\textless{}\url{https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals}\textgreater{}
-(Feb. 19, 2026).
+Elsevier,
+{``\href{https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals}{Generative
+AI policies for journals}''} (Feb. 19, 2026).
 
 \bibitem[\citeproctext]{ref-openAIReview2026}
 Hsu, Chao-Chun, and Chenhao Tan,
@@ -1149,9 +1523,14 @@ Hsu, Chao-Chun, and Chenhao Tan,
 Open-source AI-assisted academic paper reviewing},''} 2026.
 
 \bibitem[\citeproctext]{ref-isitcredible}
-IsItCredible.com, {``Is it credible?''}
-\textless{}\url{https://www.isitcredible.com/}\textgreater{} (Feb. 19,
-2026).
+IsItCredible.com, {``\href{https://www.isitcredible.com/}{Is it
+credible?}''} (Feb. 19, 2026).
+
+\bibitem[\citeproctext]{ref-kingWorthington2026Peerless}
+King, Gary, and Steven Worthington,
+{``\href{https://gking.harvard.edu/files/peerless.pdf}{{AI Article
+Reviews Dominate Human Peer Reviews at Their Best: Evidence and Policy
+Choices}},''} 2026.
 
 \bibitem[\citeproctext]{ref-leung2026policies}
 Leung, Tiffany I.,
@@ -1172,8 +1551,7 @@ AI-generated review reports},''} \emph{Postgraduate Medical Journal},
 (2026), qgag005.
 
 \bibitem[\citeproctext]{ref-refineFAQ}
-Refine, {``FAQ - refine,''}
-\textless{}\url{https://www.refine.ink/faq}\textgreater{} (Feb. 19,
+Refine, {``\href{https://www.refine.ink/faq}{FAQ - refine}''} (Feb. 19,
 2026).
 
 \bibitem[\citeproctext]{ref-spitzer2026submission}
@@ -1237,13 +1615,24 @@ The interactive tables in this appendix are available in the online
 version at
 \url{https://valentinklotzbuecher.github.io/llm-uj-research-eval/paper_response_analysis.html}.
 
-\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, colback=white, arc=.35mm]
 
-57 Unjournal evaluations tracked as of April 2026, drawing on two
-evidence streams: (a) manual staff assessment of author responses and
-paper revisions; (b) Claude Opus 4.6 change-attribution for 8 papers
-where pre/post PDFs were available. See
-\hyperref[combined-evidence]{Combined Evidence} below.
+This page reports an April 2026 tracking snapshot covering 57 Unjournal
+evaluations. Adjustment status had been assessed for 22 of them, not the
+full set; completing and re-validating the remaining staff assessment is
+an ongoing goal. The page also includes an exploratory LLM comparison of
+eight paper pairs and the more careful July 2026 checks described below.
+See \hyperref[combined-evidence]{Combined Evidence}.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Comment or flag a correction}, colback=white, arc=.35mm]
+
+This page has Hypothes.is enabled. Select text and open the annotation
+sidebar from the upper-right edge of the page to leave an inline
+comment. We especially welcome corrections to document/version matching,
+missing public revisions, or our interpretation of whether a change
+reflects a suggestion. A free Hypothes.is account is required to post.
 
 \end{tcolorbox}
 
@@ -1254,8 +1643,10 @@ in economics and social science. A natural question is whether this
 process changes research: do authors engage with feedback and revise
 their work?
 
-This page draws on manual classification of 57 tracked evaluations and,
-for a subset, automated PDF diffing and LLM attribution. Background:
+This page draws on a tracking file covering 57 evaluations. In the April
+snapshot, 22 had an assessed adjustment status and 35 remained
+unassessed. For a subset, we also use automated PDF comparison and
+exploratory LLM screening. Background:
 \href{https://globalimpact.gitbook.io/the-unjournal-project-and-communication-space/benefits-and-features/more-reliable-and-useful-evaluation/author-engagement-evidence}{The
 Unjournal's knowledge base}.
 
@@ -1271,6 +1662,16 @@ Unjournal's knowledge base}.
 \FunctionTok{library}\NormalTok{(jsonlite)}
 
 \NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"data/author\_adjustment\_manual.csv"}\NormalTok{, }\AttributeTok{show\_col\_types =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{reviewed\_outcomes }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}
+  \StringTok{"data/paper\_response\_reviewed\_outcomes.csv"}\NormalTok{,}
+  \AttributeTok{show\_col\_types =} \ConstantTok{FALSE}
+\NormalTok{)}
+
+\FunctionTok{stopifnot}\NormalTok{(}
+  \FunctionTok{nrow}\NormalTok{(reviewed\_outcomes) }\SpecialCharTok{==} \DecValTok{22}\NormalTok{,}
+  \FunctionTok{sum}\NormalTok{(reviewed\_outcomes}\SpecialCharTok{$}\NormalTok{public\_version\_status }\SpecialCharTok{==} \StringTok{"no\_observed\_public\_change"}\NormalTok{) }\SpecialCharTok{==} \DecValTok{13}\NormalTok{,}
+  \FunctionTok{sum}\NormalTok{(reviewed\_outcomes}\SpecialCharTok{$}\NormalTok{public\_version\_status }\SpecialCharTok{==} \StringTok{"later\_public\_version\_reviewed"}\NormalTok{) }\SpecialCharTok{==} \DecValTok{9}
+\NormalTok{)}
 
 \NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
   \FunctionTok{rename}\NormalTok{(}
@@ -1322,37 +1723,578 @@ Unjournal's knowledge base}.
 \subsection{Combined Evidence of Paper
 Updating}\label{combined-evidence}
 
-Two evidence streams are combined: manual classification for all 57
-papers, and Claude Opus 4.6 LLM attribution for 8 papers where
-before/after PDFs were available and meaningful text changes were
-detected.
+Two evidence streams are shown together: April tracking categories for
+57 papers, of which 22 had an assessed adjustment status, and an
+exploratory Claude Opus 4.6 screen for eight papers where before/after
+PDFs were available and meaningful text changes were detected. The
+latter is a way to prioritize inspection, not a causal estimate.
 
-\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Pipeline and caveats}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-important-color!10!white, colframe=quarto-callout-important-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-important-color}{\faExclamation}\hspace{0.5em}{Current validation work (July 2026)}, colback=white, arc=.35mm]
 
-\textbf{Scripts}: \texttt{scripts/fetch\_latest\_papers.py} →
-\texttt{scripts/run\_paper\_change\_llm.py}
+The April figures below remain the historical, partly assessed snapshot.
+A fresh July 18 source refresh captured 32 public current-paper versions
+and created 13 distinct before/after comparison records. Nine records
+passed document, identity, evaluation-mapping, and timing checks. Four
+superficially usable comparisons were excluded because the supposed
+later document predates the evaluation. We also audited all 17 cases
+where the initially selected input and current public PDF were
+byte-identical. Thirteen support a limited ``no observed public document
+change'' finding. Two apparent no-change cases were repaired by locating
+the correct later endpoint, one revised endpoint remains unavailable,
+and one record had no completed evaluation. These are coverage figures
+for a workflow, not findings that an evaluation caused a change.
+
+For each candidate, the revised workflow preserves PDF snapshots and
+hashes, checks that the documents are the same paper and in the right
+order, records page- and section-level changes, and requires human
+review before any public claim of evaluation-linked updating. A newer
+PDF, a textual difference, or a model suggestion is not enough on its
+own.
+
+\end{tcolorbox}
+
+\subsubsection{Quick updated takeaways from the stricter
+screen}\label{quick-updated-takeaways-from-the-stricter-screen}
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Before version}: PDF sent to Unjournal evaluators
-  (\texttt{papers/}); \textbf{After version}: latest NBER/arxiv version,
-  fetched April 2026
+  \textbf{The substantive rates do not change.} The refresh found two
+  additional different PDFs, but both predate their Unjournal
+  evaluations. The reviewed evidence therefore remains 13 cases with no
+  observed public document change and nine genuine later versions.
 \item
-  \textbf{Model}: Claude Opus 4.6, temperature 0.2; conservative
-  instructions --- only flags ``direct'' or ``indirect'' attribution
-  with clear conceptual alignment to a specific evaluator suggestion
+  \textbf{Whole-document controls matter.} A first card-level pass
+  produced three medium-priority lexical matches. Checking the entire
+  earlier paper downgraded all of them: the final deterministic pass
+  found 17 low-priority review leads and no medium- or high-priority
+  link. This does not overturn the manually reviewed correspondences
+  below; it shows that simple lexical matching should not be used to
+  create them.
 \item
-  \textbf{Coverage}: 30 papers had fetchable DOIs; 8 had meaningful
-  changes (≥15 line edits or ≥0.5\% size change) and a matched
-  evaluation file; the 3 manually-confirmed updates were also
-  LLM-analyzed
+  \textbf{The most informative low-priority leads illustrate different
+  outcomes.} The macro-climate revision adds an appendix explicitly
+  titled ``Additional Robustness Checks,'' consistent with a broad
+  request for more checks but without identifying the evaluation as its
+  source. The resilient-education revision adds questionnaire and
+  protocol material about speakerphone use and other children, which
+  documents the possible spillover issue but does not establish that
+  only one student benefited. An apparent Urban Forests match disappears
+  because alternative upwind-cone checks were already in the earlier
+  appendix.
 \item
-  \textbf{Temporal caveat}: a newer version does not imply changes were
-  evaluation-driven; some papers were already in revision
+  \textbf{Coverage remains the binding constraint.} Among the 57 tracked
+  records, 21 still need timeline validation and 15 current endpoints
+  failed even after headless-browser fallback. Those cases cannot be
+  treated as either updated or unchanged.
+\end{itemize}
+
+The automated screen is deliberately conservative. It requires an
+eligible version timeline, exact evaluation-document mapping, an
+evaluator quote with a valid line anchor, language that is new relative
+to the aligned change card, a whole-earlier-document preexistence check,
+and a cross-paper placebo benchmark. Passing produces a review lead
+only; it never assigns influence or enters the response-rate numerator
+automatically.
+
+\subsubsection{Expanded case review (updated July 18,
+2026)}\label{preliminary-case-review-july-16-2026}
+
+For each of the initial seven cases, separate passes extracted exact
+suggestions, classified paper changes without seeing the evaluations,
+tried to disprove suggested links, and adjudicated the surviving
+candidates. We then manually checked the strongest apparent matches.
+Across these cases, the process examined 90 mechanically valid
+suggestion items and 99 changes classified as substantive. For
+\emph{Urban Forests}, the bounded classifier reviewed 31 of 68
+deterministic change cards; 16 of those 31 were substantive. Two
+additional cases were reviewed after correcting stale endpoint
+selections.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2143}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2857}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2857}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2143}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Paper
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Evidence items
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Change cards
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Current assessment
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\emph{The Environmental Effects of Economic Production} & 4 & 28 &
+\textbf{One plausible aligned revision, attribution unconfirmed.} A new
+taxa-heterogeneity figure includes birds and partly matches a suggestion
+to assess productivity effects for bird taxa. The new analysis concerns
+agricultural income and eight taxa, and there is no author statement
+connecting it to the evaluation. \\
+\emph{Building Resilient Education Systems} & 10 & 10 & \textbf{Possible
+partial correspondence, attribution unconfirmed.} A request for stronger
+robustness checks overlaps with newly reported multiple-testing-adjusted
+results. Newly appended questionnaire and protocol material also
+documents speakerphone use and educational activity with other children,
+but it does not show that only one student benefited per call or rule
+out spillovers. These are standard design/reporting steps, and no
+response letter links them to the evaluation. \\
+\emph{The Macroeconomic Impact of Climate Change} & 6 & 7 &
+\textbf{Circumstantial correspondence only.} The revision adds an
+``Additional Robustness Checks'' appendix and a new cross-sample
+robustness statement, both topically consistent with the evaluator's
+small-sample concern. The request was broad, related robustness material
+already existed, and no revision note identifies the source. \\
+\emph{A Welfare Analysis of Policies Impacting Climate Change} & 25 & 6
+& \textbf{No supported link at present.} One automated candidate
+appeared to connect a request to clarify ``international policies'' with
+international examples. Manual checking found that those examples were
+already present in the earlier version, so we rejected the match. \\
+\emph{Zero-Sum Thinking, the Evolution of Effort-Suppressing Beliefs,
+and Economic Development} & 8 & 21 & \textbf{No positive link found.}
+Three possible pairings reflected timing only; five suggestions remained
+unmatched. \\
+\emph{Water Treatment and Child Mortality} & 14 & 11 & \textbf{One
+plausible aligned revision, attribution unconfirmed.} A new formal
+cost-effectiveness model, including cost per DALY and net DALYs averted,
+closely matches requests to deepen the cost analysis. No author response
+or revision memo links the addition to the evaluation. \\
+\emph{Urban Forests: Environmental Health Value and Disparities} & 23 &
+16 & \textbf{Possible topical correspondences, attribution unconfirmed.}
+New wind-direction checks overlap with a confounding concern, and an
+NDVI footnote partly overlaps with a request about alternative
+vegetation measures. The strongest automated site-selection match was
+excluded because its source quote failed validation. A newer lexical
+match about alternative upwind measures was also downgraded after the
+whole-document check found alternative upwind-cone tests in the earlier
+appendix. \\
+\emph{Artificial Intelligence and Economic Growth} & 8 & 1 &
+\textbf{Direct documented evaluation-linked correction.} The public
+author response says the evaluation caught a significant proof error.
+The maintained document marks the exact invalid derivation and points to
+the corrected proof. The whole-document format change produced only one
+coarse change card, so this conclusion rests on the explicit response
+and document annotation rather than model matching. \\
+\emph{Adaptability and the Pivot Penalty in Science} & 8 & 1 &
+\textbf{No supported substantive implementation; one weak framing
+overlap.} A manual, section-aligned review found real revisions, but
+seven of eight suggestions were not implemented. A new caveat that the
+measured outcomes do not exhaust research quality weakly acknowledges
+the concern about omitted benefits without adding a benefit outcome.
+Several apparently responsive items were already in the evaluated
+version. \\
+\end{longtable}
+
+The nine reviewed comparisons now include one direct documented
+correction, two reasonably specific content alignments with attribution
+unconfirmed, three weaker correspondences, and three cases with no
+supported substantive match. Only the proof correction has explicit
+public evidence connecting the evaluation to the change.
+
+\subsubsection{Overall and conditional response
+rates}\label{overall-and-conditional-response-rates}
+
+The 22 reviewed endpoints support a more useful distinction than
+``changed'' versus ``unchanged.'' The five outcome categories below are
+mutually exclusive.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2727}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3636}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3636}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Reviewed endpoint outcome
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Cases
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Share of 22
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+No observed public document change & 13 & 59\% \\
+Later version, but no supported substantive implementation & 3 & 14\% \\
+Later version with weaker correspondence & 3 & 14\% \\
+Later version with a reasonably specific alignment; attribution
+unconfirmed & 2 & 9\% \\
+Explicit public author link between evaluation and correction & 1 &
+5\% \\
+\end{longtable}
+
+Percentages are rounded; the counts are primary.
+
+Overall, six of 22 reviewed endpoints (27\%) show at least some
+correspondence between an evaluation point and a later change. Three of
+22 (14\%) show either a specific alignment or an explicit link, and one
+of 22 (5\%) has an explicit public author statement connecting the
+evaluation to the correction.
+
+Conditional on the nine papers with a genuine later public version, six
+(67\%) show at least some correspondence, three (33\%) show a specific
+or explicit alignment, and one (11\%) has an explicit author link. Three
+of nine (33\%) have no supported substantive implementation in the
+versions we reviewed.
+
+These are descriptive rates for a small, selected, source-available set,
+not estimates for all 57 tracked evaluations. ``Later version, but no
+supported implementation'' is also not equivalent to ``the authors
+ignored the suggestions.'' Authors may have considered and rejected a
+suggestion, responded privately, revised a document we have not found,
+or changed the paper for unrelated reasons.
+
+The identity checks now follow normalized DOIs where available and
+permit explicit, manually reviewed title aliases. They do not depend on
+exact title equality or infer aliases from a similar title. The evidence
+record stores the canonical title, any reviewed aliases, and which title
+matched the PDF; this matters for small changes such as ``vs.'' to
+``versus'' and for future substantive retitling.
+
+\subsubsection{Exploratory differences across research
+areas}\label{exploratory-differences-across-research-areas}
+
+The table counts only the 22 reviewed endpoints. ``Any correspondence''
+includes weak correspondences and therefore should not be read as
+demonstrated influence.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1579}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2105}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2105}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2105}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2105}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Tracked research area
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Reviewed endpoints
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Later public version
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Any correspondence overall
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Any correspondence, conditional on update
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Environment & 3 & 3 & 2/3 & 2/3 \\
+Dev. economics / governance (LMICs) & 6 & 3 & 2/6 & 2/3 \\
+Social impact of technology / AI & 2 & 1 & 1/2 & 1/1 \\
+Innovation and meta-science & 4 & 1 & 0/4 & 0/1 \\
+Global health (LMICs) & 6 & 1 & 1/6 & 1/1 \\
+Economics, welfare, miscellaneous & 1 & 0 & 0/1 & --- \\
+\end{longtable}
+
+Environment papers were more likely to have a later public version in
+this reviewed set, while global-health papers were less likely.
+Conditional response patterns cannot be ranked credibly: most
+area-specific denominators are one or three updated papers, and case
+selection partly reflects whether usable public versions could be
+recovered. The table is best treated as a prompt for stratified sampling
+as coverage expands.
+
+\subsubsection{What kinds of evaluation points aligned with
+changes?}\label{what-kinds-of-evaluation-points-aligned-with-changes}
+
+For an initial qualitative comparison, we assigned one primary
+evaluation aspect to each of the nine updated cases. This simplifies
+evaluations that often raised several distinct issues.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2308}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3077}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2308}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2308}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Primary evaluation aspect
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Cases
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Strongest observed result
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Pattern in this review
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Correctable proof error & 1 & Explicit documented link & The clearest
+result was precise, checkable, and acknowledged publicly. \\
+Specified additional analysis & 2 & Specific alignment, attribution
+unconfirmed & Both later papers added a closely related analysis, but
+neither linked it publicly to the evaluation. \\
+Robustness, confounding, or measurement check & 3 & Weaker
+correspondence & Later checks overlapped with the concern, but
+standard-practice explanations remained plausible. \\
+Broad theory, mechanisms, welfare, framing, or interpretation & 3 & No
+supported substantive implementation & The later versions changed, but
+the broad requested extensions were not clearly carried out. \\
+\end{longtable}
+
+The tentative pattern is that concrete, falsifiable requests are easier
+both to act on and to verify. This does not show that they cause more
+responsiveness: specificity is confounded with feasibility,
+observability, and the cost of the requested work. A credible next
+analysis should code all validated suggestions into a common taxonomy,
+double-code a sample, and compare response rates within updated papers.
+
+\subsubsection{Pilot check for later related
+work}\label{pilot-check-for-later-related-work}
+
+We also ran a targeted search for later work extending three updated
+papers where the reviewed version showed no supported substantive
+implementation. This is a separate outcome from revision of the
+evaluated paper.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Evaluated case
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Public continuation checked
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Pilot result
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\emph{A Welfare Analysis of Policies Impacting Climate Change} & The
+\href{https://www.aeaweb.org/articles?id=10.1257\%2Faer.20250166}{July
+2026 AER version of record} and the October 2025 NBER full text & The
+AER item is the same paper, not a separate extension. Its full text was
+not publicly accessible in our check, so the content assessment still
+rests on the public NBER revision. We did not identify a separate later
+extension by the author team. \\
+\emph{The Pivot Penalty in Research} & The
+\href{https://www.nature.com/articles/s41586-025-09048-1}{May 2025
+Nature paper}, supplement, and related records & This is the final
+version of the evaluated research line, not later separate work. It was
+accepted before the public Unjournal evaluation, and we did not identify
+a subsequent author-team extension addressing the unmatched
+suggestions. \\
+\emph{Zero-Sum Environments, the Evolution of Effort-Suppressing
+Beliefs, and Economic Development} & The
+\href{https://www.nber.org/papers/w31663}{August 2025 NBER revision} and
+targeted title/author searches & The NBER revision is the same paper and
+is already included in the comparison above. We did not identify clearly
+attributable later work by the overlapping author team that implements
+the unmatched suggestions. \\
+\end{longtable}
+
+This pilot is deliberately phrased as ``not identified,'' not ``does not
+exist.'' Related-work tracking is harder than version tracking: titles,
+author teams, and empirical settings can all change. A scalable
+extension should record search dates and queries, require meaningful
+author overlap and a documented intellectual link, and keep ``same
+paper,'' ``later extension,'' and ``unrelated related literature'' as
+separate categories.
+
+\paragraph{\texorpdfstring{Detailed aligned review: \emph{The Pivot
+Penalty in
+Research}}{Detailed aligned review: The Pivot Penalty in Research}}\label{detailed-aligned-review-the-pivot-penalty-in-research}
+
+The initial comparison was too coarse because the later paper
+reorganized the manuscript and supplement. We therefore split the
+evaluated August 2024 bundle at the actual main-text/supplement
+boundary, aligned later sections by content rather than section number,
+and checked each validated suggestion against the February 2025
+manuscript and the Nature main text and supplement. We also checked the
+Nature reporting summary, peer-review file, and source-data package for
+provenance and context; these are not treated as an Unjournal author
+response.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Evaluation suggestion
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+What the later documents show
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Verdict
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Examine promotion or funding outcomes & The evaluated version already
+checked whether papers acknowledged funding. Later versions do not study
+promotion or funding received as an outcome. & Not addressed \\
+Account for potential benefits omitted by the outcome measures & Later
+discussion newly notes that citation, publication, novelty,
+conventionality, and applied-value measures do not exhaust a
+multidimensional concept of research quality. It adds no benefit
+outcome. & Weak framing acknowledgment only \\
+Examine decision-making behind pivoting & The evaluated version already
+discussed researchers weighing pivots and making sequential choices.
+Later versions add no choice model or new evidence on the decision
+process. & Not newly addressed \\
+Analyze welfare or possible misallocation & Portfolio and
+pre-positioning policy discussion was already present. No welfare or
+misallocation analysis was added. & Not addressed \\
+Test longer horizons, including the COVID/mRNA setting & Alternative
+citation windows and time-trend figures were already present. No new
+COVID/mRNA long-horizon test was added. & Not addressed as requested \\
+Test when in a career or sequence researchers should pivot & Existing
+career-stage and sequential-dynamics material does not provide the
+requested timing-heterogeneity test. & Not addressed \\
+Adjust for evolving journal preferences & We found no aggregate
+journal-preference adjustment in the later documents. & Not addressed \\
+Define paper pivots by fields rather than journals & The evaluated
+supplement already reconstructed the paper-pivot measure using L1 fields
+and still found a penalty. Later versions retain that robustness check
+and keep journals as the main definition. & Already present; main choice
+unchanged \\
+\end{longtable}
+
+The later documents do contain substantive revisions: an updated
+retraction sample, explicit COVID sample sizes and effect changes,
+reorganized methods and supplementary material, improved replication
+links, and the new multidimensional-quality caveat. The principal
+estimates and conclusions remain stable. The February manuscript
+predates both Nature acceptance and the public Unjournal evaluation; the
+Nature paper was accepted on April 18, 2025, while the public evaluation
+is dated May 21. There is no posted Unjournal author response. Without
+private transmission dates, none of these revisions should be attributed
+to the evaluation. We also lack the separate February supplementary
+files, so supplementary-material changes can be established only from
+August 2024 to the Nature version.
+
+\subsubsection{Audit of byte-identical cases (updated July 18,
+2026)}\label{audit-of-byte-identical-cases-updated-july-18-2026}
+
+An identical current PDF is potentially informative, but only if the
+local input is credibly the document that was evaluated. Repository
+history was not enough: all 17 local inputs entered this repository
+after their evaluations. We therefore checked official version
+histories, archived pre-evaluation PDFs, distinctive page-level
+references in the evaluations, and fresh publisher downloads.
+
+Thirteen cases now support the limited statement \textbf{``no observed
+public document change as of July 18, 2026.''} This does not imply that
+authors ignored the evaluation. They may have revised another
+manuscript, made changes that are not publicly available, or decided
+that no revision was warranted.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Paper
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Evidence binding the evaluated and current documents
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\emph{Pharmaceutical Pricing and R\&D as a Global Public Good} & The
+official NBER record retains its May 2023 issue date with no revision
+date; a fresh publisher download has the same hash. \\
+\emph{Towards Best Practices in AGI Safety and Governance} & arXiv lists
+only version 1 (May 11, 2023); the current PDF is byte-identical. \\
+\emph{Choose Your Moments: NIH Peer Review and Scientific Risk Taking} &
+The official NBER record retains its June 2023 issue date with no
+revision date; a fresh publisher download has the same hash. \\
+\emph{The Returns to Science in the Presence of Technological Risks} &
+The evaluation identifies arXiv version 2 (May 9, 2024); arXiv lists no
+later version. \\
+\emph{Effects of Emigration on Rural Labor Markets} & The evaluation
+quotes distinctive page-level text in the October 2017 NBER PDF; the
+current file has the same hash. \\
+\emph{Legalizing Entrepreneurship} & The evaluation cites distinctive
+page-specific text, including an unusual typo, in the March 2023
+revision; the current file has the same hash. \\
+\emph{The Benefits and Costs of Guest Worker Programs} & A
+pre-evaluation Wayback capture and the current NBER PDF are
+byte-identical. \\
+\emph{The Comparative Impact of Cash Transfers and a Psychotherapy
+Program} & A pre-evaluation Wayback capture and the current NBER PDF are
+byte-identical. \\
+\emph{Maternal Cash Transfers for Child Development} & A distinctive
+page-level quotation binds the evaluation to the August 2025 NBER
+revision; the current publisher PDF has the same hash. \\
+\emph{Stagnation and Scientific Incentives} & A pre-evaluation Wayback
+capture and the current NBER PDF are byte-identical. \\
+\emph{Intergenerational Child Mortality Impacts of Deworming} &
+Distinctive page and table references bind the evaluation to the
+original April 2023 NBER PDF; NBER lists no later revision and the
+current file has the same hash. \\
+\emph{Economic versus Epidemiological Approaches to Policy Evaluation} &
+A distinctive figure-level comparison binds the evaluation to the July
+2022 NBER PDF; NBER lists no later revision and the current file has the
+same hash. \\
+\emph{The Long-Run Effects of Psychotherapy on Depression, Beliefs, and
+Economic Outcomes} & A pre-evaluation Wayback capture and a
+version-specific appendix reference bind the evaluation to the May 2022
+NBER PDF; the current NBER file is byte-identical. An author-hosted
+January 2023 draft was ruled out because its corresponding appendix
+table contains a different analysis. \\
+\end{longtable}
+
+The other four initially identical pairs should not be counted as
+no-change findings. Two have now been repaired by selecting the
+author-shared or corrected endpoint and appear in the comparison table
+above. One paper is known to have been revised, but the revised
+manuscript is not publicly available; one record had no completed
+evaluation. These failures show why a hash comparison without
+source-history checks can give the wrong answer.
+
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Pipeline and caveats}, colback=white, arc=.35mm]
+
+\textbf{Current scripts}: \texttt{scripts/paper\_response\_evidence.py}
+for source snapshots, validation, and comparison cards;
+\texttt{scripts/screen\_paper\_response\_matches.py} for deterministic,
+placebo-benchmarked suggestion-to-change leads;
+\texttt{scripts/run\_paper\_response\_agents.py} for optional bounded,
+review-only model triage.
+
+\begin{itemize}
+\tightlist
 \item
-  \textbf{LLM limitations}: text truncated at 60,000 chars/version;
-  figures and tables not visible to the model
+  \textbf{Historical screen shown below}: before version = PDF sent to
+  evaluators; after version = then-current NBER/arXiv PDF, fetched April
+  2026. Eight pairs had meaningful text changes and a matched evaluation
+  file.
+\item
+  \textbf{Current validation}: the refresh keeps immutable PDF
+  snapshots; verifies paper identity and chronology; produces page- and
+  section-anchored change cards; and puts ambiguous cases into human
+  review. A transient endpoint failure now preserves the last captured
+  comparison with an explicit cached-snapshot warning instead of erasing
+  it from the queue.
+\item
+  \textbf{Automated correspondence check}: suggestion cues must have
+  valid source anchors. Matches are discounted when the same concepts
+  occur in a local window anywhere in the earlier paper and are
+  benchmarked against matches to other papers' changes. The output is a
+  priority queue, not a response label.
+\item
+  \textbf{Models}: the historical Opus screen used bounded extracted
+  text, so it could not reliably assess figures, tables, or all document
+  context. The current agent triage is also deliberately non-decisive:
+  it can identify evidence to inspect, but cannot label causal
+  influence.
+\item
+  \textbf{Interpretation}: a newer version does not imply that changes
+  were evaluation-driven. Some papers are already being revised, and a
+  substantial revision can have unrelated causes.
 \end{itemize}
 
 \end{tcolorbox}
@@ -1507,19 +2449,23 @@ evaluator feedback (median across all: 22\%).
     \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"right"}\NormalTok{,}
           \AttributeTok{legend.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{9}\NormalTok{),}
           \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{11}\NormalTok{, }\AttributeTok{face =} \StringTok{"plain"}\NormalTok{,}
-                                    \AttributeTok{margin =} \FunctionTok{margin}\NormalTok{(}\AttributeTok{b =} \DecValTok{6}\NormalTok{))) }\SpecialCharTok{+}
-    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"All 57 tracked papers — each square = 1 paper"}\NormalTok{)}
+                                    \AttributeTok{margin =} \FunctionTok{margin}\NormalTok{(}\AttributeTok{b =} \DecValTok{6}\NormalTok{)),}
+          \AttributeTok{plot.caption =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{8}\NormalTok{, }\AttributeTok{color =} \StringTok{"grey40"}\NormalTok{,}
+                                      \AttributeTok{hjust =} \DecValTok{0}\NormalTok{, }\AttributeTok{margin =} \FunctionTok{margin}\NormalTok{(}\AttributeTok{t =} \DecValTok{8}\NormalTok{))) }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"All 57 tracked papers — each square = 1 paper"}\NormalTok{,}
+         \AttributeTok{caption =} \StringTok{"LLM \% = share of major post{-}evaluation changes attributed to evaluator feedback (Claude Opus 4.6)"}\NormalTok{)}
 \NormalTok{\}}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{figure}[H]
 
-\caption{\label{fig-combined-waffle}All 57 tracked papers by combined
-evidence tier (each square = 1 paper). Green tones: papers where LLM
-analysis was run, shaded by attribution score and manual confirmation
-status. Blue: manually confirmed updates without LLM analysis.
-Orange/grey: stated intention, weak signal, or not yet assessed.}
+\caption{\label{fig-combined-waffle}April tracking snapshot for all 57
+papers (each square = 1 paper); adjustment status had been assessed for
+22. Green tones: papers where LLM analysis was run, shaded by
+attribution score and recorded confirmation status. Blue: recorded
+updates without LLM analysis. Orange/grey: stated intention, weak
+signal, or not yet assessed.}
 
 \pandocbounded{\includegraphics[keepaspectratio]{paper_response_analysis_files/figure-pdf/fig-combined-waffle-1.pdf}}
 
@@ -1536,7 +2482,7 @@ Orange/grey: stated intention, weak signal, or not yet assessed.}
                \AttributeTok{color =}\NormalTok{ manual\_tier, }\AttributeTok{size =}\NormalTok{ text\_chg\_pct)) }\SpecialCharTok{+}
     \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{30}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"grey55"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.5}\NormalTok{) }\SpecialCharTok{+}
     \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.85}\NormalTok{) }\SpecialCharTok{+}
-    \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ dot\_colors, }\AttributeTok{name =} \StringTok{"Manual classification"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ dot\_colors, }\AttributeTok{name =} \StringTok{"April tracking category"}\NormalTok{) }\SpecialCharTok{+}
     \FunctionTok{scale\_size\_continuous}\NormalTok{(}\AttributeTok{range =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{9}\NormalTok{), }\AttributeTok{name =} \StringTok{"Text change \%"}\NormalTok{) }\SpecialCharTok{+}
     \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{limits =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{72}\NormalTok{), }\AttributeTok{labels =}\NormalTok{ \textbackslash{}(x) }\FunctionTok{paste0}\NormalTok{(x, }\StringTok{"\%"}\NormalTok{),}
                        \AttributeTok{breaks =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{15}\NormalTok{, }\DecValTok{30}\NormalTok{, }\DecValTok{50}\NormalTok{, }\DecValTok{70}\NormalTok{)) }\SpecialCharTok{+}
@@ -1644,11 +2590,12 @@ finds likely influence.}
 \end{Highlighting}
 \end{Shaded}
 
-Of 57 tracked evaluations, 22 have been manually assessed. Among these:
-5 show clear evidence of substantive updating, 7 authors stated
-intention to update, and 15 show at least some positive signal. On
-engagement: 19 papers received a formal or informal author response, of
-which 16 were formal written responses.
+Of 57 tracked evaluations, 22 have an assessed adjustment status. Among
+these: 5 are coded as showing clear evidence of substantive updating, 7
+as stating an intention to update, and 15 as showing at least some
+positive signal. Response status is recorded for only part of the set:
+19 papers have a recorded formal or informal response, of which 16 are
+formal written responses.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1688,7 +2635,7 @@ response).}
 
 \subsection{Full Tabulation}\label{full-tabulation}
 
-\begin{tcolorbox}[enhanced jigsaw, arc=.35mm, bottomrule=.15mm, bottomtitle=1mm, breakable, colback=white, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, coltitle=black, left=2mm, leftrule=.75mm, opacityback=0, opacitybacktitle=0.6, rightrule=.15mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{All 57 tracked evaluations}, titlerule=0mm, toprule=.15mm, toptitle=1mm]
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{All 57 tracked evaluations}, colback=white, arc=.35mm]
 
 Click column headers to sort; use the search box to filter. Adjustment
 status is color-coded: green = positive signal, orange =
@@ -1750,6 +2697,177 @@ minor/uncertain, grey = unlikely or not yet assessed.
 \end{table}%
 
 \end{tcolorbox}
+
+\section{King and Worthington (2026): implications for this
+project}\label{sec-peerless-context}
+
+\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, coltitle=black, colbacktitle=quarto-callout-note-color!10!white, colframe=quarto-callout-note-color-frame, opacityback=0, left=2mm, breakable, toprule=.15mm, toptitle=1mm, bottomtitle=1mm, bottomrule=.15mm, rightrule=.15mm, leftrule=.75mm, titlerule=0mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{AI-generated research note · October 23, 2026}, colback=white, arc=.35mm]
+
+Written by OpenAI Codex at David Reinstein's request, based on the
+October 22, 2026 paper and supplementary appendix. This is an
+AI-generated interpretation and proposed research agenda, not a new
+empirical result or an agreed revision of the team's plans.
+
+\end{tcolorbox}
+
+\textbf{Assessment.} The study by King and Worthington
+(\citeproc{ref-kingWorthington2026Peerless}{2026}) substantially
+overlaps with this project's motivation and weakens novelty claims based
+on comparing AI with unusually good, paid human reviewers. The existing
+Unjournal study still contributes a transparent baseline for structured
+research ratings and critique agreement. The strongest case for further
+work is to establish when AI judgments are correct, calibrated, and
+useful for consequential research decisions, and what additional human
+effort buys.
+
+\subsection{What the study
+establishes}\label{what-the-study-establishes}
+
+King and Worthington analyze 124 rapidPeer submissions from 2019--2026,
+with 134 commissioned human reviews. They report generating reviews with
+Claude Opus 4.8 at maximum reasoning effort, using either the original
+reviewer instructions without tools or a tailored prompt with web
+retrieval. GPT-5.5 judges the comparisons; these model names and
+settings are as reported in the paper. Three former journal editors also
+judge ten randomly selected review pairs. The human reviewers were paid,
+carefully selected, and asked for comprehensive, constructive feedback
+(main text, sections 2--3).
+
+The AI reviews win every decided overall comparison in the headline
+AI-judged analysis and 26 of 30 editor judgments (87\%). Those 30
+judgments concern ten pairs assessed by three editors, not 30
+independent manuscripts. The editors see the reviews without the
+manuscripts (supplement, Appendix A). Their choices therefore support
+the perceived quality of the reviews, but do not independently verify
+their technical claims against the underlying research.
+
+The evidence goes beyond preferences over fluent prose. Checks address
+review length, rewriting human reviews in AI style, judging with
+manuscript access, submission year, stochastic variation, and different
+generating and judging model families. A blinded audit flags 5.5\% of AI
+claim assessments and 15.9\% of human claim assessments as contradicted
+by the manuscript; a human check agrees on 87 of 90 sampled claims.
+Appendix F.7 and Table S6 define this error measure narrowly: opinions,
+suggestions, and claims not verifiable from the manuscript remain in the
+denominator without counting as errors. It is not a measure of the
+validity or usefulness of every critique. Moreover, 46 of 124 AI reviews
+contain at least one flagged error. The controlled-error experiment
+shows detection of explicit inserted contradictions; it does not
+establish equivalent sensitivity to subtle failures of identification or
+external validity.
+
+\textbf{Version detail.} The main text reports 132/132 decided overall
+AI comparisons, whereas Figure 1 labels this 134/134. This note
+preserves the common qualitative finding and flags the denominator
+discrepancy rather than silently resolving it. Sources:
+\href{https://gking.harvard.edu/files/peerless.pdf}{paper}, sections
+2--4 and Figure 1;
+\href{https://gking.harvard.edu/files/peerless-supp.pdf}{supplement},
+Appendices A and F.4--F.10.
+
+\subsection{Where the Unjournal project
+differs}\label{where-the-unjournal-project-differs}
+
+\textbf{Ratings of research and their uncertainty.} The working paper
+compares seven percentile ratings, uncertainty intervals, and
+journal-tier predictions under the same rubric. King and Worthington's
+seven headline areas assess the quality of reviews; they are not seven
+ratings of the underlying papers. A convincing report can coexist with
+compressed scores, unstable rankings, or poorly calibrated forecasts.
+Our current agreement estimates describe these patterns; they do not
+establish true research quality or calibrated uncertainty.
+
+\textbf{Correct, important critiques and complementary information.} Our
+critique analysis asks which human concerns the model recovers and which
+model concerns have no human match. This is a different outcome from
+overall review preference, but it is not yet a decisive advantage: the
+current analysis has only 12 eligible pairings and uses an LLM judge. An
+unmatched model critique can be valuable, and a shared critique can be
+wrong. The useful extension is blinded, independent adjudication of
+correctness, severity, actionability, and genuinely new information for
+both human and AI concerns, including checks of data or code where
+relevant. Their claim audit makes a stronger validation standard
+necessary for ours.
+
+\textbf{Prospective predictions and decisions.} The proposed pipeline
+can register predictions before human evaluations or publication
+outcomes are available. It should also check earlier public versions and
+reviews; a new intake date alone does not prevent contamination.
+Publication venues are verifiable outcomes, with their own selection
+mechanisms and biases, rather than ground truth about scientific merit.
+Research prioritization adds a separate question: which work deserves
+scarce evaluation effort because it could inform important decisions?
+Agreement with internal prioritization is descriptive evidence, not
+proof of social value.
+
+\textbf{Human--AI collaboration and downstream effects.} King and
+Worthington explicitly leave publication decisions, improvements in
+subsequent revisions, and collective effects unmeasured. Proposed
+Unjournal trials could compare unaided human evaluation, AI-only
+evaluation, and human evaluation with AI assistance. Relevant outcomes
+include independently validated issue detection, harmful false
+positives, evaluator time, author revisions, and usefulness to research
+users. Author satisfaction and textual revision alone would not
+establish scientific improvement. These trials and broader impact
+measures remain proposed work.
+
+The combination of these questions is a credible contribution. Paid
+expert reports, broad social-science relevance, or a simple no-tools
+baseline alone are weak differentiators: rapidPeer already provides
+substantial overlap on those features. The current study's smaller
+sample and older model runs also limit claims about today's best
+achievable review quality. Its findings and rapidPeer's can both hold
+because the tasks, models, and outcome measures differ.
+
+\subsection{Proposed priorities for further
+research}\label{proposed-priorities-for-further-research}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Validate a focused set of consequential critiques.} Use
+  independent domain experts, blinded to review source, to adjudicate
+  AI-only, human-only, and shared concerns. Preserve disagreements and
+  distinguish factual contradictions from contested methodological
+  judgments. Prioritize serious errors and useful additions over another
+  overall preference score.
+\item
+  \textbf{Register a prospective comparison.} Freeze manuscripts,
+  prompts, model identifiers, access to tools and supplementary
+  material, predictions, and scoring rules. Compare a current
+  fixed-rubric baseline with a stronger retrieval-assisted approach on
+  held-out papers. Cluster uncertainty by paper when multiple reviews or
+  judges share a manuscript; report ties, missing judgments, and
+  sensitivity to judge choice.
+\item
+  \textbf{Estimate the value of human effort after AI assistance.} In a
+  randomized pilot, measure additional validated issues and useful
+  decisions per unit of evaluator time and total cost, including
+  adjudication and correction costs. Specify contamination controls,
+  assignment units, and primary outcomes before collecting results.
+\item
+  \textbf{Test preferences and resistance to manipulation.} Vary
+  prestige cues, prompt framing, and adversarial instructions while
+  holding research content fixed. Measure whether assistance homogenizes
+  judgments or suppresses useful minority objections. These address
+  concerns King and Worthington also raise; they are motivated
+  extensions, not untouched topics.
+\end{enumerate}
+
+\textbf{Funding implication (AI assessment).} A smaller, well-validated
+prospective study would now be easier to justify than a large expansion
+devoted mainly to repeating human--LLM agreement comparisons. The
+existing proposal's structured measurement, adjudication, prospective
+validation, prioritization, and collaboration components remain useful,
+but their value depends on executing them. This note does not change the
+proposal's budget or claim those studies have been completed.
+
+See the \hyperref[introduction]{current working paper},
+\hyperref[sec-peerless]{discussion}, and
+\href{https://llm-uj-research-eval-project.netlify.app/proposal.html}{broader
+project and grant proposal}. The working paper remains the source for
+current results; the broader site preserves earlier project context.
 
 
 
