@@ -60,6 +60,30 @@ The original Netlify URL changed roles and now mirrors the working paper. The br
 
 ---
 
+## October 2026 related-work update
+
+The AI-generated comparison with King and Worthington (2026) is maintained in
+`peerless_context.qmd`, with shorter notes in `index.qmd`, `discussion.qmd`,
+and `proposal.qmd`, and the citation in `references.bib`. Its public destination
+is <https://llm-uj-research-eval.netlify.app/peerless_context.html>. Continue the
+research assessment in that source; proposed follow-up studies are not adopted
+plans or completed results.
+
+The historical project site's homepage and proposal receive the shared notice
+in `docs/peerless_project_notice.html`. On October 23, the published raw versions
+of those two pages matched `67a6cea:_book/index.html` and
+`67a6cea:_book/proposal.html` by SHA-1. The notice is inserted immediately after
+each opening `<main>` tag. Use the live Netlify file inventory as the release
+baseline and preserve every other file hash. Do not replace the historical site
+with the working-paper `_book/` or create another maintained manuscript branch.
+
+For future updates, recheck that baseline before editing, render the current
+paper's HTML and PDF, and verify the new text and citation on both live sites.
+The historical project's Netlify site ID is
+`7c50da14-8f61-4212-8928-321519e33b0e`; its configuration was confirmed to have
+no connected Git repository on October 23. A source push alone does not update
+that site.
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:
