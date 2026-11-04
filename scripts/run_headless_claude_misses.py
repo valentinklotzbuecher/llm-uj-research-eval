@@ -275,7 +275,7 @@ def estimate_cost(usage: dict[str, Any]) -> float:
     )
 
 
-def run_api(client, system_prompt: str, user_text: str, schema: dict[str, Any], pdf: pathlib.Path) -> dict[str, Any]:
+def run_api(client, system_prompt: str, user_text: str, schema: dict[str, Any], pdf: pathlib.Path, raw_path: pathlib.Path) -> dict[str, Any]:
     import anthropic
 
     content = [
@@ -299,6 +299,10 @@ def run_api(client, system_prompt: str, user_text: str, schema: dict[str, Any], 
             messages=[{"role": "user", "content": content}],
         ) as stream:
             msg = stream.get_final_message()
+            try:
+                request_id = stream.response.headers.get("request-id")
+            except Exception:  # noqa: BLE001 - provenance only; never lose the response over it
+                request_id = None
     except anthropic.APIStatusError as e:
         return {"error": f"{type(e).__name__} {e.status_code}: {e.message}",
                 "request_id": getattr(e, "request_id", None), "elapsed_seconds": round(time.time() - t0, 1)}
@@ -306,11 +310,14 @@ def run_api(client, system_prompt: str, user_text: str, schema: dict[str, Any], 
         return {"error": f"APIConnectionError: {e}", "elapsed_seconds": round(time.time() - t0, 1)}
     elapsed = time.time() - t0
     d = msg.to_dict()
-    text = "".join(b.get("text", "") for b in d["content"] if b.get("type") == "text")
-    thinking = [b.get("thinking", "") for b in d["content"] if b.get("type") == "thinking"]
+    # Save the raw response first, so a later processing error cannot lose a paid call.
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    raw_path.write_text(json.dumps(d, ensure_ascii=False))
+    text = "".join(b.get("text", "") or "" for b in d.get("content", []) if b.get("type") == "text")
+    thinking = [b.get("thinking", "") or "" for b in d.get("content", []) if b.get("type") == "thinking"]
     return {
         "elapsed_seconds": round(elapsed, 1),
-        "request_id": msg._request_id,
+        "request_id": request_id,
         "response_id": d.get("id"),
         "model": d.get("model"),
         "stop_reason": d.get("stop_reason"),
@@ -458,7 +465,7 @@ def run_one(args: argparse.Namespace, client, ns: dict[str, Any], paper_stem: st
         return 0
 
     print(f"run {cond} {paper_stem}{suffix}{rep} ({provenance['pdf_pages']} pages) ...", flush=True)
-    raw = run_api(client, system_prompt, user_text, schema, pdf)
+    raw = run_api(client, system_prompt, user_text, schema, pdf, out_file.with_suffix(".raw_response.json"))
     usage = raw.get("usage") or {}
     cost = estimate_cost(usage) if usage else 0.0
     parsed = None
