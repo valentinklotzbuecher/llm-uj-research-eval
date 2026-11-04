@@ -1,0 +1,186 @@
+{
+  "description": "Expert critiques used as condition-C recognition prompts and as the scoring reference for conditions A-C. Claim texts paraphrase published Unjournal evaluations (data/unjournal_evaluations/) in neutral wording; no evaluator names. 'origin' says whether the item was on the handover's list of earlier misses or is something the published record treats as central that the handover list left out. 'published_weight' is how the published record weights the point. 'run_condition_c' is set after A and B are scored: C runs only for items missed (or only partly caught) in both.",
+  "claims": [
+    {
+      "claim_id": "ACE1_prior_election_control",
+      "paper": "Acemoglu_et_al._2024",
+      "origin": "handover_list",
+      "published_source": "evalsumdemandfordemocracy.md (evaluation manager)",
+      "published_weight": "noted as important to flag, but explicitly 'should not be considered a major limitation' because conditioning on the lagged outcome is best practice",
+      "claim_text": "The field experiment's statistical significance depends on controlling for the prior election result. In Table 2, columns 1-2, the standard error of the intention-to-treat estimate roughly halves when the prior election result is included; without that control the estimate is too noisy to be statistically significant. This should be noticed and emphasised.",
+      "grading_note": "Caught = says the field ITT's precision or significance hinges on the prior-vote (lagged outcome) control, citing Table 2 or equivalent. Partly = generic 'results depend on controls / balance covariates' without the prior-election point. Best answers also note the adjustment is standard and check whether it was pre-specified.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "ACE2_spillovers",
+      "paper": "Acemoglu_et_al._2024",
+      "origin": "handover_list",
+      "published_source": "e2demandfordemocracy.md",
+      "published_weight": "listed concern, not ranked as most important",
+      "claim_text": "Adjacent untreated neighbourhoods may have been exposed to the treatment messages by word of mouth or shared pamphlets, so the field estimates could be attenuated or biased; the paper should check for spatial spillovers.",
+      "grading_note": "Caught = mentions interference/SUTVA/spillovers between neighbourhoods.",
+      "run_condition_c": false
+    },
+    {
+      "claim_id": "ACE3_change_scores",
+      "paper": "Acemoglu_et_al._2024",
+      "origin": "handover_list",
+      "published_source": "e1demandfordemocracy.md",
+      "published_weight": "suggestion; evaluator says none of their concerns are major",
+      "claim_text": "In the online experiment the main specification uses post-treatment outcomes only; the authors should use the change between pre- and post-treatment values (or make the pre-treatment-controlled specification the main one).",
+      "grading_note": "Caught = mentions using baseline/pre-treatment measures, change scores or ANCOVA for the online experiment.",
+      "run_condition_c": false
+    },
+    {
+      "claim_id": "ACE4_demand_for_democracy_framing",
+      "paper": "Acemoglu_et_al._2024",
+      "origin": "published_central_not_on_handover_list",
+      "published_source": "e2demandfordemocracy.md (leads its summary)",
+      "published_weight": "evaluator 2's leading concern",
+      "claim_text": "The treatments emphasise performance outcomes (disaster deaths, corruption) and the outcomes measure performance beliefs, so the conclusion that voters 'demand democracy' as a normative commitment is not clearly supported.",
+      "grading_note": "Caught = questions whether the effect reflects demand for democracy per se rather than instrumental/performance concerns or persuasion.",
+      "run_condition_c": false
+    },
+    {
+      "claim_id": "WIL1_leakage",
+      "paper": "Williams_et_al._2024",
+      "origin": "handover_list",
+      "published_source": "evalsumnaturalregeneration.md (evaluators' joint synthesis, Primary Concern 1)",
+      "published_weight": "primary concern",
+      "claim_text": "Several predictors (for example net primary production, burned area, road density) were measured over the same period as the regeneration outcome, so the model leaks outcome information and its reported accuracy overstates true predictive performance.",
+      "grading_note": "Caught = predictors contemporaneous with or post-dating the outcome / temporal leakage / circularity inflating accuracy. Partly = generic 'temporal mismatch of covariates' without the accuracy-inflation point.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "WIL2_magnitude_no_hindcast",
+      "paper": "Williams_et_al._2024",
+      "origin": "handover_list",
+      "published_source": "evalsumnaturalregeneration.md (Primary Concern 3)",
+      "published_weight": "primary concern",
+      "claim_text": "The headline 215 Mha of regeneration potential is about seven times the 31.6 Mha of natural regrowth that the paper's own training source (Fagan et al.) observed over 2000-2016, and the paper reports no hindcast showing the model can reproduce historical regrowth.",
+      "grading_note": "Caught = compares 215 Mha with the observed ~31.6 Mha (or otherwise flags the order-of-magnitude gap) and/or asks for a hindcast. Partly = says the estimate is uncertain or the CIs too narrow without the benchmark comparison.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "WIL3_validation_mismatch",
+      "paper": "Williams_et_al._2024",
+      "origin": "handover_list",
+      "published_source": "evalsumnaturalregeneration.md (Other issues)",
+      "published_weight": "secondary issue",
+      "claim_text": "The 'validation' confusion matrix in the appendix (Table A1.2) compares the model's 2030 predictions with regrowth observed over 2000-2016, which is not a true test of predictive power.",
+      "grading_note": "Caught = notes the validation compares predictions for one period with outcomes from another (2030 vs 2000-2016).",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "WIL4_socioeconomic_confounding",
+      "paper": "Williams_et_al._2024",
+      "origin": "published_central_not_on_handover_list",
+      "published_source": "evalsumnaturalregeneration.md (Primary Concern 2)",
+      "published_weight": "primary concern",
+      "claim_text": "Dropping socioeconomic predictors, while keeping predictors such as distance to forest and forest density that are partly human-determined, means the map does not isolate biophysical regeneration potential; the outputs mix biophysical potential with past human land use.",
+      "grading_note": "Caught = questions the biophysical-only interpretation given the predictor set / dropped socioeconomic model.",
+      "run_condition_c": false
+    },
+    {
+      "claim_id": "DUL1_conditional_forecasts",
+      "paper": "Dullaghan_and_Zhang_2022",
+      "origin": "handover_list",
+      "published_source": "e1limitedmeatprod.md",
+      "published_weight": "raised under methods/results; evaluator 1's 'very major' issues are on framing",
+      "claim_text": "The consumer-acceptance questions were asked conditional on more than 10 cumulative kilotons of cultured meat being produced. That conditioning screens off the correlation between production and acceptance, so the answers cannot support the paper's conclusion that consumer approval did not appear to be a major constraint.",
+      "grading_note": "Caught = identifies the conditioning and why it undermines the unconditional reading. Partly = notes the questions are conditional or complex without the inferential error.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "DUL2_fgf2_units",
+      "paper": "Dullaghan_and_Zhang_2022",
+      "origin": "handover_list",
+      "published_source": "e1limitedmeatprod.md",
+      "published_weight": "'a potentially critical issue'",
+      "needs_external_source": true,
+      "claim_text": "In the table given to forecasters for the growth-factor cost question, the Delft techno-economic analysis's FGF2 cost is reported per kilogram when the source reports it per gram, a 1000x units error that makes the Delft estimate look about 3,000 times Humbird's instead of about 3 times.",
+      "grading_note": "Not a fair one-shot test: the error is only checkable against the external source. Caught = flags the Delft/Humbird figures as implausibly far apart or a likely units error. Record under 'needs external source'.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "DUL3_teas_as_predictions",
+      "paper": "Dullaghan_and_Zhang_2022",
+      "origin": "published_central_not_on_handover_list",
+      "published_source": "e1limitedmeatprod.md (framing section)",
+      "published_weight": "evaluator 1's 'very major' framing issue",
+      "claim_text": "The techno-economic analyses were presented to forecasters as if they were predictions rather than conditional cost estimates, and the high-price scenarios used input costs of the time, which have since fallen, biasing forecasts toward pessimism.",
+      "grading_note": "Caught = says TEAs are conditional estimates mis-presented as forecasts, or that anchoring on dated TEA costs biases forecasts pessimistically.",
+      "run_condition_c": false
+    },
+    {
+      "claim_id": "FRE1_qaly_no_sensitivity",
+      "paper": "Frech_et_al._2023",
+      "origin": "handover_list",
+      "published_source": "e2pharmpricing.md",
+      "published_weight": "only partly in the published record: evaluator 2 calls the claim sensible but notes cost-effectiveness estimates are highly sensitive to assumptions; not treated as central",
+      "claim_text": "The back-of-envelope claim that US drug prices are below optimal rests on a ~$40,000 per QALY cost-effectiveness figure, set against a ~$100,000 threshold, with no sensitivity analysis even though such estimates are highly sensitive to assumptions and vary widely by indication.",
+      "grading_note": "Caught = questions the $40k/QALY back-of-envelope or its sensitivity. The published record supports this only partly, so weight a miss lightly.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "FRE2_omitted_variables_row_should_pay",
+      "paper": "Frech_et_al._2023",
+      "origin": "published_central_not_on_handover_list",
+      "published_source": "e1pharmpricing.md, e2pharmpricing.md, evalsumpharmpricing.md",
+      "published_weight": "both evaluators' main concern",
+      "claim_text": "The main cross-country regression of drug prices on GDP is correlational and may suffer omitted-variable bias and reverse causality, with no general-equilibrium or supply-side analysis, so the recommendation that the rest of the world should pay higher prices is not well supported.",
+      "grading_note": "Caught = questions causal interpretation of the price-GDP regression and/or the normative 'ROW should pay more' leap.",
+      "run_condition_c": false
+    },
+    {
+      "claim_id": "CLA1_ai_risk_omitted",
+      "paper": "Clancy_2024",
+      "origin": "handover_list",
+      "published_source": "e3technologicalrisks.md ('my major worry'); briefly e2",
+      "published_weight": "evaluator 3's major worry",
+      "claim_text": "The paper compares all the benefits of science with only one category of its risks, biotechnology catastrophe, leaving out AI and other technological risks that the same forecasting tournament rates much higher; this asymmetry biases the conclusion in favour of accelerating science.",
+      "grading_note": "Caught = flags the benefits-all vs risks-bio-only asymmetry or the omission of AI risk. Partly = says other risks are excluded without connecting it to the bias in the headline conclusion.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "CLA2_discount_rate_inconsistent",
+      "paper": "Clancy_2024",
+      "origin": "handover_list",
+      "published_source": "e2technologicalrisks.md",
+      "published_weight": "a parameter-choice criticism; not singled out as central",
+      "claim_text": "The paper rejects the very low discount rates implied by forecaster extinction estimates on the grounds that extrapolating beyond 2100 is inappropriate, but its own ~2% rate is driven mainly by a ~1.6% annual probability of transformative AI taken from a forecasting contest about AGI before 2043, so it is open to the same criticism.",
+      "grading_note": "Caught = identifies the inconsistency in the discount-rate justification. Partly = generic 'results sensitive to the discount rate'.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "GRE1_smd_imputation",
+      "paper": "Green_et_al._2025",
+      "origin": "handover_list",
+      "published_source": "e2reducingconsumption.md ('a central concern')",
+      "published_weight": "central concern",
+      "claim_text": "Unreported non-significant effects were imputed as a fixed SMD of 0.01. This ignores imputation uncertainty, over-weights imputed studies, makes confidence intervals too narrow, and creates an artificial cluster in the funnel plot; multiple imputation would be better.",
+      "grading_note": "Caught = flags the fixed 0.01 imputation and at least one consequence.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "GRE2_small_study_exclusion",
+      "paper": "Green_et_al._2025",
+      "origin": "handover_list",
+      "published_source": "e2reducingconsumption.md",
+      "published_weight": "listed major methodological issue; debatable",
+      "claim_text": "Excluding studies with fewer than 25 participants per group restricts the range of standard errors, which makes publication bias harder to detect and correct for.",
+      "grading_note": "Caught = connects the n<25 exclusion to publication-bias detection. Partly = mentions the exclusion only as a generalisability issue.",
+      "run_condition_c": true
+    },
+    {
+      "claim_id": "GRE3_non_systematic_search",
+      "paper": "Green_et_al._2025",
+      "origin": "published_central_not_on_handover_list",
+      "published_source": "e1reducingconsumption.md",
+      "published_weight": "evaluator 1's whole critique",
+      "claim_text": "The literature search relied on Google Scholar and similar sources rather than systematic bibliographic database searches, with no double screening or extraction checks and a weak risk-of-bias assessment, so relevant studies are likely missed and the review is not systematic.",
+      "grading_note": "Caught = criticises the search strategy, screening reliability or risk-of-bias assessment.",
+      "run_condition_c": false
+    }
+  ]
+}
