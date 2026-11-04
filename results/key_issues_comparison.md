@@ -93,6 +93,13 @@ Capitan: “interpreting covariate balance tables as a test of randomization is 
 
 ## Benabou_et_al._2023
 
+> **Exclusion note (2026-11-04):** This pair is mismatched and is excluded from the
+> coverage/precision analysis (`scripts/analysis_checks.R`). The human critique below
+> concerns *Willful Ignorance and Moral Behavior*, while the local PDF and the LLM
+> issues (GPT-5.2 Pro here, and the Claude Opus 4.6 run) concern *Ends versus Means:
+> Kantians, Utilitarians, and Moral Decisions*. Its coverage score is an artifact. See
+> `docs/concordance_three_candidate_methods_note_jul2026.md`. Kept here for provenance.
+
 **Coda title:** Willful Ignorance and Moral Behavior
 
 ### GPT-5.2 Pro Key Issues
