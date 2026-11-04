@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Persistent-miss diagnostic: headless Claude Code runs on papers where earlier
-one-shot LLM evaluations missed the critique that human Unjournal evaluators
-treated as central.
+Persistent-miss diagnostic: Claude Opus 5.5 (effort high) on papers where
+earlier one-shot LLM evaluations missed the critique that human Unjournal
+evaluators raised.
 
 Three prompt conditions (see docs/handover_persistent_misses_opus55_2026-11-04.md):
 
@@ -16,13 +16,15 @@ Three prompt conditions (see docs/handover_persistent_misses_opus55_2026-11-04.m
                      ("An evaluator argues X. Is this right, and how much does
                      it matter?"). Claims live in recognition_claims.json.
 
-Each call runs `claude -p --model claude-opus-5-5 --effort high` with both flags
-passed explicitly, in an empty temporary working directory, with --safe-mode
-(no CLAUDE.md, hooks, skills, MCP) so the model cannot see this repository,
-which contains the human critiques. The PDF is sent as a native document block
-via stream-json input (input mode "document"); for PDFs over the 100-page
-document limit, input mode "read" copies the PDF alone into the temp dir and
-allows only the Read tool.
+Calls go to the Anthropic Messages API (streaming) with model claude-opus-5-5,
+output_config.effort "high" set explicitly, adaptive thinking (summaries
+kept), no tools, and the paper as a native base64 PDF document block with a
+cache breakpoint after it, like the earlier one-shot API runs. The key is read
+from key/anthropic_key.txt and never logged. No refusal fallbacks: a refusal
+is recorded rather than answered by another model. Each output records the
+usage (including cache tokens), estimated cost, stop reason, prompt and PDF
+hashes, and SDK version; spend_ledger.csv accumulates cost, and a call is
+skipped once the run total reaches --budget (default $25).
 
 This is a separate diagnostic. Its outputs must not be pooled with the one-shot
 benchmark or used in the manuscript chapters.
@@ -35,13 +37,11 @@ import base64
 import csv
 import hashlib
 import json
-import os
 import pathlib
 import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -52,7 +52,6 @@ PAPERS_DIR = ROOT / "papers"
 DEFAULT_RUN_ID = "claude_opus_5_5_high_misses_2026-11-04"
 MODEL = "claude-opus-5-5"
 EFFORT = "high"
-DOCUMENT_PAGE_LIMIT = 100
 
 PROMPT_VERSIONS = {
     "A": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
@@ -195,11 +194,6 @@ def pdf_pages(path: pathlib.Path) -> int | None:
     return int(m.group(1)) if m else None
 
 
-def cli_version(binary: str) -> str:
-    proc = subprocess.run([binary, "--version"], capture_output=True, text=True)
-    return proc.stdout.strip()
-
-
 # --------------------------------------------------------------------------
 # Prompt construction
 # --------------------------------------------------------------------------
@@ -232,97 +226,144 @@ def build_condition(cond: str, ns: dict[str, Any], claim: dict[str, Any] | None)
 
 
 # --------------------------------------------------------------------------
-# Claude CLI call
+# Messages API call
 # --------------------------------------------------------------------------
 
-def run_claude(system_prompt: str, user_text: str, schema: dict[str, Any], pdf: pathlib.Path,
-               input_mode: str, timeout: int) -> dict[str, Any]:
-    binary = shutil.which("claude") or "/Users/yosemite/.local/bin/claude"
-    env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
-    with tempfile.TemporaryDirectory(prefix="uj_misses_") as td:
-        tdp = pathlib.Path(td)
-        cmd = [
-            binary, "-p",
-            "--model", MODEL,
-            "--effort", EFFORT,
-            "--safe-mode",
-            "--system-prompt", system_prompt,
-            "--permission-mode", "dontAsk",
-            "--no-session-persistence",
-            "--output-format", "stream-json", "--verbose",
-            "--json-schema", json.dumps(schema),
-        ]
-        if input_mode == "document":
-            cmd += ["--tools", "", "--input-format", "stream-json"]
-            message = {"type": "user", "message": {"role": "user", "content": [
-                {"type": "document", "source": {
-                    "type": "base64", "media_type": "application/pdf",
-                    "data": base64.standard_b64encode(pdf.read_bytes()).decode()}},
-                {"type": "text", "text": user_text},
-            ]}}
-            stdin = json.dumps(message) + "\n"
-        elif input_mode == "read":
-            shutil.copy(pdf, tdp / "paper.pdf")
-            cmd += ["--tools", "Read", "--allowedTools", "Read"]
-            stdin = None
-            cmd.append(
-                "The paper is the file paper.pdf in the current directory. Read all of it with the Read tool "
-                "(it accepts a pages range of up to 20 pages per call) before answering.\n\n" + user_text
-            )
-        else:
-            raise ValueError(input_mode)
-        t0 = time.time()
-        proc = subprocess.run(cmd, input=stdin, cwd=tdp, env=env, capture_output=True, text=True, timeout=timeout)
-        elapsed = time.time() - t0
+# USD per million tokens for claude-opus-5-5 (standard tier, first-party API).
+PRICE_INPUT = 4.00
+PRICE_OUTPUT = 20.00
+PRICE_CACHE_WRITE_5M = 5.00   # 1.25x input
+PRICE_CACHE_WRITE_1H = 8.00   # 2x input
+PRICE_CACHE_READ = 0.20
+BUDGET_STOP_USD = 25.0
+MAX_TOKENS = 64000
 
-    events = []
-    for line in proc.stdout.splitlines():
-        try:
-            events.append(json.loads(line))
-        except json.JSONDecodeError:
-            events.append({"type": "unparsed", "text": line[:2000]})
-    result = next((e for e in reversed(events) if e.get("type") == "result"), None)
-    init = next((e for e in events if e.get("type") == "system" and e.get("subtype") == "init"), {})
-    tool_calls = []
-    for e in events:
-        if e.get("type") == "assistant":
-            for block in e.get("message", {}).get("content", []):
-                if block.get("type") == "tool_use":
-                    tool_calls.append({"name": block.get("name"), "input": block.get("input")})
+UNSUPPORTED_SCHEMA_KEYS = ("minimum", "maximum", "minItems", "maxItems")
+
+
+def api_schema(schema: Any) -> Any:
+    """Structured outputs reject numeric and array-length bounds; strip them (validated locally)."""
+    if isinstance(schema, dict):
+        return {k: api_schema(v) for k, v in schema.items() if k not in UNSUPPORTED_SCHEMA_KEYS}
+    if isinstance(schema, list):
+        return [api_schema(x) for x in schema]
+    return schema
+
+
+def make_client():
+    import anthropic
+
+    key_path = ROOT / "key" / "anthropic_key.txt"
+    key = key_path.read_text().strip()
+    # max_retries covers 429/5xx/connection errors; the long timeout suits big PDFs at high effort.
+    return anthropic.Anthropic(api_key=key, max_retries=4, timeout=3600.0)
+
+
+def estimate_cost(usage: dict[str, Any]) -> float:
+    cc = usage.get("cache_creation") or {}
+    w5 = cc.get("ephemeral_5m_input_tokens", 0) or 0
+    w1 = cc.get("ephemeral_1h_input_tokens", 0) or 0
+    if not (w5 or w1):
+        w5 = usage.get("cache_creation_input_tokens", 0) or 0
+    return round(
+        (usage.get("input_tokens", 0) or 0) * PRICE_INPUT / 1e6
+        + (usage.get("output_tokens", 0) or 0) * PRICE_OUTPUT / 1e6
+        + w5 * PRICE_CACHE_WRITE_5M / 1e6
+        + w1 * PRICE_CACHE_WRITE_1H / 1e6
+        + (usage.get("cache_read_input_tokens", 0) or 0) * PRICE_CACHE_READ / 1e6,
+        4,
+    )
+
+
+def run_api(client, system_prompt: str, user_text: str, schema: dict[str, Any], pdf: pathlib.Path) -> dict[str, Any]:
+    import anthropic
+
+    content = [
+        {
+            "type": "document",
+            "source": {"type": "base64", "media_type": "application/pdf",
+                       "data": base64.standard_b64encode(pdf.read_bytes()).decode()},
+            # Breakpoint after the PDF: later calls with the same system prompt and paper reuse it.
+            "cache_control": {"type": "ephemeral"},
+        },
+        {"type": "text", "text": user_text},
+    ]
+    t0 = time.time()
+    try:
+        with client.messages.stream(
+            model=MODEL,
+            max_tokens=MAX_TOKENS,
+            system=system_prompt,
+            thinking={"type": "adaptive", "display": "summarized"},
+            output_config={"effort": EFFORT, "format": {"type": "json_schema", "schema": api_schema(schema)}},
+            messages=[{"role": "user", "content": content}],
+        ) as stream:
+            msg = stream.get_final_message()
+    except anthropic.APIStatusError as e:
+        return {"error": f"{type(e).__name__} {e.status_code}: {e.message}",
+                "request_id": getattr(e, "request_id", None), "elapsed_seconds": round(time.time() - t0, 1)}
+    except anthropic.APIConnectionError as e:
+        return {"error": f"APIConnectionError: {e}", "elapsed_seconds": round(time.time() - t0, 1)}
+    elapsed = time.time() - t0
+    d = msg.to_dict()
+    text = "".join(b.get("text", "") for b in d["content"] if b.get("type") == "text")
+    thinking = [b.get("thinking", "") for b in d["content"] if b.get("type") == "thinking"]
     return {
-        "returncode": proc.returncode,
-        "stderr_tail": proc.stderr[-3000:],
         "elapsed_seconds": round(elapsed, 1),
-        "result_event": result,
-        "init_model": init.get("model"),
-        "init_tools": init.get("tools"),
-        "tool_calls": tool_calls,
+        "request_id": msg._request_id,
+        "response_id": d.get("id"),
+        "model": d.get("model"),
+        "stop_reason": d.get("stop_reason"),
+        "stop_details": d.get("stop_details"),
+        "usage": d.get("usage"),
+        "text": text,
+        "thinking_summaries": thinking,
     }
 
 
-def extract_structured(result_event: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not result_event:
-        return None
-    so = result_event.get("structured_output")
-    if isinstance(so, dict):
-        return so
-    text = result_event.get("result")
-    if isinstance(text, str):
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            m = re.search(r"\{[\s\S]*\}", text)
-            if m:
-                try:
-                    return json.loads(m.group())
-                except json.JSONDecodeError:
-                    return None
-    return None
+def validate(cond: str, parsed: dict[str, Any]) -> list[str]:
+    errs: list[str] = []
+    if cond == "A":
+        for name, m in parsed.get("metrics", {}).items():
+            if "midpoint" in m:
+                if not (0 <= m["lower_bound"] <= m["midpoint"] <= m["upper_bound"] <= 100):
+                    errs.append(f"bounds {name}")
+            elif "score" in m:
+                if not (0 <= m["ci_lower"] <= m["score"] <= m["ci_upper"] <= 5):
+                    errs.append(f"bounds {name}")
+    if cond == "B" and len(parsed.get("top_five", [])) != 5:
+        errs.append(f"top_five has {len(parsed.get('top_five', []))} items")
+    return errs
 
 
 # --------------------------------------------------------------------------
-# Run registry (results/llm_runs_metadata.csv via track_llm_run helpers)
+# Spend ledger and run registry
 # --------------------------------------------------------------------------
+
+def spend_path(run_dir: pathlib.Path) -> pathlib.Path:
+    return run_dir / "spend_ledger.csv"
+
+
+def total_spend(run_dir: pathlib.Path) -> float:
+    p = spend_path(run_dir)
+    if not p.exists():
+        return 0.0
+    with p.open() as f:
+        return sum(float(r["est_cost_usd"]) for r in csv.DictReader(f))
+
+
+def record_spend(run_dir: pathlib.Path, row: dict[str, Any]) -> None:
+    p = spend_path(run_dir)
+    new = not p.exists()
+    fields = ["timestamp", "paper", "condition", "claim_id", "replicate", "status", "stop_reason",
+              "input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens",
+              "est_cost_usd", "elapsed_seconds", "request_id"]
+    with p.open("a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        if new:
+            w.writeheader()
+        w.writerow({k: row.get(k, "") for k in fields})
+
 
 def register_run(run_id: str, run_dir: pathlib.Path) -> None:
     sys.path.insert(0, str(ROOT))
@@ -336,7 +377,7 @@ def register_run(run_id: str, run_dir: pathlib.Path) -> None:
     rows.append({
         "run_id": run_id,
         "date": datetime.now().strftime("%Y-%m-%d"),
-        "model": f"{MODEL} (effort {EFFORT}, headless claude -p)",
+        "model": f"{MODEL} (effort {EFFORT}, Messages API)",
         "prompt_version": "persistent_misses_ABC (" + "; ".join(f"{k}={v}" for k, v in PROMPT_VERSIONS.items()) + ")",
         "prompt_description": "Persistent-miss diagnostic: A standard combined prompt with key_issues, B prioritisation, C recognition of expert critique",
         "prompt_file": "methods.qmd:SYSTEM_PROMPT_WITH_ISSUES; scripts/run_headless_claude_misses.py",
@@ -357,8 +398,14 @@ def register_run(run_id: str, run_dir: pathlib.Path) -> None:
 # Main
 # --------------------------------------------------------------------------
 
-def run_one(args: argparse.Namespace, ns: dict[str, Any], paper_stem: str, cond: str,
-            claim: dict[str, Any] | None, binary_version: str) -> int:
+def sdk_version() -> str:
+    import anthropic
+
+    return anthropic.__version__
+
+
+def run_one(args: argparse.Namespace, client, ns: dict[str, Any], paper_stem: str, cond: str,
+            claim: dict[str, Any] | None) -> int:
     pdf = PAPERS_DIR / f"{paper_stem}.pdf"
     if not pdf.exists():
         raise FileNotFoundError(pdf)
@@ -372,10 +419,10 @@ def run_one(args: argparse.Namespace, ns: dict[str, Any], paper_stem: str, cond:
         print(f"skip (exists): {out_file.relative_to(ROOT)}")
         return 0
 
-    pages = pdf_pages(pdf)
-    input_mode = args.input_mode
-    if input_mode == "auto":
-        input_mode = "read" if (pages or 0) > DOCUMENT_PAGE_LIMIT else "document"
+    spent = total_spend(run_dir)
+    if spent >= args.budget:
+        print(f"STOP: estimated spend ${spent:.2f} has reached the ${args.budget:.2f} limit")
+        return 99
 
     system_prompt, user_text, schema = build_condition(cond, ns, claim)
     provenance = {
@@ -384,57 +431,87 @@ def run_one(args: argparse.Namespace, ns: dict[str, Any], paper_stem: str, cond:
         "condition": cond,
         "claim_id": claim["claim_id"] if claim else None,
         "replicate": args.replicate,
+        "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+        "sdk_version": sdk_version(),
         "model_requested": MODEL,
-        "effort_requested": EFFORT,
-        "cli_flags": f"claude -p --model {MODEL} --effort {EFFORT} --safe-mode --system-prompt <...> --json-schema <...>",
-        "cli_version": binary_version,
+        "effort": EFFORT,
+        "thinking": "adaptive, display summarized",
+        "max_tokens": MAX_TOKENS,
+        "fallbacks": "none (refusals are recorded, not rerouted)",
         "prompt_version": PROMPT_VERSIONS[cond],
         "system_prompt_sha256": sha256_bytes(system_prompt.encode()),
         "user_text_sha256": sha256_bytes(user_text.encode()),
         "schema_sha256": sha256_bytes(json.dumps(schema, sort_keys=True).encode()),
+        "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
         "methods_qmd_sha256": sha256_file(METHODS_QMD),
         "methods_qmd_last_commit": git_blob(METHODS_QMD),
         "pdf_path": str(pdf.relative_to(ROOT)),
         "pdf_sha256": sha256_file(pdf),
-        "pdf_pages": pages,
+        "pdf_pages": pdf_pages(pdf),
         "pdf_last_commit": git_blob(pdf),
-        "input_mode": input_mode,
-        "isolation": "empty temp cwd, --safe-mode, no repo access, no web tools",
+        "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+        "tools": "none",
         "started_at": datetime.now(timezone.utc).isoformat(),
     }
     if args.dry_run:
         print(json.dumps({**provenance, "user_text": user_text, "system_prompt_chars": len(system_prompt)}, indent=1))
         return 0
 
-    print(f"run {cond} {paper_stem}{suffix}{rep} ({input_mode}, {pages} pages) ...", flush=True)
-    raw = run_claude(system_prompt, user_text, schema, pdf, input_mode, args.timeout)
-    parsed = extract_structured(raw["result_event"])
-    re_ = raw["result_event"] or {}
+    print(f"run {cond} {paper_stem}{suffix}{rep} ({provenance['pdf_pages']} pages) ...", flush=True)
+    raw = run_api(client, system_prompt, user_text, schema, pdf)
+    usage = raw.get("usage") or {}
+    cost = estimate_cost(usage) if usage else 0.0
+    parsed = None
+    errors: list[str] = []
+    if raw.get("error"):
+        errors.append(raw["error"])
+    elif raw.get("stop_reason") != "end_turn":
+        errors.append(f"stop_reason={raw.get('stop_reason')} stop_details={raw.get('stop_details')}")
+    else:
+        try:
+            parsed = json.loads(raw["text"])
+            errors += validate(cond, parsed)
+        except json.JSONDecodeError as e:
+            errors.append(f"JSON parse: {e}")
     provenance.update({
         "completed_at": datetime.now(timezone.utc).isoformat(),
-        "elapsed_seconds": raw["elapsed_seconds"],
-        "returncode": raw["returncode"],
-        "init_model": raw["init_model"],
-        "init_tools": raw["init_tools"],
-        "model_usage": re_.get("modelUsage"),
-        "usage": re_.get("usage"),
-        "total_cost_usd_reported": re_.get("total_cost_usd"),
-        "num_turns": re_.get("num_turns"),
-        "is_error": re_.get("is_error"),
-        "tool_calls": raw["tool_calls"],
+        "elapsed_seconds": raw.get("elapsed_seconds"),
+        "request_id": raw.get("request_id"),
+        "response_id": raw.get("response_id"),
+        "model_returned": raw.get("model"),
+        "stop_reason": raw.get("stop_reason"),
+        "stop_details": raw.get("stop_details"),
+        "usage": usage,
+        "est_cost_usd": cost,
+        "price_basis_usd_per_mtok": {"input": PRICE_INPUT, "output": PRICE_OUTPUT,
+                                     "cache_write_5m": PRICE_CACHE_WRITE_5M, "cache_read": PRICE_CACHE_READ},
+        "validation_errors": errors,
     })
     payload = {
         "provenance": provenance,
         "claim": claim,
         "user_text": user_text,
         "parsed": parsed,
-        "result_text": re_.get("result"),
-        "stderr_tail": raw["stderr_tail"] if raw["returncode"] else "",
+        "result_text": raw.get("text"),
+        "thinking_summaries": raw.get("thinking_summaries"),
     }
-    ok = raw["returncode"] == 0 and parsed is not None and not re_.get("is_error")
+    ok = parsed is not None and not raw.get("error") and raw.get("stop_reason") == "end_turn"
     target = out_file if ok else out_file.with_suffix(".failed.json")
     target.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
-    print(f"{'ok' if ok else 'FAILED'}: {target.relative_to(ROOT)} ({raw['elapsed_seconds']}s)", flush=True)
+    record_spend(run_dir, {
+        "timestamp": provenance["completed_at"], "paper": paper_stem, "condition": cond,
+        "claim_id": provenance["claim_id"] or "", "replicate": args.replicate,
+        "status": "ok" if ok else "failed", "stop_reason": raw.get("stop_reason", ""),
+        "input_tokens": usage.get("input_tokens", ""),
+        "cache_creation_input_tokens": usage.get("cache_creation_input_tokens", ""),
+        "cache_read_input_tokens": usage.get("cache_read_input_tokens", ""),
+        "output_tokens": usage.get("output_tokens", ""),
+        "est_cost_usd": cost, "elapsed_seconds": raw.get("elapsed_seconds", ""),
+        "request_id": raw.get("request_id", ""),
+    })
+    print(f"{'ok' if ok else 'FAILED'}: {target.relative_to(ROOT)} ({raw.get('elapsed_seconds')}s, "
+          f"~${cost:.2f}; run total ~${total_spend(run_dir):.2f}){'' if ok else ' ' + '; '.join(errors)}",
+          flush=True)
     return 0 if ok else 1
 
 
@@ -444,9 +521,8 @@ def main() -> int:
     ap.add_argument("--condition", choices=["A", "B", "C"], action="append")
     ap.add_argument("--claim-id", action="append", help="Condition C: only these claim ids")
     ap.add_argument("--run-id", default=DEFAULT_RUN_ID)
-    ap.add_argument("--input-mode", choices=["auto", "document", "read"], default="auto")
     ap.add_argument("--replicate", type=int, default=1)
-    ap.add_argument("--timeout", type=int, default=3600)
+    ap.add_argument("--budget", type=float, default=BUDGET_STOP_USD, help="Stop before a call once estimated run spend reaches this")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--register", action="store_true", help="Register the run in results/llm_runs_metadata.csv")
@@ -462,8 +538,7 @@ def main() -> int:
         ap.error("--paper and --condition are required")
 
     ns = load_methods_prompts()
-    binary = shutil.which("claude") or "/Users/yosemite/.local/bin/claude"
-    version = cli_version(binary)
+    client = None if args.dry_run else make_client()
     claims_path = run_dir / "recognition_claims.json"
     claims = json.loads(claims_path.read_text())["claims"] if claims_path.exists() else []
 
@@ -476,10 +551,14 @@ def main() -> int:
                     todo = [c for c in todo if c["claim_id"] in args.claim_id]
                 if not todo:
                     print(f"no condition-C claims for {paper}")
-                for claim in todo:
-                    failures += run_one(args, ns, paper, cond, claim, version)
+                items = todo
             else:
-                failures += run_one(args, ns, paper, cond, None, version)
+                items = [None]
+            for claim in items:
+                rc = run_one(args, client, ns, paper, cond, claim)
+                if rc == 99:
+                    return 99
+                failures += rc
     return 1 if failures else 0
 
 
