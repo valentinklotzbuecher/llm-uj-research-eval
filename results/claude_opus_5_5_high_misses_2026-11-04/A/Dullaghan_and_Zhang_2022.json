@@ -1,0 +1,127 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Dullaghan_and_Zhang_2022",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Dullaghan_and_Zhang_2022.pdf",
+    "pdf_sha256": "90ff03c648c63ef9ebe591c91a2d05c8d9a52f28e865ab2402388219678e404a",
+    "pdf_pages": 32,
+    "pdf_last_commit": "073e56163a1fb65efad71768280f393c93e0f147",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-04T20:32:02.635413+00:00",
+    "completed_at": "2026-11-04T20:32:58.707085+00:00",
+    "elapsed_seconds": 56.1,
+    "request_id": "req_011CgiXLRNiosow9S8weqqn7",
+    "response_id": "msg_011CgiXLTwGktLL8NKdkNYbr",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 74429
+      },
+      "cache_creation_input_tokens": 74429,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 4589,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.464,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This report elicits probabilistic forecasts on cultured meat production volumes (>100k to >50M metric tons annually by 2031, 2036 and 2051) plus a set of hypothesized signposts: funding, researcher numbers, input costs, retail adoption and public acceptance. It then uses forecaster reasoning to identify cruxes and suggest philanthropic priorities. The headline result is low aggregated probabilities, for example 9% for >50M t by 2051 and 54% for <100k t through 2051. From this the authors argue that EA should plan on century-scale rather than decade-scale timelines. The question is decision-relevant and the operationalization is careful in several respects: it focuses on volume sold rather than claimed prices or facility capacity, uses a >51% cell-based definition, and states resolution criteria and thresholds explicitly. Still, the evidential weight of the core numbers is modest, and the report somewhat over-reads them.\n\nThe central limitation is the elicitation sample. There are six forecasters: five highly ranked Metaculus generalists and one cultured meat scientist. Each was given about 15 hours. Metaculus skill is established mainly on short-horizon questions with fast feedback, so there is little basis for trusting calibration on 10–30-year technology diffusion. Dispersion is very large: the average max–min range is 48 percentage points, and on several 2051 questions individuals range from roughly 1% to 75–92%. With n=6, the geometric mean of odds is sensitive to one or two forecasters, and the aggregate conceals what looks like a bimodal split between optimists and pessimists. The report gives no aggregate uncertainty, no bootstrap or leave-one-out sensitivity, and no comparison with median or arithmetic pooling. It also does not discuss whether the 'majority of probabilities were for low volumes' framing is robust. The authors' own forecasts were made but are not reported or compared, and it is not explicit whether they enter the aggregate.\n\nSecond, framing and anchoring risks are substantial and only partly acknowledged:\n- The authors state they placed heavy weight on Humbird (2020) and had previously criticized the more optimistic CE Delft TEA.\n- They supplied the reference material forecasters used, so the panel's pessimism may partly reflect curated inputs rather than independent judgment.\n- Several errors in the instruments are disclosed: recombinant proteins wrongly included in the amino-acid cost question, with transferrin and insulin in the reference material; '51%' not specified as by weight; and a Manhattan-project question error that left results unusable.\n\nThe transparency is commendable, but these errors lower confidence in instrument quality. Forecasters rarely engaged with what the authors considered key cruxes, such as food- versus pharma-grade facilities. All forecasts are also conditional on no transformative AI, which matters for interpreting 2051 numbers but is not discussed.\n\nThird, the correlation analysis is close to uninformative. It computes pairwise correlations across six forecasters' answers to some 30 questions and displays only p<0.05 cells, with no multiple-comparison correction. With n=6, 'significance' is fragile, and between-forecaster correlations reflect general optimism rather than causal links between signposts and production. The text concedes it 'does not reveal much', yet still presents the figure and notes VC and public-funding correlations as if suggestive. The report would be better without it, or with clear caveats that it carries no causal or signpost information.\n\nFourth, the policy conclusions go beyond what the forecasts support:\n- The recommendations (new bioreactor types, cheap amino acids via hydrolysates, billions in public funding, cell engineering for 10x lower media use, growth factors under $1/g, researcher CAGR >10%) derive mainly from the authors' reading of TEAs. They are not derived from the elicitation, and no counterfactual impact of philanthropic spending on these levers is quantified.\n- The introduction frames the key question as whether EA money can multiply the probability of ≥50M t by 2051, but no conditional forecasts were elicited, for example under scenarios of additional funding or public R&D. The forecasts therefore cannot answer the stated decision question.\n- The 'century, not decades' claim is not directly supported by any question, since none extends beyond 2051.\n- The comparison with alternatives (plant-based meat, welfare reforms) relies on two questions about future evaluators' judgments, which is an indirect proxy.\n\nFifth, the critiques of consultancy projections (McKinsey, BCG, AT Kearney) are reasonable: undisclosed calculations, assumed cheap amino acids, inconsistent price implications. However, scrutiny is asymmetric. Humbird's assumptions are treated as the default, and the many optimistic company claims listed under 'what would change our probabilities' are summarized but not evaluated systematically. The reported-price chart rests on unverified company claims of heterogeneous meaning, which the authors themselves argue are unreliable signals.\n\nContextual numbers mix years: meat production from 2018 and seafood from 2015, totalling about 545M t. The 50M t threshold is described as 5–7% of 2051 demand, but the projection behind this is not shown. Meanwhile, panelists' 80% intervals for 2051 conventional production ranged from 30M to 1.5B t. That range suggests some forecasters misunderstood the question or had poor grounding, which further weakens confidence in panel calibration.\n\nInternal arithmetic checks out:\n- The CAGR table is correct (e.g., 1→100k t over 10 years ≈216%).\n- The 2051 binned distribution matches differences of the threshold probabilities (≈54/15/13/9/9).\n- Probabilities are monotone across thresholds and years.\n\nStrengths include clear writing and explicit operationalizations. Anonymized forecasts, rationales, data and correlation scripts are shared. The recruitment protocol and reference materials are linked. A pre-forecast list of update criteria (Linch's) provides some protection against post-hoc rationalization. The report also commits to a follow-up Metaculus tournament that will create resolvable, trackable questions. As a structured map of disagreement and an early benchmark against hype-driven consultancy projections, it is useful for funders. As evidence for specific probabilities it is weak, which the authors partly concede ('not justifying any specific probability'), though the title and summary present the numbers more assertively than that caveat implies.",
+    "key_issues": [
+      "1. The panel has only six forecasters (five generalist Metaculus forecasters and one scientist), with no evidence of long-horizon calibration, so the aggregate probabilities carry limited evidential weight.",
+      "2. Disagreement is extreme (mean max–min spread of 48 pp; some 2051 answers range from ~1% to 75–92%). The pooled geometric-mean-of-odds figures hide a likely bimodal split, and no aggregate uncertainty, leave-one-out or alternative pooling sensitivity is reported.",
+      "3. Anchoring risk: the authors, who weighted Humbird (2020) heavily, curated the reference materials, so panel pessimism may partly reflect the inputs provided rather than independent judgment.",
+      "4. Instrument errors (recombinant proteins in the amino-acid question, unspecified '51% by weight', the broken Manhattan-project questions) reduce the validity of several items. They are transparently disclosed.",
+      "5. The correlation analysis across six respondents with many uncorrected tests at p<0.05 is essentially uninformative and cannot identify signposts or causal drivers. It is nonetheless presented graphically and partly interpreted.",
+      "6. The motivating decision question (can EA funding multiply the probability of ≥50M t by 2051?) is not answered: no conditional or scenario forecasts on funding or interventions were elicited.",
+      "7. The policy recommendations ('century not decades', specific R&D priorities, a willingness to spend $10M) derive mainly from the authors' TEA reading and personal judgment rather than the elicited forecasts, and their counterfactual impact is unquantified.",
+      "8. Scrutiny is asymmetric: consultancy and company claims are critiqued in detail, while Humbird's assumptions serve as the default without comparable stress-testing.",
+      "9. Conditioning on no transformative AI, and the 'sold at any price in any 12-month span' resolution, materially shape interpretation of 2051 numbers but are not discussed.",
+      "10. Some contextual figures mix years and sources, and the 5–7% share-of-demand estimate is unexplained. Panel answers for 2051 conventional meat (30M–1.5B t) suggest weak grounding or misunderstanding.",
+      "11. Data, rationales and code are openly shared and update criteria were partly pre-specified. These are real strengths for replication and follow-up tournament tracking."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 50,
+        "lower_bound": 35,
+        "upper_bound": 65
+      },
+      "claims_evidence": {
+        "midpoint": 42,
+        "lower_bound": 28,
+        "upper_bound": 57
+      },
+      "methods": {
+        "midpoint": 38,
+        "lower_bound": 25,
+        "upper_bound": 53
+      },
+      "advancing_knowledge": {
+        "midpoint": 52,
+        "lower_bound": 36,
+        "upper_bound": 67
+      },
+      "logic_communication": {
+        "midpoint": 62,
+        "lower_bound": 48,
+        "upper_bound": 75
+      },
+      "open_science": {
+        "midpoint": 72,
+        "lower_bound": 57,
+        "upper_bound": 85
+      },
+      "global_relevance": {
+        "midpoint": 66,
+        "lower_bound": 50,
+        "upper_bound": 80
+      },
+      "tier_should": {
+        "score": 2.0,
+        "ci_lower": 1.2,
+        "ci_upper": 2.9
+      },
+      "tier_will": {
+        "score": 1.2,
+        "ci_lower": 0.4,
+        "ci_upper": 2.3
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This report elicits probabilistic forecasts on cultured meat production volumes (>100k to >50M metric tons annually by 2031, 2036 and 2051) plus a set of hypothesized signposts: funding, researcher numbers, input costs, retail adoption and public acceptance. It then uses forecaster reasoning to identify cruxes and suggest philanthropic priorities. The headline result is low aggregated probabilities, for example 9% for >50M t by 2051 and 54% for <100k t through 2051. From this the authors argue that EA should plan on century-scale rather than decade-scale timelines. The question is decision-relevant and the operationalization is careful in several respects: it focuses on volume sold rather than claimed prices or facility capacity, uses a >51% cell-based definition, and states resolution criteria and thresholds explicitly. Still, the evidential weight of the core numbers is modest, and the report somewhat over-reads them.\\n\\nThe central limitation is the elicitation sample. There are six forecasters: five highly ranked Metaculus generalists and one cultured meat scientist. Each was given about 15 hours. Metaculus skill is established mainly on short-horizon questions with fast feedback, so there is little basis for trusting calibration on 10–30-year technology diffusion. Dispersion is very large: the average max–min range is 48 percentage points, and on several 2051 questions individuals range from roughly 1% to 75–92%. With n=6, the geometric mean of odds is sensitive to one or two forecasters, and the aggregate conceals what looks like a bimodal split between optimists and pessimists. The report gives no aggregate uncertainty, no bootstrap or leave-one-out sensitivity, and no comparison with median or arithmetic pooling. It also does not discuss whether the 'majority of probabilities were for low volumes' framing is robust. The authors' own forecasts were made but are not reported or compared, and it is not explicit whether they enter the aggregate.\\n\\nSecond, framing and anchoring risks are substantial and only partly acknowledged:\\n- The authors state they placed heavy weight on Humbird (2020) and had previously criticized the more optimistic CE Delft TEA.\\n- They supplied the reference material forecasters used, so the panel's pessimism may partly reflect curated inputs rather than independent judgment.\\n- Several errors in the instruments are disclosed: recombinant proteins wrongly included in the amino-acid cost question, with transferrin and insulin in the reference material; '51%' not specified as by weight; and a Manhattan-project question error that left results unusable.\\n\\nThe transparency is commendable, but these errors lower confidence in instrument quality. Forecasters rarely engaged with what the authors considered key cruxes, such as food- versus pharma-grade facilities. All forecasts are also conditional on no transformative AI, which matters for interpreting 2051 numbers but is not discussed.\\n\\nThird, the correlation analysis is close to uninformative. It computes pairwise correlations across six forecasters' answers to some 30 questions and displays only p<0.05 cells, with no multiple-comparison correction. With n=6, 'significance' is fragile, and between-forecaster correlations reflect general optimism rather than causal links between signposts and production. The text concedes it 'does not reveal much', yet still presents the figure and notes VC and public-funding correlations as if suggestive. The report would be better without it, or with clear caveats that it carries no causal or signpost information.\\n\\nFourth, the policy conclusions go beyond what the forecasts support:\\n- The recommendations (new bioreactor types, cheap amino acids via hydrolysates, billions in public funding, cell engineering for 10x lower media use, growth factors under $1/g, researcher CAGR >10%) derive mainly from the authors' reading of TEAs. They are not derived from the elicitation, and no counterfactual impact of philanthropic spending on these levers is quantified.\\n- The introduction frames the key question as whether EA money can multiply the probability of ≥50M t by 2051, but no conditional forecasts were elicited, for example under scenarios of additional funding or public R&D. The forecasts therefore cannot answer the stated decision question.\\n- The 'century, not decades' claim is not directly supported by any question, since none extends beyond 2051.\\n- The comparison with alternatives (plant-based meat, welfare reforms) relies on two questions about future evaluators' judgments, which is an indirect proxy.\\n\\nFifth, the critiques of consultancy projections (McKinsey, BCG, AT Kearney) are reasonable: undisclosed calculations, assumed cheap amino acids, inconsistent price implications. However, scrutiny is asymmetric. Humbird's assumptions are treated as the default, and the many optimistic company claims listed under 'what would change our probabilities' are summarized but not evaluated systematically. The reported-price chart rests on unverified company claims of heterogeneous meaning, which the authors themselves argue are unreliable signals.\\n\\nContextual numbers mix years: meat production from 2018 and seafood from 2015, totalling about 545M t. The 50M t threshold is described as 5–7% of 2051 demand, but the projection behind this is not shown. Meanwhile, panelists' 80% intervals for 2051 conventional production ranged from 30M to 1.5B t. That range suggests some forecasters misunderstood the question or had poor grounding, which further weakens confidence in panel calibration.\\n\\nInternal arithmetic checks out:\\n- The CAGR table is correct (e.g., 1→100k t over 10 years ≈216%).\\n- The 2051 binned distribution matches differences of the threshold probabilities (≈54/15/13/9/9).\\n- Probabilities are monotone across thresholds and years.\\n\\nStrengths include clear writing and explicit operationalizations. Anonymized forecasts, rationales, data and correlation scripts are shared. The recruitment protocol and reference materials are linked. A pre-forecast list of update criteria (Linch's) provides some protection against post-hoc rationalization. The report also commits to a follow-up Metaculus tournament that will create resolvable, trackable questions. As a structured map of disagreement and an early benchmark against hype-driven consultancy projections, it is useful for funders. As evidence for specific probabilities it is weak, which the authors partly concede ('not justifying any specific probability'), though the title and summary present the numbers more assertively than that caveat implies.\",\"key_issues\":[\"1. The panel has only six forecasters (five generalist Metaculus forecasters and one scientist), with no evidence of long-horizon calibration, so the aggregate probabilities carry limited evidential weight.\",\"2. Disagreement is extreme (mean max–min spread of 48 pp; some 2051 answers range from ~1% to 75–92%). The pooled geometric-mean-of-odds figures hide a likely bimodal split, and no aggregate uncertainty, leave-one-out or alternative pooling sensitivity is reported.\",\"3. Anchoring risk: the authors, who weighted Humbird (2020) heavily, curated the reference materials, so panel pessimism may partly reflect the inputs provided rather than independent judgment.\",\"4. Instrument errors (recombinant proteins in the amino-acid question, unspecified '51% by weight', the broken Manhattan-project questions) reduce the validity of several items. They are transparently disclosed.\",\"5. The correlation analysis across six respondents with many uncorrected tests at p<0.05 is essentially uninformative and cannot identify signposts or causal drivers. It is nonetheless presented graphically and partly interpreted.\",\"6. The motivating decision question (can EA funding multiply the probability of ≥50M t by 2051?) is not answered: no conditional or scenario forecasts on funding or interventions were elicited.\",\"7. The policy recommendations ('century not decades', specific R&D priorities, a willingness to spend $10M) derive mainly from the authors' TEA reading and personal judgment rather than the elicited forecasts, and their counterfactual impact is unquantified.\",\"8. Scrutiny is asymmetric: consultancy and company claims are critiqued in detail, while Humbird's assumptions serve as the default without comparable stress-testing.\",\"9. Conditioning on no transformative AI, and the 'sold at any price in any 12-month span' resolution, materially shape interpretation of 2051 numbers but are not discussed.\",\"10. Some contextual figures mix years and sources, and the 5–7% share-of-demand estimate is unexplained. Panel answers for 2051 conventional meat (30M–1.5B t) suggest weak grounding or misunderstanding.\",\"11. Data, rationales and code are openly shared and update criteria were partly pre-specified. These are real strengths for replication and follow-up tournament tracking.\"],\"metrics\":{\"overall\":{\"midpoint\":50,\"lower_bound\":35,\"upper_bound\":65},\"claims_evidence\":{\"midpoint\":42,\"lower_bound\":28,\"upper_bound\":57},\"methods\":{\"midpoint\":38,\"lower_bound\":25,\"upper_bound\":53},\"advancing_knowledge\":{\"midpoint\":52,\"lower_bound\":36,\"upper_bound\":67},\"logic_communication\":{\"midpoint\":62,\"lower_bound\":48,\"upper_bound\":75},\"open_science\":{\"midpoint\":72,\"lower_bound\":57,\"upper_bound\":85},\"global_relevance\":{\"midpoint\":66,\"lower_bound\":50,\"upper_bound\":80},\"tier_should\":{\"score\":2.0,\"ci_lower\":1.2,\"ci_upper\":2.9},\"tier_will\":{\"score\":1.2,\"ci_lower\":0.4,\"ci_upper\":2.3}}}",
+  "thinking_summaries": [
+    "I'm drafting a roughly 1000-word evaluation of this Rethink Priorities cultured meat forecasting report, with a summary, key issues, and metrics. The main concerns are a very small panel of six (five Metaculus forecasters and one scientist) with limited domain expertise, which makes the aggregate sensitive to any single forecaster and the geometric mean of odds fragile at that size. I'm also noting the wide dispersion, averaging a 48-point range, and the bimodal pattern in the estimates.\n\nI'm now flagging that the aggregate hides disagreement and that no uncertainty or aggregation-method sensitivity is reported. I'm also noting selection and framing concerns: the reference material came from skeptical authors, and several questions contain errors.\n\nI'm checking the 2051 distribution chart against its bucket percentages, and the numbers look roughly consistent. I'm also verifying the growth-rate calculations for the production table, which hold up, and noting that the \"not asked\" cells and conditioning on no transformative AI both shape how the results should be read.\n\nI'm now going over the report's transparency and its limits: the forecasts are shared with the spreadsheet and code, and the authors list what would change their minds before forecasting, but there's no track record for these forecasters at long horizons. I'm also weighing the uneven scrutiny toward consultancies, the unreliable price chart, and whether the authors' own forecasts were included in the panel.\n\nI'm assigning the report rough scores: about 50 to 55 overall among applied policy research, with weak methods given the six-person panel, but good open science around 70 and fairly high global relevance near 65. The claims-evidence and advancing-knowledge scores sit lower, around 45 and 50, while logic lands near 60. For the tiers, I'm estimating about 2.0 for \"should\" and roughly 0.8 to 1.5 for \"will,\" since this reads as a blog post rather than something likely to be journal-published.\n\n"
+  ]
+}

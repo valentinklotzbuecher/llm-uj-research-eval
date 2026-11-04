@@ -1,0 +1,104 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Green_et_al._2025",
+    "condition": "B",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "misses_B_prioritisation_v1",
+    "system_prompt_sha256": "261042f6c925bb24f51659634cb657f53a0f89431d88da73795a71fd66a373aa",
+    "user_text_sha256": "be316bf9f239907ef81008c8e15a551dbc07e0886cfd3a1ed9bf61cd5c6a4b27",
+    "schema_sha256": "bb3a5b1749e6286eeae8b48f6220a27a18d247df1baa081335e35ebea7afd41e",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Green_et_al._2025.pdf",
+    "pdf_sha256": "cb72357214f59a19ce9e4d00026083c50dde2171ae8cc0b6e15af27ce67ec8a2",
+    "pdf_pages": 28,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-04T20:31:26.180187+00:00",
+    "completed_at": "2026-11-04T20:32:16.673830+00:00",
+    "elapsed_seconds": 50.5,
+    "request_id": "req_011CgiXHjiT7HuQdUWuAryNz",
+    "response_id": "msg_011CgiXHkjDuU7h4313oRy1W",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 72163
+      },
+      "cache_creation_input_tokens": 72163,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 72,
+      "output_tokens": 4105,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.4432,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "What is the single most important problem with this paper's main claims? Then give your top five, ranked.\n\nBase your answer only on the attached paper. Do not browse or use other files.\n\nReturn JSON matching the supplied schema.",
+  "parsed": {
+    "main_claims": "Across 41 RCTs (112 interventions, ~87,000 subjects) that measured MAP consumption at least one day after treatment, the pooled effect is small (SMD = 0.07, ~0.01–0.02 after publication-bias correction), so meaningfully reducing MAP consumption is an 'unsolved problem.' The authors further argue that their stricter inclusion criteria explain why prior reviews found larger effects, and that red/processed-meat-only interventions show larger effects (SMD = 0.25) that may reflect substitution.",
+    "single_most_important_problem": {
+      "problem": "The headline conclusion, that MAP reduction is an 'unsolved problem,' does not follow from a small average effect. The paper pools very heterogeneous interventions (leaflets, documentaries, cafeteria menus, dietary consultations, text messages, response-inhibition training) into one mean. It offers no benchmark for what counts as a 'meaningful' effect in absolute consumption, cost-effectiveness or population-scale terms. It also treats a low average as evidence that no approach works. Its own numbers cut against this: about 26% of true effects are estimated above 0.1, five studies exceed 0.5, the upper CI bound is 0.12, and individual studies are badly underpowered (median n≈132; most SEs ≈0.15–0.25) and so cannot detect plausible effects of 0.1–0.2. Choosing the longest follow-up per intervention further biases the pooled mean toward decayed effects.",
+      "why_it_matters": "The title and abstract make a strong substantive and policy-relevant claim. That claim rests on interpreting an average across apples and oranges as a verdict on the whole field. Low power, the follow-up-selection rule and the lack of a meaningfulness benchmark mean the data are equally consistent with 'some interventions work modestly but are under-evaluated.' A cheap, scalable intervention with SMD ≈0.1 could be highly valuable.",
+      "where_in_paper": "Title; Abstract; Sec. 3.2 (pooled SMD, τ, % of effects >0.1/0.2); Sec. 2.2 (longest follow-up rule); Sec. 3.1 (median n=132); Sec. 4 opening paragraph; Fig. 3 (SE distribution)."
+    },
+    "top_five": [
+      {
+        "rank": 1,
+        "problem": "Overreach from a small pooled mean to 'unsolved problem'. There is no benchmark for meaningful effect size or absolute consumption change, and the field is pooled across fundamentally different interventions. Low study-level power and the longest-follow-up rule push estimates toward zero, yet a low average is read as absence of effective approaches.",
+        "why_it_matters": "This is the paper's central message. It is not identified by the analysis, which cannot distinguish 'nothing works' from 'modest effects, under-powered and heterogeneous evidence.'",
+        "where_in_paper": "Title, Abstract, Sec. 3.2, Sec. 4 para 1, Sec. 2.2"
+      },
+      {
+        "rank": 2,
+        "problem": "Researcher degrees of freedom and single-reviewer processes. Several inclusion decisions were made after data collection began: creating the RPM category, excluding substitution studies, and excluding no-choice interventions. Screening and inclusion were made primarily by one author, and all data extraction and effect-size conversion were done by one person without double coding. There is no mention of a preregistered protocol. Unreported nulls were imputed as SMD = 0.01.",
+        "why_it_matters": "These choices plausibly move the pooled estimate toward zero, and their influence cannot be assessed without a protocol, inter-rater reliability, or sensitivity analyses. Examples include the imputed nulls, the longest-follow-up rule, and borderline 'marginal' classifications.",
+        "where_in_paper": "Sec. 2.1, Sec. 2.2, effect-size paragraph on p.5"
+      },
+      {
+        "rank": 3,
+        "problem": "Two key explanatory claims are untested. First, the divergence from prior reviews is attributed to stricter rigor, but the 'marginal studies' comparison (SMD 0.20) differs on many dimensions at once (immediate outcomes, small samples, non-random designs, contaminated controls). Collected risk-of-bias variables (self-report vs objective, preregistration, open data, publication status) are never used as moderators. Second, the larger RPM effect is explained by substitution, but RPM studies are largely clinical and health-promotion trials (cancer prevention, diabetes, survivors) with different populations, intensities and outcomes.",
+        "why_it_matters": "Both the 'rigor explains smaller effects' narrative and the substitution interpretation of the RPM gap are speculation presented as findings. The RPM vs MAP contrast is confounded and only marginally significant (p=.046).",
+        "where_in_paper": "Sec. 3.4 (marginal studies), Sec. 4 paras 2 and 4, Table 2 Outcome row, Sec. 2.2 risk-of-bias data"
+      },
+      {
+        "rank": 4,
+        "problem": "Inclusion and outcome comparability are questionable, and the reporting has internal inconsistencies. Some included studies do not straightforwardly target net MAP. Examples are a fish-sauce nudge study counted as choice architecture, a household energy-use study, a soya dietary trial, and a plant-based-diet bone-nutrient study. Outcomes mix coarse binary self-reports, purchases and intake, converted from regressions, eta², z-scores and a custom proportion estimator. Counts are inconsistent: Psychology is 9 studies in text vs 19 in Table 1. Categories overlap so that subgroup Ns exceed totals, and the abstract contains a duplicated, contradictory sentence.",
+        "why_it_matters": "Heterogeneous constructs and conversions undermine the meaning of a single pooled SMD. Reporting errors reduce confidence in the data pipeline behind the headline numbers.",
+        "where_in_paper": "Sec. 3.1 vs Table 1; Abstract; Sec. 2.2; Fig. 2 (Kanchanachitra, Abrahamse, Acharya, Merrill)"
+      },
+      {
+        "rank": 5,
+        "problem": "Secondary claims are stated more strongly than the evidence supports. 'Designs improving over time' and 'effect sizes declining' rest on non-significant decade contrasts (moderator p=.46/.37) and on publication counts. Regional 'heterogeneity' is non-significant. Choice architecture conclusions rest on 2 studies (CI −0.99 to 1.42). RVE with very few clusters per subgroup is unreliable even with small-sample correction. The publication-bias correction (0.01) is applied to heterogeneous effects without discussing how sensitive the selection model is to that heterogeneity.",
+        "why_it_matters": "These claims shape the discussion's narrative (a self-correcting field, choice architecture largely unevaluated) but are not supported at conventional evidentiary standards. Over-precise subgroup readings may mislead practitioners.",
+        "where_in_paper": "Sec. 3.3, Table 2, Sec. 3.4, Sec. 4 paras 3 and 6"
+      }
+    ]
+  },
+  "result_text": "{\"main_claims\":\"Across 41 RCTs (112 interventions, ~87,000 subjects) that measured MAP consumption at least one day after treatment, the pooled effect is small (SMD = 0.07, ~0.01–0.02 after publication-bias correction), so meaningfully reducing MAP consumption is an 'unsolved problem.' The authors further argue that their stricter inclusion criteria explain why prior reviews found larger effects, and that red/processed-meat-only interventions show larger effects (SMD = 0.25) that may reflect substitution.\",\"single_most_important_problem\":{\"problem\":\"The headline conclusion, that MAP reduction is an 'unsolved problem,' does not follow from a small average effect. The paper pools very heterogeneous interventions (leaflets, documentaries, cafeteria menus, dietary consultations, text messages, response-inhibition training) into one mean. It offers no benchmark for what counts as a 'meaningful' effect in absolute consumption, cost-effectiveness or population-scale terms. It also treats a low average as evidence that no approach works. Its own numbers cut against this: about 26% of true effects are estimated above 0.1, five studies exceed 0.5, the upper CI bound is 0.12, and individual studies are badly underpowered (median n≈132; most SEs ≈0.15–0.25) and so cannot detect plausible effects of 0.1–0.2. Choosing the longest follow-up per intervention further biases the pooled mean toward decayed effects.\",\"why_it_matters\":\"The title and abstract make a strong substantive and policy-relevant claim. That claim rests on interpreting an average across apples and oranges as a verdict on the whole field. Low power, the follow-up-selection rule and the lack of a meaningfulness benchmark mean the data are equally consistent with 'some interventions work modestly but are under-evaluated.' A cheap, scalable intervention with SMD ≈0.1 could be highly valuable.\",\"where_in_paper\":\"Title; Abstract; Sec. 3.2 (pooled SMD, τ, % of effects >0.1/0.2); Sec. 2.2 (longest follow-up rule); Sec. 3.1 (median n=132); Sec. 4 opening paragraph; Fig. 3 (SE distribution).\"},\"top_five\":[{\"rank\":1,\"problem\":\"Overreach from a small pooled mean to 'unsolved problem'. There is no benchmark for meaningful effect size or absolute consumption change, and the field is pooled across fundamentally different interventions. Low study-level power and the longest-follow-up rule push estimates toward zero, yet a low average is read as absence of effective approaches.\",\"why_it_matters\":\"This is the paper's central message. It is not identified by the analysis, which cannot distinguish 'nothing works' from 'modest effects, under-powered and heterogeneous evidence.'\",\"where_in_paper\":\"Title, Abstract, Sec. 3.2, Sec. 4 para 1, Sec. 2.2\"},{\"rank\":2,\"problem\":\"Researcher degrees of freedom and single-reviewer processes. Several inclusion decisions were made after data collection began: creating the RPM category, excluding substitution studies, and excluding no-choice interventions. Screening and inclusion were made primarily by one author, and all data extraction and effect-size conversion were done by one person without double coding. There is no mention of a preregistered protocol. Unreported nulls were imputed as SMD = 0.01.\",\"why_it_matters\":\"These choices plausibly move the pooled estimate toward zero, and their influence cannot be assessed without a protocol, inter-rater reliability, or sensitivity analyses. Examples include the imputed nulls, the longest-follow-up rule, and borderline 'marginal' classifications.\",\"where_in_paper\":\"Sec. 2.1, Sec. 2.2, effect-size paragraph on p.5\"},{\"rank\":3,\"problem\":\"Two key explanatory claims are untested. First, the divergence from prior reviews is attributed to stricter rigor, but the 'marginal studies' comparison (SMD 0.20) differs on many dimensions at once (immediate outcomes, small samples, non-random designs, contaminated controls). Collected risk-of-bias variables (self-report vs objective, preregistration, open data, publication status) are never used as moderators. Second, the larger RPM effect is explained by substitution, but RPM studies are largely clinical and health-promotion trials (cancer prevention, diabetes, survivors) with different populations, intensities and outcomes.\",\"why_it_matters\":\"Both the 'rigor explains smaller effects' narrative and the substitution interpretation of the RPM gap are speculation presented as findings. The RPM vs MAP contrast is confounded and only marginally significant (p=.046).\",\"where_in_paper\":\"Sec. 3.4 (marginal studies), Sec. 4 paras 2 and 4, Table 2 Outcome row, Sec. 2.2 risk-of-bias data\"},{\"rank\":4,\"problem\":\"Inclusion and outcome comparability are questionable, and the reporting has internal inconsistencies. Some included studies do not straightforwardly target net MAP. Examples are a fish-sauce nudge study counted as choice architecture, a household energy-use study, a soya dietary trial, and a plant-based-diet bone-nutrient study. Outcomes mix coarse binary self-reports, purchases and intake, converted from regressions, eta², z-scores and a custom proportion estimator. Counts are inconsistent: Psychology is 9 studies in text vs 19 in Table 1. Categories overlap so that subgroup Ns exceed totals, and the abstract contains a duplicated, contradictory sentence.\",\"why_it_matters\":\"Heterogeneous constructs and conversions undermine the meaning of a single pooled SMD. Reporting errors reduce confidence in the data pipeline behind the headline numbers.\",\"where_in_paper\":\"Sec. 3.1 vs Table 1; Abstract; Sec. 2.2; Fig. 2 (Kanchanachitra, Abrahamse, Acharya, Merrill)\"},{\"rank\":5,\"problem\":\"Secondary claims are stated more strongly than the evidence supports. 'Designs improving over time' and 'effect sizes declining' rest on non-significant decade contrasts (moderator p=.46/.37) and on publication counts. Regional 'heterogeneity' is non-significant. Choice architecture conclusions rest on 2 studies (CI −0.99 to 1.42). RVE with very few clusters per subgroup is unreliable even with small-sample correction. The publication-bias correction (0.01) is applied to heterogeneous effects without discussing how sensitive the selection model is to that heterogeneity.\",\"why_it_matters\":\"These claims shape the discussion's narrative (a self-correcting field, choice architecture largely unevaluated) but are not supported at conventional evidentiary standards. Over-precise subgroup readings may mislead practitioners.\",\"where_in_paper\":\"Sec. 3.3, Table 2, Sec. 3.4, Sec. 4 paras 3 and 6\"}]}",
+  "thinking_summaries": [
+    "I'm starting on the critique and picking out the main claims: a pooled SMD of 0.07 that is small, a MAP reduction that is still unsolved, stricter criteria as the reason for diverging from earlier reviews, and RPM showing larger effects with uncertain substitution. Next I'm checking whether calling 0.07 \"small\" is justified, since it isn't tied to absolute consumption or cost-effectiveness.\n\nI'm now checking the critique's methodology: the 0.07 effect sits in a pooled average across unlike interventions, so a null average doesn't establish that nothing works, and individual studies with about 132 participants each lack the power to detect effects of 0.1 to 0.2. Then I'm looking at the review process itself, where screening and coding were done by a single person, the inclusion decisions appear to have been made after the data came in, and the unspecified nulls set to 0.01 push estimates toward zero.\n\nI'm working through the study's outcome measures, noting that many are self-reported and that the effect sizes were converted from several different statistics. I'm also noticing that the risk-of-bias data was collected but never used as a moderator, and that choosing the longest follow-up may pull estimates toward zero. Next I'm checking the table counts against the text, since the Psychology studies and the RPM totals don't line up.\n\nI'm weighing whether the RPM-versus-MAP gap can be trusted, since those studies are mostly clinical health trials with different populations and interventions, so attributing the larger effect to easier substitution is speculative. I'm also flagging the 0.01 publication-bias estimate, the identical-SE cluster in the funnel plot, a duplicated sentence in the abstract, and questionable inclusions like the fish sauce and household energy studies. Next I'm checking the very small per-category sample sizes behind the wide choice-architecture interval.\n\nI'm picking up with the statistical point that the time trend and regional differences are not significant, then moving to the central problem: the leap from a small pooled effect to calling the problem unsolved, since the average is across heterogeneous, underpowered studies and the upper confidence bound still leaves room for meaningful effects. I'm settling on that as my main critique, with a second point on post hoc, single-reviewer decisions and the 0.01 null imputation.\n\nI'm moving on to the reporting problems: the claim that stricter criteria explain the gap from earlier reviews was never tested, and the RPM-versus-MAP difference is confounded by clinical populations and interventions, so the substitution explanation is speculative. I'm also noting questionable inclusions, mixed outcome types and conversions, self-report, and a count mismatch in the Psychology studies, plus the trend and moderator claims that don't reach significance.\n\nI'm noting that the critique's moderator and trend claims are overstated: the improving-methods and declining-effect patterns aren't significant, the choice-architecture category rests on only two studies, and small clusters make the robust variance estimates unreliable, along with a publication-bias correction that's shaky under heterogeneity.\n\n"
+  ]
+}

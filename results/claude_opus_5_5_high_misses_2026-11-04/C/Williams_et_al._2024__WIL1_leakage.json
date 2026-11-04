@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Williams_et_al._2024",
+    "condition": "C",
+    "claim_id": "WIL1_leakage",
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "misses_C_recognition_v1",
+    "system_prompt_sha256": "261042f6c925bb24f51659634cb657f53a0f89431d88da73795a71fd66a373aa",
+    "user_text_sha256": "9858c088cfa9b28dc4fa1b0f3f98fe6d74ac3f7fb49a2cdf81565f76a47f45c0",
+    "schema_sha256": "c3f554a430bc82fd3668443c3dce2e0caadf9eab0696c26835ce7fda0c7fadcd",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Williams_et_al._2024.pdf",
+    "pdf_sha256": "02df96633bcc983dc9430db7fa61e5d774871424342e34f1de7ada4a184a7462",
+    "pdf_pages": 18,
+    "pdf_last_commit": "88269cfd74ab27a93ba3747d8921bb4cec1a74c7",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-04T20:36:31.829506+00:00",
+    "completed_at": "2026-11-04T20:37:02.426339+00:00",
+    "elapsed_seconds": 30.6,
+    "request_id": "req_011CgiXgGobvGYYK8g3DXKUj",
+    "response_id": "msg_011CgiXghbMhAxf7HWJVfAAD",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 59330
+      },
+      "cache_creation_input_tokens": 59330,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 157,
+      "output_tokens": 2181,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.3409,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": {
+    "claim_id": "WIL1_leakage",
+    "paper": "Williams_et_al._2024",
+    "origin": "handover_list",
+    "published_source": "evalsumnaturalregeneration.md (evaluators' joint synthesis, Primary Concern 1)",
+    "published_weight": "primary concern",
+    "claim_text": "Several predictors (for example net primary production, burned area, road density) were measured over the same period as the regeneration outcome, so the model leaks outcome information and its reported accuracy overstates true predictive performance.",
+    "grading_note": "Caught = predictors contemporaneous with or post-dating the outcome / temporal leakage / circularity inflating accuracy. Partly = generic 'temporal mismatch of covariates' without the accuracy-inflation point.",
+    "run_condition_c": true
+  },
+  "user_text": "An evaluator argues: \"Several predictors (for example net primary production, burned area, road density) were measured over the same period as the regeneration outcome, so the model leaks outcome information and its reported accuracy overstates true predictive performance.\"\n\nIs this right, and how much does it matter?\n\nBase your answer only on the attached paper. Do not browse or use other files. Check the paper's tables, figures and appendices where relevant, and cite them.\n\nReturn JSON matching the supplied schema.",
+  "parsed": {
+    "what_the_paper_shows": "Methods (Predictor variables) confirm that some candidate covariates overlap the 2000–2016 outcome window: MODIS NPP is 'annual 2000–2015', burned area covers 2001–2017, and GDP/HDI cover 1990–2015. Road density (GRIP) is undated. However, the main text (p.133) and Methods state that spatial predictions and the headline 87.9% validation accuracy come from a biophysical-only model, so road density, population, GDP and HDI are excluded. The Methods then describe a variable-selection step: ranking by mean decrease in accuracy and adding variables until accuracy plateaued (Extended Data Fig. 1, ten variables). Extended Data Fig. 2 lists those ten: bioclim PCs 1–4, biome, distance to forest, forest density, land use, soil organic carbon and soil pH. NPP and burned area are not among them. Forest density and distance to forest were computed from 2000 tree cover. Land use is ESA CCI 2000. Climate is WorldClim 1970–2000. The only place temporally overlapping predictors could enter a reported accuracy is the comparison model with socioeconomic plus biophysical variables (0.886 vs 0.880). Separately, Extended Data Fig. 4 shows the actual optimism in the headline accuracy, which comes from spatial autocorrelation and class-balance effects. With balanced bootstrap samples, accuracy falls to about 0.75–0.77 at 6–8 km from training points, against the reported 87.9%.",
+    "is_the_critique_right": "wrong",
+    "reasoning": "The factual premise is partly true: NPP and burned area span the outcome period. But the conclusion does not follow for the model the paper actually reports and maps. None of the three named variables is in the final ten-variable model (Extended Data Fig. 2). Road density is a socioeconomic variable and was excluded from the predictive model by design. The time-sensitive forest covariates use 2000 baselines for training and are only updated to 2018 at prediction time, so they do not leak the outcome. The overlap could slightly affect (a) the selection ranking, where NPP or fire were candidates but were not retained, and (b) the 0.886 accuracy of the comparison model with socioeconomic variables. Neither underpins the headline map or the 215 Mha estimate. A weaker, unraised concern is that SoilGrids soil organic carbon is a static product that may partly reflect vegetation state, including regrowth. The paper itself interprets SOC as linked to proximity to forest. The reported accuracy does likely overstate true out-of-sample performance, but for a different reason: spatial autocorrelation and the balanced 50/50 test set. Extended Data Fig. 4 shows balanced-sample accuracy of about 75–82%, not 87.9%. So the critique reaches a defensible conclusion (accuracy is overstated) through an incorrect mechanism, applied to variables the final model does not contain.",
+    "how_much_it_matters": "minor",
+    "how_much_it_matters_explanation": "Because NPP, burned area and road density are absent from the final predictive model, temporal leakage through them cannot inflate the 87.9% figure or bias the 215 Mha and 23.4 Gt C estimates. At most it touches the secondary comparison between the socioeconomic and biophysical models and the selection ranking. The real threats to the accuracy claim are spatial autocorrelation and the balanced test set, which are separate and more consequential.",
+    "would_you_have_raised_it": "Not in this form. I would ask the authors to state explicitly the time window of every candidate covariate and confirm that none enters the final model. I would also query whether static SoilGrids soil organic carbon partly encodes recent vegetation state. My main accuracy concern would instead be spatial validation and calibration. Extended Data Fig. 4 already shows balanced-sample accuracy of about 75% beyond 6 km, which undercuts the 87.9% headline. Spatial block cross-validation and a realistic, imbalanced prevalence would be needed. That point would rank among my top concerns; the leakage point as stated would be a low-priority clarification."
+  },
+  "result_text": "{\"what_the_paper_shows\": \"Methods (Predictor variables) confirm that some candidate covariates overlap the 2000–2016 outcome window: MODIS NPP is 'annual 2000–2015', burned area covers 2001–2017, and GDP/HDI cover 1990–2015. Road density (GRIP) is undated. However, the main text (p.133) and Methods state that spatial predictions and the headline 87.9% validation accuracy come from a biophysical-only model, so road density, population, GDP and HDI are excluded. The Methods then describe a variable-selection step: ranking by mean decrease in accuracy and adding variables until accuracy plateaued (Extended Data Fig. 1, ten variables). Extended Data Fig. 2 lists those ten: bioclim PCs 1–4, biome, distance to forest, forest density, land use, soil organic carbon and soil pH. NPP and burned area are not among them. Forest density and distance to forest were computed from 2000 tree cover. Land use is ESA CCI 2000. Climate is WorldClim 1970–2000. The only place temporally overlapping predictors could enter a reported accuracy is the comparison model with socioeconomic plus biophysical variables (0.886 vs 0.880). Separately, Extended Data Fig. 4 shows the actual optimism in the headline accuracy, which comes from spatial autocorrelation and class-balance effects. With balanced bootstrap samples, accuracy falls to about 0.75–0.77 at 6–8 km from training points, against the reported 87.9%.\", \"is_the_critique_right\": \"wrong\", \"reasoning\": \"The factual premise is partly true: NPP and burned area span the outcome period. But the conclusion does not follow for the model the paper actually reports and maps. None of the three named variables is in the final ten-variable model (Extended Data Fig. 2). Road density is a socioeconomic variable and was excluded from the predictive model by design. The time-sensitive forest covariates use 2000 baselines for training and are only updated to 2018 at prediction time, so they do not leak the outcome. The overlap could slightly affect (a) the selection ranking, where NPP or fire were candidates but were not retained, and (b) the 0.886 accuracy of the comparison model with socioeconomic variables. Neither underpins the headline map or the 215 Mha estimate. A weaker, unraised concern is that SoilGrids soil organic carbon is a static product that may partly reflect vegetation state, including regrowth. The paper itself interprets SOC as linked to proximity to forest. The reported accuracy does likely overstate true out-of-sample performance, but for a different reason: spatial autocorrelation and the balanced 50/50 test set. Extended Data Fig. 4 shows balanced-sample accuracy of about 75–82%, not 87.9%. So the critique reaches a defensible conclusion (accuracy is overstated) through an incorrect mechanism, applied to variables the final model does not contain.\", \"how_much_it_matters\": \"minor\", \"how_much_it_matters_explanation\": \"Because NPP, burned area and road density are absent from the final predictive model, temporal leakage through them cannot inflate the 87.9% figure or bias the 215 Mha and 23.4 Gt C estimates. At most it touches the secondary comparison between the socioeconomic and biophysical models and the selection ranking. The real threats to the accuracy claim are spatial autocorrelation and the balanced test set, which are separate and more consequential.\", \"would_you_have_raised_it\": \"Not in this form. I would ask the authors to state explicitly the time window of every candidate covariate and confirm that none enters the final model. I would also query whether static SoilGrids soil organic carbon partly encodes recent vegetation state. My main accuracy concern would instead be spatial validation and calibration. Extended Data Fig. 4 already shows balanced-sample accuracy of about 75% beyond 6 km, which undercuts the 87.9% headline. Spatial block cross-validation and a realistic, imbalanced prevalence would be needed. That point would rank among my top concerns; the leakage point as stated would be a low-priority clarification.\"}",
+  "thinking_summaries": [
+    "I'm checking which variables made it into the final spatial model. The ten in the final model are bioclim1-4, biome, distfor, focalfor, landuse, soc and soilph. NPP, burned area and road density were dropped from it, with road density excluded anyway as a socioeconomic variable. NPP and burned area had been candidates as biophysical variables.\n\nThe critique looks partly right at best: the variables it names (NPP, burned area, road density) are absent from the final spatial model. The concerns I still have are about how the accuracy figure was obtained, since the socio+bio model's 0.886 may have been influenced by those candidates during selection. There is also a possible temporal issue with soil organic carbon, and larger inflation risks from spatial autocorrelation and the sampling design.\n\nI'm settling on \"wrong\" for the headline claim: the final model doesn't use the variables the critique names, so the leakage charge doesn't hold for them. The accuracy does look inflated, but that comes from spatial autocorrelation rather than these predictors.\n\n"
+  ]
+}

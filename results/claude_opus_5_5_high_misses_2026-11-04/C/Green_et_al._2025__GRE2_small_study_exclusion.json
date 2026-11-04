@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Green_et_al._2025",
+    "condition": "C",
+    "claim_id": "GRE2_small_study_exclusion",
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "misses_C_recognition_v1",
+    "system_prompt_sha256": "261042f6c925bb24f51659634cb657f53a0f89431d88da73795a71fd66a373aa",
+    "user_text_sha256": "48dc7d3b53ea28a2dd144904788ddceb5ed8c2a360453368c6da666b48a172a5",
+    "schema_sha256": "c3f554a430bc82fd3668443c3dce2e0caadf9eab0696c26835ce7fda0c7fadcd",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Green_et_al._2025.pdf",
+    "pdf_sha256": "cb72357214f59a19ce9e4d00026083c50dde2171ae8cc0b6e15af27ce67ec8a2",
+    "pdf_pages": 28,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-04T20:38:57.775128+00:00",
+    "completed_at": "2026-11-04T20:39:29.517265+00:00",
+    "elapsed_seconds": 31.7,
+    "request_id": "req_011CgiXs2F3jkhzBSP2Fjbzc",
+    "response_id": "msg_011CgiXs3G4xmzMNHa5XtBQ3",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 72142
+      },
+      "cache_creation_input_tokens": 72142,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 138,
+      "output_tokens": 1933,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.3999,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": {
+    "claim_id": "GRE2_small_study_exclusion",
+    "paper": "Green_et_al._2025",
+    "origin": "handover_list",
+    "published_source": "e2reducingconsumption.md",
+    "published_weight": "listed major methodological issue; debatable",
+    "claim_text": "Excluding studies with fewer than 25 participants per group restricts the range of standard errors, which makes publication bias harder to detect and correct for.",
+    "grading_note": "Caught = connects the n<25 exclusion to publication-bias detection. Partly = mentions the exclusion only as a generalisability issue.",
+    "run_condition_c": true
+  },
+  "user_text": "An evaluator argues: \"Excluding studies with fewer than 25 participants per group restricts the range of standard errors, which makes publication bias harder to detect and correct for.\"\n\nIs this right, and how much does it matter?\n\nBase your answer only on the attached paper. Do not browse or use other files. Check the paper's tables, figures and appendices where relevant, and cite them.\n\nReturn JSON matching the supplied schema.",
+  "parsed": {
+    "what_the_paper_shows": "Studies were eligible only with at least 25 subjects per arm, or at least 10 clusters if cluster-assigned (pp. 3–4, §2.1). Publication bias was assessed in two ways (§2.3, p. 5; §3.4, pp. 7–8):\n- a Hedges (1992) step-function selection model, which gave a corrected estimate of 0.01 [−0.014, 0.033];\n- a worst-case sensitivity analysis meta-analyzing only non-affirmative estimates, which gave 0.02 [−0.01, 0.05];\n- plus a significance funnel plot (Fig. 3).\n\nNo Egger, PET-PEESE or trim-and-fill style small-study regression is used. Fig. 3 shows standard errors ranging from about 0.04 to about 0.6, with many points between 0.15 and 0.35 and several at 0.3–0.6. A 25-per-arm study has an SMD standard error of roughly √(2/25) ≈ 0.28, so only studies with SE above about 0.28 could have been removed. The sensitivity analysis including 22 'marginal' studies, some with smaller samples (e.g., Lentz 2019), raised the pooled estimate to 0.20 (p. 8). No publication-bias correction is reported for the RPM subset (SMD = 0.25).",
+    "is_the_critique_right": "partly right",
+    "reasoning": "In general, truncating the low-precision end of the distribution does reduce the power of methods that detect bias from small-study asymmetry, such as Egger regression or PET-PEESE. In that narrow sense the statement has some truth.\n\nIt applies weakly here, for three reasons:\n- **The methods used don't rely on that asymmetry.** The paper's methods do not depend on a funnel-asymmetry slope across standard errors. The Hedges step-function model works from the relative frequency of affirmative versus non-affirmative results. The worst-case subset analysis uses only non-affirmative estimates and is essentially insensitive to SE range.\n- **The threshold is mild.** Fig. 3 shows SEs still spanning roughly 0.04–0.6, so the range is not seriously truncated. Only the very smallest trials (SE above about 0.28) would have been dropped.\n- **Excluding small studies reduces the problem.** Small studies are where small-study effects and selective reporting tend to concentrate. Removing them lowers the bias in the pooled estimate, even if it slightly reduces the ability to model that bias.\n\nThe practical concern behind the critique is that bias goes under-corrected. But the corrected estimates are already near zero (0.01 and 0.02), so any undetected bias would only reinforce the paper's 'unsolved problem' conclusion. A more substantive gap is that no bias correction is reported for the RPM subset or by subgroup, but that is not caused by the sample-size threshold.",
+    "how_much_it_matters": "minor",
+    "how_much_it_matters_explanation": "The headline conclusion is that effects are small, and the bias-corrected estimates are about zero. Any reduced ability to detect bias would push in the same direction as that conclusion, not against it. The bias methods used are largely robust to SE range, and the observed SE range remains wide.",
+    "would_you_have_raised_it": "Probably not in this form. I would instead ask for publication-bias corrections within the RPM subset and key subgroups, and question the selection model's assumptions given dependent effect sizes. I would also note that the 0.01 'unspecified null' imputation may interact with the affirmative/non-affirmative split. If raised at all, this point would be a low-priority comment."
+  },
+  "result_text": "{\"what_the_paper_shows\": \"Studies were eligible only with at least 25 subjects per arm, or at least 10 clusters if cluster-assigned (pp. 3–4, §2.1). Publication bias was assessed in two ways (§2.3, p. 5; §3.4, pp. 7–8):\\n- a Hedges (1992) step-function selection model, which gave a corrected estimate of 0.01 [−0.014, 0.033];\\n- a worst-case sensitivity analysis meta-analyzing only non-affirmative estimates, which gave 0.02 [−0.01, 0.05];\\n- plus a significance funnel plot (Fig. 3).\\n\\nNo Egger, PET-PEESE or trim-and-fill style small-study regression is used. Fig. 3 shows standard errors ranging from about 0.04 to about 0.6, with many points between 0.15 and 0.35 and several at 0.3–0.6. A 25-per-arm study has an SMD standard error of roughly √(2/25) ≈ 0.28, so only studies with SE above about 0.28 could have been removed. The sensitivity analysis including 22 'marginal' studies, some with smaller samples (e.g., Lentz 2019), raised the pooled estimate to 0.20 (p. 8). No publication-bias correction is reported for the RPM subset (SMD = 0.25).\", \"is_the_critique_right\": \"partly right\", \"reasoning\": \"In general, truncating the low-precision end of the distribution does reduce the power of methods that detect bias from small-study asymmetry, such as Egger regression or PET-PEESE. In that narrow sense the statement has some truth.\\n\\nIt applies weakly here, for three reasons:\\n- **The methods used don't rely on that asymmetry.** The paper's methods do not depend on a funnel-asymmetry slope across standard errors. The Hedges step-function model works from the relative frequency of affirmative versus non-affirmative results. The worst-case subset analysis uses only non-affirmative estimates and is essentially insensitive to SE range.\\n- **The threshold is mild.** Fig. 3 shows SEs still spanning roughly 0.04–0.6, so the range is not seriously truncated. Only the very smallest trials (SE above about 0.28) would have been dropped.\\n- **Excluding small studies reduces the problem.** Small studies are where small-study effects and selective reporting tend to concentrate. Removing them lowers the bias in the pooled estimate, even if it slightly reduces the ability to model that bias.\\n\\nThe practical concern behind the critique is that bias goes under-corrected. But the corrected estimates are already near zero (0.01 and 0.02), so any undetected bias would only reinforce the paper's 'unsolved problem' conclusion. A more substantive gap is that no bias correction is reported for the RPM subset or by subgroup, but that is not caused by the sample-size threshold.\", \"how_much_it_matters\": \"minor\", \"how_much_it_matters_explanation\": \"The headline conclusion is that effects are small, and the bias-corrected estimates are about zero. Any reduced ability to detect bias would push in the same direction as that conclusion, not against it. The bias methods used are largely robust to SE range, and the observed SE range remains wide.\", \"would_you_have_raised_it\": \"Probably not in this form. I would instead ask for publication-bias corrections within the RPM subset and key subgroups, and question the selection model's assumptions given dependent effect sizes. I would also note that the 0.01 'unspecified null' imputation may interact with the affirmative/non-affirmative split. If raised at all, this point would be a low-priority comment.\"}",
+  "thinking_summaries": [
+    "I'm looking at the critique's claim that dropping small studies narrows the standard-error range and makes publication bias harder to spot. The paper's inclusion rule is at least 25 per arm, or at least 10 clusters, and its funnel plot still shows standard errors spread from about 0.04 to about 0.6. The methods it relies on are a Hedges step-function selection model and a worst-case sensitivity analysis that only considers non-affirmative results, so neither depends on small-study asymmetry.\n\nSelection models pick up publication bias from how p-values bunch up around the threshold rather than from the SE range itself, though some spread in SEs still helps. The 25-per-arm cutoff only drops the smallest studies (around SE 0.28 or above), and the funnel plot still has points out to 0.6, so the range isn't cut down much. The corrected estimates are already near zero, so the critique's point about under-correction doesn't really change the conclusion.\n\nI'm weighing whether restricting the SE range is a real problem here. The threshold is mild, and the methods used (worst-case sensitivity and a Hedges selection model) don't depend on small-study asymmetry, so the critique only partly applies. The RPM subset, which lacks any reported correction, is where this concern would matter more.\n\n"
+  ]
+}

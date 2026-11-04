@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Green_et_al._2025",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Green_et_al._2025.pdf",
+    "pdf_sha256": "cb72357214f59a19ce9e4d00026083c50dde2171ae8cc0b6e15af27ce67ec8a2",
+    "pdf_pages": 28,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-04T20:32:16.786873+00:00",
+    "completed_at": "2026-11-04T20:33:09.934316+00:00",
+    "elapsed_seconds": 53.1,
+    "request_id": "req_011CgiXMTu4ae9DhSUzpSKkH",
+    "response_id": "msg_011CgiXMUoPCgpad9MmPoLj9",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 77659
+      },
+      "cache_creation_input_tokens": 77659,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 4892,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.4862,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This manuscript meta-analyzes randomized controlled trials of interventions intended to reduce consumption of meat and animal products (MAP). Eligible trials had to measure consumption at least one day after treatment began, include a pure control group, and have at least 25 subjects per arm (or at least 10 clusters). The main sample is 35 papers, 41 studies, 112 estimates and about 87,000 subjects. The pooled SMD is small (0.07, 95% CI 0.02–0.12) and falls to about 0.01–0.02 under publication-bias corrections. A separate set of 17 studies targeting only red and processed meat (RPM) yields a larger effect (SMD 0.25). Relaxing the inclusion criteria to admit 22 'marginal' studies raises the pooled estimate to 0.20. The headline message is that net MAP reduction is an 'unsolved problem'.\n\nStrengths:\n- The question matters for climate, health and animal welfare, and it bears directly on funding decisions.\n- The inclusion criteria target the main validity threats in the literature: attitudinal or intention proxies, hypothetical choices, immediate-only measurement, non-randomization and RPM-only outcomes.\n- The grey-literature search is broad, including nonprofit reports.\n- Dependence among multiple arms is handled with robust variance estimation (RVE) and a small-sample correction.\n- Publication bias is assessed with modern tools: the Vevea–Hedges selection model, worst-case non-affirmative meta-analysis and a significance funnel.\n- Code and data are posted in a containerized repository, which is well above field norms.\n\nThere are, however, several important issues.\n\nFirst, the process carries a high risk of researcher discretion.\n- There is no mention of a preregistered protocol.\n- Three inclusion decisions were made after data collection began: creating a separate RPM category, excluding substitution-oriented studies and excluding 'no-choice' interventions.\n- Inclusion/exclusion was primarily decided by the first author, who also extracted all data and performed all effect-size conversions alone. There was no double coding and no inter-rater reliability check.\n- For a synthesis whose headline depends on many judgment calls (what counts as net MAP, which outcome has the longest follow-up, how to convert regression coefficients or binary outcomes), single-coder extraction is a substantive credibility limitation.\n- The search is not a reproducible database search. The PRISMA diagram has oddities: zero duplicates removed, zero records excluded at screening, and 130 database records all assessed in full text.\n\nSecond, effect-size construction has potentially consequential choices.\n- Glass's Δ is defined using a pre-treatment control SD, which many studies cannot supply. The fallback is the pooled SD, so standardizers are mixed.\n- Conversions from eta-squared, z-scores and regression coefficients are heterogeneous.\n- 'Unspecified nulls' are imputed as 0.01. With an assigned variance, these mechanically pull estimates toward zero and appear as a cluster in the funnel plot. A sensitivity analysis excluding them is not reported in the main text.\n- Taking the longest follow-up per intervention means pooled estimates partly reflect decay over heterogeneous horizons. The paper does not show how effects vary with follow-up length, although persistence is central to its framing.\n\nThird, there are internal inconsistencies that a reader will notice.\n- The abstract contains a duplicated, contradictory sentence: substitution is described as possibly 'increasing' versus 'decreasing' other MAP.\n- The text says psychology studies are 'n = 9 studies with 12 estimates', but Table 1 reports 19 studies and 32 estimates.\n- Region counts in Table 2 sum to 40, not 41.\n- 'p < < 0.001' appears.\n- Kanchanachitra et al. (fish-sauce reduction in Thailand) is classed as both choice architecture and persuasion. It is also arguably a marginal fit for 'MAP reduction'. With only 3 choice-architecture estimates, this one study substantially shapes the category's result.\n- Table 1 notes that categories overlap, yet subgroup Ns are presented as if separable. The text says meta-regression was not done for theory, but Table 2 does report moderator p-values for delivery methods that also overlap.\n\nFourth, several interpretive claims go beyond the evidence.\n- The comparison with marginal studies (0.07 vs 0.20) is offered as support for the view that rigor shrinks effects. But marginal studies differ in many ways (immediate outcomes, defaults, smaller samples, settings), so the contrast is confounded, as the authors partly acknowledge.\n- Similarly, the MAP versus RPM gap is attributed speculatively to substitution. Yet RPM studies are often clinical or health trials (cancer survivors, diabetes prevention) with different populations, intensities and self-reported dietary instruments. Population and intervention intensity could explain the gap without substitution.\n- The 'unsolved problem' framing is a normative judgment not tied to any benchmark. An SMD of 0.07 is not translated into grams of meat, servings or percent reduction. Nor is it compared against cost per person reached. A cheap, scalable intervention with a tiny SMD could still be highly cost-effective.\n- The conclusion that choice architecture is unproven rests largely on excluding defaults with immediate outcomes and 'no-choice' interventions. That limits external validity for the institutional policies that matter most.\n\nFifth, risk-of-bias data were collected but are not analyzed in the main text. These include self-report versus objective measurement, preregistration and open data. Many included outcomes are coarse self-reports susceptible to social desirability bias, which the authors acknowledge. A moderator analysis by objective versus self-reported outcome would directly test whether even the small pooled effect is inflated.\n\nSixth, the statistical properties of some analyses are weak.\n- Subgroup analyses with 2–3 studies (choice architecture CI −0.99 to 1.42; dietary consultation CI −3.36 to 4.15) are essentially uninformative under RVE small-sample degrees of freedom and should be flagged or omitted.\n- The estimated τ = 0.082 implies modest heterogeneity. The proportion of effects above 0.1 and 0.2 is a useful addition but depends on distributional assumptions.\n- The time trend (declining effects) is not statistically supported (moderator p = .37–.46) but is narrated as a trend.\n\nOverall, this is a useful, policy-relevant synthesis that sets a stricter evidentiary bar than prior reviews, and its open materials allow verification. Its credibility is reduced by single-coder extraction, post hoc inclusion decisions, unvalidated imputation choices, confounded comparisons offered as explanatory evidence, and numerous reporting inconsistencies. The bottom-line direction—that rigorous evidence for durable net MAP reduction is thin and effects are small—is probably robust. The precise magnitudes and subgroup contrasts are less so.",
+    "key_issues": [
+      "1. Single-author data extraction and effect-size conversion, with inclusion decisions also primarily by one author, and no reported double coding or reliability check; there is no preregistered protocol.",
+      "2. Three inclusion/exclusion decisions were made after data collection began (RPM category, substitution studies, no-choice interventions), creating scope for researcher degrees of freedom.",
+      "3. 'Unspecified null' outcomes are imputed as SMD = 0.01 without a reported sensitivity analysis; this may bias pooled estimates toward zero.",
+      "4. Internal inconsistencies: the abstract has a duplicated, contradictory sentence; psychology counts differ between the text (9 studies/12 estimates) and Table 1 (19/32); region counts sum to 40, not 41.",
+      "5. The marginal-study comparison (0.07 vs 0.20) is confounded by many study differences and cannot isolate methodological rigor as the cause of larger effects.",
+      "6. The RPM vs MAP gap is attributed speculatively to substitution, though RPM studies differ systematically in population (clinical/health trials) and intervention intensity.",
+      "7. Effects are not translated into practical units (grams, servings, % reduction) or cost-effectiveness, so the normative 'unsolved problem' claim lacks a decision-relevant benchmark.",
+      "8. Using the longest follow-up per intervention conflates effect decay with intervention efficacy; there is no analysis of effects by follow-up length despite the paper's emphasis on durability.",
+      "9. Risk-of-bias variables (self-report vs objective outcomes, preregistration) were collected but not analyzed as moderators in the main text; self-reported outcomes risk social desirability bias.",
+      "10. Choice architecture conclusions rest on 3 estimates (including a fish-sauce study of questionable relevance, also double-classified); exclusion criteria remove the default/no-choice interventions most relevant to institutional policy.",
+      "11. Subgroup and moderator estimates with 2–3 studies have uninformative CIs under RVE; the claimed decline over time is not statistically supported.",
+      "12. The search is non-systematic and the PRISMA diagram has oddities (no duplicates removed, no screening exclusions), which limits reproducibility of the search."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 66,
+        "lower_bound": 50,
+        "upper_bound": 80
+      },
+      "claims_evidence": {
+        "midpoint": 60,
+        "lower_bound": 44,
+        "upper_bound": 74
+      },
+      "methods": {
+        "midpoint": 58,
+        "lower_bound": 42,
+        "upper_bound": 72
+      },
+      "advancing_knowledge": {
+        "midpoint": 72,
+        "lower_bound": 55,
+        "upper_bound": 85
+      },
+      "logic_communication": {
+        "midpoint": 58,
+        "lower_bound": 42,
+        "upper_bound": 72
+      },
+      "open_science": {
+        "midpoint": 80,
+        "lower_bound": 65,
+        "upper_bound": 90
+      },
+      "global_relevance": {
+        "midpoint": 82,
+        "lower_bound": 68,
+        "upper_bound": 92
+      },
+      "tier_should": {
+        "score": 3.3,
+        "ci_lower": 2.5,
+        "ci_upper": 4.1
+      },
+      "tier_will": {
+        "score": 3.3,
+        "ci_lower": 2.4,
+        "ci_upper": 4.2
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This manuscript meta-analyzes randomized controlled trials of interventions intended to reduce consumption of meat and animal products (MAP). Eligible trials had to measure consumption at least one day after treatment began, include a pure control group, and have at least 25 subjects per arm (or at least 10 clusters). The main sample is 35 papers, 41 studies, 112 estimates and about 87,000 subjects. The pooled SMD is small (0.07, 95% CI 0.02–0.12) and falls to about 0.01–0.02 under publication-bias corrections. A separate set of 17 studies targeting only red and processed meat (RPM) yields a larger effect (SMD 0.25). Relaxing the inclusion criteria to admit 22 'marginal' studies raises the pooled estimate to 0.20. The headline message is that net MAP reduction is an 'unsolved problem'.\\n\\nStrengths:\\n- The question matters for climate, health and animal welfare, and it bears directly on funding decisions.\\n- The inclusion criteria target the main validity threats in the literature: attitudinal or intention proxies, hypothetical choices, immediate-only measurement, non-randomization and RPM-only outcomes.\\n- The grey-literature search is broad, including nonprofit reports.\\n- Dependence among multiple arms is handled with robust variance estimation (RVE) and a small-sample correction.\\n- Publication bias is assessed with modern tools: the Vevea–Hedges selection model, worst-case non-affirmative meta-analysis and a significance funnel.\\n- Code and data are posted in a containerized repository, which is well above field norms.\\n\\nThere are, however, several important issues.\\n\\nFirst, the process carries a high risk of researcher discretion.\\n- There is no mention of a preregistered protocol.\\n- Three inclusion decisions were made after data collection began: creating a separate RPM category, excluding substitution-oriented studies and excluding 'no-choice' interventions.\\n- Inclusion/exclusion was primarily decided by the first author, who also extracted all data and performed all effect-size conversions alone. There was no double coding and no inter-rater reliability check.\\n- For a synthesis whose headline depends on many judgment calls (what counts as net MAP, which outcome has the longest follow-up, how to convert regression coefficients or binary outcomes), single-coder extraction is a substantive credibility limitation.\\n- The search is not a reproducible database search. The PRISMA diagram has oddities: zero duplicates removed, zero records excluded at screening, and 130 database records all assessed in full text.\\n\\nSecond, effect-size construction has potentially consequential choices.\\n- Glass's Δ is defined using a pre-treatment control SD, which many studies cannot supply. The fallback is the pooled SD, so standardizers are mixed.\\n- Conversions from eta-squared, z-scores and regression coefficients are heterogeneous.\\n- 'Unspecified nulls' are imputed as 0.01. With an assigned variance, these mechanically pull estimates toward zero and appear as a cluster in the funnel plot. A sensitivity analysis excluding them is not reported in the main text.\\n- Taking the longest follow-up per intervention means pooled estimates partly reflect decay over heterogeneous horizons. The paper does not show how effects vary with follow-up length, although persistence is central to its framing.\\n\\nThird, there are internal inconsistencies that a reader will notice.\\n- The abstract contains a duplicated, contradictory sentence: substitution is described as possibly 'increasing' versus 'decreasing' other MAP.\\n- The text says psychology studies are 'n = 9 studies with 12 estimates', but Table 1 reports 19 studies and 32 estimates.\\n- Region counts in Table 2 sum to 40, not 41.\\n- 'p < < 0.001' appears.\\n- Kanchanachitra et al. (fish-sauce reduction in Thailand) is classed as both choice architecture and persuasion. It is also arguably a marginal fit for 'MAP reduction'. With only 3 choice-architecture estimates, this one study substantially shapes the category's result.\\n- Table 1 notes that categories overlap, yet subgroup Ns are presented as if separable. The text says meta-regression was not done for theory, but Table 2 does report moderator p-values for delivery methods that also overlap.\\n\\nFourth, several interpretive claims go beyond the evidence.\\n- The comparison with marginal studies (0.07 vs 0.20) is offered as support for the view that rigor shrinks effects. But marginal studies differ in many ways (immediate outcomes, defaults, smaller samples, settings), so the contrast is confounded, as the authors partly acknowledge.\\n- Similarly, the MAP versus RPM gap is attributed speculatively to substitution. Yet RPM studies are often clinical or health trials (cancer survivors, diabetes prevention) with different populations, intensities and self-reported dietary instruments. Population and intervention intensity could explain the gap without substitution.\\n- The 'unsolved problem' framing is a normative judgment not tied to any benchmark. An SMD of 0.07 is not translated into grams of meat, servings or percent reduction. Nor is it compared against cost per person reached. A cheap, scalable intervention with a tiny SMD could still be highly cost-effective.\\n- The conclusion that choice architecture is unproven rests largely on excluding defaults with immediate outcomes and 'no-choice' interventions. That limits external validity for the institutional policies that matter most.\\n\\nFifth, risk-of-bias data were collected but are not analyzed in the main text. These include self-report versus objective measurement, preregistration and open data. Many included outcomes are coarse self-reports susceptible to social desirability bias, which the authors acknowledge. A moderator analysis by objective versus self-reported outcome would directly test whether even the small pooled effect is inflated.\\n\\nSixth, the statistical properties of some analyses are weak.\\n- Subgroup analyses with 2–3 studies (choice architecture CI −0.99 to 1.42; dietary consultation CI −3.36 to 4.15) are essentially uninformative under RVE small-sample degrees of freedom and should be flagged or omitted.\\n- The estimated τ = 0.082 implies modest heterogeneity. The proportion of effects above 0.1 and 0.2 is a useful addition but depends on distributional assumptions.\\n- The time trend (declining effects) is not statistically supported (moderator p = .37–.46) but is narrated as a trend.\\n\\nOverall, this is a useful, policy-relevant synthesis that sets a stricter evidentiary bar than prior reviews, and its open materials allow verification. Its credibility is reduced by single-coder extraction, post hoc inclusion decisions, unvalidated imputation choices, confounded comparisons offered as explanatory evidence, and numerous reporting inconsistencies. The bottom-line direction—that rigorous evidence for durable net MAP reduction is thin and effects are small—is probably robust. The precise magnitudes and subgroup contrasts are less so.\",\"key_issues\":[\"1. Single-author data extraction and effect-size conversion, with inclusion decisions also primarily by one author, and no reported double coding or reliability check; there is no preregistered protocol.\",\"2. Three inclusion/exclusion decisions were made after data collection began (RPM category, substitution studies, no-choice interventions), creating scope for researcher degrees of freedom.\",\"3. 'Unspecified null' outcomes are imputed as SMD = 0.01 without a reported sensitivity analysis; this may bias pooled estimates toward zero.\",\"4. Internal inconsistencies: the abstract has a duplicated, contradictory sentence; psychology counts differ between the text (9 studies/12 estimates) and Table 1 (19/32); region counts sum to 40, not 41.\",\"5. The marginal-study comparison (0.07 vs 0.20) is confounded by many study differences and cannot isolate methodological rigor as the cause of larger effects.\",\"6. The RPM vs MAP gap is attributed speculatively to substitution, though RPM studies differ systematically in population (clinical/health trials) and intervention intensity.\",\"7. Effects are not translated into practical units (grams, servings, % reduction) or cost-effectiveness, so the normative 'unsolved problem' claim lacks a decision-relevant benchmark.\",\"8. Using the longest follow-up per intervention conflates effect decay with intervention efficacy; there is no analysis of effects by follow-up length despite the paper's emphasis on durability.\",\"9. Risk-of-bias variables (self-report vs objective outcomes, preregistration) were collected but not analyzed as moderators in the main text; self-reported outcomes risk social desirability bias.\",\"10. Choice architecture conclusions rest on 3 estimates (including a fish-sauce study of questionable relevance, also double-classified); exclusion criteria remove the default/no-choice interventions most relevant to institutional policy.\",\"11. Subgroup and moderator estimates with 2–3 studies have uninformative CIs under RVE; the claimed decline over time is not statistically supported.\",\"12. The search is non-systematic and the PRISMA diagram has oddities (no duplicates removed, no screening exclusions), which limits reproducibility of the search.\"],\"metrics\":{\"overall\":{\"midpoint\":66,\"lower_bound\":50,\"upper_bound\":80},\"claims_evidence\":{\"midpoint\":60,\"lower_bound\":44,\"upper_bound\":74},\"methods\":{\"midpoint\":58,\"lower_bound\":42,\"upper_bound\":72},\"advancing_knowledge\":{\"midpoint\":72,\"lower_bound\":55,\"upper_bound\":85},\"logic_communication\":{\"midpoint\":58,\"lower_bound\":42,\"upper_bound\":72},\"open_science\":{\"midpoint\":80,\"lower_bound\":65,\"upper_bound\":90},\"global_relevance\":{\"midpoint\":82,\"lower_bound\":68,\"upper_bound\":92},\"tier_should\":{\"score\":3.3,\"ci_lower\":2.5,\"ci_upper\":4.1},\"tier_will\":{\"score\":3.3,\"ci_lower\":2.4,\"ci_upper\":4.2}}}",
+  "thinking_summaries": [
+    "I'm starting to write a roughly 1000-word assessment summary and pull together the metrics, beginning with a scan for problems in the source. The main ones so far are internal mismatches: the psychology studies are cited as 9 studies with 12 estimates in the text but show as 19 studies and 32 estimates in Table 1, and the abstract repeats a sentence with conflicting \"increase\" and \"decrease\" wording.\n\nI'm checking the internal numbers next: whether the RPM studies are counted in the overall 41, and whether the region and delivery counts add up. The region split comes to 40 rather than 41, and the decade and population totals check out.\n\nI'm now going through the methodology concerns: the effect size metric mixes pre-treatment control SDs that many studies don't report, and the outcomes lean heavily on self-report even though risk-of-bias data was collected and not analyzed in the main text. I'm also weighing whether the small pooled effect (about 0.07, with low heterogeneity) means anything practically, since the paper gives no translation into grams of meat or percentage reduction, and a small effect could still be cost-effective at scale. Finally, I'm considering the exclusion criteria, which drop defaults and immediate-outcome studies, the interventions most likely to work, and how that affects the conclusion.\n\nI'm now checking the search and sampling choices: the search wasn't a systematic database sweep, and the PRISMA flow looks inconsistent, with 130 records screened but none excluded before screening. The per-arm sample minimum of 25 is low against a median of 132, and I'm noting the cluster-level studies with at least 10 clusters.\n\nI'm checking how the choice architecture result holds up with only two studies behind it, since small-sample degrees of freedom could make the interval unreliable. I'm also noting that the open science practices look good with code and data shared, and that the total sample of about 87,000 is driven by a few large studies given the median of 132. Finally, I'm tallying the rough scores I'd give the paper and settling on a tier around 3.3.\n\n"
+  ]
+}

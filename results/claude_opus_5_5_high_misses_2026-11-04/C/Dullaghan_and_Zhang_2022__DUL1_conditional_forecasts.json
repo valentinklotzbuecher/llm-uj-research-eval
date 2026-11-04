@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Dullaghan_and_Zhang_2022",
+    "condition": "C",
+    "claim_id": "DUL1_conditional_forecasts",
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "misses_C_recognition_v1",
+    "system_prompt_sha256": "261042f6c925bb24f51659634cb657f53a0f89431d88da73795a71fd66a373aa",
+    "user_text_sha256": "35f7aa0d9c042811889f9510315818d853e38572c5aed42c6412fa50863ddea8",
+    "schema_sha256": "c3f554a430bc82fd3668443c3dce2e0caadf9eab0696c26835ce7fda0c7fadcd",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Dullaghan_and_Zhang_2022.pdf",
+    "pdf_sha256": "90ff03c648c63ef9ebe591c91a2d05c8d9a52f28e865ab2402388219678e404a",
+    "pdf_pages": 32,
+    "pdf_last_commit": "073e56163a1fb65efad71768280f393c93e0f147",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-04T20:37:32.339623+00:00",
+    "completed_at": "2026-11-04T20:37:58.087271+00:00",
+    "elapsed_seconds": 25.7,
+    "request_id": "req_011CgiXkj1JKcwkYs3i4yR4G",
+    "response_id": "msg_011CgiXkmaLHcYiFq29bvigq",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 68912
+      },
+      "cache_creation_input_tokens": 68912,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 187,
+      "output_tokens": 2058,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.3865,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": {
+    "claim_id": "DUL1_conditional_forecasts",
+    "paper": "Dullaghan_and_Zhang_2022",
+    "origin": "handover_list",
+    "published_source": "e1limitedmeatprod.md",
+    "published_weight": "raised under methods/results; evaluator 1's 'very major' issues are on framing",
+    "claim_text": "The consumer-acceptance questions were asked conditional on more than 10 cumulative kilotons of cultured meat being produced. That conditioning screens off the correlation between production and acceptance, so the answers cannot support the paper's conclusion that consumer approval did not appear to be a major constraint.",
+    "grading_note": "Caught = identifies the conditioning and why it undermines the unconditional reading. Partly = notes the questions are conditional or complex without the inferential error.",
+    "run_condition_c": true
+  },
+  "user_text": "An evaluator argues: \"The consumer-acceptance questions were asked conditional on more than 10 cumulative kilotons of cultured meat being produced. That conditioning screens off the correlation between production and acceptance, so the answers cannot support the paper's conclusion that consumer approval did not appear to be a major constraint.\"\n\nIs this right, and how much does it matter?\n\nBase your answer only on the attached paper. Do not browse or use other files. Check the paper's tables, figures and appendices where relevant, and cite them.\n\nReturn JSON matching the supplied schema.",
+  "parsed": {
+    "what_the_paper_shows": "In the signpost results (p.10) the paper states that consumer approval \"did not appear as a major constraint.\" It cites two forecasts: an 18% chance of large-scale anti-cultured-meat protests and a 70% chance that a majority of survey respondents would be willing to try cultured meat. Both are conditional on >10,000 cumulative metric tons being produced by 2031. The full table (pp.28–29) words the questions this way and gives 18% and 69%, so the summary's 70% is slightly inconsistent with the table. Separately, p.11 says consumer approval was not significantly correlated with the production-volume forecasts. In the correlation matrix (p.11), \"Protest\" and \"willing to try\" correlate only with themselves. The paper's stated cruxes (pp.13–20) and its list of innovations needed (p.21) are entirely supply-side: bioreactors, amino acids, growth factors, sterility and funding.",
+    "is_the_critique_right": "partly right",
+    "reasoning": "The critique overstates the mechanism. Conditioning on some production does not make the answers uninformative. A conditional question asks whether acceptance would block uptake once product exists, and that is a legitimate way to isolate demand from supply. A high conditional willingness-to-try and a low conditional protest probability do bear on whether acceptance is a binding constraint.\n\nTwo parts of the critique still hold.\n\n(1) The conditioning event is a very low bar: 10 kt cumulative, against targets of 100 kt to 50M t per year. It may already select worlds where demand was adequate. So it says little about whether acceptance would constrain the scale-up to millions of tons. The outcome measures are also weak proxies for sustained purchasing. \"Willing to try\" is not repeat demand, and mass protests are a tail event.\n\n(2) The critique's \"screens off\" point does bite on the paper's second piece of evidence. The paper treats the lack of correlation between acceptance and production forecasts as consistent with acceptance not mattering. But the acceptance questions presuppose production. A null cross-forecaster correlation is therefore unsurprising and non-diagnostic, especially with about six forecasters.\n\nSo the evidence supports a weak claim: conditional on early product, outright rejection seems unlikely. It does not support a general statement that consumer approval is not a major constraint on large-scale production.",
+    "how_much_it_matters": "minor",
+    "how_much_it_matters_explanation": "The paper's headline conclusions rest on the direct production-volume forecasts and the supply-side cruxes, not on the acceptance signposts. These conclusions are the low probabilities of 100 kt, 1M, 10M and 50M t, and the policy suggestions about bioreactors, inputs and funding. The acceptance claim is a one-bullet side observation. Weakening it mainly affects how readers interpret what is not a constraint. It does not change the forecast numbers or the recommended interventions. At most it means demand-side risk is under-examined rather than shown to be small.",
+    "would_you_have_raised_it": "Yes, but as a secondary comment. I would frame it less as conditioning destroying information and more as an overreach in interpretation. The 10 kt threshold is too low to test acceptance at scale, \"willing to try\" and protests are poor proxies for sustained demand, and a null correlation with n≈6 forecasters on presupposing questions is uninformative. I would also note the 69% vs 70% inconsistency. It would rank well below concerns about the small, non-expert panel and the reliance on a single TEA (Humbird)."
+  },
+  "result_text": "{\"what_the_paper_shows\":\"In the signpost results (p.10) the paper states that consumer approval \\\"did not appear as a major constraint.\\\" It cites two forecasts: an 18% chance of large-scale anti-cultured-meat protests and a 70% chance that a majority of survey respondents would be willing to try cultured meat. Both are conditional on >10,000 cumulative metric tons being produced by 2031. The full table (pp.28–29) words the questions this way and gives 18% and 69%, so the summary's 70% is slightly inconsistent with the table. Separately, p.11 says consumer approval was not significantly correlated with the production-volume forecasts. In the correlation matrix (p.11), \\\"Protest\\\" and \\\"willing to try\\\" correlate only with themselves. The paper's stated cruxes (pp.13–20) and its list of innovations needed (p.21) are entirely supply-side: bioreactors, amino acids, growth factors, sterility and funding.\",\"is_the_critique_right\":\"partly right\",\"reasoning\":\"The critique overstates the mechanism. Conditioning on some production does not make the answers uninformative. A conditional question asks whether acceptance would block uptake once product exists, and that is a legitimate way to isolate demand from supply. A high conditional willingness-to-try and a low conditional protest probability do bear on whether acceptance is a binding constraint.\\n\\nTwo parts of the critique still hold.\\n\\n(1) The conditioning event is a very low bar: 10 kt cumulative, against targets of 100 kt to 50M t per year. It may already select worlds where demand was adequate. So it says little about whether acceptance would constrain the scale-up to millions of tons. The outcome measures are also weak proxies for sustained purchasing. \\\"Willing to try\\\" is not repeat demand, and mass protests are a tail event.\\n\\n(2) The critique's \\\"screens off\\\" point does bite on the paper's second piece of evidence. The paper treats the lack of correlation between acceptance and production forecasts as consistent with acceptance not mattering. But the acceptance questions presuppose production. A null cross-forecaster correlation is therefore unsurprising and non-diagnostic, especially with about six forecasters.\\n\\nSo the evidence supports a weak claim: conditional on early product, outright rejection seems unlikely. It does not support a general statement that consumer approval is not a major constraint on large-scale production.\",\"how_much_it_matters\":\"minor\",\"how_much_it_matters_explanation\":\"The paper's headline conclusions rest on the direct production-volume forecasts and the supply-side cruxes, not on the acceptance signposts. These conclusions are the low probabilities of 100 kt, 1M, 10M and 50M t, and the policy suggestions about bioreactors, inputs and funding. The acceptance claim is a one-bullet side observation. Weakening it mainly affects how readers interpret what is not a constraint. It does not change the forecast numbers or the recommended interventions. At most it means demand-side risk is under-examined rather than shown to be small.\",\"would_you_have_raised_it\":\"Yes, but as a secondary comment. I would frame it less as conditioning destroying information and more as an overreach in interpretation. The 10 kt threshold is too low to test acceptance at scale, \\\"willing to try\\\" and protests are poor proxies for sustained demand, and a null correlation with n≈6 forecasters on presupposing questions is uninformative. I would also note the 69% vs 70% inconsistency. It would rank well below concerns about the small, non-expert panel and the reliance on a single TEA (Humbird).\"}",
+  "thinking_summaries": [
+    "I'm checking the paper's claim that consumer approval wasn't a major constraint, looking at the 18% protest probability and the roughly 70% willingness to try cultured meat, both conditional on output exceeding 10,000 metric tons by 2031. I'm also cross-checking those figures against the table on pages 28 and 29, where the willingness number appears as 69%.\n\nI'm weighing whether the critique holds: conditioning on production means the consumer answers only tell me about acceptance once some production is already happening, which is relevant downstream but muddies whether low acceptance is what held production back. The 10,000-ton threshold is a low bar against the 100,000-ton scale I'm also considering, so the conditioning may select for worlds where demand was already sufficient.\n\nI'm weighing the critique's secondary point: the conditioning on a 10,000-ton bar is low against the scale the paper is ultimately about, and the \"willing to try\" and protest measures are weak proxies for sustained purchasing. The null cross-forecaster correlations for these conditional questions are where the \"screens off\" concern really applies, and the paper leans on them as supporting evidence, so the critique is partly right. I'd rank this as a minor point, since the main claims rest on production forecasts and technical cruxes rather than consumer acceptance.\n\n"
+  ]
+}
