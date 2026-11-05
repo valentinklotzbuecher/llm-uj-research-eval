@@ -22,20 +22,24 @@ Offline checks: `python -m unittest discover -s tests` in the project Python
 environment, and `Rscript tests/test_analysis_checks.R`. The current analysis
 sources, rather than historical provenance summaries, determine active inputs.
 
-### Dual Hosting Setup
+### Hosting (verified November 2026)
 
-The project maintains two hosted versions from different branches:
+Both working-paper hosts serve the same committed `_book/` from the
+`working-paper` branch. Neither renders anything: render locally, commit
+`_book/`, and push.
 
-| Branch | Host | URL | Purpose |
-|--------|------|-----|---------|
-| `main` | Netlify | https://llm-uj-research-eval.netlify.app | Full project site with all chapters, appendices, proposal |
-| `working-paper` | GitHub Pages | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | Concise self-contained research paper (Introduction, Methods, Results, Discussion) |
+| Host | URL | Source | Role |
+|------|-----|--------|------|
+| Netlify (canonical) | https://llm-uj-research-eval.netlify.app | `working-paper` `_book/` | Current working paper |
+| GitHub Pages | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | `working-paper` `_book/` via Actions | Same paper; canonical links point to Netlify |
+| Netlify `-project` | https://llm-uj-research-eval-project.netlify.app | Manual deploy, no linked repo | Historical project workspace and grant proposal |
 
-**Key differences:**
-- **main branch**: Multi-chapter Quarto book with extensive appendices, code visibility, grant proposal
-- **working-paper branch**: Streamlined 4-chapter paper structure, Hypothes.is annotations enabled, PDF output
-
-**Cross-linking:** The Netlify site (main) includes a callout and sidebar link to the GitHub Pages working paper.
+`main` is no longer served by either working-paper host and is far behind;
+do not deploy from it. The `-project` site changes only through a deliberate
+manual deploy that preserves its existing files (see `HOSTING_PLAN.md`), and
+needs David's OK, since a push does not update it. The primary Netlify site is
+not in the `daaronr` Netlify team, so its account settings cannot be checked
+from here; check the live content instead.
 
 **Hypothes.is annotations:** The working-paper site has `hypothesis: true` enabled for collaborative annotation. Annotations are tagged with `migrated` and `todo` for tracking unresolved feedback.
 
@@ -502,25 +506,22 @@ When committing:
 
 ## Deployment
 
-The project uses dual hosting:
+A push to `working-paper` publishes the committed `_book/` to both hosts:
+Netlify within about a minute, and GitHub Pages through
+`.github/workflows/publish-gh-pages.yml` shortly after. Netlify serves the
+pages with pretty URLs and an injected comment, so its bytes differ slightly
+from `_book/`.
 
-### Netlify (main branch)
-- **URL:** https://llm-uj-research-eval.netlify.app
-- **Trigger:** Pushes to `main` branch
-- **Notes:** The checked-in `netlify.toml` specifies `_book/` as its publish
-  directory and no build command. Source edits alone do not regenerate this
-  directory. Hosted account settings must be verified separately.
+To publish a change:
+1. Run `quarto render` for HTML and PDF.
+2. Review the diff in `_book/` and run the evaluator-anonymity scan on new public pages.
+3. Commit `_book/` (and `_freeze/` where it changed) and push `working-paper`.
+4. Check the live pages on both hosts.
 
-### GitHub Pages (working-paper branch)
-- **URL:** https://valentinklotzbuecher.github.io/llm-uj-research-eval/
-- **Trigger:** GitHub Actions workflow on push to `working-paper` branch
-- **Workflow:** `.github/workflows/publish-gh-pages.yml`
-- **Notes:**
-  - `hypothesis: true` enabled for collaborative annotation
-  - Deploys prebuilt `_book/`; it does not render HTML or PDF. Render locally
-    and review the artifacts before updating published output.
-  - Self-contained research paper format (4 chapters)
-  - Annotations tagged `migrated` and `todo` track unresolved feedback from earlier review
+`netlify.toml` sets `publish = "_book"` with no build command. Hypothes.is
+annotations are enabled (`hypothesis: true`); older annotations are tagged
+`migrated` and `todo`. Updates to the `-project` site, and the record of each
+one, are in `HOSTING_PLAN.md`.
 
 ## Automated Data Sync
 
