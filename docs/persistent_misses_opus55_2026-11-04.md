@@ -81,6 +81,17 @@ In three further cases, C says the critique itself is wrong or weak. David needs
 ## Caveats
 
 - **Contamination.** These papers and their published evaluations may be in training data, so a catch is weaker evidence than a miss. The two big "now caught" results (Acemoglu, Williams) could partly reflect exposure to the evaluations.
+  - **Exposure was plausible.** Most of the papers and their Unjournal evaluations were public, with DOIs and indexed on PubPub, before Opus 5.5's training cutoff (about mid-2026).
+  - **The pattern argues against simple recall:**
+    1. The model missed points that appear in the published evaluations (Clancy's discount rate, the Dullaghan conditional forecasts).
+    2. When shown three published critiques, it argued they were wrong or weak, rather than agreeing.
+    3. What it caught can be found from the paper alone: the roughly 7× gap uses the paper's own figures, and the prior-election control appears in the main table.
+  - **Partial influence on the catches can't be ruled out.**
+  - **Cleaner tests:**
+    - papers evaluated after the cutoff;
+    - disguised variants with names, setting and numbers changed, where the flaw is kept and checked for whether catches hold.
+
+    Disguised variants are also how these cases would become test items the model can't have memorised.
 - **One sample per condition.** Catches and misses at rank 4–8 could flip on a rerun.
 - **Same model family.** The provisional scorer (Opus 5.5 in Claude Code) is the same model family as the model being tested.
 - **Not comparable with earlier runs.** Condition A uses the `SYSTEM_PROMPT_WITH_ISSUES` prompt, like the GPT-5.2 Pro focal run. Opus 4.6 used the combined prompt without `key_issues`. The model and interface also differ, so A/B results are not a clean like-for-like comparison with the earlier runs.
