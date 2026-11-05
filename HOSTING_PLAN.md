@@ -104,6 +104,19 @@ unchanged. Netlify rewrites served HTML (pretty URLs and an injected comment),
 so live bytes do not match deployed hashes. To check a baseline, rebuild from
 source; do not download the live pages.
 
+On November 5 (later, from David's Hypothes.is comments) both notices on the
+homepage and proposal became closed `<details>` boxes, and all seven HTML pages
+got a one-line Hypothes.is comment signpost after `<main>` (plus the embed
+script where missing). Deploy `6aec7a6d68bd934448d479c5` replaced only those
+seven pages; the other 30 file hashes are unchanged. Scripts in
+`scripts/project_site/`: `proj_pull.py` saves the live hash manifest,
+`proj_build.py` rebuilds the baseline from git (checking every page's hash
+against the manifest before editing) and applies the edits, `proj_deploy.py`
+does the file-digest deploy and refuses if the live deploy has changed. The
+November notice is inserted as `"\n" + notice.strip()` (no trailing newline).
+To rebuild the current pages, run `proj_build.py` against the pre-change
+manifest of deploy `6aec619eb66fd94e660c0586`.
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:
