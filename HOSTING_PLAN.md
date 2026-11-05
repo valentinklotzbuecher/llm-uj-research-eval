@@ -84,6 +84,26 @@ The historical project's Netlify site ID is
 no connected Git repository on October 23. A source push alone does not update
 that site.
 
+## November 2026 diagnostic notice
+
+The provisional Claude Opus 5.5 persistent-miss diagnostic is the working-paper
+appendix `persistent_misses.qmd`, live at
+<https://llm-uj-research-eval.netlify.app/persistent_misses.html> and on GitHub
+Pages. Both hosts serve the committed `_book/` from `working-paper`.
+
+On November 5 the historical project site's homepage and proposal received
+`docs/persistent_misses_project_notice.html`. It is inserted directly after each
+opening `<main>` tag, ahead of the October notice. The baseline was deploy
+`6adb662fb8afa7b82547eb83` (37 files). Its `index.html` and `proposal.html` were
+reproduced byte-for-byte from `67a6cea:_book/` plus the October notice from
+`54413e9`, which is inserted as `"\n" + notice.strip() + "\n"`.
+
+The new deploy `6aec619eb66fd94e660c0586` was a file-digest deploy through the
+Netlify API. It replaced only those two files; the other 35 file hashes are
+unchanged. Netlify rewrites served HTML (pretty URLs and an injected comment),
+so live bytes do not match deployed hashes. To check a baseline, rebuild from
+source; do not download the live pages.
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:
