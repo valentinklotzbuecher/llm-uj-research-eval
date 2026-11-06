@@ -64,6 +64,10 @@ The aim is a short ledger of cases where an expert caught something and the mode
 
 **Correction to the Williams leakage item (November 6).** The first condition-C prompt paraphrased the critique from our internal curation and named only net primary production, burned area and road density. The model judged that version wrong: none of the three is in the final ten-variable model (Extended Data Fig. 2). But the published critique also names soil characteristics. The evaluators' joint synthesis lists them under Primary Concern 1, and evaluator 2's leakage section leads with the SoilGrids data. Soil organic carbon *is* in the final model; it ranks third by Gini importance, and the paper itself attributes its effect to carbon being "higher within and near forests". Rerun with the full published wording, the model rates the critique **partly right, minor**. It accepts a "legitimate, partial leakage risk via SOC that the paper does not test", rejects the other legs for the final model, and asks for a refit without the soil variables. It judges the point minor because forest density and distance to forest dominate. That last step is its own untested claim. The original output is kept, with the ledger marking it as superseded.
 
+::: {.content-visible when-format="html"}
+Detailed notes on each case, and on how the model's ratings compare with the evaluators', are folded into the [case notes](#sec-pm-case-notes) at the end of this page.
+:::
+
 ## Failure types
 
 - **Internal consistency (Clancy).** The model calls the regime-exit parameter "judgmental" but does not notice that the paper's own reason for rejecting the forecasters' implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.
@@ -103,5 +107,146 @@ Some influence on the catches cannot be ruled out. Cleaner tests would use paper
 - **Scorer.** The provisional scorer is the same model family as the model tested.
 - **Comparability.** Condition A matches the prompt of the GPT-5.2 Pro key-issues run, but the model and interface differ, so this is not a like-for-like comparison with the earlier runs.
 - **Clancy coverage.** One of the Clancy evaluation reports was not in our exports, so that paper's critique set is incomplete.
+
+:::: {.content-visible when-format="html"}
+## Case notes {#sec-pm-case-notes}
+
+More detail on each case, for readers who want it. Each note is folded: click a heading to expand it. Evaluators are referred to by their number in the published evaluation. The model's verdicts are quoted from the outputs in the results folder; like the rest of this page, they have not yet been reviewed.
+
+::: {.callout-note collapse="true"}
+## Clancy (2024): the ~2% discount rate fails the paper's own test (persists)
+
+**The paper.** Clancy asks whether faster science is worth it if it also speeds up dangerous biotechnology. A key parameter is *p*, the annual probability of staying in the current "epistemic regime", where historical trends still let us forecast policy effects. In practice 1 − *p* works as the discount rate.
+
+**How *p* was chosen (§4.2).**
+
+1. Forecasts of extinction and of very fast growth from the Existential Risk Persuasion Tournament (XPT) imply exit rates of only 0.05–0.7% a year (*p* = 0.993–0.9995).
+2. These are rejected as "probably too conservative", partly because the XPT forecast only to 2100 and "it may be inappropriate to extrapolate their forecasts forward by hundreds of years".
+3. The paper's own rate instead sums 1.6% a year for AI (from an expert panel's 10–45% credences for AGI by 2043), 0.08% for other extinction risk (a to-2100 estimate) and 0.3% for economic trend breaks: about 2%, so *p* = 0.98, applied as a constant hazard indefinitely.
+
+**The critique (evaluator 2).** About 1.6 of the 2 points come from a credence about the next 20 years. Turning that into a permanent annual hazard is a longer extrapolation, from a shorter forecast window, than the one used to reject the XPT rates, so "it is subject to the same criticism". Evaluator 2 suggested reporting results for lower rates.
+
+**Why it matters.** It is a straight consistency argument, and the results are very sensitive to the rate. The author response accepts the point and reports the return to science at other rates: about 13,000× at 1%, about 330× at 2% (the paper's choice) and about 4× at 5%. The main paper did not test sensitivity to *p*. The author's defence, that a wrong rate cannot by itself turn "science is good" into "science is very bad", holds for the sign of the result but not its size.
+
+**How the model handled it.**
+
+- **A:** listed *p* = 0.98 among "judgmental and loosely evidenced" parameters, "a sum of heterogeneous hazard guesses".
+- **B:** ranked *p* fourth, objecting that regime exit is "assumed independent of science".
+- In neither did it connect the paper's reason for rejecting the XPT rates to the source of its own 2%.
+- **C:** "right, important". It extended the point (the 0.08% component is also a to-2100 estimate projected forward), added that the extrapolation cuts both ways (if AGI does not arrive by the 2040s, a constant 1.6% is not warranted either), and would rank it mid-to-high.
+
+**As a test item.** A clean failure to generate a point the model recognises at once. Everything needed is on two adjacent pages of the paper. The skill is holding the paper to its own standard; the model's habit is to critique each parameter in isolation.
+:::
+
+::: {.callout-note collapse="true"}
+## Dullaghan and Zhang (2022): conditional forecasts read as unconditional (persists)
+
+**The paper.** A forecasting study of cultivated-meat production, with a small panel (about six forecasters). Two "signpost" questions on consumer acceptance are explicitly conditional on more than 10 cumulative kilotons being produced before the end of 2031: large-scale protests (18%) and a majority of a representative sample willing to try it (69%). The summary nonetheless concludes that "Consumer approval did not appear as a major constraint", citing these numbers, and separately reports that consumer approval was "not significantly correlated" with the production forecasts.
+
+**The critique.** Evaluator 1: the conditioning "effectively screens off correlation" and "undermines the claim that 'consumer approval did not appear as a major constraint'". An evaluation-manager note in the same published report, which evaluator 1 endorsed, gives the logic: a forecaster could expect consumer rejection and protests, yet think that in the unlikely world where consumers like it, 10 kt becomes far more likely.
+
+**Why it is valid.** Conditioning on 10 kt being produced selects the worlds where demand was already adequate, so high conditional acceptance is partly built in and says little about whether acceptance is a constraint on getting there. The null correlation is also uninformative: the acceptance questions presuppose production, and with about six forecasters a correlation test has almost no power. The claim is unconditional; the evidence is conditional.
+
+**How much it matters.** A clean conditional-probability error behind a policy-relevant conclusion (don't worry about demand; fund supply). But evaluator 1 filed it under methods and reporting; their most serious concerns were about framing, such as cost studies presented as forecasts.
+
+**How the model handled it.**
+
+- **A and B:** discussed conditioning only on funding and on "no transformative AI", never the 10 kt condition, although it is printed in the sentence making the claim.
+- **C:** "partly right, minor". It pushed back reasonably (conditional questions *can* separate demand from supply), then conceded the core: the 10 kt bar "may already select worlds where demand was adequate", the null correlation is "unsurprising and non-diagnostic, especially with about six forecasters", and the evidence supports only "conditional on early product, outright rejection seems unlikely". It rated the point minor because the acceptance claim is "a one-bullet side observation".
+
+**As a test item.** Noticing what a conditioning event does to the evidence, in plain sight. Less clean than Clancy, since once told the model partly agrees and partly argues. It also shows a difference in prioritisation: the model asks whether the headline numbers rest on a point; evaluators also ask whether the paper claims more than its evidence supports.
+:::
+
+::: {.callout-note collapse="true"}
+## Williams (2024): why the expected area is so large (caught, with a mechanism the evaluations do not give)
+
+**How the 215 Mha is built.** The random forest is trained on samples "balanced with respect to the levels of the dependent variable": half regrowth, half non-regrowth. Each pixel's score is read as "the probability of natural regeneration per pixel", multiplied by pixel area and summed into an "expected area".
+
+**Why that inflates the total.** Regrowth occupies a small share of the eligible area; the paper's own benchmark is 31.6 Mha over 2000–2016. Scores from a 50/50 training set reflect a 50% base rate, so they run high, and summing them over hundreds of millions of hectares inflates the total. A prior-shift correction, or recalibration (Platt or isotonic) against true prevalence, would address this. None is reported.
+
+**What the model said.** In B, ranked first: the magnitudes are "largely set by the chosen class ratio, not by the real prevalence of regrowth". It also called the ±0.22 Mha interval "spurious precision".
+
+**Relation to the evaluations.** The evaluators flag the gap and the missing hindcast, and explain it mainly by socioeconomic confounding (the model learned from places where social conditions also favoured regrowth). None of the published Williams evaluation documents mentions calibration, class balance or prevalence. Each explanation could account for part of the gap.
+
+**A second consequence.** The 87.9% accuracy is measured on a balanced test set. At realistic prevalence, precision for "will regenerate" would be lower. Extended Data Fig. 4 already shows accuracy falling to about 75–82% away from training points.
+:::
+
+::: {.callout-note collapse="true"}
+## Williams (2024): which predictors could leak into the final model
+
+The final model behind the maps, the 215 Mha and the 87.9% has ten biophysical variables (Extended Data Fig. 2): four bioclimatic principal components, biome, distance to forest, forest density, land use, soil organic carbon and soil pH.
+
+- **Net primary production and burned area** were candidates in variable selection but did not make the final ten.
+- **Road density** is socioeconomic and appears only in the comparison model with socioeconomic variables (accuracy 0.886 vs 0.880). Leakage there would inflate that model, which narrows a gap the paper already calls small.
+- **Forest density and distance to forest** use 2000 tree cover for training and are updated to 2018 only for prediction, which is the right way round.
+- **Soil organic carbon** is the remaining route. Evaluator 2 suggests the SoilGrids layers may have been built using about 2010 land-cover data that include forest classes, and soil organic carbon ranks third in importance. How much this matters depends on how SoilGrids was built, which cannot be checked from the paper. The test is the one the model proposes: refit without the soil variables.
+
+So, as the rerun found: partly right. The other legs do not touch the headline; the soil leg does.
+:::
+
+::: {.callout-note collapse="true"}
+## Acemoglu et al. (2024): change scores (disputed; the model looks right)
+
+**The critique.** Evaluator 1, under suggested robustness checks: "The outcome measure should not be post-treatment means but the difference between pre-treatment and post-treatment." The report quotes §4.6, that "the magnitudes ... become somewhat smaller when we control for the pre-treatment values", and asks why that specification is not the main one in the online experiment. The evaluation summary restates the concern; we found no correction or author response on it.
+
+**What the paper shows.** Table 1 (online experiment) runs five specifications. Column 2 adds the baseline outcome; column 5 adds the baseline outcome and all controls. The headline vote effect, 3.7 points, equals columns 2 and 5 (0.037), against 0.054 with no controls (column 1), and the notes to Figure 3 say the headline uses "the full set of pre-treatment variables". So the baseline-controlled specification appears to *be* the main one, which is the model's reading. The §4.6 wording, which presents baseline control as an alternative, explains why the evaluator read it the other way.
+
+**Change scores versus controlling for the baseline.** A change score is a restricted version of regressing on the baseline: it forces the baseline coefficient to equal one. Under randomisation both are unbiased, and controlling for the baseline is generally more efficient. The model makes this point correctly. It adds a smaller one: it is unclear whether the baseline items on valuing institutions match the endline items.
+
+**Status.** If adjudication confirms the reading of Table 1, this becomes a "reject a plausible but mistaken critique" item: the model held its position with table citations rather than deferring.
+:::
+
+::: {.callout-note collapse="true"}
+## Green et al. (2025): excluding studies with fewer than 25 per arm (disputed; both views defensible)
+
+**The paper.** A meta-analysis of RCTs aimed at reducing meat and animal-product consumption. Pooled effect SMD = 0.07 [0.02, 0.12] across 112 interventions. Inclusion requires at least 25 subjects per arm, or at least 10 clusters. Publication bias is handled with a Hedges (1992) step-function selection model (corrected estimate 0.01) and Mathur's worst-case estimate from non-affirmative studies (0.02), with a significance funnel plot. Headline: reducing consumption is "an unsolved problem".
+
+**The critique (evaluator 2).** Excluding small studies is "unwarranted": it "makes publication bias harder to correct for and harder to detect", by narrowing the range of standard errors that bias methods exploit. At least 16 studies were dropped for size alone.
+
+**Background.** Funnel-asymmetry methods (Egger regression, PET-PEESE, trim-and-fill) detect bias from the relation between effect size and standard error, so they need a wide spread of standard errors, and the smallest studies are the most informative. Selection models, which the paper uses, estimate publication probability mainly from the relative frequency of significant and non-significant results, and rely on that spread less.
+
+**The model's counter-argument ("partly right, minor").**
+
+1. The paper uses selection models, not asymmetry methods.
+2. The cutoff is mild: at 25 per arm the standard error of an SMD is about 0.28, and Fig. 3 still spans roughly 0.04 to 0.6.
+3. Dropping small studies removes the place where small-study bias concentrates, even if it makes the remaining bias harder to model.
+4. The corrected estimates are already about zero, so undetected bias would push the true effect lower and reinforce the paper's null headline.
+
+It also points to a more useful gap: no bias correction is reported for the red and processed meat subset (SMD = 0.25), where the paper makes a positive claim.
+
+**Why both views are defensible.** As a general methods point, evaluator 2 is right: the rule discards the most bias-revealing data and adds a researcher choice. As a question about this paper's conclusions, the model is largely right, since any missed bias favours the paper's own null headline. A good answer engages with which bias methods the paper uses and which claim is at stake.
+:::
+
+::: {.callout-note collapse="true"}
+## Overall: how the model critiques, and how its ratings compare
+
+**Strengths.**
+
+- Long lists (11–13 issues per paper in A; five ranked in B) that cover most of what the evaluators raised.
+- Careful internal cross-checks, citing specific appendix tables and figures.
+- Sometimes a sharper mechanism than the evaluations give (the Williams calibration point; the Clancy extrapolation cutting both ways).
+- When handed a critique, it pushes back with evidence rather than deferring: it disputed two of the nine shown in C.
+
+**Weaknesses.**
+
+- It criticises parameters one at a time rather than checking whether the paper applies its own standards consistently (Clancy).
+- It misses selection and conditioning in plain sight (Dullaghan and Zhang).
+- It judges importance by whether the headline number rests on a point, so it downgrades overreach and framing problems that evaluators treat as major. It found Clancy's omission of AI risk but ranked it fourth; evaluator 3 called it the "major worry".
+- It cannot catch points that need sources outside the PDF; these are not really reasoning failures.
+
+**Ratings.** Condition A also produced the usual 0–100 ratings. Overall ratings against the published evaluators' ratings:
+
+| Paper | Evaluators | Evaluator mean | Opus 5.5 (A) | Difference |
+|---|---|---|---|---|
+| Acemoglu et al. (2024) | 85, 88 | 86.5 | 66 | −20.5 |
+| Clancy (2024) | 71, 80 | 75.5 | 66 | −9.5 |
+| Green et al. (2025) | 75, 39 | 57 | 66 | +9 |
+| Williams et al. (2024) | 50, 50 | 50 | 55 | +5 |
+| Frech et al. (2023) | 51, 30 | 40.5 | 30 | −10.5 |
+| Dullaghan and Zhang (2022) | no numeric ratings | — | 50 | — |
+
+The mean difference is about −5 points, in the same direction as Claude Opus 4.6 in the main benchmark ([Results: Ratings](results_ratings.qmd)). The ratings are compressed: the three strongest papers all get 66, the paper the evaluators rated highest is marked down most, and on Green, where the two evaluators differ by 36 points, the model lands between them. With five papers and one run, this is illustration, not evidence.
+:::
+::::
 
 **Materials.** The runner is [`scripts/run_headless_claude_misses.py`](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/scripts/run_headless_claude_misses.py). Model outputs, raw API responses, the claims used in condition C and the provisional ledger with verbatim quotes are in [`results/claude_opus_5_5_high_misses_2026-11-04/`](https://github.com/valentinklotzbuecher/llm-uj-research-eval/tree/working-paper/results/claude_opus_5_5_high_misses_2026-11-04). A longer note is in [`docs/persistent_misses_opus55_2026-11-04.md`](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/persistent_misses_opus55_2026-11-04.md).

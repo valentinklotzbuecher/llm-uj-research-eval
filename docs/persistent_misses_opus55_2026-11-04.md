@@ -2,6 +2,8 @@
 
 4 November 2026. Every score here is a **provisional first pass by Claude Opus 5.5**. David has not yet reviewed it. This is a separate diagnostic, kept out of the manuscript chapters and out of the one-shot benchmark.
 
+Detailed case notes (each persistent and disputed item, the Williams calibration mechanism, and a comparison of the model's ratings with the evaluators') are in the folded "Case notes" section of the rendered appendix page, `persistent_misses.qmd` (added 6 Nov; HTML only, not in the PDF).
+
 ## What was run
 
 The question: earlier one-shot runs (GPT-5.2 Pro, Claude Opus 4.6, Claude Sonnet 4) missed some critiques the human evaluators raised. Do current models still miss them?

@@ -422,6 +422,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#possible-test-items" id="toc-possible-test-items" class="nav-link" data-scroll-target="#possible-test-items">Possible test items</a></li>
   <li><a href="#contamination" id="toc-contamination" class="nav-link" data-scroll-target="#contamination">Contamination</a></li>
   <li><a href="#other-caveats" id="toc-other-caveats" class="nav-link" data-scroll-target="#other-caveats">Other caveats</a></li>
+  <li><a href="#sec-pm-case-notes" id="toc-sec-pm-case-notes" class="nav-link" data-scroll-target="#sec-pm-case-notes">Case notes</a></li>
   </ul>
 </nav>
     </div>
@@ -604,6 +605,7 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 </figure>
 </div>
 <p><strong>Correction to the Williams leakage item (November 6).</strong> The first condition-C prompt paraphrased the critique from our internal curation and named only net primary production, burned area and road density. The model judged that version wrong: none of the three is in the final ten-variable model (Extended Data Fig. 2). But the published critique also names soil characteristics. The evaluators’ joint synthesis lists them under Primary Concern 1, and evaluator 2’s leakage section leads with the SoilGrids data. Soil organic carbon <em>is</em> in the final model; it ranks third by Gini importance, and the paper itself attributes its effect to carbon being “higher within and near forests”. Rerun with the full published wording, the model rates the critique <strong>partly right, minor</strong>. It accepts a “legitimate, partial leakage risk via SOC that the paper does not test”, rejects the other legs for the final model, and asks for a refit without the soil variables. It judges the point minor because forest density and distance to forest dominate. That last step is its own untested claim. The original output is kept, with the ledger marking it as superseded.</p>
+<p>Detailed notes on each case, and on how the model’s ratings compare with the evaluators’, are folded into the <a href="#sec-pm-case-notes">case notes</a> at the end of this page.</p>
 </section>
 <section id="failure-types" class="level2">
 <h2 class="anchored" data-anchor-id="failure-types">Failure types</h2>
@@ -646,6 +648,242 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <li><strong>Comparability.</strong> Condition A matches the prompt of the GPT-5.2 Pro key-issues run, but the model and interface differ, so this is not a like-for-like comparison with the earlier runs.</li>
 <li><strong>Clancy coverage.</strong> One of the Clancy evaluation reports was not in our exports, so that paper’s critique set is incomplete.</li>
 </ul>
+</section>
+<section id="sec-pm-case-notes" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pm-case-notes">Case notes</h2>
+<p>More detail on each case, for readers who want it. Each note is folded: click a heading to expand it. Evaluators are referred to by their number in the published evaluation. The model’s verdicts are quoted from the outputs in the results folder; like the rest of this page, they have not yet been reviewed.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Clancy (2024): the ~2% discount rate fails the paper’s own test (persists)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>The paper.</strong> Clancy asks whether faster science is worth it if it also speeds up dangerous biotechnology. A key parameter is <em>p</em>, the annual probability of staying in the current “epistemic regime”, where historical trends still let us forecast policy effects. In practice 1 − <em>p</em> works as the discount rate.</p>
+<p><strong>How <em>p</em> was chosen (§4.2).</strong></p>
+<ol type="1">
+<li>Forecasts of extinction and of very fast growth from the Existential Risk Persuasion Tournament (XPT) imply exit rates of only 0.05–0.7% a year (<em>p</em> = 0.993–0.9995).</li>
+<li>These are rejected as “probably too conservative”, partly because the XPT forecast only to 2100 and “it may be inappropriate to extrapolate their forecasts forward by hundreds of years”.</li>
+<li>The paper’s own rate instead sums 1.6% a year for AI (from an expert panel’s 10–45% credences for AGI by 2043), 0.08% for other extinction risk (a to-2100 estimate) and 0.3% for economic trend breaks: about 2%, so <em>p</em> = 0.98, applied as a constant hazard indefinitely.</li>
+</ol>
+<p><strong>The critique (evaluator 2).</strong> About 1.6 of the 2 points come from a credence about the next 20 years. Turning that into a permanent annual hazard is a longer extrapolation, from a shorter forecast window, than the one used to reject the XPT rates, so “it is subject to the same criticism”. Evaluator 2 suggested reporting results for lower rates.</p>
+<p><strong>Why it matters.</strong> It is a straight consistency argument, and the results are very sensitive to the rate. The author response accepts the point and reports the return to science at other rates: about 13,000× at 1%, about 330× at 2% (the paper’s choice) and about 4× at 5%. The main paper did not test sensitivity to <em>p</em>. The author’s defence, that a wrong rate cannot by itself turn “science is good” into “science is very bad”, holds for the sign of the result but not its size.</p>
+<p><strong>How the model handled it.</strong></p>
+<ul>
+<li><strong>A:</strong> listed <em>p</em> = 0.98 among “judgmental and loosely evidenced” parameters, “a sum of heterogeneous hazard guesses”.</li>
+<li><strong>B:</strong> ranked <em>p</em> fourth, objecting that regime exit is “assumed independent of science”.</li>
+<li>In neither did it connect the paper’s reason for rejecting the XPT rates to the source of its own 2%.</li>
+<li><strong>C:</strong> “right, important”. It extended the point (the 0.08% component is also a to-2100 estimate projected forward), added that the extrapolation cuts both ways (if AGI does not arrive by the 2040s, a constant 1.6% is not warranted either), and would rank it mid-to-high.</li>
+</ul>
+<p><strong>As a test item.</strong> A clean failure to generate a point the model recognises at once. Everything needed is on two adjacent pages of the paper. The skill is holding the paper to its own standard; the model’s habit is to critique each parameter in isolation.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Dullaghan and Zhang (2022): conditional forecasts read as unconditional (persists)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>The paper.</strong> A forecasting study of cultivated-meat production, with a small panel (about six forecasters). Two “signpost” questions on consumer acceptance are explicitly conditional on more than 10 cumulative kilotons being produced before the end of 2031: large-scale protests (18%) and a majority of a representative sample willing to try it (69%). The summary nonetheless concludes that “Consumer approval did not appear as a major constraint”, citing these numbers, and separately reports that consumer approval was “not significantly correlated” with the production forecasts.</p>
+<p><strong>The critique.</strong> Evaluator 1: the conditioning “effectively screens off correlation” and “undermines the claim that ‘consumer approval did not appear as a major constraint’”. An evaluation-manager note in the same published report, which evaluator 1 endorsed, gives the logic: a forecaster could expect consumer rejection and protests, yet think that in the unlikely world where consumers like it, 10 kt becomes far more likely.</p>
+<p><strong>Why it is valid.</strong> Conditioning on 10 kt being produced selects the worlds where demand was already adequate, so high conditional acceptance is partly built in and says little about whether acceptance is a constraint on getting there. The null correlation is also uninformative: the acceptance questions presuppose production, and with about six forecasters a correlation test has almost no power. The claim is unconditional; the evidence is conditional.</p>
+<p><strong>How much it matters.</strong> A clean conditional-probability error behind a policy-relevant conclusion (don’t worry about demand; fund supply). But evaluator 1 filed it under methods and reporting; their most serious concerns were about framing, such as cost studies presented as forecasts.</p>
+<p><strong>How the model handled it.</strong></p>
+<ul>
+<li><strong>A and B:</strong> discussed conditioning only on funding and on “no transformative AI”, never the 10 kt condition, although it is printed in the sentence making the claim.</li>
+<li><strong>C:</strong> “partly right, minor”. It pushed back reasonably (conditional questions <em>can</em> separate demand from supply), then conceded the core: the 10 kt bar “may already select worlds where demand was adequate”, the null correlation is “unsurprising and non-diagnostic, especially with about six forecasters”, and the evidence supports only “conditional on early product, outright rejection seems unlikely”. It rated the point minor because the acceptance claim is “a one-bullet side observation”.</li>
+</ul>
+<p><strong>As a test item.</strong> Noticing what a conditioning event does to the evidence, in plain sight. Less clean than Clancy, since once told the model partly agrees and partly argues. It also shows a difference in prioritisation: the model asks whether the headline numbers rest on a point; evaluators also ask whether the paper claims more than its evidence supports.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Williams (2024): why the expected area is so large (caught, with a mechanism the evaluations do not give)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>How the 215 Mha is built.</strong> The random forest is trained on samples “balanced with respect to the levels of the dependent variable”: half regrowth, half non-regrowth. Each pixel’s score is read as “the probability of natural regeneration per pixel”, multiplied by pixel area and summed into an “expected area”.</p>
+<p><strong>Why that inflates the total.</strong> Regrowth occupies a small share of the eligible area; the paper’s own benchmark is 31.6 Mha over 2000–2016. Scores from a 50/50 training set reflect a 50% base rate, so they run high, and summing them over hundreds of millions of hectares inflates the total. A prior-shift correction, or recalibration (Platt or isotonic) against true prevalence, would address this. None is reported.</p>
+<p><strong>What the model said.</strong> In B, ranked first: the magnitudes are “largely set by the chosen class ratio, not by the real prevalence of regrowth”. It also called the ±0.22 Mha interval “spurious precision”.</p>
+<p><strong>Relation to the evaluations.</strong> The evaluators flag the gap and the missing hindcast, and explain it mainly by socioeconomic confounding (the model learned from places where social conditions also favoured regrowth). None of the published Williams evaluation documents mentions calibration, class balance or prevalence. Each explanation could account for part of the gap.</p>
+<p><strong>A second consequence.</strong> The 87.9% accuracy is measured on a balanced test set. At realistic prevalence, precision for “will regenerate” would be lower. Extended Data Fig. 4 already shows accuracy falling to about 75–82% away from training points.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Williams (2024): which predictors could leak into the final model
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The final model behind the maps, the 215 Mha and the 87.9% has ten biophysical variables (Extended Data Fig. 2): four bioclimatic principal components, biome, distance to forest, forest density, land use, soil organic carbon and soil pH.</p>
+<ul>
+<li><strong>Net primary production and burned area</strong> were candidates in variable selection but did not make the final ten.</li>
+<li><strong>Road density</strong> is socioeconomic and appears only in the comparison model with socioeconomic variables (accuracy 0.886 vs 0.880). Leakage there would inflate that model, which narrows a gap the paper already calls small.</li>
+<li><strong>Forest density and distance to forest</strong> use 2000 tree cover for training and are updated to 2018 only for prediction, which is the right way round.</li>
+<li><strong>Soil organic carbon</strong> is the remaining route. Evaluator 2 suggests the SoilGrids layers may have been built using about 2010 land-cover data that include forest classes, and soil organic carbon ranks third in importance. How much this matters depends on how SoilGrids was built, which cannot be checked from the paper. The test is the one the model proposes: refit without the soil variables.</li>
+</ul>
+<p>So, as the rerun found: partly right. The other legs do not touch the headline; the soil leg does.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Acemoglu et al.&nbsp;(2024): change scores (disputed; the model looks right)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>The critique.</strong> Evaluator 1, under suggested robustness checks: “The outcome measure should not be post-treatment means but the difference between pre-treatment and post-treatment.” The report quotes §4.6, that “the magnitudes … become somewhat smaller when we control for the pre-treatment values”, and asks why that specification is not the main one in the online experiment. The evaluation summary restates the concern; we found no correction or author response on it.</p>
+<p><strong>What the paper shows.</strong> Table 1 (online experiment) runs five specifications. Column 2 adds the baseline outcome; column 5 adds the baseline outcome and all controls. The headline vote effect, 3.7 points, equals columns 2 and 5 (0.037), against 0.054 with no controls (column 1), and the notes to Figure 3 say the headline uses “the full set of pre-treatment variables”. So the baseline-controlled specification appears to <em>be</em> the main one, which is the model’s reading. The §4.6 wording, which presents baseline control as an alternative, explains why the evaluator read it the other way.</p>
+<p><strong>Change scores versus controlling for the baseline.</strong> A change score is a restricted version of regressing on the baseline: it forces the baseline coefficient to equal one. Under randomisation both are unbiased, and controlling for the baseline is generally more efficient. The model makes this point correctly. It adds a smaller one: it is unclear whether the baseline items on valuing institutions match the endline items.</p>
+<p><strong>Status.</strong> If adjudication confirms the reading of Table 1, this becomes a “reject a plausible but mistaken critique” item: the model held its position with table citations rather than deferring.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Green et al.&nbsp;(2025): excluding studies with fewer than 25 per arm (disputed; both views defensible)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>The paper.</strong> A meta-analysis of RCTs aimed at reducing meat and animal-product consumption. Pooled effect SMD = 0.07 [0.02, 0.12] across 112 interventions. Inclusion requires at least 25 subjects per arm, or at least 10 clusters. Publication bias is handled with a Hedges (1992) step-function selection model (corrected estimate 0.01) and Mathur’s worst-case estimate from non-affirmative studies (0.02), with a significance funnel plot. Headline: reducing consumption is “an unsolved problem”.</p>
+<p><strong>The critique (evaluator 2).</strong> Excluding small studies is “unwarranted”: it “makes publication bias harder to correct for and harder to detect”, by narrowing the range of standard errors that bias methods exploit. At least 16 studies were dropped for size alone.</p>
+<p><strong>Background.</strong> Funnel-asymmetry methods (Egger regression, PET-PEESE, trim-and-fill) detect bias from the relation between effect size and standard error, so they need a wide spread of standard errors, and the smallest studies are the most informative. Selection models, which the paper uses, estimate publication probability mainly from the relative frequency of significant and non-significant results, and rely on that spread less.</p>
+<p><strong>The model’s counter-argument (“partly right, minor”).</strong></p>
+<ol type="1">
+<li>The paper uses selection models, not asymmetry methods.</li>
+<li>The cutoff is mild: at 25 per arm the standard error of an SMD is about 0.28, and Fig. 3 still spans roughly 0.04 to 0.6.</li>
+<li>Dropping small studies removes the place where small-study bias concentrates, even if it makes the remaining bias harder to model.</li>
+<li>The corrected estimates are already about zero, so undetected bias would push the true effect lower and reinforce the paper’s null headline.</li>
+</ol>
+<p>It also points to a more useful gap: no bias correction is reported for the red and processed meat subset (SMD = 0.25), where the paper makes a positive claim.</p>
+<p><strong>Why both views are defensible.</strong> As a general methods point, evaluator 2 is right: the rule discards the most bias-revealing data and adds a researcher choice. As a question about this paper’s conclusions, the model is largely right, since any missed bias favours the paper’s own null headline. A good answer engages with which bias methods the paper uses and which claim is at stake.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Overall: how the model critiques, and how its ratings compare
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>Strengths.</strong></p>
+<ul>
+<li>Long lists (11–13 issues per paper in A; five ranked in B) that cover most of what the evaluators raised.</li>
+<li>Careful internal cross-checks, citing specific appendix tables and figures.</li>
+<li>Sometimes a sharper mechanism than the evaluations give (the Williams calibration point; the Clancy extrapolation cutting both ways).</li>
+<li>When handed a critique, it pushes back with evidence rather than deferring: it disputed two of the nine shown in C.</li>
+</ul>
+<p><strong>Weaknesses.</strong></p>
+<ul>
+<li>It criticises parameters one at a time rather than checking whether the paper applies its own standards consistently (Clancy).</li>
+<li>It misses selection and conditioning in plain sight (Dullaghan and Zhang).</li>
+<li>It judges importance by whether the headline number rests on a point, so it downgrades overreach and framing problems that evaluators treat as major. It found Clancy’s omission of AI risk but ranked it fourth; evaluator 3 called it the “major worry”.</li>
+<li>It cannot catch points that need sources outside the PDF; these are not really reasoning failures.</li>
+</ul>
+<p><strong>Ratings.</strong> Condition A also produced the usual 0–100 ratings. Overall ratings against the published evaluators’ ratings:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Paper</th>
+<th>Evaluators</th>
+<th>Evaluator mean</th>
+<th>Opus 5.5 (A)</th>
+<th>Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Acemoglu et al.&nbsp;(2024)</td>
+<td>85, 88</td>
+<td>86.5</td>
+<td>66</td>
+<td>−20.5</td>
+</tr>
+<tr class="even">
+<td>Clancy (2024)</td>
+<td>71, 80</td>
+<td>75.5</td>
+<td>66</td>
+<td>−9.5</td>
+</tr>
+<tr class="odd">
+<td>Green et al.&nbsp;(2025)</td>
+<td>75, 39</td>
+<td>57</td>
+<td>66</td>
+<td>+9</td>
+</tr>
+<tr class="even">
+<td>Williams et al.&nbsp;(2024)</td>
+<td>50, 50</td>
+<td>50</td>
+<td>55</td>
+<td>+5</td>
+</tr>
+<tr class="odd">
+<td>Frech et al.&nbsp;(2023)</td>
+<td>51, 30</td>
+<td>40.5</td>
+<td>30</td>
+<td>−10.5</td>
+</tr>
+<tr class="even">
+<td>Dullaghan and Zhang (2022)</td>
+<td>no numeric ratings</td>
+<td>—</td>
+<td>50</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>The mean difference is about −5 points, in the same direction as Claude Opus 4.6 in the main benchmark (<a href="./results_ratings.html">Results: Ratings</a>). The ratings are compressed: the three strongest papers all get 66, the paper the evaluators rated highest is marked down most, and on Green, where the two evaluators differ by 36 points, the model lands between them. With five papers and one run, this is illustration, not evidence.</p>
+</div>
+</div>
+</div>
 <p><strong>Materials.</strong> The runner is <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/scripts/run_headless_claude_misses.py"><code>scripts/run_headless_claude_misses.py</code></a>. Model outputs, raw API responses, the claims used in condition C and the provisional ledger with verbatim quotes are in <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/tree/working-paper/results/claude_opus_5_5_high_misses_2026-11-04"><code>results/claude_opus_5_5_high_misses_2026-11-04/</code></a>. A longer note is in <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/persistent_misses_opus55_2026-11-04.md"><code>docs/persistent_misses_opus55_2026-11-04.md</code></a>.</p>
 
 
@@ -1196,47 +1434,192 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>**Correction to the Williams leakage item (November 6).** The first condition-C prompt paraphrased the critique from our internal curation and named only net primary production, burned area and road density. The model judged that version wrong: none of the three is in the final ten-variable model (Extended Data Fig. 2). But the published critique also names soil characteristics. The evaluators' joint synthesis lists them under Primary Concern 1, and evaluator 2's leakage section leads with the SoilGrids data. Soil organic carbon *is* in the final model; it ranks third by Gini importance, and the paper itself attributes its effect to carbon being "higher within and near forests". Rerun with the full published wording, the model rates the critique **partly right, minor**. It accepts a "legitimate, partial leakage risk via SOC that the paper does not test", rejects the other legs for the final model, and asks for a refit without the soil variables. It judges the point minor because forest density and distance to forest dominate. That last step is its own untested claim. The original output is kept, with the ledger marking it as superseded.</span>
 <span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## Failure types</span></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Internal consistency (Clancy).** The model calls the regime-exit parameter "judgmental" but does not notice that the paper's own reason for rejecting the forecasters' implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.</span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Conditional-probability logic (Dullaghan and Zhang).** Neither A nor B mentions the conditioning on &gt;10 kt. When told, the model accepts a narrower version: the conditioning makes the null correlation non-diagnostic, and the low bar selects worlds where demand already existed. It then rates the point minor.</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Evidence outside the PDF (Dullaghan and Zhang; Williams).** The units error, and the validation table, sit in reference material or a supplement that the one-shot input did not include. The earlier models received the same PDFs, so these were never fair one-shot tests.</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Prioritisation.** For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call. For the Williams soil-data leakage, which the evaluators list as a primary concern, the model does not.</span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Wording of the critique (a design lesson).** In the recognition condition, the verdict depends on how the critique is phrased. A paraphrase that dropped the strongest leg of the Williams leakage critique drew a confident "wrong"; the full wording drew "partly right".</span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Magnitude sanity checks** now appear to be handled. For Williams, the model also proposes a mechanism: uncalibrated, class-balanced random-forest scores are summed into an "expected area".</span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="fu">## Possible test items</span></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>Each persistent miss suggests an item with a known answer:</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>::: {.content-visible when-format="html"}</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>Detailed notes on each case, and on how the model's ratings compare with the evaluators', are folded into the <span class="co">[</span><span class="ot">case notes</span><span class="co">](#sec-pm-case-notes)</span> at the end of this page.</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="fu">## Failure types</span></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Internal consistency (Clancy).** The model calls the regime-exit parameter "judgmental" but does not notice that the paper's own reason for rejecting the forecasters' implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Conditional-probability logic (Dullaghan and Zhang).** Neither A nor B mentions the conditioning on &gt;10 kt. When told, the model accepts a narrower version: the conditioning makes the null correlation non-diagnostic, and the low bar selects worlds where demand already existed. It then rates the point minor.</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Evidence outside the PDF (Dullaghan and Zhang; Williams).** The units error, and the validation table, sit in reference material or a supplement that the one-shot input did not include. The earlier models received the same PDFs, so these were never fair one-shot tests.</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Prioritisation.** For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call. For the Williams soil-data leakage, which the evaluators list as a primary concern, the model does not.</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Wording of the critique (a design lesson).** In the recognition condition, the verdict depends on how the critique is phrased. A paraphrase that dropped the strongest leg of the Williams leakage critique drew a confident "wrong"; the full wording drew "partly right".</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Magnitude sanity checks** now appear to be handled. For Williams, the model also proposes a mechanism: uncalibrated, class-balanced random-forest scores are summed into an "expected area".</span>
 <span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy.** Ask whether the reason for rejecting the forecasters' implied discount rates also applies to the paper's own rate. Known answer: yes. About 1.6 points of the ~2% come from a short-horizon AGI forecast applied as a permanent hazard.</span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Dullaghan and Zhang.** Ask what the conditional acceptance questions can and cannot show. Grade on whether the answer spots the selection created by the conditioning event.</span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams.** With the supplement attached, ask what period the validation table tests against. Known answer: 2030 predictions against 2000–2016 regrowth, so it does not test forward skill.</span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams, leakage.** Ask whether any predictor in the final model could encode the outcome, and how to test it. Grade on naming soil organic carbon, noting that the other contemporaneous predictors are not in the final model, and proposing a refit without the soil variables.</span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>The two disputed critiques (Acemoglu change scores, Green small-study exclusion) become items only after they are adjudicated. If the model is right, they become "reject a mistaken critique" items.</span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="fu">## Contamination</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="fu">## Possible test items</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>Each persistent miss suggests an item with a known answer:</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy.** Ask whether the reason for rejecting the forecasters' implied discount rates also applies to the paper's own rate. Known answer: yes. About 1.6 points of the ~2% come from a short-horizon AGI forecast applied as a permanent hazard.</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Dullaghan and Zhang.** Ask what the conditional acceptance questions can and cannot show. Grade on whether the answer spots the selection created by the conditioning event.</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams.** With the supplement attached, ask what period the validation table tests against. Known answer: 2030 predictions against 2000–2016 regrowth, so it does not test forward skill.</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams, leakage.** Ask whether any predictor in the final model could encode the outcome, and how to test it. Grade on naming soil organic carbon, noting that the other contemporaneous predictors are not in the final model, and proposing a refit without the soil variables.</span>
 <span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>These papers and their published evaluations were public before Claude Opus 5.5's training cutoff (about mid-2026). The model may therefore have seen them, so a catch is weaker evidence than a miss.</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>The two disputed critiques (Acemoglu change scores, Green small-study exclusion) become items only after they are adjudicated. If the model is right, they become "reject a mistaken critique" items.</span>
 <span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>Two points argue against simple recall:</span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## Contamination</span></span>
 <span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the model still missed points that appear in the published evaluations, such as Clancy's discount rate and the Dullaghan conditional forecasts. This is the stronger point: recall should have produced them;</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what it did catch can be found from the paper alone, such as the roughly 7× gap from the paper's own figures, and the prior-election control in the main results table.</span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>A weaker point: in condition C the model was *shown* published critiques, so it plainly saw them, and it disputed some rather than deferring. That only weakly suggests it was not recalling the evaluations, since a model can disagree after re-reading the paper either way.</span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>Some influence on the catches cannot be ruled out. Cleaner tests would use papers evaluated after the cutoff, or disguised variants that change names, setting and numbers while keeping the flaw. Disguised variants are also how these cases could become test items the model cannot have memorised.</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>These papers and their published evaluations were public before Claude Opus 5.5's training cutoff (about mid-2026). The model may therefore have seen them, so a catch is weaker evidence than a miss.</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>Two points argue against simple recall:</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the model still missed points that appear in the published evaluations, such as Clancy's discount rate and the Dullaghan conditional forecasts. This is the stronger point: recall should have produced them;</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what it did catch can be found from the paper alone, such as the roughly 7× gap from the paper's own figures, and the prior-election control in the main results table.</span>
 <span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="fu">## Other caveats</span></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>A weaker point: in condition C the model was *shown* published critiques, so it plainly saw them, and it disputed some rather than deferring. That only weakly suggests it was not recalling the evaluations, since a model can disagree after re-reading the paper either way.</span>
 <span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Run-to-run variation.** Each condition was run once, so catches and misses ranked low in a list could flip on a rerun.</span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Scorer.** The provisional scorer is the same model family as the model tested.</span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Comparability.** Condition A matches the prompt of the GPT-5.2 Pro key-issues run, but the model and interface differ, so this is not a like-for-like comparison with the earlier runs.</span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy coverage.** One of the Clancy evaluation reports was not in our exports, so that paper's critique set is incomplete.</span>
-<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>**Materials.** The runner is <span class="co">[</span><span class="ot">`scripts/run_headless_claude_misses.py`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/scripts/run_headless_claude_misses.py)</span>. Model outputs, raw API responses, the claims used in condition C and the provisional ledger with verbatim quotes are in <span class="co">[</span><span class="ot">`results/claude_opus_5_5_high_misses_2026-11-04/`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/tree/working-paper/results/claude_opus_5_5_high_misses_2026-11-04)</span>. A longer note is in <span class="co">[</span><span class="ot">`docs/persistent_misses_opus55_2026-11-04.md`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/persistent_misses_opus55_2026-11-04.md)</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>Some influence on the catches cannot be ruled out. Cleaner tests would use papers evaluated after the cutoff, or disguised variants that change names, setting and numbers while keeping the flaw. Disguised variants are also how these cases could become test items the model cannot have memorised.</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="fu">## Other caveats</span></span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Run-to-run variation.** Each condition was run once, so catches and misses ranked low in a list could flip on a rerun.</span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Scorer.** The provisional scorer is the same model family as the model tested.</span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Comparability.** Condition A matches the prompt of the GPT-5.2 Pro key-issues run, but the model and interface differ, so this is not a like-for-like comparison with the earlier runs.</span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy coverage.** One of the Clancy evaluation reports was not in our exports, so that paper's critique set is incomplete.</span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>:::: {.content-visible when-format="html"}</span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a><span class="fu">## Case notes {#sec-pm-case-notes}</span></span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>More detail on each case, for readers who want it. Each note is folded: click a heading to expand it. Evaluators are referred to by their number in the published evaluation. The model's verdicts are quoted from the outputs in the results folder; like the rest of this page, they have not yet been reviewed.</span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="fu">## Clancy (2024): the ~2% discount rate fails the paper's own test (persists)</span></span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>**The paper.** Clancy asks whether faster science is worth it if it also speeds up dangerous biotechnology. A key parameter is *p*, the annual probability of staying in the current "epistemic regime", where historical trends still let us forecast policy effects. In practice 1 − *p* works as the discount rate.</span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>**How *p* was chosen (§4.2).**</span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Forecasts of extinction and of very fast growth from the Existential Risk Persuasion Tournament (XPT) imply exit rates of only 0.05–0.7% a year (*p* = 0.993–0.9995).</span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>These are rejected as "probably too conservative", partly because the XPT forecast only to 2100 and "it may be inappropriate to extrapolate their forecasts forward by hundreds of years".</span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>The paper's own rate instead sums 1.6% a year for AI (from an expert panel's 10–45% credences for AGI by 2043), 0.08% for other extinction risk (a to-2100 estimate) and 0.3% for economic trend breaks: about 2%, so *p* = 0.98, applied as a constant hazard indefinitely.</span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>**The critique (evaluator 2).** About 1.6 of the 2 points come from a credence about the next 20 years. Turning that into a permanent annual hazard is a longer extrapolation, from a shorter forecast window, than the one used to reject the XPT rates, so "it is subject to the same criticism". Evaluator 2 suggested reporting results for lower rates.</span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>**Why it matters.** It is a straight consistency argument, and the results are very sensitive to the rate. The author response accepts the point and reports the return to science at other rates: about 13,000× at 1%, about 330× at 2% (the paper's choice) and about 4× at 5%. The main paper did not test sensitivity to *p*. The author's defence, that a wrong rate cannot by itself turn "science is good" into "science is very bad", holds for the sign of the result but not its size.</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>**How the model handled it.**</span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**A:** listed *p* = 0.98 among "judgmental and loosely evidenced" parameters, "a sum of heterogeneous hazard guesses".</span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**B:** ranked *p* fourth, objecting that regime exit is "assumed independent of science".</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In neither did it connect the paper's reason for rejecting the XPT rates to the source of its own 2%.</span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**C:** "right, important". It extended the point (the 0.08% component is also a to-2100 estimate projected forward), added that the extrapolation cuts both ways (if AGI does not arrive by the 2040s, a constant 1.6% is not warranted either), and would rank it mid-to-high.</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>**As a test item.** A clean failure to generate a point the model recognises at once. Everything needed is on two adjacent pages of the paper. The skill is holding the paper to its own standard; the model's habit is to critique each parameter in isolation.</span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a><span class="fu">## Dullaghan and Zhang (2022): conditional forecasts read as unconditional (persists)</span></span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>**The paper.** A forecasting study of cultivated-meat production, with a small panel (about six forecasters). Two "signpost" questions on consumer acceptance are explicitly conditional on more than 10 cumulative kilotons being produced before the end of 2031: large-scale protests (18%) and a majority of a representative sample willing to try it (69%). The summary nonetheless concludes that "Consumer approval did not appear as a major constraint", citing these numbers, and separately reports that consumer approval was "not significantly correlated" with the production forecasts.</span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>**The critique.** Evaluator 1: the conditioning "effectively screens off correlation" and "undermines the claim that 'consumer approval did not appear as a major constraint'". An evaluation-manager note in the same published report, which evaluator 1 endorsed, gives the logic: a forecaster could expect consumer rejection and protests, yet think that in the unlikely world where consumers like it, 10 kt becomes far more likely.</span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>**Why it is valid.** Conditioning on 10 kt being produced selects the worlds where demand was already adequate, so high conditional acceptance is partly built in and says little about whether acceptance is a constraint on getting there. The null correlation is also uninformative: the acceptance questions presuppose production, and with about six forecasters a correlation test has almost no power. The claim is unconditional; the evidence is conditional.</span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>**How much it matters.** A clean conditional-probability error behind a policy-relevant conclusion (don't worry about demand; fund supply). But evaluator 1 filed it under methods and reporting; their most serious concerns were about framing, such as cost studies presented as forecasts.</span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>**How the model handled it.**</span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**A and B:** discussed conditioning only on funding and on "no transformative AI", never the 10 kt condition, although it is printed in the sentence making the claim.</span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**C:** "partly right, minor". It pushed back reasonably (conditional questions *can* separate demand from supply), then conceded the core: the 10 kt bar "may already select worlds where demand was adequate", the null correlation is "unsurprising and non-diagnostic, especially with about six forecasters", and the evidence supports only "conditional on early product, outright rejection seems unlikely". It rated the point minor because the acceptance claim is "a one-bullet side observation".</span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>**As a test item.** Noticing what a conditioning event does to the evidence, in plain sight. Less clean than Clancy, since once told the model partly agrees and partly argues. It also shows a difference in prioritisation: the model asks whether the headline numbers rest on a point; evaluators also ask whether the paper claims more than its evidence supports.</span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="fu">## Williams (2024): why the expected area is so large (caught, with a mechanism the evaluations do not give)</span></span>
+<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a>**How the 215 Mha is built.** The random forest is trained on samples "balanced with respect to the levels of the dependent variable": half regrowth, half non-regrowth. Each pixel's score is read as "the probability of natural regeneration per pixel", multiplied by pixel area and summed into an "expected area".</span>
+<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a>**Why that inflates the total.** Regrowth occupies a small share of the eligible area; the paper's own benchmark is 31.6 Mha over 2000–2016. Scores from a 50/50 training set reflect a 50% base rate, so they run high, and summing them over hundreds of millions of hectares inflates the total. A prior-shift correction, or recalibration (Platt or isotonic) against true prevalence, would address this. None is reported.</span>
+<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a>**What the model said.** In B, ranked first: the magnitudes are "largely set by the chosen class ratio, not by the real prevalence of regrowth". It also called the ±0.22 Mha interval "spurious precision".</span>
+<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a>**Relation to the evaluations.** The evaluators flag the gap and the missing hindcast, and explain it mainly by socioeconomic confounding (the model learned from places where social conditions also favoured regrowth). None of the published Williams evaluation documents mentions calibration, class balance or prevalence. Each explanation could account for part of the gap.</span>
+<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a>**A second consequence.** The 87.9% accuracy is measured on a balanced test set. At realistic prevalence, precision for "will regenerate" would be lower. Extended Data Fig. 4 already shows accuracy falling to about 75–82% away from training points.</span>
+<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## Williams (2024): which predictors could leak into the final model</span></span>
+<span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a>The final model behind the maps, the 215 Mha and the 87.9% has ten biophysical variables (Extended Data Fig. 2): four bioclimatic principal components, biome, distance to forest, forest density, land use, soil organic carbon and soil pH.</span>
+<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Net primary production and burned area** were candidates in variable selection but did not make the final ten.</span>
+<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Road density** is socioeconomic and appears only in the comparison model with socioeconomic variables (accuracy 0.886 vs 0.880). Leakage there would inflate that model, which narrows a gap the paper already calls small.</span>
+<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Forest density and distance to forest** use 2000 tree cover for training and are updated to 2018 only for prediction, which is the right way round.</span>
+<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Soil organic carbon** is the remaining route. Evaluator 2 suggests the SoilGrids layers may have been built using about 2010 land-cover data that include forest classes, and soil organic carbon ranks third in importance. How much this matters depends on how SoilGrids was built, which cannot be checked from the paper. The test is the one the model proposes: refit without the soil variables.</span>
+<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a>So, as the rerun found: partly right. The other legs do not touch the headline; the soil leg does.</span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a><span class="fu">## Acemoglu et al. (2024): change scores (disputed; the model looks right)</span></span>
+<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>**The critique.** Evaluator 1, under suggested robustness checks: "The outcome measure should not be post-treatment means but the difference between pre-treatment and post-treatment." The report quotes §4.6, that "the magnitudes ... become somewhat smaller when we control for the pre-treatment values", and asks why that specification is not the main one in the online experiment. The evaluation summary restates the concern; we found no correction or author response on it.</span>
+<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a>**What the paper shows.** Table 1 (online experiment) runs five specifications. Column 2 adds the baseline outcome; column 5 adds the baseline outcome and all controls. The headline vote effect, 3.7 points, equals columns 2 and 5 (0.037), against 0.054 with no controls (column 1), and the notes to Figure 3 say the headline uses "the full set of pre-treatment variables". So the baseline-controlled specification appears to *be* the main one, which is the model's reading. The §4.6 wording, which presents baseline control as an alternative, explains why the evaluator read it the other way.</span>
+<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-194"><a href="#cb1-194" aria-hidden="true" tabindex="-1"></a>**Change scores versus controlling for the baseline.** A change score is a restricted version of regressing on the baseline: it forces the baseline coefficient to equal one. Under randomisation both are unbiased, and controlling for the baseline is generally more efficient. The model makes this point correctly. It adds a smaller one: it is unclear whether the baseline items on valuing institutions match the endline items.</span>
+<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-196"><a href="#cb1-196" aria-hidden="true" tabindex="-1"></a>**Status.** If adjudication confirms the reading of Table 1, this becomes a "reject a plausible but mistaken critique" item: the model held its position with table citations rather than deferring.</span>
+<span id="cb1-197"><a href="#cb1-197" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-198"><a href="#cb1-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a><span class="fu">## Green et al. (2025): excluding studies with fewer than 25 per arm (disputed; both views defensible)</span></span>
+<span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a>**The paper.** A meta-analysis of RCTs aimed at reducing meat and animal-product consumption. Pooled effect SMD = 0.07 <span class="co">[</span><span class="ot">0.02, 0.12</span><span class="co">]</span> across 112 interventions. Inclusion requires at least 25 subjects per arm, or at least 10 clusters. Publication bias is handled with a Hedges (1992) step-function selection model (corrected estimate 0.01) and Mathur's worst-case estimate from non-affirmative studies (0.02), with a significance funnel plot. Headline: reducing consumption is "an unsolved problem".</span>
+<span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a>**The critique (evaluator 2).** Excluding small studies is "unwarranted": it "makes publication bias harder to correct for and harder to detect", by narrowing the range of standard errors that bias methods exploit. At least 16 studies were dropped for size alone.</span>
+<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a>**Background.** Funnel-asymmetry methods (Egger regression, PET-PEESE, trim-and-fill) detect bias from the relation between effect size and standard error, so they need a wide spread of standard errors, and the smallest studies are the most informative. Selection models, which the paper uses, estimate publication probability mainly from the relative frequency of significant and non-significant results, and rely on that spread less.</span>
+<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>**The model's counter-argument ("partly right, minor").**</span>
+<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The paper uses selection models, not asymmetry methods.</span>
+<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>The cutoff is mild: at 25 per arm the standard error of an SMD is about 0.28, and Fig. 3 still spans roughly 0.04 to 0.6.</span>
+<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Dropping small studies removes the place where small-study bias concentrates, even if it makes the remaining bias harder to model.</span>
+<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>The corrected estimates are already about zero, so undetected bias would push the true effect lower and reinforce the paper's null headline.</span>
+<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a>It also points to a more useful gap: no bias correction is reported for the red and processed meat subset (SMD = 0.25), where the paper makes a positive claim.</span>
+<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a>**Why both views are defensible.** As a general methods point, evaluator 2 is right: the rule discards the most bias-revealing data and adds a researcher choice. As a question about this paper's conclusions, the model is largely right, since any missed bias favours the paper's own null headline. A good answer engages with which bias methods the paper uses and which claim is at stake.</span>
+<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a><span class="fu">## Overall: how the model critiques, and how its ratings compare</span></span>
+<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a>**Strengths.**</span>
+<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Long lists (11–13 issues per paper in A; five ranked in B) that cover most of what the evaluators raised.</span>
+<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Careful internal cross-checks, citing specific appendix tables and figures.</span>
+<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Sometimes a sharper mechanism than the evaluations give (the Williams calibration point; the Clancy extrapolation cutting both ways).</span>
+<span id="cb1-228"><a href="#cb1-228" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>When handed a critique, it pushes back with evidence rather than deferring: it disputed two of the nine shown in C.</span>
+<span id="cb1-229"><a href="#cb1-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-230"><a href="#cb1-230" aria-hidden="true" tabindex="-1"></a>**Weaknesses.**</span>
+<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It criticises parameters one at a time rather than checking whether the paper applies its own standards consistently (Clancy).</span>
+<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It misses selection and conditioning in plain sight (Dullaghan and Zhang).</span>
+<span id="cb1-234"><a href="#cb1-234" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It judges importance by whether the headline number rests on a point, so it downgrades overreach and framing problems that evaluators treat as major. It found Clancy's omission of AI risk but ranked it fourth; evaluator 3 called it the "major worry".</span>
+<span id="cb1-235"><a href="#cb1-235" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It cannot catch points that need sources outside the PDF; these are not really reasoning failures.</span>
+<span id="cb1-236"><a href="#cb1-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-237"><a href="#cb1-237" aria-hidden="true" tabindex="-1"></a>**Ratings.** Condition A also produced the usual 0–100 ratings. Overall ratings against the published evaluators' ratings:</span>
+<span id="cb1-238"><a href="#cb1-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-239"><a href="#cb1-239" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Paper <span class="pp">|</span> Evaluators <span class="pp">|</span> Evaluator mean <span class="pp">|</span> Opus 5.5 (A) <span class="pp">|</span> Difference <span class="pp">|</span></span>
+<span id="cb1-240"><a href="#cb1-240" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
+<span id="cb1-241"><a href="#cb1-241" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Acemoglu et al. (2024) <span class="pp">|</span> 85, 88 <span class="pp">|</span> 86.5 <span class="pp">|</span> 66 <span class="pp">|</span> −20.5 <span class="pp">|</span></span>
+<span id="cb1-242"><a href="#cb1-242" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Clancy (2024) <span class="pp">|</span> 71, 80 <span class="pp">|</span> 75.5 <span class="pp">|</span> 66 <span class="pp">|</span> −9.5 <span class="pp">|</span></span>
+<span id="cb1-243"><a href="#cb1-243" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Green et al. (2025) <span class="pp">|</span> 75, 39 <span class="pp">|</span> 57 <span class="pp">|</span> 66 <span class="pp">|</span> +9 <span class="pp">|</span></span>
+<span id="cb1-244"><a href="#cb1-244" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Williams et al. (2024) <span class="pp">|</span> 50, 50 <span class="pp">|</span> 50 <span class="pp">|</span> 55 <span class="pp">|</span> +5 <span class="pp">|</span></span>
+<span id="cb1-245"><a href="#cb1-245" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frech et al. (2023) <span class="pp">|</span> 51, 30 <span class="pp">|</span> 40.5 <span class="pp">|</span> 30 <span class="pp">|</span> −10.5 <span class="pp">|</span></span>
+<span id="cb1-246"><a href="#cb1-246" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Dullaghan and Zhang (2022) <span class="pp">|</span> no numeric ratings <span class="pp">|</span> — <span class="pp">|</span> 50 <span class="pp">|</span> — <span class="pp">|</span></span>
+<span id="cb1-247"><a href="#cb1-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-248"><a href="#cb1-248" aria-hidden="true" tabindex="-1"></a>The mean difference is about −5 points, in the same direction as Claude Opus 4.6 in the main benchmark (<span class="co">[</span><span class="ot">Results: Ratings</span><span class="co">](results_ratings.qmd)</span>). The ratings are compressed: the three strongest papers all get 66, the paper the evaluators rated highest is marked down most, and on Green, where the two evaluators differ by 36 points, the model lands between them. With five papers and one run, this is illustration, not evidence.</span>
+<span id="cb1-249"><a href="#cb1-249" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-250"><a href="#cb1-250" aria-hidden="true" tabindex="-1"></a>::::</span>
+<span id="cb1-251"><a href="#cb1-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-252"><a href="#cb1-252" aria-hidden="true" tabindex="-1"></a>**Materials.** The runner is <span class="co">[</span><span class="ot">`scripts/run_headless_claude_misses.py`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/scripts/run_headless_claude_misses.py)</span>. Model outputs, raw API responses, the claims used in condition C and the provisional ledger with verbatim quotes are in <span class="co">[</span><span class="ot">`results/claude_opus_5_5_high_misses_2026-11-04/`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/tree/working-paper/results/claude_opus_5_5_high_misses_2026-11-04)</span>. A longer note is in <span class="co">[</span><span class="ot">`docs/persistent_misses_opus55_2026-11-04.md`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/persistent_misses_opus55_2026-11-04.md)</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
