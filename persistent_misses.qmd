@@ -1,9 +1,9 @@
 # Persistent misses: a provisional Claude Opus 5.5 diagnostic {#sec-persistent-misses}
 
 ::: {.callout-warning}
-## Provisional, AI-scored diagnostic · November 4, 2026
+## Provisional, AI-scored diagnostic · November 4, 2026 (Williams leakage item corrected November 6)
 
-This page reports a small follow-up diagnostic, run and scored by Claude Opus 5.5 at David Reinstein's request. *All scores are a provisional first pass. David Reinstein has not yet reviewed them, or the three critiques the model disputes (below).* The diagnostic is separate from the one-shot benchmark: its results are not pooled with, and do not change, the ratings or issue-coverage numbers reported in the main chapters and in [Results: Critiques & Key Issues](results_critiques.qmd).
+This page reports a small follow-up diagnostic, run and scored by Claude Opus 5.5 at David Reinstein's request. *All scores are a provisional first pass. David Reinstein has not yet reviewed them, or the two critiques the model disputes (below).* The diagnostic is separate from the one-shot benchmark: its results are not pooled with, and do not change, the ratings or issue-coverage numbers reported in the main chapters and in [Results: Critiques & Key Issues](results_critiques.qmd).
 :::
 
 **Question.** The earlier one-shot runs (GPT-5.2 Pro, Claude Opus 4.6, Claude Sonnet 4) missed some critiques that human evaluators raised (see [Results: Critiques & Key Issues](results_critiques.qmd)). Do these misses persist with a current model? Where they do, is the cause:
@@ -18,7 +18,7 @@ The aim is a short ledger of cases where an expert caught something and the mode
 
 **Papers.** We used six papers: Acemoglu et al. (2024), Williams et al. (2024), Dullaghan and Zhang (2022), Frech et al. (2023), Clancy (2024) and Green et al. (2025). Each was given as the same PDF used in the historical runs. Bénabou et al. (2023) and Peterman et al. (2025) remain excluded, as elsewhere in this paper.
 
-**Model.** `claude-opus-5-5` was called through the Anthropic Messages API at effort "high", with adaptive thinking, the PDF as a native document, no tools and no refusal fallback. Each condition was run once, and no call was refused. The total cost was about US$13.
+**Model.** `claude-opus-5-5` was called through the Anthropic Messages API at effort "high", with adaptive thinking, the PDF as a native document, no tools and no refusal fallback. Each condition was run once, and no call was refused. The total cost was about US$14, including one condition-C rerun on November 6 (see the Williams leakage note below).
 
 **Prompt conditions.**
 
@@ -55,19 +55,22 @@ The aim is a short ledger of cases where an expert caught something and the mode
 | Dullaghan & Zhang (2022) | 1000× units error (FGF2, per kg vs per gram) in the table given to forecasters | missed / missed | cannot assess from the paper | needs external source | persists; not a fair one-shot test |
 | Dullaghan & Zhang (2022) | Cost studies (TEAs) presented as predictions rather than conditional estimates | partly / partly | partly right; important | needs external source; prioritisation | partly persists |
 | Williams (2024) | "Validation" compares 2030 predictions with 2000–2016 outcomes | missed / missed | partly right; important | needs external source (the table is in the supplement, not in the PDF used) | persists |
-| Williams (2024) | Predictors measured over the outcome period (leakage) | partly / missed | **disputes it**: the named predictors are not in the final model | cross-referencing | to be adjudicated |
+| Williams (2024) | Predictors measured over the outcome period (leakage), including soil data that is in the final model | partly / missed; soil leg not raised in either | partly right; minor (rerun with the full published wording) | generation (soil leg), then prioritisation | persists |
 | Acemoglu (2024) | Use post-minus-pre change scores in the online experiment | missed / missed | **disputes it**: the headline specification already controls for the baseline outcome | none established | to be adjudicated |
 | Green (2025) | Excluding studies with n<25 limits publication-bias detection | missed / missed | partly right; minor: the paper's bias methods do not rely on small-study asymmetry | specification judgement | to be adjudicated |
 | Frech (2023) | $40,000/QALY estimate stated without sensitivity analysis | partly / partly | partly right; minor | prioritisation | weak item |
 
 : Persistent or disputed misses. "A / B" gives the provisional score in each condition; C is the model's own verdict when shown the critique. {#tbl-persistent-misses}
 
+**Correction to the Williams leakage item (November 6).** The first condition-C prompt paraphrased the critique from our internal curation and named only net primary production, burned area and road density. The model judged that version wrong: none of the three is in the final ten-variable model (Extended Data Fig. 2). But the published critique also names soil characteristics. The evaluators' joint synthesis lists them under Primary Concern 1, and evaluator 2's leakage section leads with the SoilGrids data. Soil organic carbon *is* in the final model; it ranks third by Gini importance, and the paper itself attributes its effect to carbon being "higher within and near forests". Rerun with the full published wording, the model rates the critique **partly right, minor**. It accepts a "legitimate, partial leakage risk via SOC that the paper does not test", rejects the other legs for the final model, and asks for a refit without the soil variables. It judges the point minor because forest density and distance to forest dominate. That last step is its own untested claim. The original output is kept, with the ledger marking it as superseded.
+
 ## Failure types
 
 - **Internal consistency (Clancy).** The model calls the regime-exit parameter "judgmental" but does not notice that the paper's own reason for rejecting the forecasters' implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.
 - **Conditional-probability logic (Dullaghan and Zhang).** Neither A nor B mentions the conditioning on >10 kt. When told, the model accepts a narrower version: the conditioning makes the null correlation non-diagnostic, and the low bar selects worlds where demand already existed. It then rates the point minor.
 - **Evidence outside the PDF (Dullaghan and Zhang; Williams).** The units error, and the validation table, sit in reference material or a supplement that the one-shot input did not include. The earlier models received the same PDFs, so these were never fair one-shot tests.
-- **Prioritisation.** For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call.
+- **Prioritisation.** For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call. For the Williams soil-data leakage, which the evaluators list as a primary concern, the model does not.
+- **Wording of the critique (a design lesson).** In the recognition condition, the verdict depends on how the critique is phrased. A paraphrase that dropped the strongest leg of the Williams leakage critique drew a confident "wrong"; the full wording drew "partly right".
 - **Magnitude sanity checks** now appear to be handled. For Williams, the model also proposes a mechanism: uncalibrated, class-balanced random-forest scores are summed into an "expected area".
 
 ## Possible test items
@@ -77,18 +80,20 @@ Each persistent miss suggests an item with a known answer:
 - **Clancy.** Ask whether the reason for rejecting the forecasters' implied discount rates also applies to the paper's own rate. Known answer: yes. About 1.6 points of the ~2% come from a short-horizon AGI forecast applied as a permanent hazard.
 - **Dullaghan and Zhang.** Ask what the conditional acceptance questions can and cannot show. Grade on whether the answer spots the selection created by the conditioning event.
 - **Williams.** With the supplement attached, ask what period the validation table tests against. Known answer: 2030 predictions against 2000–2016 regrowth, so it does not test forward skill.
+- **Williams, leakage.** Ask whether any predictor in the final model could encode the outcome, and how to test it. Grade on naming soil organic carbon, noting that the other contemporaneous predictors are not in the final model, and proposing a refit without the soil variables.
 
-The three disputed critiques become items only after they are adjudicated. If the model is right, they become "reject a mistaken critique" items.
+The two disputed critiques (Acemoglu change scores, Green small-study exclusion) become items only after they are adjudicated. If the model is right, they become "reject a mistaken critique" items.
 
 ## Contamination
 
 These papers and their published evaluations were public before Claude Opus 5.5's training cutoff (about mid-2026). The model may therefore have seen them, so a catch is weaker evidence than a miss.
 
-Three points argue against simple recall:
+Two points argue against simple recall:
 
-- the model still missed points that appear in the published evaluations, such as Clancy's discount rate and the Dullaghan conditional forecasts;
-- when shown three published critiques, it argued they were wrong or weak rather than agreeing;
+- the model still missed points that appear in the published evaluations, such as Clancy's discount rate and the Dullaghan conditional forecasts. This is the stronger point: recall should have produced them;
 - what it did catch can be found from the paper alone, such as the roughly 7× gap from the paper's own figures, and the prior-election control in the main results table.
+
+A weaker point: in condition C the model was *shown* published critiques, so it plainly saw them, and it disputed some rather than deferring. That only weakly suggests it was not recalling the evaluations, since a model can disagree after re-reading the paper either way.
 
 Some influence on the catches cannot be ruled out. Cleaner tests would use papers evaluated after the cutoff, or disguised variants that change names, setting and numbers while keeping the flaw. Disguised variants are also how these cases could become test items the model cannot have memorised.
 

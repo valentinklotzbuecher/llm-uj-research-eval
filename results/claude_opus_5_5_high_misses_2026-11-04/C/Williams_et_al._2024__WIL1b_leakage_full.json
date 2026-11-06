@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_misses_2026-11-04",
+    "paper": "Williams_et_al._2024",
+    "condition": "C",
+    "claim_id": "WIL1b_leakage_full",
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.101.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "misses_C_recognition_v1",
+    "system_prompt_sha256": "261042f6c925bb24f51659634cb657f53a0f89431d88da73795a71fd66a373aa",
+    "user_text_sha256": "1ffa3ff1f5dbdfd1bb3f4d3c80c8a457311ef89ad11ebb9b44b5dfc88710693b",
+    "schema_sha256": "c3f554a430bc82fd3668443c3dce2e0caadf9eab0696c26835ce7fda0c7fadcd",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Williams_et_al._2024.pdf",
+    "pdf_sha256": "02df96633bcc983dc9430db7fa61e5d774871424342e34f1de7ada4a184a7462",
+    "pdf_pages": 18,
+    "pdf_last_commit": "88269cfd74ab27a93ba3747d8921bb4cec1a74c7",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-06T10:27:51.360657+00:00",
+    "completed_at": "2026-11-06T10:28:26.133196+00:00",
+    "elapsed_seconds": 34.8,
+    "request_id": "req_011CgmWt2KBWUijAVkkRtvVV",
+    "response_id": "msg_011CgmWtBfGJ8QJaqGPSu4tY",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 59330
+      },
+      "cache_creation_input_tokens": 59330,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 266,
+      "output_tokens": 2765,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.353,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": {
+    "claim_id": "WIL1b_leakage_full",
+    "paper": "Williams_et_al._2024",
+    "origin": "rerun_2026-11-06_full_published_wording",
+    "published_source": "evalsumnaturalregeneration.md (joint synthesis, Primary Concern 1) and e2naturalregeneration.md (section '1. Data Leakage Concerns')",
+    "published_weight": "primary concern",
+    "claim_text": "Net primary production, burned area, road density and soil characteristics were recorded over the same time period as the outcome, and these predictors incorporate information that is influenced by regeneration itself. In particular, the SoilGrids soil variables appear to date from 2014-2016 and may have been created using 2010 land-cover data that include forest classes, which are related to the outcome; soil organic carbon is among the most important variables in the final model. When predicting into the future, information about these predictors is not available. As a result, the reported model accuracy overstates true predictive performance.",
+    "grading_note": "Rerun of WIL1 with the published critique's full wording. WIL1's text came from the Coda curation and omitted the soil-data leg, which is the leg that concerns a variable in the final ten-variable model. Caught = engages with soil organic carbon / SoilGrids as a possible outcome-derived predictor in the final model and its effect on reported accuracy.",
+    "run_condition_c": true
+  },
+  "user_text": "An evaluator argues: \"Net primary production, burned area, road density and soil characteristics were recorded over the same time period as the outcome, and these predictors incorporate information that is influenced by regeneration itself. In particular, the SoilGrids soil variables appear to date from 2014-2016 and may have been created using 2010 land-cover data that include forest classes, which are related to the outcome; soil organic carbon is among the most important variables in the final model. When predicting into the future, information about these predictors is not available. As a result, the reported model accuracy overstates true predictive performance.\"\n\nIs this right, and how much does it matter?\n\nBase your answer only on the attached paper. Do not browse or use other files. Check the paper's tables, figures and appendices where relevant, and cite them.\n\nReturn JSON matching the supplied schema.",
+  "parsed": {
+    "what_the_paper_shows": "Predictor timing per Methods: NPP is the mean MOD17A3 for 2000–2015; burned area is the monthly average for 2001–2017; road density comes from GRIP with no stated date; soils are SoilGrids250m (Hengl et al. 2017), averaged over the top 30 cm. Climate is 1970–2000. Forest density, distance to forest and land cover use 2000 baselines for training and are updated to 2018/2015 for prediction. The outcome is regrowth from 2000–2012 that persisted to 2016.\n\nWhich variables were actually used: the spatial predictions come from a biophysical-only model. Socioeconomic variables, including road density, were dropped; accuracy was 0.886 with them and 0.880 without (p. 133). Variable selection then kept ten variables (Extended Data Figs 1–2): bioclim PC1–4, biome, distance to forest, forest density, land use, SOC and soil pH. NPP, burned area and road density are therefore not in the final model.\n\nHow important SOC is: it ranks third by Gini, after forest density and distance to forest, but mid-ranked by mean decrease in accuracy (Extended Data Fig. 2). The authors themselves explain the SOC effect as 'perhaps because soil organic carbon content is higher within and near forests' (p. 134).\n\nWhat the paper does not say: it gives nothing on SoilGrids' production date or its land-cover covariates, so the 2014–2016 / 2010 land-cover point cannot be checked from the paper.\n\nValidation: random, non-spatially-blocked points balanced by class. Autocorrelation is examined only by distance bands, and accuracy falls to about 0.75–0.82 when the bands are balanced (Extended Data Fig. 4).",
+    "is_the_critique_right": "partly right",
+    "reasoning": "The critique overstates its case for three of the four variables it names. NPP, burned area and road density were measured over the outcome window, but none of them is in the model that produced the reported accuracy or the maps. Road density was removed with the socioeconomic set, and NPP and burned area were dropped during variable selection. Any leakage through them could only affect the comparison socioeconomic model, not the headline results.\n\nThe point about soil is more substantive. SOC and pH are in the final model, and SOC carries a lot of Gini importance. SoilGrids is a 250 m product, coarse relative to 1.2 ha regrowth patches, and its date overlaps or follows the outcome period. The authors' own explanation, that SOC is higher in and near forest, implies SOC partly proxies for vegetation state.\n\nMuch of that signal, though, plausibly reflects nearby pre-existing forest, which is legitimate predictive information already captured by the forest density and distance covariates. Fifteen years of regrowth would change measured SOC only slowly. The specific mechanism the critique proposes (SoilGrids built from 2010 land cover) cannot be confirmed from the paper.\n\nThe claim that predictor values are 'not available' for the future is weak. The authors treat soil as static and reuse the same layers for 2030 predictions. The real concern is circularity inflating validation accuracy, not the absence of data at prediction time.\n\nSo there is a legitimate, partial leakage risk via SOC that the paper does not test, for example by refitting without the soil variables. But most of the variables the critique lists are irrelevant to the final model.",
+    "how_much_it_matters": "minor",
+    "how_much_it_matters_explanation": "Only SOC and pH among the cited variables enter the final model. Extended Data Fig. 1 shows accuracy plateauing around 9–10 variables, and the dominant predictors are forest density and distance to forest, which are measured at the 2000 baseline. Dropping SOC would probably cost little accuracy and leave the spatial pattern largely intact. The headline 87.9% accuracy is more likely inflated by other features: non-spatial, class-balanced validation, and a sampling domain that includes clearly non-regenerable land. Extended Data Fig. 4 already hints at this. Possible SOC leakage adds only a modest further optimism.",
+    "would_you_have_raised_it": "I would have raised it as a secondary point, asking for an ablation without the soil variables and for documentation of SoilGrids' temporal basis, given the authors' own forest-proximity interpretation of SOC. It would rank below my main concerns: the non-spatial, balanced validation and the weak autocorrelation check; the very low area-based producer's accuracy of the regrowth training data (18.7% in the humid biome); and the conversion of probabilities from balanced (50:50) training into expected area (215 Mha) without recalibrating to true prevalence."
+  },
+  "result_text": "{\"what_the_paper_shows\": \"Predictor timing per Methods: NPP is the mean MOD17A3 for 2000–2015; burned area is the monthly average for 2001–2017; road density comes from GRIP with no stated date; soils are SoilGrids250m (Hengl et al. 2017), averaged over the top 30 cm. Climate is 1970–2000. Forest density, distance to forest and land cover use 2000 baselines for training and are updated to 2018/2015 for prediction. The outcome is regrowth from 2000–2012 that persisted to 2016.\\n\\nWhich variables were actually used: the spatial predictions come from a biophysical-only model. Socioeconomic variables, including road density, were dropped; accuracy was 0.886 with them and 0.880 without (p. 133). Variable selection then kept ten variables (Extended Data Figs 1–2): bioclim PC1–4, biome, distance to forest, forest density, land use, SOC and soil pH. NPP, burned area and road density are therefore not in the final model.\\n\\nHow important SOC is: it ranks third by Gini, after forest density and distance to forest, but mid-ranked by mean decrease in accuracy (Extended Data Fig. 2). The authors themselves explain the SOC effect as 'perhaps because soil organic carbon content is higher within and near forests' (p. 134).\\n\\nWhat the paper does not say: it gives nothing on SoilGrids' production date or its land-cover covariates, so the 2014–2016 / 2010 land-cover point cannot be checked from the paper.\\n\\nValidation: random, non-spatially-blocked points balanced by class. Autocorrelation is examined only by distance bands, and accuracy falls to about 0.75–0.82 when the bands are balanced (Extended Data Fig. 4).\", \"is_the_critique_right\": \"partly right\", \"reasoning\": \"The critique overstates its case for three of the four variables it names. NPP, burned area and road density were measured over the outcome window, but none of them is in the model that produced the reported accuracy or the maps. Road density was removed with the socioeconomic set, and NPP and burned area were dropped during variable selection. Any leakage through them could only affect the comparison socioeconomic model, not the headline results.\\n\\nThe point about soil is more substantive. SOC and pH are in the final model, and SOC carries a lot of Gini importance. SoilGrids is a 250 m product, coarse relative to 1.2 ha regrowth patches, and its date overlaps or follows the outcome period. The authors' own explanation, that SOC is higher in and near forest, implies SOC partly proxies for vegetation state.\\n\\nMuch of that signal, though, plausibly reflects nearby pre-existing forest, which is legitimate predictive information already captured by the forest density and distance covariates. Fifteen years of regrowth would change measured SOC only slowly. The specific mechanism the critique proposes (SoilGrids built from 2010 land cover) cannot be confirmed from the paper.\\n\\nThe claim that predictor values are 'not available' for the future is weak. The authors treat soil as static and reuse the same layers for 2030 predictions. The real concern is circularity inflating validation accuracy, not the absence of data at prediction time.\\n\\nSo there is a legitimate, partial leakage risk via SOC that the paper does not test, for example by refitting without the soil variables. But most of the variables the critique lists are irrelevant to the final model.\", \"how_much_it_matters\": \"minor\", \"how_much_it_matters_explanation\": \"Only SOC and pH among the cited variables enter the final model. Extended Data Fig. 1 shows accuracy plateauing around 9–10 variables, and the dominant predictors are forest density and distance to forest, which are measured at the 2000 baseline. Dropping SOC would probably cost little accuracy and leave the spatial pattern largely intact. The headline 87.9% accuracy is more likely inflated by other features: non-spatial, class-balanced validation, and a sampling domain that includes clearly non-regenerable land. Extended Data Fig. 4 already hints at this. Possible SOC leakage adds only a modest further optimism.\", \"would_you_have_raised_it\": \"I would have raised it as a secondary point, asking for an ablation without the soil variables and for documentation of SoilGrids' temporal basis, given the authors' own forest-proximity interpretation of SOC. It would rank below my main concerns: the non-spatial, balanced validation and the weak autocorrelation check; the very low area-based producer's accuracy of the regrowth training data (18.7% in the humid biome); and the conversion of probabilities from balanced (50:50) training into expected area (215 Mha) without recalibrating to true prevalence.\"}",
+  "thinking_summaries": [
+    "I'm going through the paper's data sources to check the critique about temporal leakage and endogeneity in the predictors. NPP is averaged over 2000–2015, burned area covers 2001–2017, and the road density data has no stated date even though it was published in 2018. The soil inputs come from SoilGrids250m at the top 30 cm, and the final model uses ten biophysical variables, which I'm now listing out.\n\nThe soil variables are the only ones that actually made it into the final model, which means the critique is partly off: NPP, burned area, and road density were dropped during variable selection. Road density is socioeconomic and wasn't used for the predictions anyway. Still, SOC looks like the place where the circularity concern could bite, since the paper itself suggests SOC is higher near forests, and it ranks third in the Gini importance.\n\nI'm checking whether the soil inputs, SOC and pH, are the real leakage risk, since the other covariates predate the 2000 baseline. SoilGrids may pick up vegetation signal through its remote sensing covariates, so some leakage is possible, though a 16-year regrowth probably won't shift SOC much. The bigger concern looks like spatial autocorrelation and the random, non-blocked validation.\n\nI'm weighing whether SOC's role in the model is a real problem. Its link to forest proximity may be legitimate predictive signal rather than leakage, and any regrowth effect on soil carbon over 16 years is probably modest. I'm inclined to call the impact minor, since SOC ranks high by Gini but that measure favors continuous variables, and dropping it likely costs little accuracy given the plateau at nine variables.\n\nI'll call it minor, then.\n\n"
+  ]
+}

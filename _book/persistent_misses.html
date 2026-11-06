@@ -454,11 +454,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>Provisional, AI-scored diagnostic · November 4, 2026
+<span class="screen-reader-only">Warning</span>Provisional, AI-scored diagnostic · November 4, 2026 (Williams leakage item corrected November 6)
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This page reports a small follow-up diagnostic, run and scored by Claude Opus 5.5 at David Reinstein’s request. <em>All scores are a provisional first pass. David Reinstein has not yet reviewed them, or the three critiques the model disputes (below).</em> The diagnostic is separate from the one-shot benchmark: its results are not pooled with, and do not change, the ratings or issue-coverage numbers reported in the main chapters and in <a href="./results_critiques.html">Results: Critiques &amp; Key Issues</a>.</p>
+<p>This page reports a small follow-up diagnostic, run and scored by Claude Opus 5.5 at David Reinstein’s request. <em>All scores are a provisional first pass. David Reinstein has not yet reviewed them, or the two critiques the model disputes (below).</em> The diagnostic is separate from the one-shot benchmark: its results are not pooled with, and do not change, the ratings or issue-coverage numbers reported in the main chapters and in <a href="./results_critiques.html">Results: Critiques &amp; Key Issues</a>.</p>
 </div>
 </div>
 <p><strong>Question.</strong> The earlier one-shot runs (GPT-5.2 Pro, Claude Opus 4.6, Claude Sonnet 4) missed some critiques that human evaluators raised (see <a href="./results_critiques.html">Results: Critiques &amp; Key Issues</a>). Do these misses persist with a current model? Where they do, is the cause:</p>
@@ -471,7 +471,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="design" class="level2">
 <h2 class="anchored" data-anchor-id="design">Design</h2>
 <p><strong>Papers.</strong> We used six papers: Acemoglu et al.&nbsp;(2024), Williams et al.&nbsp;(2024), Dullaghan and Zhang (2022), Frech et al.&nbsp;(2023), Clancy (2024) and Green et al.&nbsp;(2025). Each was given as the same PDF used in the historical runs. Bénabou et al.&nbsp;(2023) and Peterman et al.&nbsp;(2025) remain excluded, as elsewhere in this paper.</p>
-<p><strong>Model.</strong> <code>claude-opus-5-5</code> was called through the Anthropic Messages API at effort “high”, with adaptive thinking, the PDF as a native document, no tools and no refusal fallback. Each condition was run once, and no call was refused. The total cost was about US$13.</p>
+<p><strong>Model.</strong> <code>claude-opus-5-5</code> was called through the Anthropic Messages API at effort “high”, with adaptive thinking, the PDF as a native document, no tools and no refusal fallback. Each condition was run once, and no call was refused. The total cost was about US$14, including one condition-C rerun on November 6 (see the Williams leakage note below).</p>
 <p><strong>Prompt conditions.</strong></p>
 <ul>
 <li><strong>A, standard:</strong> the combined evaluation prompt with the key-issues list from <a href="./methods.html">Methods</a>.</li>
@@ -568,11 +568,11 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 </tr>
 <tr class="even">
 <td>Williams (2024)</td>
-<td>Predictors measured over the outcome period (leakage)</td>
-<td>partly / missed</td>
-<td><strong>disputes it</strong>: the named predictors are not in the final model</td>
-<td>cross-referencing</td>
-<td>to be adjudicated</td>
+<td>Predictors measured over the outcome period (leakage), including soil data that is in the final model</td>
+<td>partly / missed; soil leg not raised in either</td>
+<td>partly right; minor (rerun with the full published wording)</td>
+<td>generation (soil leg), then prioritisation</td>
+<td>persists</td>
 </tr>
 <tr class="odd">
 <td>Acemoglu (2024)</td>
@@ -603,6 +603,7 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 </div>
 </figure>
 </div>
+<p><strong>Correction to the Williams leakage item (November 6).</strong> The first condition-C prompt paraphrased the critique from our internal curation and named only net primary production, burned area and road density. The model judged that version wrong: none of the three is in the final ten-variable model (Extended Data Fig. 2). But the published critique also names soil characteristics. The evaluators’ joint synthesis lists them under Primary Concern 1, and evaluator 2’s leakage section leads with the SoilGrids data. Soil organic carbon <em>is</em> in the final model; it ranks third by Gini importance, and the paper itself attributes its effect to carbon being “higher within and near forests”. Rerun with the full published wording, the model rates the critique <strong>partly right, minor</strong>. It accepts a “legitimate, partial leakage risk via SOC that the paper does not test”, rejects the other legs for the final model, and asks for a refit without the soil variables. It judges the point minor because forest density and distance to forest dominate. That last step is its own untested claim. The original output is kept, with the ledger marking it as superseded.</p>
 </section>
 <section id="failure-types" class="level2">
 <h2 class="anchored" data-anchor-id="failure-types">Failure types</h2>
@@ -610,7 +611,8 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <li><strong>Internal consistency (Clancy).</strong> The model calls the regime-exit parameter “judgmental” but does not notice that the paper’s own reason for rejecting the forecasters’ implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.</li>
 <li><strong>Conditional-probability logic (Dullaghan and Zhang).</strong> Neither A nor B mentions the conditioning on &gt;10 kt. When told, the model accepts a narrower version: the conditioning makes the null correlation non-diagnostic, and the low bar selects worlds where demand already existed. It then rates the point minor.</li>
 <li><strong>Evidence outside the PDF (Dullaghan and Zhang; Williams).</strong> The units error, and the validation table, sit in reference material or a supplement that the one-shot input did not include. The earlier models received the same PDFs, so these were never fair one-shot tests.</li>
-<li><strong>Prioritisation.</strong> For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call.</li>
+<li><strong>Prioritisation.</strong> For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call. For the Williams soil-data leakage, which the evaluators list as a primary concern, the model does not.</li>
+<li><strong>Wording of the critique (a design lesson).</strong> In the recognition condition, the verdict depends on how the critique is phrased. A paraphrase that dropped the strongest leg of the Williams leakage critique drew a confident “wrong”; the full wording drew “partly right”.</li>
 <li><strong>Magnitude sanity checks</strong> now appear to be handled. For Williams, the model also proposes a mechanism: uncalibrated, class-balanced random-forest scores are summed into an “expected area”.</li>
 </ul>
 </section>
@@ -621,18 +623,19 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <li><strong>Clancy.</strong> Ask whether the reason for rejecting the forecasters’ implied discount rates also applies to the paper’s own rate. Known answer: yes. About 1.6 points of the ~2% come from a short-horizon AGI forecast applied as a permanent hazard.</li>
 <li><strong>Dullaghan and Zhang.</strong> Ask what the conditional acceptance questions can and cannot show. Grade on whether the answer spots the selection created by the conditioning event.</li>
 <li><strong>Williams.</strong> With the supplement attached, ask what period the validation table tests against. Known answer: 2030 predictions against 2000–2016 regrowth, so it does not test forward skill.</li>
+<li><strong>Williams, leakage.</strong> Ask whether any predictor in the final model could encode the outcome, and how to test it. Grade on naming soil organic carbon, noting that the other contemporaneous predictors are not in the final model, and proposing a refit without the soil variables.</li>
 </ul>
-<p>The three disputed critiques become items only after they are adjudicated. If the model is right, they become “reject a mistaken critique” items.</p>
+<p>The two disputed critiques (Acemoglu change scores, Green small-study exclusion) become items only after they are adjudicated. If the model is right, they become “reject a mistaken critique” items.</p>
 </section>
 <section id="contamination" class="level2">
 <h2 class="anchored" data-anchor-id="contamination">Contamination</h2>
 <p>These papers and their published evaluations were public before Claude Opus 5.5’s training cutoff (about mid-2026). The model may therefore have seen them, so a catch is weaker evidence than a miss.</p>
-<p>Three points argue against simple recall:</p>
+<p>Two points argue against simple recall:</p>
 <ul>
-<li>the model still missed points that appear in the published evaluations, such as Clancy’s discount rate and the Dullaghan conditional forecasts;</li>
-<li>when shown three published critiques, it argued they were wrong or weak rather than agreeing;</li>
+<li>the model still missed points that appear in the published evaluations, such as Clancy’s discount rate and the Dullaghan conditional forecasts. This is the stronger point: recall should have produced them;</li>
 <li>what it did catch can be found from the paper alone, such as the roughly 7× gap from the paper’s own figures, and the prior-election control in the main results table.</li>
 </ul>
+<p>A weaker point: in condition C the model was <em>shown</em> published critiques, so it plainly saw them, and it disputed some rather than deferring. That only weakly suggests it was not recalling the evaluations, since a model can disagree after re-reading the paper either way.</p>
 <p>Some influence on the catches cannot be ruled out. Cleaner tests would use papers evaluated after the cutoff, or disguised variants that change names, setting and numbers while keeping the flaw. Disguised variants are also how these cases could become test items the model cannot have memorised.</p>
 </section>
 <section id="other-caveats" class="level2">
@@ -1130,9 +1133,9 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Persistent misses: a provisional Claude Opus 5.5 diagnostic {#sec-persistent-misses}</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning}</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">## Provisional, AI-scored diagnostic · November 4, 2026</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">## Provisional, AI-scored diagnostic · November 4, 2026 (Williams leakage item corrected November 6)</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>This page reports a small follow-up diagnostic, run and scored by Claude Opus 5.5 at David Reinstein's request. *All scores are a provisional first pass. David Reinstein has not yet reviewed them, or the three critiques the model disputes (below).* The diagnostic is separate from the one-shot benchmark: its results are not pooled with, and do not change, the ratings or issue-coverage numbers reported in the main chapters and in <span class="co">[</span><span class="ot">Results: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>.</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>This page reports a small follow-up diagnostic, run and scored by Claude Opus 5.5 at David Reinstein's request. *All scores are a provisional first pass. David Reinstein has not yet reviewed them, or the two critiques the model disputes (below).* The diagnostic is separate from the one-shot benchmark: its results are not pooled with, and do not change, the ratings or issue-coverage numbers reported in the main chapters and in <span class="co">[</span><span class="ot">Results: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>.</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>**Question.** The earlier one-shot runs (GPT-5.2 Pro, Claude Opus 4.6, Claude Sonnet 4) missed some critiques that human evaluators raised (see <span class="co">[</span><span class="ot">Results: Critiques &amp; Key Issues</span><span class="co">](results_critiques.qmd)</span>). Do these misses persist with a current model? Where they do, is the cause:</span>
@@ -1147,7 +1150,7 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>**Papers.** We used six papers: Acemoglu et al. (2024), Williams et al. (2024), Dullaghan and Zhang (2022), Frech et al. (2023), Clancy (2024) and Green et al. (2025). Each was given as the same PDF used in the historical runs. Bénabou et al. (2023) and Peterman et al. (2025) remain excluded, as elsewhere in this paper.</span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>**Model.** <span class="in">`claude-opus-5-5`</span> was called through the Anthropic Messages API at effort "high", with adaptive thinking, the PDF as a native document, no tools and no refusal fallback. Each condition was run once, and no call was refused. The total cost was about US$13.</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>**Model.** <span class="in">`claude-opus-5-5`</span> was called through the Anthropic Messages API at effort "high", with adaptive thinking, the PDF as a native document, no tools and no refusal fallback. Each condition was run once, and no call was refused. The total cost was about US$14, including one condition-C rerun on November 6 (see the Williams leakage note below).</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>**Prompt conditions.**</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
@@ -1184,51 +1187,56 @@ Table&nbsp;C.1: Persistent or disputed misses. “A / B” gives the provisional
 <span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Dullaghan &amp; Zhang (2022) <span class="pp">|</span> 1000× units error (FGF2, per kg vs per gram) in the table given to forecasters <span class="pp">|</span> missed / missed <span class="pp">|</span> cannot assess from the paper <span class="pp">|</span> needs external source <span class="pp">|</span> persists; not a fair one-shot test <span class="pp">|</span></span>
 <span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Dullaghan &amp; Zhang (2022) <span class="pp">|</span> Cost studies (TEAs) presented as predictions rather than conditional estimates <span class="pp">|</span> partly / partly <span class="pp">|</span> partly right; important <span class="pp">|</span> needs external source; prioritisation <span class="pp">|</span> partly persists <span class="pp">|</span></span>
 <span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Williams (2024) <span class="pp">|</span> "Validation" compares 2030 predictions with 2000–2016 outcomes <span class="pp">|</span> missed / missed <span class="pp">|</span> partly right; important <span class="pp">|</span> needs external source (the table is in the supplement, not in the PDF used) <span class="pp">|</span> persists <span class="pp">|</span></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Williams (2024) <span class="pp">|</span> Predictors measured over the outcome period (leakage) <span class="pp">|</span> partly / missed <span class="pp">|</span> **disputes it**: the named predictors are not in the final model <span class="pp">|</span> cross-referencing <span class="pp">|</span> to be adjudicated <span class="pp">|</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Williams (2024) <span class="pp">|</span> Predictors measured over the outcome period (leakage), including soil data that is in the final model <span class="pp">|</span> partly / missed; soil leg not raised in either <span class="pp">|</span> partly right; minor (rerun with the full published wording) <span class="pp">|</span> generation (soil leg), then prioritisation <span class="pp">|</span> persists <span class="pp">|</span></span>
 <span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Acemoglu (2024) <span class="pp">|</span> Use post-minus-pre change scores in the online experiment <span class="pp">|</span> missed / missed <span class="pp">|</span> **disputes it**: the headline specification already controls for the baseline outcome <span class="pp">|</span> none established <span class="pp">|</span> to be adjudicated <span class="pp">|</span></span>
 <span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Green (2025) <span class="pp">|</span> Excluding studies with n&lt;25 limits publication-bias detection <span class="pp">|</span> missed / missed <span class="pp">|</span> partly right; minor: the paper's bias methods do not rely on small-study asymmetry <span class="pp">|</span> specification judgement <span class="pp">|</span> to be adjudicated <span class="pp">|</span></span>
 <span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frech (2023) <span class="pp">|</span> $40,000/QALY estimate stated without sensitivity analysis <span class="pp">|</span> partly / partly <span class="pp">|</span> partly right; minor <span class="pp">|</span> prioritisation <span class="pp">|</span> weak item <span class="pp">|</span></span>
 <span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>: Persistent or disputed misses. "A / B" gives the provisional score in each condition; C is the model's own verdict when shown the critique. {#tbl-persistent-misses}</span>
 <span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="fu">## Failure types</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>**Correction to the Williams leakage item (November 6).** The first condition-C prompt paraphrased the critique from our internal curation and named only net primary production, burned area and road density. The model judged that version wrong: none of the three is in the final ten-variable model (Extended Data Fig. 2). But the published critique also names soil characteristics. The evaluators' joint synthesis lists them under Primary Concern 1, and evaluator 2's leakage section leads with the SoilGrids data. Soil organic carbon *is* in the final model; it ranks third by Gini importance, and the paper itself attributes its effect to carbon being "higher within and near forests". Rerun with the full published wording, the model rates the critique **partly right, minor**. It accepts a "legitimate, partial leakage risk via SOC that the paper does not test", rejects the other legs for the final model, and asks for a refit without the soil variables. It judges the point minor because forest density and distance to forest dominate. That last step is its own untested claim. The original output is kept, with the ledger marking it as superseded.</span>
 <span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Internal consistency (Clancy).** The model calls the regime-exit parameter "judgmental" but does not notice that the paper's own reason for rejecting the forecasters' implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.</span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Conditional-probability logic (Dullaghan and Zhang).** Neither A nor B mentions the conditioning on &gt;10 kt. When told, the model accepts a narrower version: the conditioning makes the null correlation non-diagnostic, and the low bar selects worlds where demand already existed. It then rates the point minor.</span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Evidence outside the PDF (Dullaghan and Zhang; Williams).** The units error, and the validation table, sit in reference material or a supplement that the one-shot input did not include. The earlier models received the same PDFs, so these were never fair one-shot tests.</span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Prioritisation.** For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call.</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Magnitude sanity checks** now appear to be handled. For Williams, the model also proposes a mechanism: uncalibrated, class-balanced random-forest scores are summed into an "expected area".</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="fu">## Possible test items</span></span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>Each persistent miss suggests an item with a known answer:</span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy.** Ask whether the reason for rejecting the forecasters' implied discount rates also applies to the paper's own rate. Known answer: yes. About 1.6 points of the ~2% come from a short-horizon AGI forecast applied as a permanent hazard.</span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Dullaghan and Zhang.** Ask what the conditional acceptance questions can and cannot show. Grade on whether the answer spots the selection created by the conditioning event.</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams.** With the supplement attached, ask what period the validation table tests against. Known answer: 2030 predictions against 2000–2016 regrowth, so it does not test forward skill.</span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>The three disputed critiques become items only after they are adjudicated. If the model is right, they become "reject a mistaken critique" items.</span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="fu">## Contamination</span></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## Failure types</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Internal consistency (Clancy).** The model calls the regime-exit parameter "judgmental" but does not notice that the paper's own reason for rejecting the forecasters' implied rates also undercuts its ~2% rate. When told, it agrees and would rank the point mid-to-high. This is the cleanest case of a point the model fails to generate but recognises.</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Conditional-probability logic (Dullaghan and Zhang).** Neither A nor B mentions the conditioning on &gt;10 kt. When told, the model accepts a narrower version: the conditioning makes the null correlation non-diagnostic, and the low bar selects worlds where demand already existed. It then rates the point minor.</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Evidence outside the PDF (Dullaghan and Zhang; Williams).** The units error, and the validation table, sit in reference material or a supplement that the one-shot input did not include. The earlier models received the same PDFs, so these were never fair one-shot tests.</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Prioritisation.** For several items the model engages once prompted but ranks the point below other concerns. For Frech, the published evaluations make the same call. For the Williams soil-data leakage, which the evaluators list as a primary concern, the model does not.</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Wording of the critique (a design lesson).** In the recognition condition, the verdict depends on how the critique is phrased. A paraphrase that dropped the strongest leg of the Williams leakage critique drew a confident "wrong"; the full wording drew "partly right".</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Magnitude sanity checks** now appear to be handled. For Williams, the model also proposes a mechanism: uncalibrated, class-balanced random-forest scores are summed into an "expected area".</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="fu">## Possible test items</span></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>Each persistent miss suggests an item with a known answer:</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy.** Ask whether the reason for rejecting the forecasters' implied discount rates also applies to the paper's own rate. Known answer: yes. About 1.6 points of the ~2% come from a short-horizon AGI forecast applied as a permanent hazard.</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Dullaghan and Zhang.** Ask what the conditional acceptance questions can and cannot show. Grade on whether the answer spots the selection created by the conditioning event.</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams.** With the supplement attached, ask what period the validation table tests against. Known answer: 2030 predictions against 2000–2016 regrowth, so it does not test forward skill.</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Williams, leakage.** Ask whether any predictor in the final model could encode the outcome, and how to test it. Grade on naming soil organic carbon, noting that the other contemporaneous predictors are not in the final model, and proposing a refit without the soil variables.</span>
 <span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>These papers and their published evaluations were public before Claude Opus 5.5's training cutoff (about mid-2026). The model may therefore have seen them, so a catch is weaker evidence than a miss.</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>The two disputed critiques (Acemoglu change scores, Green small-study exclusion) become items only after they are adjudicated. If the model is right, they become "reject a mistaken critique" items.</span>
 <span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>Three points argue against simple recall:</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="fu">## Contamination</span></span>
 <span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the model still missed points that appear in the published evaluations, such as Clancy's discount rate and the Dullaghan conditional forecasts;</span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>when shown three published critiques, it argued they were wrong or weak rather than agreeing;</span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what it did catch can be found from the paper alone, such as the roughly 7× gap from the paper's own figures, and the prior-election control in the main results table.</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>These papers and their published evaluations were public before Claude Opus 5.5's training cutoff (about mid-2026). The model may therefore have seen them, so a catch is weaker evidence than a miss.</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>Two points argue against simple recall:</span>
 <span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>Some influence on the catches cannot be ruled out. Cleaner tests would use papers evaluated after the cutoff, or disguised variants that change names, setting and numbers while keeping the flaw. Disguised variants are also how these cases could become test items the model cannot have memorised.</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="fu">## Other caveats</span></span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Run-to-run variation.** Each condition was run once, so catches and misses ranked low in a list could flip on a rerun.</span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Scorer.** The provisional scorer is the same model family as the model tested.</span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Comparability.** Condition A matches the prompt of the GPT-5.2 Pro key-issues run, but the model and interface differ, so this is not a like-for-like comparison with the earlier runs.</span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy coverage.** One of the Clancy evaluation reports was not in our exports, so that paper's critique set is incomplete.</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>the model still missed points that appear in the published evaluations, such as Clancy's discount rate and the Dullaghan conditional forecasts. This is the stronger point: recall should have produced them;</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>what it did catch can be found from the paper alone, such as the roughly 7× gap from the paper's own figures, and the prior-election control in the main results table.</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>A weaker point: in condition C the model was *shown* published critiques, so it plainly saw them, and it disputed some rather than deferring. That only weakly suggests it was not recalling the evaluations, since a model can disagree after re-reading the paper either way.</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>Some influence on the catches cannot be ruled out. Cleaner tests would use papers evaluated after the cutoff, or disguised variants that change names, setting and numbers while keeping the flaw. Disguised variants are also how these cases could become test items the model cannot have memorised.</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="fu">## Other caveats</span></span>
 <span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>**Materials.** The runner is <span class="co">[</span><span class="ot">`scripts/run_headless_claude_misses.py`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/scripts/run_headless_claude_misses.py)</span>. Model outputs, raw API responses, the claims used in condition C and the provisional ledger with verbatim quotes are in <span class="co">[</span><span class="ot">`results/claude_opus_5_5_high_misses_2026-11-04/`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/tree/working-paper/results/claude_opus_5_5_high_misses_2026-11-04)</span>. A longer note is in <span class="co">[</span><span class="ot">`docs/persistent_misses_opus55_2026-11-04.md`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/persistent_misses_opus55_2026-11-04.md)</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Run-to-run variation.** Each condition was run once, so catches and misses ranked low in a list could flip on a rerun.</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Scorer.** The provisional scorer is the same model family as the model tested.</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Comparability.** Condition A matches the prompt of the GPT-5.2 Pro key-issues run, but the model and interface differ, so this is not a like-for-like comparison with the earlier runs.</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Clancy coverage.** One of the Clancy evaluation reports was not in our exports, so that paper's critique set is incomplete.</span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>**Materials.** The runner is <span class="co">[</span><span class="ot">`scripts/run_headless_claude_misses.py`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/scripts/run_headless_claude_misses.py)</span>. Model outputs, raw API responses, the claims used in condition C and the provisional ledger with verbatim quotes are in <span class="co">[</span><span class="ot">`results/claude_opus_5_5_high_misses_2026-11-04/`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/tree/working-paper/results/claude_opus_5_5_high_misses_2026-11-04)</span>. A longer note is in <span class="co">[</span><span class="ot">`docs/persistent_misses_opus55_2026-11-04.md`</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/persistent_misses_opus55_2026-11-04.md)</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
