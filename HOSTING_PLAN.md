@@ -140,6 +140,12 @@ To refresh the copy after each working-paper publish, run `proj_pull.py`,
 unless each live hash matches a known state. The deploy replaces `/working-paper/`
 as a whole and keeps every other file hash.
 
+Later on November 9 the copy was refreshed from `f690d83` (headline
+critique-overlap block on `results_critiques`, computed figures on the
+introduction and results pages): deploy `6af1c7b03c31dc59f70af66e`, 115 files,
+6 stale `/working-paper/` files dropped. The seven historical pages were
+unchanged (all matched the `nov9` state).
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:
