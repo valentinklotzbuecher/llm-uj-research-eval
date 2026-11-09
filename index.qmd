@@ -55,9 +55,17 @@ A collaboration with [The Unjournal](https://www.unjournal.org/) (55+ open evalu
 ::: {.callout-tip}
 ## Can the model find the issues experts find?
 
-In 12 eligible paper comparisons, GPT-5.2 Pro identified 80% of the curated human consensus issues on average (range: 50–100%). Conversely, 52% of the issues raised by the model matched the curated human concern set. The comparison is exploratory and currently uses GPT-5.2 Pro as the judge; unmatched model concerns are not necessarily wrong.
+```{r}
+#| label: critique-headline-index
+#| echo: false
 
-[Explore the paper-by-paper issue comparisons →](results_critiques.qmd#sec-paper-comparison)
+source("scripts/analysis_checks.R")
+crit_h <- critique_headline("results/key_issues_comparison_results.json")
+```
+
+`r critique_headline_text(crit_h)` Pooled over these papers, the model raised `r crit_h$llm_total` issues; `r crit_h$llm_unmatched` of them matched no curated human concern, against `r crit_h$human_total` curated human issues in total. Those unmatched issues have not been checked yet: some may be valid points the human evaluators did not raise, others may be noise. Matches were judged by GPT-5.2 Pro, the same model that wrote the critiques; human validation is underway.
+
+[Headline figures and caveats](results_critiques.qmd#critique-headline) · [Paper-by-paper issue comparisons](results_critiques.qmd#sec-paper-comparison)
 :::
 
 ::: {.callout-note collapse="true"}

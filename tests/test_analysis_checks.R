@@ -27,4 +27,28 @@ for (r in c(-.5, 0, NA_real_, Inf, 1.1)) {
 for (k in c(0, NA_real_, Inf)) {
   stopifnot(is.na(sb_sensitivity_factor(.5, k)))
 }
+# Headline critique figures: excluded pairings drop out, counts add up.
+pair <- function(h, l) list(human_issue_index = h, llm_issue_indices = list(l))
+judge <- list(
+  list(gpt_paper = "A", num_gpt_issues = 4, comparison = list(
+    coverage_pct = 50, precision_pct = 50,
+    matched_pairs = list(pair(1, 1), pair(1, 2)),
+    unmatched_human = list(list(index = 2)),
+    unmatched_llm = list(list(index = 3), list(index = 4)))),
+  list(gpt_paper = "B", num_gpt_issues = 2, comparison = list(
+    coverage_pct = 100, precision_pct = 100,
+    matched_pairs = list(pair(1, 1), pair(2, 2)),
+    unmatched_human = list(), unmatched_llm = list())),
+  list(gpt_paper = "Benabou_et_al._2023", num_gpt_issues = 9, comparison = list(
+    coverage_pct = 0, precision_pct = 0, matched_pairs = list(),
+    unmatched_human = list(list(index = 1)), unmatched_llm = list(list(index = 1))))
+)
+judge_file <- tempfile(fileext = ".json")
+jsonlite::write_json(judge, judge_file, auto_unbox = TRUE)
+h <- critique_headline(judge_file)
+stopifnot(h$n_papers == 2, h$coverage_mean == 75, h$overlap_mean == 75,
+          h$coverage_min == 50, h$coverage_max == 100,
+          h$human_matched == 3, h$human_unmatched == 1, h$human_total == 4,
+          h$llm_total == 6, h$llm_unmatched == 2, h$llm_matched == 4,
+          grepl("In 2 eligible papers", critique_headline_text(h)))
 cat("Analysis checks passed.\n")
