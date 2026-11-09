@@ -32,7 +32,7 @@ Both working-paper hosts serve the same committed `_book/` from the
 |------|-----|--------|------|
 | Netlify (canonical) | https://llm-uj-research-eval.netlify.app | `working-paper` `_book/` | Current working paper |
 | GitHub Pages | https://valentinklotzbuecher.github.io/llm-uj-research-eval/ | `working-paper` `_book/` via Actions | Same paper; canonical links point to Netlify |
-| Netlify `-project` | https://llm-uj-research-eval-project.netlify.app | Manual deploy, no linked repo | Historical project workspace and grant proposal |
+| Netlify `-project` | https://llm-uj-research-eval-project.netlify.app | Manual deploy, no linked repo | Historical project workspace and grant proposal, plus a copy of the current paper at `/working-paper/` (deployment step 5) |
 
 `main` is no longer served by either working-paper host and is far behind;
 do not deploy from it. The `-project` site changes only through a deliberate
@@ -538,6 +538,14 @@ one, are in `HOSTING_PLAN.md`.
 4. Commits and pushes changes if any new evaluations are found
 
 This keeps the evaluation markdown corpus fresh for critique and metadata analyses.
+5. Refresh the copy of the paper on the `-project` site (David asked on
+   2026-11-09 for the current analysis to be on both sites). It lives at
+   `/working-paper/` there and is taken from committed `HEAD:_book`. Run
+   `scripts/project_site/proj_pull.py`, then `proj_build.py` (refuses unless
+   every live page matches a known state), then
+   `proj_deploy.py "title"`, with the same `PROJ_SITE_DIR` for all three. This
+   standing request covers this sync only; other `-project` changes still need
+   David's OK.
 
 ## Visual Design and Theming
 

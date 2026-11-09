@@ -117,6 +117,29 @@ November notice is inserted as `"\n" + notice.strip()` (no trailing newline).
 To rebuild the current pages, run `proj_build.py` against the pre-change
 manifest of deploy `6aec619eb66fd94e660c0586`.
 
+## November 9 2026: current paper copied into the project site
+
+From David's Hypothes.is comment ("make this folded. But we should also have the
+updated analysis in both"): the yellow "This is the project workspace" box on the
+homepage became a closed `<details>`, and the committed working-paper `_book/`
+(HEAD `2ca97cf`, 78 files, minus `robots.txt` and `sitemap.xml`) is now served at
+<https://llm-uj-research-eval-project.netlify.app/working-paper/>. Its pages keep
+their canonical links to the main Netlify site, so Hypothes.is groups annotations
+with the canonical paper. The signpost on all seven historical pages links to the
+copy; the four old analysis pages (methods, ratings, critiques, LLM traces) link
+to their current versions. The historical pages are otherwise unchanged.
+
+An interim deploy, `6af1c0296b49bd4f04dc8d99` from the hypothesis-edit-live
+session, folded only that box; it was reproduced byte for byte before being
+replaced. The Nov 9 deploy is `6af1c0a1c5d60571b0f35058` (115 files: the 30
+untouched originals, 7 edited pages, 78 paper files).
+
+To refresh the copy after each working-paper publish, run `proj_pull.py`,
+`proj_build.py` and `proj_deploy.py "title"` from `scripts/project_site/` with one
+`PROJ_SITE_DIR`. The build rebuilds every historical page from git and refuses
+unless each live hash matches a known state. The deploy replaces `/working-paper/`
+as a whole and keeps every other file hash.
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:
