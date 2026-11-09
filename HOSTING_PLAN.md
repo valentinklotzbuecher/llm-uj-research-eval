@@ -146,6 +146,13 @@ introduction and results pages): deploy `6af1c7b03c31dc59f70af66e`, 115 files,
 6 stale `/working-paper/` files dropped. The seven historical pages were
 unchanged (all matched the `nov9` state).
 
+Then, with David's OK, the historical `results_critiques.html` got the same
+headline block, copied from the rendered page at `f690d83` and placed under the
+page title, with a line saying it comes from the current version and that the
+historical figures below may differ. Its links point into `/working-paper/`. This
+is layer 3b (`nov9b`) in `proj_build.py`; the other six historical pages are
+unchanged. Deploy `6af1d30de5b7ef215f5f75e5` (115 files, one new blob).
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:

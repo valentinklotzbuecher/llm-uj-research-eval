@@ -9,6 +9,8 @@ Layers, in order (each reproducible from git):
   3. Nov 9 2026: the yellow "project workspace" box folded; signposts point to the
      in-site copy of the current working paper (and, on the four old analysis pages,
      to the current version of that page).
+  3b. Nov 9 2026 (later): results_critiques.html leads with the headline critique-overlap
+     block from the working paper at commit f690d83.
   4. /working-paper/: the committed working-paper _book/ at HEAD (canonical links
      still point to llm-uj-research-eval.netlify.app).
 
@@ -129,6 +131,44 @@ for p, html in nov5.items():
     nov9[p] = html
     print(f"{p}: workspace box folded = {bool(n)}")
 
+# ---- layer 3b (Nov 9, later; David's OK in session) ----
+# The historical critiques page leads with the headline critique-overlap block, copied
+# from the rendered working paper at a pinned commit so the rebuild is reproducible.
+HEADLINE_REV = "f690d83"
+
+
+def headline_block():
+    src = show(HEADLINE_REV, "_book/results_critiques.html").decode()
+    start = src.index('<p><span id="critique-headline"></span></p>')
+    i = src.index("<div", start)
+    depth, pos = 0, i
+    for m in re.finditer(r"<div\b|</div>", src[i:]):
+        depth += 1 if m.group(0) != "</div>" else -1
+        if depth == 0:
+            pos = i + m.end()
+            break
+    block = src[start:pos]
+    block = block.replace('href="./persistent_misses.html"', f'href="{WP_DIR}/persistent_misses.html"')
+    block = block.replace('href="#sec-paper-comparison"',
+                          f'href="{WP_DIR}/results_critiques.html#sec-paper-comparison"')
+    assert 'href="#' not in block and 'href="./' not in block, "unrewritten link in headline block"
+    below = "(see <em>Data sources</em> below)"
+    assert block.count(below) == 1
+    block = block.replace(below, f'(see <em>Data sources</em> in the <a href="{WP_DIR}/results_critiques.html">'
+                                 'current version</a>)', 1)
+    lead = ('<p><em>Added November 9 2026 from the <a href="' + WP_DIR + '/results_critiques.html">'
+            'current version of this page</a> in the working paper. The rest of this page is the '
+            'historical analysis; its figures may differ.</em></p>\n')
+    body = '<div class="callout-body-container callout-body">\n'
+    assert block.count(body) == 1
+    return block.replace(body, body + lead, 1)
+
+
+nov9b = dict(nov9)
+_crit = nov9["results_critiques.html"]
+_hdr = _crit.index("</header>", MAIN_RE.search(_crit).end()) + len("</header>")
+nov9b["results_critiques.html"] = _crit[:_hdr] + "\n" + headline_block() + _crit[_hdr:]
+
 # Interim state, deploy 6af1c0296b49bd4f04dc8d99 (Nov 9, from the hypothesis-edit-live
 # session): Nov 5 pages with only index.html's yellow box turned into this <details>.
 INTERIM_BANNER = """<details class="uj-workspace-banner" style="background:#fff3cd;border-left:5px solid #e6a817;padding:1em 1.4em;margin:0 0 1.5em 0;border-radius:3px;font-size:0.97em;">
@@ -142,11 +182,12 @@ interim = dict(nov5)
 interim["index.html"] = YELLOW_RE.sub(lambda _: INTERIM_BANNER, nov5["index.html"], count=1)
 
 # ---- check against live ----
-# Every page must match a known state (nov5, the interim deploy, or nov9 after it ships).
+# Every page must match a known state (nov5, the interim deploy, nov9, or nov9b).
 ok = True
 for p in PAGES:
     live = manifest["/" + p]
-    state = next((n for n, d in (("nov5", nov5), ("interim", interim), ("nov9", nov9))
+    state = next((n for n, d in (("nov5", nov5), ("interim", interim), ("nov9", nov9),
+                                 ("nov9b", nov9b))
                   if sha1(d[p]) == live), None)
     ok &= state is not None
     print(f"{p}: live matches rebuilt state = {state}")
@@ -157,7 +198,7 @@ if not ok or "--check-only" in sys.argv:
 out = SCR / "new"
 if out.exists():
     shutil.rmtree(out)
-for p, html in nov9.items():
+for p, html in nov9b.items():
     if sha1(html) != manifest["/" + p]:
         (out / p).parent.mkdir(parents=True, exist_ok=True)
         (out / p).write_text(html, encoding="utf-8")
