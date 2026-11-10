@@ -251,7 +251,11 @@ third-row pairs as covered.
   agreement, and then compare the LLM judge with them. Include cross-paper pairs
   as controls to measure the chance-match rate.
 
-**Suggested next step.** Rewrite the judge prompt around the table above, with
+**Done 10 Nov 2026:** a first version of this judge is in
+`scripts/run_issue_match_judge.py`; results in
+`docs/issue_match_judge_v2_pilot_2026-11-10.md`.
+
+**Original suggestion.** Rewrite the judge prompt around the table above, with
 invented examples, a paper title and abstract, blinded and shuffled lists, a
 confidence field and an explicit "different problem, same target" category. Have
 code compute coverage and overlap from the pairs. Then run it alongside the
