@@ -446,18 +446,52 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Headline result: overlap between model and expert critiques (n = 12 papers)
+<span class="screen-reader-only">Tip</span>Headline result: how many of the experts’ critiques does a one-shot model raise?
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Coverage: between about 44% and 80%, depending on the judge (see below).</strong> The figures that follow are from the original judge.</p>
-<p><strong>Original judge, coverage: 80%.</strong> For each paper we compared the key issues in the one-shot GPT-5.2 Pro report with the curated human consensus issues: the concerns that the evaluation manager judged most important across the human evaluations. On average the model raised 80% of those human issues (range across papers 50–100%).</p>
-<p><strong>LLM overlap rate: 52%.</strong> On average, 52% of the issues the model raised matched a concern on the curated human list (range 17–83%).</p>
-<p><strong>Raw counts, pooled over the 12 papers.</strong> The curated human lists contain 63 issues: the model matched 53 and missed 10. The model raised 142 issues: 73 matched a human concern and 69 did not. The headline percentages are averages of per-paper rates, so they differ slightly from these pooled ratios (84% and 51%).</p>
-<p><strong>What the unmatched model issues mean.</strong> We have not yet checked the 69 unmatched model issues. Some are probably valid points that the human evaluators did not raise or that did not make the curated list; others may be wrong, minor, or repetitive. An unmatched issue is not, by itself, an error.</p>
-<p><strong>A stricter judge gives lower figures.</strong> We re-judged the same 12 papers with a revised, blinded judge (November 2026). Both issue lists were first rewritten into neutral statements so the judge could not tell which was human; a different model (Claude Opus 5.5) then classified each pair by whether it concerns the same result and the same reason for criticising it. Coverage then depends on what counts as a match:</p>
+<p><strong>Main result (30 papers, issues from each published evaluation).</strong> We split each of 61 published Unjournal evaluations into its separate issues (705 in all, one list per evaluator) and asked how many of one evaluator’s issues appear in (a) a one-shot report by Claude Opus 5.5, given only the PDF, and (b) the other evaluator’s report on the same paper. Two AI judges matched the issues on unlabeled, shuffled lists.</p>
 <table class="table-striped caption-top table">
-<caption>Mean per-paper rates. Revised-judge rates average two runs.</caption>
+<caption>Rates pooled over issues; brackets are 95% bootstrap intervals over papers. A match is a judge score of 30 or more out of 100.</caption>
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Share of an evaluator’s issues raised by…</th>
+<th style="text-align: right;">GPT-5.6 judge</th>
+<th style="text-align: right;">Claude Sonnet 5.5 judge</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>the one-shot model</td>
+<td style="text-align: right;">61% [54, 68]</td>
+<td style="text-align: right;">35% [30, 41]</td>
+</tr>
+<tr class="even">
+<td>a second human evaluator</td>
+<td style="text-align: right;">36% [29, 42]</td>
+<td style="text-align: right;">22% [16, 28]</td>
+</tr>
+<tr class="odd">
+<td>placebo: the model’s report on a <em>different</em> paper</td>
+<td style="text-align: right;">2% [1, 4]</td>
+<td style="text-align: right;">1% [0, 2]</td>
+</tr>
+<tr class="even">
+<td><strong>model minus second evaluator (points)</strong></td>
+<td style="text-align: right;"><strong>26 [17, 35]</strong></td>
+<td style="text-align: right;"><strong>13 [7, 20]</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Under both judges, the model’s report overlaps with an individual evaluator’s critique more than a second evaluator’s report does. The judges disagree a lot on the level: they agree on whether an issue is covered for 72% of issues (kappa 0.47), and almost all disagreements are GPT counting a match that Claude does not (193 against 8). No human has yet checked these matches. Details: <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/critique_overlap_scaled_2026-11-10.md">30-paper note</a>.</p>
+<p><strong>Earlier analysis (12 papers, curated consensus list).</strong> Here the model is GPT-5.2 Pro and the human reference is the short list of consensus issues our evaluation managers curated. The original judge, GPT-5.2 Pro grading its own critiques with the lists labelled, reported 80% [69, 90] coverage. We re-judged with a blinded rubric: both lists were rewritten into neutral statements, and each pair was classified by whether it concerns the same result for the same reason.</p>
+<table class="table-striped caption-top table">
+<caption>Mean per-paper coverage of the curated human issues; 95% bootstrap intervals over 12 papers. Revised-judge rates average two runs on identical blinded inputs.</caption>
 <colgroup>
 <col style="width: 27%">
 <col style="width: 36%">
@@ -466,44 +500,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th>What counts as a match</th>
-<th style="text-align: right;">Coverage of human issues</th>
-<th style="text-align: right;">Model issues matched</th>
+<th style="text-align: right;">Claude Opus 5.5 judge</th>
+<th style="text-align: right;">GPT-5.6 judge</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Original judge (GPT-5.2 Pro, 0–100 score, 30 or more)</td>
-<td style="text-align: right;">80%</td>
-<td style="text-align: right;">52%</td>
+<td>Same concern</td>
+<td style="text-align: right;">28% [16, 41]</td>
+<td style="text-align: right;">22% [12, 32]</td>
 </tr>
 <tr class="even">
-<td>Revised judge: same concern</td>
-<td style="text-align: right;">28%</td>
-<td style="text-align: right;">10%</td>
+<td>Same concern, broader or narrower (<strong>main level</strong>)</td>
+<td style="text-align: right;">44% [33, 57]</td>
+<td style="text-align: right;">60% [51, 71]</td>
 </tr>
 <tr class="odd">
-<td>Revised judge: same concern, possibly broader or narrower</td>
-<td style="text-align: right;">44%</td>
-<td style="text-align: right;">17%</td>
+<td>Also the same result criticised for a different reason</td>
+<td style="text-align: right;">64% [53, 76]</td>
+<td style="text-align: right;">80% [71, 88]</td>
 </tr>
 <tr class="even">
-<td>Revised judge: also the same result criticised for a different reason</td>
-<td style="text-align: right;">64%</td>
-<td style="text-align: right;">34%</td>
+<td><em>Original unblinded judge (GPT-5.2 Pro)</em></td>
+<td style="text-align: right;"><em>80% [69, 90]</em></td>
+<td style="text-align: right;"></td>
 </tr>
 </tbody>
 </table>
-<p>In 8 control cases that paired critiques of <em>different</em> papers, the revised judge found no matches at any level (maximum coverage 0%), so chance matches are rare under its rubric. Its two runs agreed on whether each human issue was covered for 51 of 54 issues. Spot checks suggest the original judge was generous: it credited a match on data leakage to model points that do not mention leakage. They also suggest the revised judge can be strict, when both sides question the same confidence intervals for different reasons. <strong>Until human annotators check the borderline pairs, we treat the overlap as uncertain, somewhere between about 44% and 80%.</strong> Details: <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/issue_match_judge_v2_pilot_2026-11-10.md">revised-judge note</a>.</p>
-<p><strong>Short version to quote:</strong> “In 12 eligible papers, the one-shot GPT-5.2 Pro reports raised on average 80% of the curated human consensus issues (range 50 to 100%), and on average 52% of the issues the model raised matched one of those human concerns. A stricter, blinded re-judging of the same 12 papers gives lower overlap: 44% coverage when only the same concern counts, 64% at a loose level that also counts criticism of the same result for a different reason.”</p>
+<p>GPT is more lenient than Claude on the same inputs: 16 points [7, 25] at the main level. Its loosest level reproduces the original 80% (difference -0.1 points). <strong>So we read the original 80% as an upper bound that counts any criticism of the same result, not as the headline.</strong> In 8 control cases pairing critiques of different papers, the Claude judge found no matches and the GPT judge one (maximum coverage 17%); the original judge had “matched” 40–50% of human issues in the two mismatched pairings. Details: <a href="https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/issue_match_judge_v2_pilot_2026-11-10.md">revised-judge note</a>.</p>
+<p><strong>Short version to quote:</strong> “On 30 papers, a one-shot Claude Opus 5.5 report raised 61% of an individual evaluator’s issues by a GPT judge and 35% by a stricter Claude judge; a second evaluator raised 36% and 22% of the same issues.”</p>
 <p><strong>Caveats.</strong></p>
 <ul>
-<li>The original matches were judged by GPT-5.2 Pro, the same model that wrote the critiques. The revised judge uses a different model and blinding but has not yet been checked against human annotators; that check is the next step.</li>
-<li>The revised judge splits the human critiques into 54 items, against 63 in the original run, so per-paper rates are not exactly comparable.</li>
-<li>12 papers, so this is exploratory. Two of the 14 original pairings are excluded because the human and model critiques concern different manuscripts (see <em>Data sources</em> below).</li>
-<li>The human reference is the curated consensus list, not every point raised by individual evaluators.</li>
-<li>The separate Claude Opus 5.5 <a href="./persistent_misses.html">persistent-misses diagnostic</a> is not pooled with these numbers.</li>
+<li>All matches are AI-judged; the <a href="https://daaronr.github.io/unjournal_tools_interfaces/annotation/ui/audit.html">issue match audit page</a> for human checks has no verdicts yet. The two judges differ by 13–26 points, so the levels are uncertain; the ordering (model above a second evaluator, both far above placebo) holds under both.</li>
+<li>The 30-paper and 12-paper analyses use different models, human references and matching rules, so their rates are not comparable. A second evaluator is a comparator, not ground truth: evaluators write different reports partly because they cover different ground.</li>
+<li>The papers and their evaluations were public before the models’ training cutoffs, so recall cannot be ruled out; see the <a href="./persistent_misses.html">persistent-misses diagnostic</a>.</li>
+<li>The Claude Sonnet judge is the same family as the Claude Opus model that wrote the 30-paper critiques; it is nonetheless the stricter judge.</li>
+<li>In the 12-paper analysis, two of the 14 original pairings are excluded because the human and model critiques concern different manuscripts (see <em>Data sources</em> below). The revised judge splits the curated critiques into 54 items, against 63 in the original run.</li>
 </ul>
-<p>The <a href="#fig-coverage-precision">per-paper figure</a> below shows how the original judge’s coverage and overlap vary across papers. Every judged pair, with the judge’s explanation, is in the repository: <code>results/key_issues_comparison_results.json</code> (original) and <code>results/issue_match_judge_v2_opus55_2026-11-10/</code> (revised).</p>
+<p><strong>Original judge, raw counts.</strong> The curated lists contain 63 issues: the original judge matched 53 and missed 10. The model raised 142 issues, 69 of which matched no curated concern; those have not been checked, and an unmatched issue is not by itself an error. The <a href="#fig-coverage-precision">per-paper figure</a> below shows the original judge’s results by paper. Every judged pair, with the judge’s explanation, is in the repository (<code>results/key_issues_comparison_results.json</code>, <code>results/issue_match_judge_v2_*_2026-11-10/</code>, <code>results/critique_overlap_scaled_2026-11-10/</code>).</p>
 </div>
 </div>
 <div class="cell">
@@ -1289,269 +1323,276 @@ Figure&nbsp;B.1: Coverage (% of human-identified issues captured by the LLM) vs 
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"scripts/analysis_checks.R"</span>)</span>
 <span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">critique_headline</span>(<span class="st">"results/key_issues_comparison_results.json"</span>)</span>
 <span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>v2 <span class="ot">&lt;-</span> <span class="fu">critique_v2_headline</span>()</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.0f%%"</span>, x)</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>[]{#critique-headline}</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Headline result: overlap between model and expert critiques (n = `r h$n_papers` papers)</span></span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>**Coverage: between about `r pct(v2$standard_cov)` and `r pct(h$coverage_mean)`, depending on the judge (see below).** The figures that follow are from the original judge.</span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>**Original judge, coverage: `r pct(h$coverage_mean)`.** For each paper we compared the key issues in the one-shot GPT-5.2 Pro report with the curated human consensus issues: the concerns that the evaluation manager judged most important across the human evaluations. On average the model raised <span class="in">`r pct(h$coverage_mean)`</span> of those human issues (range across papers <span class="in">`r h$coverage_min`</span>–<span class="in">`r pct(h$coverage_max)`</span>).</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">critique_v2_boot</span>()</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>s30 <span class="ot">&lt;-</span> <span class="fu">critique_scaled_overlap</span>()</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.0f%%"</span>, x)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>pci <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">pct_ci</span>(x<span class="sc">$</span>p, x<span class="sc">$</span>ci)</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>bci <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">pct_ci</span>(x<span class="sc">$</span>cov, x<span class="sc">$</span>cov_ci)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>[]{#critique-headline}</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Headline result: how many of the experts' critiques does a one-shot model raise?</span></span>
 <span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>**LLM overlap rate: `r pct(h$overlap_mean)`.** On average, <span class="in">`r pct(h$overlap_mean)`</span> of the issues the model raised matched a concern on the curated human list (range <span class="in">`r h$overlap_min`</span>–<span class="in">`r pct(h$overlap_max)`</span>).</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>**Main result (`r s30$gpt$n_papers` papers, issues from each published evaluation).** We split each of <span class="in">`r s30$n_evaluations`</span> published Unjournal evaluations into its separate issues (<span class="in">`r s30$n_issues`</span> in all, one list per evaluator) and asked how many of one evaluator's issues appear in (a) a one-shot report by Claude Opus 5.5, given only the PDF, and (b) the other evaluator's report on the same paper. Two AI judges matched the issues on unlabeled, shuffled lists.</span>
 <span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>**Raw counts, pooled over the `r h$n_papers` papers.** The curated human lists contain <span class="in">`r h$human_total`</span> issues: the model matched <span class="in">`r h$human_matched`</span> and missed <span class="in">`r h$human_unmatched`</span>. The model raised <span class="in">`r h$llm_total`</span> issues: <span class="in">`r h$llm_matched`</span> matched a human concern and <span class="in">`r h$llm_unmatched`</span> did not. The headline percentages are averages of per-paper rates, so they differ slightly from these pooled ratios (<span class="in">`r pct(100 * h$human_matched / h$human_total)`</span> and <span class="in">`r pct(100 * h$llm_matched / h$llm_total)`</span>).</span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>**What the unmatched model issues mean.** We have not yet checked the <span class="in">`r h$llm_unmatched`</span> unmatched model issues. Some are probably valid points that the human evaluators did not raise or that did not make the curated list; others may be wrong, minor, or repetitive. An unmatched issue is not, by itself, an error.</span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>**A stricter judge gives lower figures.** We re-judged the same <span class="in">`r v2$n_papers`</span> papers with a revised, blinded judge (November 2026). Both issue lists were first rewritten into neutral statements so the judge could not tell which was human; a different model (Claude Opus 5.5) then classified each pair by whether it concerns the same result and the same reason for criticising it. Coverage then depends on what counts as a match:</span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> What counts as a match <span class="pp">|</span> Coverage of human issues <span class="pp">|</span> Model issues matched <span class="pp">|</span></span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|</span></span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Original judge (GPT-5.2 Pro, 0–100 score, 30 or more) <span class="pp">|</span> <span class="in">`r pct(h$coverage_mean)`</span> <span class="pp">|</span> <span class="in">`r pct(h$overlap_mean)`</span> <span class="pp">|</span></span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Revised judge: same concern <span class="pp">|</span> <span class="in">`r pct(v2$strict_cov)`</span> <span class="pp">|</span> <span class="in">`r pct(v2$strict_ovl)`</span> <span class="pp">|</span></span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Revised judge: same concern, possibly broader or narrower <span class="pp">|</span> <span class="in">`r pct(v2$standard_cov)`</span> <span class="pp">|</span> <span class="in">`r pct(v2$standard_ovl)`</span> <span class="pp">|</span></span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Revised judge: also the same result criticised for a different reason <span class="pp">|</span> <span class="in">`r pct(v2$loose_cov)`</span> <span class="pp">|</span> <span class="in">`r pct(v2$loose_ovl)`</span> <span class="pp">|</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Share of an evaluator's issues raised by… <span class="pp">|</span> GPT-5.6 judge <span class="pp">|</span> Claude Sonnet 5.5 judge <span class="pp">|</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> the one-shot model <span class="pp">|</span> <span class="in">`r pci(s30$gpt$cov)`</span> <span class="pp">|</span> <span class="in">`r pci(s30$claude$cov)`</span> <span class="pp">|</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> a second human evaluator <span class="pp">|</span> <span class="in">`r pci(s30$gpt$hh)`</span> <span class="pp">|</span> <span class="in">`r pci(s30$claude$hh)`</span> <span class="pp">|</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> placebo: the model's report on a *different* paper <span class="pp">|</span> <span class="in">`r pci(s30$gpt$placebo)`</span> <span class="pp">|</span> <span class="in">`r pci(s30$claude$placebo)`</span> <span class="pp">|</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **model minus second evaluator (points)** | **`r sprintf("%.0f [%.0f, %.0f]", s30$gpt$gap$p, s30$gpt$gap$ci[1], s30$gpt$gap$ci[2])`** | **`r sprintf("%.0f [%.0f, %.0f]", s30$claude$gap$p, s30$claude$gap$ci[1], s30$claude$gap$ci[2])`** <span class="pp">|</span></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>: Rates pooled over issues; brackets are 95% bootstrap intervals over papers. A match is a judge score of 30 or more out of 100. {.striped}</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>Under both judges, the model's report overlaps with an individual evaluator's critique more than a second evaluator's report does. The judges disagree a lot on the level: they agree on whether an issue is covered for <span class="in">`r sprintf("%.0f%%", s30$agree_pct)`</span> of issues (kappa <span class="in">`r sprintf("%.2f", s30$kappa)`</span>), and almost all disagreements are GPT counting a match that Claude does not (<span class="in">`r s30$only_gpt`</span> against <span class="in">`r s30$only_claude`</span>). No human has yet checked these matches. Details: <span class="co">[</span><span class="ot">30-paper note</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/critique_overlap_scaled_2026-11-10.md)</span>.</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>**Earlier analysis (`r h$n_papers` papers, curated consensus list).** Here the model is GPT-5.2 Pro and the human reference is the short list of consensus issues our evaluation managers curated. The original judge, GPT-5.2 Pro grading its own critiques with the lists labelled, reported <span class="in">`r bci(b$published)`</span> coverage. We re-judged with a blinded rubric: both lists were rewritten into neutral statements, and each pair was classified by whether it concerns the same result for the same reason.</span>
 <span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>: Mean per-paper rates. Revised-judge rates average two runs. {.striped}</span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>In <span class="in">`r v2$n_controls`</span> control cases that paired critiques of *different* papers, the revised judge found no matches at any level (maximum coverage `r pct(v2$controls_max_loose_cov)`), so chance matches are rare under its rubric. Its two runs agreed on whether each human issue was covered for `r v2$rep_agree` of `r v2$rep_n` issues. Spot checks suggest the original judge was generous: it credited a match on data leakage to model points that do not mention leakage. They also suggest the revised judge can be strict, when both sides question the same confidence intervals for different reasons. **Until human annotators check the borderline pairs, we treat the overlap as uncertain, somewhere between about `r pct(v2$standard_cov)` and `r pct(h$coverage_mean)`.** Details: <span class="co">[</span><span class="ot">revised-judge note</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/issue_match_judge_v2_pilot_2026-11-10.md)</span>.</span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>**Short version to quote:** "<span class="in">`r critique_headline_text(h)`</span> <span class="in">`r critique_v2_text(v2)`</span>"</span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>**Caveats.**</span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The original matches were judged by GPT-5.2 Pro, the same model that wrote the critiques. The revised judge uses a different model and blinding but has not yet been checked against human annotators; that check is the next step.</span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The revised judge splits the human critiques into <span class="in">`r v2$n_human_items`</span> items, against <span class="in">`r h$human_total`</span> in the original run, so per-paper rates are not exactly comparable.</span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`r h$n_papers`</span> papers, so this is exploratory. Two of the 14 original pairings are excluded because the human and model critiques concern different manuscripts (see *Data sources* below).</span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The human reference is the curated consensus list, not every point raised by individual evaluators.</span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The separate Claude Opus 5.5 <span class="co">[</span><span class="ot">persistent-misses diagnostic</span><span class="co">](persistent_misses.qmd)</span> is not pooled with these numbers.</span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">per-paper figure</span><span class="co">](#fig-coverage-precision)</span> below shows how the original judge's coverage and overlap vary across papers. Every judged pair, with the judge's explanation, is in the repository: <span class="in">`results/key_issues_comparison_results.json`</span> (original) and <span class="in">`results/issue_match_judge_v2_opus55_2026-11-10/`</span> (revised).</span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-critiques</span></span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Setup and libraries"</span></span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"scripts/analysis_checks.R"</span>)</span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"tidyverse"</span>)</span>
-<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"jsonlite"</span>)</span>
-<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"knitr"</span>)</span>
-<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"kableExtra"</span>)</span>
-<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"DT"</span>)</span>
-<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"reticulate"</span>)</span>
-<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a><span class="co"># Theme colors — crisp palette (matching results.qmd)</span></span>
-<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>UJ_ORANGE <span class="ot">&lt;-</span> <span class="st">"#E8722A"</span>   <span class="co"># vivid saffron orange</span></span>
-<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>UJ_GREEN  <span class="ot">&lt;-</span> <span class="st">"#2D9D5E"</span>   <span class="co"># rich emerald green</span></span>
-<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>UJ_BLUE   <span class="ot">&lt;-</span> <span class="st">"#2B7CE9"</span>   <span class="co"># clear azure blue</span></span>
-<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a><span class="co"># Severity colors for badges</span></span>
-<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>SEV_NECESSARY <span class="ot">&lt;-</span> <span class="st">"#D62839"</span>   <span class="co"># Bright crimson</span></span>
-<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>SEV_OPTIONAL  <span class="ot">&lt;-</span> <span class="st">"#E8722A"</span>   <span class="co"># Saffron orange</span></span>
-<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>SEV_UNSURE    <span class="ot">&lt;-</span> <span class="st">"#8B95A2"</span>   <span class="co"># Cool grey</span></span>
-<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>theme_uj <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">base_size =</span> <span class="dv">12</span>) {</span>
-<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> base_size) <span class="sc">+</span></span>
-<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
-<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor   =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major   =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.3</span>, <span class="at">color =</span> <span class="st">"grey88"</span>),</span>
-<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title          =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.1</span>)),</span>
-<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title.position =</span> <span class="st">"plot"</span>,</span>
-<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle       =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"grey40"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.9</span>)),</span>
-<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.caption        =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"grey50"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.8</span>), <span class="at">hjust =</span> <span class="dv">0</span>),</span>
-<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.title          =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.95</span>)),</span>
-<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text           =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.88</span>)),</span>
-<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.position     =</span> <span class="st">"bottom"</span>,</span>
-<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.text         =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.88</span>)),</span>
-<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.title        =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.9</span>), <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>      <span class="at">strip.text          =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.95</span>))</span>
-<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to create severity badge HTML</span></span>
-<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>severity_badge <span class="ot">&lt;-</span> <span class="cf">function</span>(severity) {</span>
-<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>  sev <span class="ot">&lt;-</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(severity))</span>
-<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"necessary"</span>, sev)) {</span>
-<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#D62839;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;Necessary&lt;/span&gt;'</span>)</span>
-<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"optional"</span>, sev)) {</span>
-<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#E8722A;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;Optional&lt;/span&gt;'</span>)</span>
-<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (sev <span class="sc">!=</span> <span class="st">""</span>) {</span>
-<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#8B95A2;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;Unsure&lt;/span&gt;'</span>)</span>
-<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#bdc3c7;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;\u2014&lt;/span&gt;'</span>)</span>
-<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to truncate text for table display</span></span>
-<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>truncate_text <span class="ot">&lt;-</span> <span class="cf">function</span>(text, <span class="at">max_chars =</span> <span class="dv">80</span>) {</span>
-<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nchar</span>(text) <span class="sc">&gt;</span> max_chars) {</span>
-<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">substr</span>(text, <span class="dv">1</span>, max_chars), <span class="st">"..."</span>)</span>
-<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>    text</span>
-<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>This chapter reports preliminary results from comparing LLM-identified key issues against human expert critiques. The analysis uses LLM-based assessment (GPT-5.2 Pro as judge) to measure human-issue coverage and the LLM overlap rate; human validation of these alignment scores is underway.</span>
-<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a><span class="fu">## Follow-up: do the misses persist?</span></span>
-<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a>A separate, provisional diagnostic re-tested several critiques that the earlier models missed, using Claude Opus 5.5. It found that some misses no longer occur, some persist, and the model disputes three of the critiques. See <span class="co">[</span><span class="ot">Persistent misses: a provisional Claude Opus 5.5 diagnostic</span><span class="co">](persistent_misses.qmd)</span>. Its scores await human review and are not pooled with the numbers on this page.</span>
-<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
-<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a><span class="fu">## Check the judges' matches</span></span>
-<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">issue match audit page</span><span class="co">](https://daaronr.github.io/unjournal_tools_interfaces/annotation/ui/audit.html)</span> shows each human-to-model issue match that an AI judge proposed, for this 12-paper comparison and the November critique-overlap pilot, and asks a reviewer whether the two issues are the same, partly the same or different. It reports judge-to-judge, reviewer-to-judge and reviewer-to-reviewer agreement (Cohen's kappa). No reviewer verdicts have been collected yet, so the judges' precision against human review is still unknown.</span>
-<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>**Data sources.** We compare GPT-5.2 Pro key issues (structured output from the focal evaluation run, January 2026) against human expert critiques curated from The Unjournal's internal tracking database, where evaluation managers synthesize evaluator feedback using severity labels ("Necessary", "Optional but important", "Unsure"). The focal run covered 14 papers. Two critique pairings are excluded: Peterman et al. 2025 (the human critique concerns a different manuscript) and Bénabou et al. 2023 (human critiques of *Willful Ignorance and Moral Behavior* paired with model critiques of *Ends versus Means: Kantians, Utilitarians, and Moral Decisions*). The exclusions are documented in <span class="in">`results/key_issues_comparison.md`</span> and <span class="in">`docs/concordance_three_candidate_methods_note_jul2026.md`</span>. A shared check excludes both keys before analysis, retaining the original responses for provenance. The resulting analysis covers 12 pairs; it remains exploratory pending an identity audit of the full corpus and independent human validation.</span>
-<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load-comparison-data</span></span>
-<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Load comparison data"</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> What counts as a match <span class="pp">|</span> Claude Opus 5.5 judge <span class="pp">|</span> GPT-5.6 judge <span class="pp">|</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---:|---:|</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Same concern <span class="pp">|</span> <span class="in">`r bci(b$claude$strict)`</span> <span class="pp">|</span> <span class="in">`r bci(b$gpt$strict)`</span> <span class="pp">|</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Same concern, broader or narrower (**main level**) <span class="pp">|</span> <span class="in">`r bci(b$claude$standard)`</span> <span class="pp">|</span> <span class="in">`r bci(b$gpt$standard)`</span> <span class="pp">|</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Also the same result criticised for a different reason <span class="pp">|</span> <span class="in">`r bci(b$claude$loose)`</span> <span class="pp">|</span> <span class="in">`r bci(b$gpt$loose)`</span> <span class="pp">|</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> *Original unblinded judge (GPT-5.2 Pro)* | *`r bci(b$published)`* <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>: Mean per-paper coverage of the curated human issues; 95% bootstrap intervals over <span class="in">`r b$n_papers`</span> papers. Revised-judge rates average two runs on identical blinded inputs. {.striped}</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>GPT is more lenient than Claude on the same inputs: <span class="in">`r sprintf("%.0f", b$diff$standard$d)`</span> points <span class="co">[</span><span class="ot">`r sprintf("%.0f", b$diff$standard$ci[1])`, `r sprintf("%.0f", b$diff$standard$ci[2])`</span><span class="co">]</span> at the main level. Its loosest level reproduces the original <span class="in">`r pct(b$published$cov)`</span> (difference <span class="in">`r sprintf("%.1f", b$gpt$loose$vs_pub)`</span> points). **So we read the original `r pct(b$published$cov)` as an upper bound that counts any criticism of the same result, not as the headline.** In <span class="in">`r v2$n_controls`</span> control cases pairing critiques of different papers, the Claude judge found no matches and the GPT judge one (maximum coverage <span class="in">`r pct(b$gpt_controls_max)`</span>); the original judge had "matched" 40–50% of human issues in the two mismatched pairings. Details: <span class="co">[</span><span class="ot">revised-judge note</span><span class="co">](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/issue_match_judge_v2_pilot_2026-11-10.md)</span>.</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>**Short version to quote:** "<span class="in">`r critique_scaled_text(s30)`</span>"</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>**Caveats.**</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>All matches are AI-judged; the <span class="co">[</span><span class="ot">issue match audit page</span><span class="co">](https://daaronr.github.io/unjournal_tools_interfaces/annotation/ui/audit.html)</span> for human checks has no verdicts yet. The two judges differ by 13–26 points, so the levels are uncertain; the ordering (model above a second evaluator, both far above placebo) holds under both.</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The 30-paper and <span class="in">`r h$n_papers`</span>-paper analyses use different models, human references and matching rules, so their rates are not comparable. A second evaluator is a comparator, not ground truth: evaluators write different reports partly because they cover different ground.</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The papers and their evaluations were public before the models' training cutoffs, so recall cannot be ruled out; see the <span class="co">[</span><span class="ot">persistent-misses diagnostic</span><span class="co">](persistent_misses.qmd)</span>.</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>The Claude Sonnet judge is the same family as the Claude Opus model that wrote the 30-paper critiques; it is nonetheless the stricter judge.</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>In the <span class="in">`r h$n_papers`</span>-paper analysis, two of the 14 original pairings are excluded because the human and model critiques concern different manuscripts (see *Data sources* below). The revised judge splits the curated critiques into <span class="in">`r v2$n_human_items`</span> items, against <span class="in">`r h$human_total`</span> in the original run.</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>**Original judge, raw counts.** The curated lists contain <span class="in">`r h$human_total`</span> issues: the original judge matched <span class="in">`r h$human_matched`</span> and missed <span class="in">`r h$human_unmatched`</span>. The model raised <span class="in">`r h$llm_total`</span> issues, <span class="in">`r h$llm_unmatched`</span> of which matched no curated concern; those have not been checked, and an unmatched issue is not by itself an error. The <span class="co">[</span><span class="ot">per-paper figure</span><span class="co">](#fig-coverage-precision)</span> below shows the original judge's results by paper. Every judged pair, with the judge's explanation, is in the repository (<span class="in">`results/key_issues_comparison_results.json`</span>, <span class="in">`results/issue_match_judge_v2_*_2026-11-10/`</span>, <span class="in">`results/critique_overlap_scaled_2026-11-10/`</span>).</span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-critiques</span></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Setup and libraries"</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"scripts/analysis_checks.R"</span>)</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"tidyverse"</span>)</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"jsonlite"</span>)</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"knitr"</span>)</span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"kableExtra"</span>)</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"DT"</span>)</span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"reticulate"</span>)</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a><span class="co"># Theme colors — crisp palette (matching results.qmd)</span></span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>UJ_ORANGE <span class="ot">&lt;-</span> <span class="st">"#E8722A"</span>   <span class="co"># vivid saffron orange</span></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>UJ_GREEN  <span class="ot">&lt;-</span> <span class="st">"#2D9D5E"</span>   <span class="co"># rich emerald green</span></span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>UJ_BLUE   <span class="ot">&lt;-</span> <span class="st">"#2B7CE9"</span>   <span class="co"># clear azure blue</span></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a><span class="co"># Severity colors for badges</span></span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>SEV_NECESSARY <span class="ot">&lt;-</span> <span class="st">"#D62839"</span>   <span class="co"># Bright crimson</span></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>SEV_OPTIONAL  <span class="ot">&lt;-</span> <span class="st">"#E8722A"</span>   <span class="co"># Saffron orange</span></span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>SEV_UNSURE    <span class="ot">&lt;-</span> <span class="st">"#8B95A2"</span>   <span class="co"># Cool grey</span></span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>theme_uj <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">base_size =</span> <span class="dv">12</span>) {</span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> base_size) <span class="sc">+</span></span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.minor   =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major   =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.3</span>, <span class="at">color =</span> <span class="st">"grey88"</span>),</span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title          =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.1</span>)),</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title.position =</span> <span class="st">"plot"</span>,</span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle       =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"grey40"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.9</span>)),</span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.caption        =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"grey50"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.8</span>), <span class="at">hjust =</span> <span class="dv">0</span>),</span>
+<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.title          =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.95</span>)),</span>
+<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text           =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.88</span>)),</span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.position     =</span> <span class="st">"bottom"</span>,</span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.text         =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.88</span>)),</span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.title        =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.9</span>), <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>      <span class="at">strip.text          =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.95</span>))</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to create severity badge HTML</span></span>
+<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>severity_badge <span class="ot">&lt;-</span> <span class="cf">function</span>(severity) {</span>
+<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>  sev <span class="ot">&lt;-</span> <span class="fu">tolower</span>(<span class="fu">trimws</span>(severity))</span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"necessary"</span>, sev)) {</span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#D62839;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;Necessary&lt;/span&gt;'</span>)</span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"optional"</span>, sev)) {</span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#E8722A;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;Optional&lt;/span&gt;'</span>)</span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (sev <span class="sc">!=</span> <span class="st">""</span>) {</span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#8B95A2;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;Unsure&lt;/span&gt;'</span>)</span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="st">'&lt;span style="background-color:#bdc3c7;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;"&gt;\u2014&lt;/span&gt;'</span>)</span>
+<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to truncate text for table display</span></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a>truncate_text <span class="ot">&lt;-</span> <span class="cf">function</span>(text, <span class="at">max_chars =</span> <span class="dv">80</span>) {</span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nchar</span>(text) <span class="sc">&gt;</span> max_chars) {</span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="fu">substr</span>(text, <span class="dv">1</span>, max_chars), <span class="st">"..."</span>)</span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>    text</span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>This chapter reports preliminary results from comparing LLM-identified key issues against human expert critiques. The analysis uses LLM-based assessment (GPT-5.2 Pro as judge) to measure human-issue coverage and the LLM overlap rate; human validation of these alignment scores is underway.</span>
+<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a><span class="fu">## Follow-up: do the misses persist?</span></span>
+<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>A separate, provisional diagnostic re-tested several critiques that the earlier models missed, using Claude Opus 5.5. It found that some misses no longer occur, some persist, and the model disputes three of the critiques. See <span class="co">[</span><span class="ot">Persistent misses: a provisional Claude Opus 5.5 diagnostic</span><span class="co">](persistent_misses.qmd)</span>. Its scores await human review and are not pooled with the numbers on this page.</span>
+<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a><span class="fu">## Check the judges' matches</span></span>
+<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">issue match audit page</span><span class="co">](https://daaronr.github.io/unjournal_tools_interfaces/annotation/ui/audit.html)</span> shows each human-to-model issue match that an AI judge proposed, for this 12-paper comparison and the November critique-overlap pilot, and asks a reviewer whether the two issues are the same, partly the same or different. It reports judge-to-judge, reviewer-to-judge and reviewer-to-reviewer agreement (Cohen's kappa). No reviewer verdicts have been collected yet, so the judges' precision against human review is still unknown.</span>
+<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a>**Data sources.** We compare GPT-5.2 Pro key issues (structured output from the focal evaluation run, January 2026) against human expert critiques curated from The Unjournal's internal tracking database, where evaluation managers synthesize evaluator feedback using severity labels ("Necessary", "Optional but important", "Unsure"). The focal run covered 14 papers. Two critique pairings are excluded: Peterman et al. 2025 (the human critique concerns a different manuscript) and Bénabou et al. 2023 (human critiques of *Willful Ignorance and Moral Behavior* paired with model critiques of *Ends versus Means: Kantians, Utilitarians, and Moral Decisions*). The exclusions are documented in <span class="in">`results/key_issues_comparison.md`</span> and <span class="in">`docs/concordance_three_candidate_methods_note_jul2026.md`</span>. A shared check excludes both keys before analysis, retaining the original responses for provenance. The resulting analysis covers 12 pairs; it remains exploratory pending an identity audit of the full corpus and independent human validation.</span>
 <span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the matched comparison data</span></span>
-<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a>comparison_file <span class="ot">&lt;-</span> <span class="st">"results/key_issues_comparison.json"</span></span>
-<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issue_comp_results.json"</span>,</span>
-<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issues_comparison_results.json"</span></span>
-<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> comparison_results_file[<span class="fu">file.exists</span>(comparison_results_file)][<span class="dv">1</span>]</span>
-<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(comparison_file)) {</span>
-<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>  comparison_data <span class="ot">&lt;-</span> <span class="fu">exclude_misaligned_critiques</span>(<span class="fu">fromJSON</span>(comparison_file))</span>
-<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>  n_papers <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comparison_data)</span>
-<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>  comparison_data <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>  n_papers <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a><span class="co"># Load LLM-based comparison results if available. The legacy precision_pct</span></span>
-<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a><span class="co"># field is displayed as the LLM overlap rate.</span></span>
-<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(comparison_data) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(comparison_results_file)) {</span>
-<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a>  llm_results_raw <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(comparison_results_file)</span>
-<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>  llm_results <span class="ot">&lt;-</span> llm_results_raw <span class="sc">|&gt;</span></span>
-<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest_wider</span>(comparison) <span class="sc">|&gt;</span></span>
-<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(</span>
-<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a>      gpt_paper,</span>
-<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a>      coverage_pct,</span>
-<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>      precision_pct,</span>
-<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a>      <span class="co"># New format uses matched_pairs, unmatched_human, unmatched_llm</span></span>
-<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"matched_pairs"</span>, <span class="st">"unmatched_human"</span>, <span class="st">"unmatched_llm"</span>)),</span>
-<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Old format used missed_issues, extra_issues (keep for backward compat)</span></span>
-<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"missed_issues"</span>, <span class="st">"extra_issues"</span>)),</span>
-<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a>      overall_rating,</span>
-<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a>      overall_justification,</span>
-<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a>      detailed_notes</span>
-<span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a>  comparison_data <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
-<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(llm_results, <span class="at">by =</span> <span class="st">"gpt_paper"</span>, <span class="at">relationship =</span> <span class="st">"one-to-one"</span>)</span>
-<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a><span class="co"># Update paper count after loading</span></span>
-<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(comparison_data)) {</span>
-<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a>  n_papers <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comparison_data)</span>
-<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a>We matched **`r n_papers` papers** with both GPT-5.2 Pro key issues and human expert critiques.</span>
-<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a>**LLM-based assessment.** The comparison was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and the LLM overlap rate (what proportion of LLM issues matched a curated human concern).</span>
-<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Coverage**: Proportion of *consensus* human issues that have any LLM match (match quality &gt;= 30%)</span>
-<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Weighted Coverage**: Mean match quality across all human issues (treating unmatched issues as 0%)</span>
-<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**LLM overlap rate**: Proportion of LLM issues that match a curated human concern</span>
-<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
-<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a><span class="fu">## Caveat on the LLM overlap rate</span></span>
+<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load-comparison-data</span></span>
+<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Load comparison data"</span></span>
+<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the matched comparison data</span></span>
+<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a>comparison_file <span class="ot">&lt;-</span> <span class="st">"results/key_issues_comparison.json"</span></span>
+<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issue_comp_results.json"</span>,</span>
+<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>  <span class="st">"results/key_issues_comparison_results.json"</span></span>
+<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a>comparison_results_file <span class="ot">&lt;-</span> comparison_results_file[<span class="fu">file.exists</span>(comparison_results_file)][<span class="dv">1</span>]</span>
+<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(comparison_file)) {</span>
+<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a>  comparison_data <span class="ot">&lt;-</span> <span class="fu">exclude_misaligned_critiques</span>(<span class="fu">fromJSON</span>(comparison_file))</span>
+<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>  n_papers <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comparison_data)</span>
+<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a>  comparison_data <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>  n_papers <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a><span class="co"># Load LLM-based comparison results if available. The legacy precision_pct</span></span>
+<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a><span class="co"># field is displayed as the LLM overlap rate.</span></span>
+<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(comparison_data) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(comparison_results_file)) {</span>
+<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>  llm_results_raw <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(comparison_results_file)</span>
+<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a>  llm_results <span class="ot">&lt;-</span> llm_results_raw <span class="sc">|&gt;</span></span>
+<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest_wider</span>(comparison) <span class="sc">|&gt;</span></span>
+<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(</span>
+<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a>      gpt_paper,</span>
+<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a>      coverage_pct,</span>
+<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a>      precision_pct,</span>
+<span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a>      <span class="co"># New format uses matched_pairs, unmatched_human, unmatched_llm</span></span>
+<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"matched_pairs"</span>, <span class="st">"unmatched_human"</span>, <span class="st">"unmatched_llm"</span>)),</span>
+<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Old format used missed_issues, extra_issues (keep for backward compat)</span></span>
+<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a>      <span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"missed_issues"</span>, <span class="st">"extra_issues"</span>)),</span>
+<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a>      overall_rating,</span>
+<span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a>      overall_justification,</span>
+<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a>      detailed_notes</span>
+<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a>  comparison_data <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
+<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(llm_results, <span class="at">by =</span> <span class="st">"gpt_paper"</span>, <span class="at">relationship =</span> <span class="st">"one-to-one"</span>)</span>
+<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a><span class="co"># Update paper count after loading</span></span>
+<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(comparison_data)) {</span>
+<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a>  n_papers <span class="ot">&lt;-</span> <span class="fu">nrow</span>(comparison_data)</span>
+<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a>We matched **`r n_papers` papers** with both GPT-5.2 Pro key issues and human expert critiques.</span>
+<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a>**LLM-based assessment.** The comparison was assessed using GPT-5.2 Pro, which evaluated coverage (what proportion of human concerns GPT identified) and the LLM overlap rate (what proportion of LLM issues matched a curated human concern).</span>
 <span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a>The LLM overlap rate only reflects whether LLM issues match the *consensus* human issues curated in Coda---those prioritized by evaluation managers as the most important concerns. Many LLM-identified issues may have been noted by one or more individual human evaluators but were not included in this curated set. A low overlap rate does not mean the LLM raised irrelevant or incorrect concerns; it may simply reflect issues that were not prioritized in the consensus summary.</span>
-<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: check-llm-results</span></span>
-<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if LLM comparison results are available</span></span>
-<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a>has_llm_results <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">is.null</span>(comparison_data) <span class="sc">&amp;&amp;</span></span>
-<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a>                   n_papers <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span></span>
-<span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"coverage_pct"</span> <span class="sc">%in%</span> <span class="fu">names</span>(comparison_data) <span class="sc">&amp;&amp;</span></span>
-<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">any</span>(<span class="sc">!</span><span class="fu">is.na</span>(comparison_data<span class="sc">$</span>coverage_pct))</span>
-<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Coverage**: Proportion of *consensus* human issues that have any LLM match (match quality &gt;= 30%)</span>
+<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Weighted Coverage**: Mean match quality across all human issues (treating unmatched issues as 0%)</span>
+<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**LLM overlap rate**: Proportion of LLM issues that match a curated human concern</span>
+<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a><span class="fu">## Caveat on the LLM overlap rate</span></span>
+<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a>The LLM overlap rate only reflects whether LLM issues match the *consensus* human issues curated in Coda---those prioritized by evaluation managers as the most important concerns. Many LLM-identified issues may have been noted by one or more individual human evaluators but were not included in this curated set. A low overlap rate does not mean the LLM raised irrelevant or incorrect concerns; it may simply reflect issues that were not prioritized in the consensus summary.</span>
+<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: check-llm-results</span></span>
+<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
 <span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: llm-assessment-summary</span></span>
-<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "LLM assessment of GPT vs human critique alignment"</span></span>
-<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (has_llm_results) {</span>
-<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter to papers with valid LLM results</span></span>
-<span id="cb6-239"><a href="#cb6-239" aria-hidden="true" tabindex="-1"></a>  llm_results <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
-<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coverage_pct) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(precision_pct))</span>
-<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a>  summary_stats <span class="ot">&lt;-</span> llm_results <span class="sc">|&gt;</span></span>
-<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
-<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Papers Assessed</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">n</span>(),</span>
-<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean Coverage (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">mean</span>(coverage_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
-<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean LLM overlap rate (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">mean</span>(precision_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
-<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Coverage Range</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">min</span>(coverage_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="st">"-"</span>, <span class="fu">max</span>(coverage_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
-<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">LLM overlap-rate range</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">min</span>(precision_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="st">"-"</span>, <span class="fu">max</span>(precision_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), as.character)) <span class="sc">|&gt;</span></span>
-<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"Metric"</span>, <span class="at">values_to =</span> <span class="st">"Value"</span>)</span>
-<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(summary_stats, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>))</span>
-<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-coverage-precision</span></span>
-<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Coverage (% of human-identified issues captured by the LLM) vs LLM overlap rate (% of LLM-raised issues matching a curated human concern), as assessed by GPT-5.2 Pro acting as judge. Each point is one paper. Dashed blue lines mark cross-paper means. Papers in the upper-right show strong human\u2013LLM critique alignment."</span></span>
-<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
-<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
-<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (has_llm_results) {</span>
-<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a>  llm_results <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
-<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coverage_pct) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(precision_pct)) <span class="sc">|&gt;</span></span>
-<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">paper_short =</span> <span class="fu">str_trunc</span>(gpt_paper, <span class="dv">25</span>))</span>
-<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(llm_results, <span class="fu">aes</span>(<span class="at">x =</span> coverage_pct, <span class="at">y =</span> precision_pct)) <span class="sc">+</span></span>
-<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">4.5</span>, <span class="at">color =</span> UJ_ORANGE, <span class="at">alpha =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
-<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">2.6</span>, <span class="at">check_overlap =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">mean</span>(llm_results<span class="sc">$</span>coverage_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE, <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(llm_results<span class="sc">$</span>precision_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE, <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
-<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
-<span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Coverage (%) \u2014 Human issues captured by LLM"</span>,</span>
-<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"LLM overlap rate (%)"</span></span>
-<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
-<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a><span class="fu">## Interpretation Guide</span></span>
-<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.</span>
-<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**LLM overlap rate**: Percentage of GPT issues that match the curated human concern set. Higher means more overlap, but unmatched concerns are not necessarily incorrect.</span>
-<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Overall Rating**: Qualitative assessment (Excellent/Good/Moderate/Poor) based on both coverage and overlap metrics.</span>
-<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a>The coverage-overlap figure above shows substantial variation across papers: some papers achieve high coverage and overlap, while others show the LLM missing key human concerns or raising issues not in the expert consensus. Paper-by-paper comparisons with matched issue pairs, structural difference tables, and the manual annotation tool are available in the <span class="co">[</span><span class="ot">full online version</span><span class="co">](https://llm-uj-research-eval.netlify.app/results_critiques.html)</span>.</span>
+<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if LLM comparison results are available</span></span>
+<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a>has_llm_results <span class="ot">&lt;-</span> <span class="sc">!</span><span class="fu">is.null</span>(comparison_data) <span class="sc">&amp;&amp;</span></span>
+<span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a>                   n_papers <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span></span>
+<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"coverage_pct"</span> <span class="sc">%in%</span> <span class="fu">names</span>(comparison_data) <span class="sc">&amp;&amp;</span></span>
+<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">any</span>(<span class="sc">!</span><span class="fu">is.na</span>(comparison_data<span class="sc">$</span>coverage_pct))</span>
+<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: llm-assessment-summary</span></span>
+<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "LLM assessment of GPT vs human critique alignment"</span></span>
+<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (has_llm_results) {</span>
+<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter to papers with valid LLM results</span></span>
+<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a>  llm_results <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
+<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coverage_pct) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(precision_pct))</span>
+<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a>  summary_stats <span class="ot">&lt;-</span> llm_results <span class="sc">|&gt;</span></span>
+<span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Papers Assessed</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">n</span>(),</span>
+<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean Coverage (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">mean</span>(coverage_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Mean LLM overlap rate (%)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">mean</span>(precision_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">1</span>),</span>
+<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">Coverage Range</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">min</span>(coverage_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="st">"-"</span>, <span class="fu">max</span>(coverage_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a>      <span class="st">`</span><span class="at">LLM overlap-rate range</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="fu">min</span>(precision_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="st">"-"</span>, <span class="fu">max</span>(precision_pct, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), as.character)) <span class="sc">|&gt;</span></span>
+<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"Metric"</span>, <span class="at">values_to =</span> <span class="st">"Value"</span>)</span>
+<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(summary_stats, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="st">"r"</span>))</span>
+<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-coverage-precision</span></span>
+<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Coverage (% of human-identified issues captured by the LLM) vs LLM overlap rate (% of LLM-raised issues matching a curated human concern), as assessed by GPT-5.2 Pro acting as judge. Each point is one paper. Dashed blue lines mark cross-paper means. Papers in the upper-right show strong human\u2013LLM critique alignment."</span></span>
+<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
+<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (has_llm_results) {</span>
+<span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a>  llm_results <span class="ot">&lt;-</span> comparison_data <span class="sc">|&gt;</span></span>
+<span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(coverage_pct) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(precision_pct)) <span class="sc">|&gt;</span></span>
+<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">paper_short =</span> <span class="fu">str_trunc</span>(gpt_paper, <span class="dv">25</span>))</span>
+<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(llm_results, <span class="fu">aes</span>(<span class="at">x =</span> coverage_pct, <span class="at">y =</span> precision_pct)) <span class="sc">+</span></span>
+<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">4.5</span>, <span class="at">color =</span> UJ_ORANGE, <span class="at">alpha =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
+<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> paper_short), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">2.6</span>, <span class="at">check_overlap =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">mean</span>(llm_results<span class="sc">$</span>coverage_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE, <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(llm_results<span class="sc">$</span>precision_pct), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> UJ_BLUE, <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
+<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>)) <span class="sc">+</span></span>
+<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Coverage (%) \u2014 Human issues captured by LLM"</span>,</span>
+<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"LLM overlap rate (%)"</span></span>
+<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_uj</span>()</span>
+<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a><span class="fu">## Interpretation Guide</span></span>
 <span id="cb6-294"><a href="#cb6-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Coverage**: Percentage of human-identified issues that GPT also captured (in some form). Higher = GPT missed fewer human concerns.</span>
+<span id="cb6-296"><a href="#cb6-296" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**LLM overlap rate**: Percentage of GPT issues that match the curated human concern set. Higher means more overlap, but unmatched concerns are not necessarily incorrect.</span>
+<span id="cb6-297"><a href="#cb6-297" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Overall Rating**: Qualitative assessment (Excellent/Good/Moderate/Poor) based on both coverage and overlap metrics.</span>
+<span id="cb6-298"><a href="#cb6-298" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb6-299"><a href="#cb6-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-300"><a href="#cb6-300" aria-hidden="true" tabindex="-1"></a>The coverage-overlap figure above shows substantial variation across papers: some papers achieve high coverage and overlap, while others show the LLM missing key human concerns or raising issues not in the expert consensus. Paper-by-paper comparisons with matched issue pairs, structural difference tables, and the manual annotation tool are available in the <span class="co">[</span><span class="ot">full online version</span><span class="co">](https://llm-uj-research-eval.netlify.app/results_critiques.html)</span>.</span>
+<span id="cb6-301"><a href="#cb6-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-302"><a href="#cb6-302" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
