@@ -97,6 +97,74 @@ critique_v2_text <- function(v) {
     v$n_papers, v$standard_cov, v$loose_cov)
 }
 
+critique_v2_boot <- function(
+    boot_file = "results/issue_match_judge_v2_gpt56terra_2026-11-10/bootstrap.json",
+    claude_run = "issue_match_judge_v2_opus55_2026-11-10",
+    gpt_run = "issue_match_judge_v2_gpt56terra_2026-11-10") {
+  # Cluster-bootstrap intervals over papers for the two v2 judges on identical
+  # blinded inputs (scripts/issue_match_bootstrap.py, run with the GPT run
+  # first, so the paired difference is GPT minus Claude).
+  x <- jsonlite::fromJSON(boot_file, simplifyVector = FALSE)
+  stopifnot(x$paired$first == gpt_run, x$paired$second == claude_run)
+  num <- function(v) as.numeric(unlist(v))
+  run <- function(id) lapply(x$runs[[id]][c("strict", "standard", "loose")], function(l)
+    list(cov = num(l$coverage_mean), cov_ci = num(l$coverage_ci95),
+         ovl = num(l$overlap_mean), ovl_ci = num(l$overlap_ci95),
+         vs_pub = num(l$diff_vs_published), vs_pub_ci = num(l$diff_vs_published_ci95)))
+  pr <- x$paired$levels
+  list(
+    n_papers = as.numeric(x$n_papers), draws = as.numeric(x$draws),
+    published = list(cov = num(x$published$mean), cov_ci = num(x$published$ci95)),
+    claude = run(claude_run), gpt = run(gpt_run),
+    gpt_controls_max = num(x$runs[[gpt_run]]$controls$max_loose_coverage),
+    gpt_controls_n = num(x$runs[[gpt_run]]$controls$n),
+    diff = lapply(pr, function(l) list(d = num(l$mean_diff_coverage), ci = num(l$diff_ci95),
+                                       only_gpt = num(l$only_first), only_claude = num(l$only_second),
+                                       n = num(l$human_items), kappa = num(l$kappa)))
+  )
+}
+
+critique_scaled_overlap <- function(
+    summary_file = "results/critique_overlap_scaled_2026-11-10/summary.json",
+    rule = "score>=30") {
+  # 30-paper per-evaluator comparison with a human-to-human baseline
+  # (scripts/critique_overlap_scale.py; docs/critique_overlap_scaled_2026-11-10.md).
+  # Rates pooled over issues; intervals bootstrap papers.
+  x <- jsonlite::fromJSON(summary_file, simplifyVector = FALSE)
+  num <- function(v) as.numeric(unlist(v))
+  j <- function(id) {
+    b <- x$bootstrap$judges[[id]]
+    r <- b[[rule]]
+    get <- function(k) list(p = num(r[[k]]$point), ci = num(r[[k]]$ci95))
+    list(n_papers = num(b$n_papers), n_boot = num(b$n_boot),
+         cov = get("real_human_covered"), ovl = get("real_model_overlapping"),
+         placebo = get("placebo_human_matched"), hh = get("human_human_both_directions"),
+         gap = get("real_minus_human_human"))
+  }
+  ag <- x$judge_agreement_real_pairings[[rule]]$human_issues
+  out <- list(gpt = j("codex"), claude = j("sonnet"),
+              n_issues = num(x$extraction$n_issues),
+              n_evaluations = length(x$extraction$per_evaluation),
+              agree_pct = num(ag$percent_agreement), kappa = num(ag$cohen_kappa),
+              only_gpt = num(ag$only_codex), only_claude = num(ag$only_sonnet))
+  stopifnot(out$gpt$n_papers == out$claude$n_papers, out$n_issues > 0)
+  out
+}
+
+critique_scaled_text <- function(s) {
+  # One quotable sentence for the 30-paper result; s from critique_scaled_overlap().
+  sprintf(paste0(
+    "On %d papers, a one-shot Claude Opus 5.5 report raised %.0f%% of an individual evaluator's ",
+    "issues by a GPT judge and %.0f%% by a stricter Claude judge; a second evaluator raised %.0f%% ",
+    "and %.0f%% of the same issues."),
+    s$gpt$n_papers, s$gpt$cov$p, s$claude$cov$p, s$gpt$hh$p, s$claude$hh$p)
+}
+
+pct_ci <- function(p, ci, digits = 0) {
+  f <- paste0("%.", digits, "f")
+  sprintf(paste0(f, "%% [", f, ", ", f, "]"), p, ci[1], ci[2])
+}
+
 sb_sensitivity_factor <- function(r_hh, k) {
   # A classical reliability approximation, not an exact adjustment for
   # Spearman correlations or unequal, non-exchangeable human panels.

@@ -55,4 +55,19 @@ v <- critique_v2_headline()
 stopifnot(v$n_papers == 12, v$standard_cov <= v$loose_cov, v$strict_cov <= v$standard_cov,
           v$n_controls == 8, v$rep_agree <= v$rep_n,
           grepl("12 papers", critique_v2_text(v)))
+b <- critique_v2_boot()
+stopifnot(b$n_papers == 12,
+          abs(b$claude$standard$cov - v$standard_cov) < 0.1,
+          abs(b$claude$loose$cov - v$loose_cov) < 0.1,
+          b$published$cov_ci[1] < b$published$cov, b$published$cov < b$published$cov_ci[2],
+          all(vapply(c("strict", "standard", "loose"), function(l)
+            b$gpt[[l]]$cov_ci[1] <= b$gpt[[l]]$cov && b$gpt[[l]]$cov <= b$gpt[[l]]$cov_ci[2], logical(1))),
+          abs(b$diff$standard$d - (b$gpt$standard$cov - b$claude$standard$cov)) < 0.15,
+          pct_ci(44, c(33.3, 57.4)) == "44% [33, 57]")
+s <- critique_scaled_overlap()
+stopifnot(s$gpt$n_papers == 30, s$n_evaluations == 61,
+          s$gpt$placebo$p < s$gpt$hh$p, s$gpt$hh$p < s$gpt$cov$p,
+          s$claude$placebo$p < s$claude$hh$p, s$claude$hh$p < s$claude$cov$p,
+          s$only_gpt > s$only_claude,
+          grepl("On 30 papers", critique_scaled_text(s)))
 cat("Analysis checks passed.\n")

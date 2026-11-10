@@ -62,9 +62,10 @@ A collaboration with [The Unjournal](https://www.unjournal.org/) (55+ open evalu
 source("scripts/analysis_checks.R")
 crit_h <- critique_headline("results/key_issues_comparison_results.json")
 crit_v2 <- critique_v2_headline()
+crit_s30 <- critique_scaled_overlap()
 ```
 
-`r critique_headline_text(crit_h)` Pooled over these papers, the model raised `r crit_h$llm_total` issues; `r crit_h$llm_unmatched` of them matched no curated human concern, against `r crit_h$human_total` curated human issues in total. Those unmatched issues have not been checked yet: some may be valid points the human evaluators did not raise, others may be noise. Matches were judged by GPT-5.2 Pro, the same model that wrote the critiques. `r critique_v2_text(crit_v2)` Until human annotators check the borderline matches, we treat coverage as uncertain within that range.
+`r critique_scaled_text(crit_s30)` Both are far above a placebo that pairs one paper's evaluations with the model's report on another paper (`r sprintf("%.0f%%", crit_s30$gpt$placebo$p)` and `r sprintf("%.0f%%", crit_s30$claude$placebo$p)`). So the model overlaps with an individual evaluator more than a second evaluator does, under both judges, though the two judges disagree on the level and no human has checked the matches yet. An earlier analysis of `r crit_h$n_papers` papers against a short curated consensus list reported `r sprintf("%.0f%%", crit_h$coverage_mean)` coverage, but that judge was GPT-5.2 Pro grading its own critiques; a blinded re-judging gives `r sprintf("%.0f%%", crit_v2$standard_cov)`–`r sprintf("%.0f%%", critique_v2_boot()$gpt$standard$cov)` at the main level, and about `r sprintf("%.0f%%", crit_h$coverage_mean)` only when any criticism of the same result counts.
 
 [Headline figures and caveats](results_critiques.qmd#critique-headline) · [Per-paper coverage](results_critiques.qmd#fig-coverage-precision)
 :::
