@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "run_id": "critique_overlap_pilot_2026-11-10",
+    "paper": "Buntaine_et_al._2023",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Buntaine_et_al._2023.pdf",
+    "pdf_sha256": "7b1a9cfc5af215feda60a0d78a17a9ad5ef20c2e17b1a8058fb2f414cdaabb46",
+    "pdf_pages": 48,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T13:53:27.844400+00:00",
+    "completed_at": "2026-11-10T13:54:25.290314+00:00",
+    "elapsed_seconds": 57.4,
+    "request_id": "req_011CguMo4KqGayXPGtJiccd4",
+    "response_id": "msg_011CguMo6CSKcqLVJJTsM5aw",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 124824
+      },
+      "cache_creation_input_tokens": 124824,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 5095,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.7261,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This paper reports a nationwide field experiment covering all 24,620 CEMS-monitored polluting firms in China. When a treated firm violated an emission standard, volunteers filed either private appeals (to the regulator by Weibo direct message, the 12369 website or hotline, or by phoning the firm) or public appeals (Weibo posts tagging the local EPA). Further layers vary visibility at the appeal level (purchased likes/shares) and treatment saturation at the prefecture level (95% vs 70%) to study general-equilibrium effects. The headline results are:\n- public appeals reduce daily violation probability by about 60% and SO2/COD concentrations by 12%/4%;\n- private appeals have about one-third to one-half the violation effect and insignificant emissions effects;\n- boosted visibility raises regulator response, response length and documented onsite audits;\n- high-saturation prefectures show no crowd-out and a marginally significant 3.5% decline in ambient SO2.\n\nThe design is ambitious, unusually large, policy-relevant, and leverages government-collected data, so appeals add a signal of public demand rather than new information. That is a genuinely useful identification feature. Several concerns nevertheless temper the strength and interpretation of the claims.\n\n**Pre-trends and baseline imbalance.** The text says there is no pre-treatment effect, but Figure 3b shows the T2 pre-period coefficients mostly positive (around +0.002 to +0.0025), with several 90% CIs apparently excluding zero. Table 2 likewise shows T2 with insignificantly higher baseline violations (0.181 total, 0.082 SO2, 0.036 COD). The pre-period is only seven weeks, follows a COVID shutdown, and treatment effects are concentrated among prior-period violators (Table 4). Differential mean reversion could therefore inflate the DiD estimate for T2, and to a lesser extent T1. Specifications that address this are not shown. Examples include ANCOVA with lagged outcomes, controlling for baseline violation interacted with Post, or reweighting.\n\n**Distribution and specification of emissions outcomes.** SO2 concentrations are extremely heavy-tailed (SD about 540 vs mean about 132). There is no indication of winsorizing, log or IHS transforms, or quantile checks, so a few pipes could drive results. Figure 4's binned analysis partly addresses this, but it pools SO2 and COD.\n\n**Unit inconsistencies.** The text reports µg/m3 and µg/L, while the tables report mg/m3 and mg/L. Percentage-point effects are written as percentages (\"0.227%\").\n\n**Mechanism inference is weaker than the narrative.**\n- The T2B visibility experiment is cleanly randomized at the appeal level, but it is small (662 appeals) with effects significant at 5–10%.\n- Its outcomes are regulator Weibo replies, which partly measure communicative rather than enforcement responsiveness. The 'onsite audit' measure relies on the regulator's own reported proof.\n- The firm-level follow-up (A8) is marginally significant and contaminated by later cross-over.\n- The claim that public appeals work by tilting regulators toward avoiding unrest is plausible, but alternative accounts are not cleanly excluded: reputational or accountability costs visible to superiors, firm reputational effects, or simply a different processing pipeline for tagged Weibo posts.\n- The null on the 'threaten escalation to central government/media' arms is used to rule out mechanisms, but these are imprecise nulls within private Weibo messages.\n- The career-term heterogeneity analysis (A7) is observational, uses term timing that may correlate with other prefecture characteristics, and its first panel (more violations late in term) does not obviously fit the stated incentive story.\n\n**General-equilibrium evidence is thin.**\n- Control firms in 95% prefectures are only 5% of firms there, so Panel A of Table 6 has limited power. Its SO2 and COD coefficients are imprecise in both directions and cannot rule out economically meaningful crowd-out.\n- The treatment-firm result is significant only at 10%.\n- The ambient SO2 result (−0.37 µg/m3, p<0.1) is substantively large relative to what the firm-level estimates imply. The high-saturation arm treats only about 25 pp more firms, mostly with private appeals that have small emissions effects; CEMS firms are a subset of SO2 sources; and firm-level GE regressions show no SO2 concentration difference. A back-of-envelope calculation suggests an expected ambient effect well below 3.5%.\n- Figure 5 shows the effect emerging mainly in the last weeks of the year (winter heating season), which raises concerns about weather or heating-related noise.\n- The text describes this result as 'striking' and as confirming that the effects are not manipulation; this is too strong.\n\n**Inference and reporting.** There is no multiple-hypothesis adjustment despite seven arms, several outcomes and many heterogeneity cuts. The registered pre-analysis plan is cited (AEA registry) but deviations and primary outcomes are not discussed. The 'H0: T1<T2' test labeling is confusing.\n\n**Total emissions.** Inferring total emissions from null flow effects relies on imprecise nulls, and flow data are themselves CEMS-reported.\n\n**Cost-benefit extrapolation.** It is loose:\n- It derives 9.2%/2.9% industrial emission reductions without showing the computation.\n- It assumes linear scaling to 51,000 appeals a year with no regulator capacity constraints, despite the GE evidence being underpowered.\n- It treats pollution levies as a 'lower bound' on benefits, although levies are not willingness to pay.\n- It counts only five minutes of volunteer time while ignoring verification costs; verification here required 12 graduate students, and over half of raw CEMS violations were false positives.\n\n**Ethics and external validity.** Buying likes via bot accounts and deploying volunteers who conceal their affiliation involves deceiving regulators, who are arguably human subjects. The IRB classification as not human-subjects research merits more discussion. Generalization outside China's specific regulatory-political setting, and beyond a Weibo-centered 2020 context, is uncertain.\n\n**Replicability.** It is moderate. A data appendix is referenced, but the analysis relies on administrative MEE data, and the violation-verification step involves human judgment that would be hard to reproduce.\n\nOverall this is a high-value, large-scale experiment with credible main direct effects, especially for violations. The mechanism and GE claims are somewhat oversold relative to their statistical strength.",
+    "key_issues": [
+      "Figure 3b shows positive and apparently significant pre-period coefficients for T2, contradicting the text's 'no pre-treatment effect' claim; with a 7-week post-COVID pre-period and T2's higher baseline violations (Table 2), mean reversion may inflate DiD estimates.",
+      "Heavy-tailed SO2 concentrations (SD ≈ 4× mean) with no reported winsorizing, log transforms or outlier robustness; a few pipes could drive the emissions results.",
+      "The ambient SO2 GE result (3.5%, p<0.1) is implausibly large relative to the firm-level effects and the 25 pp saturation difference, appears concentrated in late-year winter weeks, and is over-interpreted as confirming no data manipulation.",
+      "GE tests for control firms are underpowered (only 5% control in high-saturation prefectures) and cannot rule out meaningful crowd-out; the treatment-firm GE effect is significant only at 10%.",
+      "Mechanism evidence (T2B visibility) rests on 662 appeals with p≈0.05–0.10 and regulator-reported Weibo replies; this measures communicative responsiveness more than enforcement, and the firm-level follow-up is marginal and contaminated by cross-over.",
+      "The 'regulators tilt from growth toward avoiding unrest' interpretation is not sharply distinguished from alternatives (superior visibility/accountability, firm reputation, platform processing); the null escalation-threat arms are imprecise, and the term-cycle heterogeneity is observational and ambiguous.",
+      "No multiple-hypothesis correction across many arms, outcomes and heterogeneity cuts; no discussion of adherence to the registered pre-analysis plan.",
+      "The cost-benefit extrapolation is loose: unexplained derivation of the 9.2%/2.9% reductions, linear scaling to 51,000 appeals ignoring capacity, levies treated as a lower-bound benefit, and verification costs omitted.",
+      "Total-emissions conclusions rest on imprecise null effects on CEMS-reported flows.",
+      "Reporting inconsistencies: µg vs mg units between text and tables, percentage points written as percent, and a confusingly labeled one-sided test (H0: T1<T2).",
+      "Ethical issues (purchased likes via bot accounts, concealed volunteer affiliation, regulators as unconsenting subjects) are under-discussed.",
+      "Replication depends on administrative MEE data and a human-judgment violation-verification step; code and data availability are not clearly stated beyond a data appendix link."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 76,
+        "lower_bound": 62,
+        "upper_bound": 87
+      },
+      "claims_evidence": {
+        "midpoint": 68,
+        "lower_bound": 54,
+        "upper_bound": 80
+      },
+      "methods": {
+        "midpoint": 72,
+        "lower_bound": 58,
+        "upper_bound": 83
+      },
+      "advancing_knowledge": {
+        "midpoint": 80,
+        "lower_bound": 66,
+        "upper_bound": 90
+      },
+      "logic_communication": {
+        "midpoint": 72,
+        "lower_bound": 60,
+        "upper_bound": 82
+      },
+      "open_science": {
+        "midpoint": 52,
+        "lower_bound": 35,
+        "upper_bound": 68
+      },
+      "global_relevance": {
+        "midpoint": 80,
+        "lower_bound": 66,
+        "upper_bound": 90
+      },
+      "tier_should": {
+        "score": 4.0,
+        "ci_lower": 3.3,
+        "ci_upper": 4.6
+      },
+      "tier_will": {
+        "score": 4.3,
+        "ci_lower": 3.5,
+        "ci_upper": 4.9
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This paper reports a nationwide field experiment covering all 24,620 CEMS-monitored polluting firms in China. When a treated firm violated an emission standard, volunteers filed either private appeals (to the regulator by Weibo direct message, the 12369 website or hotline, or by phoning the firm) or public appeals (Weibo posts tagging the local EPA). Further layers vary visibility at the appeal level (purchased likes/shares) and treatment saturation at the prefecture level (95% vs 70%) to study general-equilibrium effects. The headline results are:\\n- public appeals reduce daily violation probability by about 60% and SO2/COD concentrations by 12%/4%;\\n- private appeals have about one-third to one-half the violation effect and insignificant emissions effects;\\n- boosted visibility raises regulator response, response length and documented onsite audits;\\n- high-saturation prefectures show no crowd-out and a marginally significant 3.5% decline in ambient SO2.\\n\\nThe design is ambitious, unusually large, policy-relevant, and leverages government-collected data, so appeals add a signal of public demand rather than new information. That is a genuinely useful identification feature. Several concerns nevertheless temper the strength and interpretation of the claims.\\n\\n**Pre-trends and baseline imbalance.** The text says there is no pre-treatment effect, but Figure 3b shows the T2 pre-period coefficients mostly positive (around +0.002 to +0.0025), with several 90% CIs apparently excluding zero. Table 2 likewise shows T2 with insignificantly higher baseline violations (0.181 total, 0.082 SO2, 0.036 COD). The pre-period is only seven weeks, follows a COVID shutdown, and treatment effects are concentrated among prior-period violators (Table 4). Differential mean reversion could therefore inflate the DiD estimate for T2, and to a lesser extent T1. Specifications that address this are not shown. Examples include ANCOVA with lagged outcomes, controlling for baseline violation interacted with Post, or reweighting.\\n\\n**Distribution and specification of emissions outcomes.** SO2 concentrations are extremely heavy-tailed (SD about 540 vs mean about 132). There is no indication of winsorizing, log or IHS transforms, or quantile checks, so a few pipes could drive results. Figure 4's binned analysis partly addresses this, but it pools SO2 and COD.\\n\\n**Unit inconsistencies.** The text reports µg/m3 and µg/L, while the tables report mg/m3 and mg/L. Percentage-point effects are written as percentages (\\\"0.227%\\\").\\n\\n**Mechanism inference is weaker than the narrative.**\\n- The T2B visibility experiment is cleanly randomized at the appeal level, but it is small (662 appeals) with effects significant at 5–10%.\\n- Its outcomes are regulator Weibo replies, which partly measure communicative rather than enforcement responsiveness. The 'onsite audit' measure relies on the regulator's own reported proof.\\n- The firm-level follow-up (A8) is marginally significant and contaminated by later cross-over.\\n- The claim that public appeals work by tilting regulators toward avoiding unrest is plausible, but alternative accounts are not cleanly excluded: reputational or accountability costs visible to superiors, firm reputational effects, or simply a different processing pipeline for tagged Weibo posts.\\n- The null on the 'threaten escalation to central government/media' arms is used to rule out mechanisms, but these are imprecise nulls within private Weibo messages.\\n- The career-term heterogeneity analysis (A7) is observational, uses term timing that may correlate with other prefecture characteristics, and its first panel (more violations late in term) does not obviously fit the stated incentive story.\\n\\n**General-equilibrium evidence is thin.**\\n- Control firms in 95% prefectures are only 5% of firms there, so Panel A of Table 6 has limited power. Its SO2 and COD coefficients are imprecise in both directions and cannot rule out economically meaningful crowd-out.\\n- The treatment-firm result is significant only at 10%.\\n- The ambient SO2 result (−0.37 µg/m3, p<0.1) is substantively large relative to what the firm-level estimates imply. The high-saturation arm treats only about 25 pp more firms, mostly with private appeals that have small emissions effects; CEMS firms are a subset of SO2 sources; and firm-level GE regressions show no SO2 concentration difference. A back-of-envelope calculation suggests an expected ambient effect well below 3.5%.\\n- Figure 5 shows the effect emerging mainly in the last weeks of the year (winter heating season), which raises concerns about weather or heating-related noise.\\n- The text describes this result as 'striking' and as confirming that the effects are not manipulation; this is too strong.\\n\\n**Inference and reporting.** There is no multiple-hypothesis adjustment despite seven arms, several outcomes and many heterogeneity cuts. The registered pre-analysis plan is cited (AEA registry) but deviations and primary outcomes are not discussed. The 'H0: T1<T2' test labeling is confusing.\\n\\n**Total emissions.** Inferring total emissions from null flow effects relies on imprecise nulls, and flow data are themselves CEMS-reported.\\n\\n**Cost-benefit extrapolation.** It is loose:\\n- It derives 9.2%/2.9% industrial emission reductions without showing the computation.\\n- It assumes linear scaling to 51,000 appeals a year with no regulator capacity constraints, despite the GE evidence being underpowered.\\n- It treats pollution levies as a 'lower bound' on benefits, although levies are not willingness to pay.\\n- It counts only five minutes of volunteer time while ignoring verification costs; verification here required 12 graduate students, and over half of raw CEMS violations were false positives.\\n\\n**Ethics and external validity.** Buying likes via bot accounts and deploying volunteers who conceal their affiliation involves deceiving regulators, who are arguably human subjects. The IRB classification as not human-subjects research merits more discussion. Generalization outside China's specific regulatory-political setting, and beyond a Weibo-centered 2020 context, is uncertain.\\n\\n**Replicability.** It is moderate. A data appendix is referenced, but the analysis relies on administrative MEE data, and the violation-verification step involves human judgment that would be hard to reproduce.\\n\\nOverall this is a high-value, large-scale experiment with credible main direct effects, especially for violations. The mechanism and GE claims are somewhat oversold relative to their statistical strength.\",\"key_issues\":[\"Figure 3b shows positive and apparently significant pre-period coefficients for T2, contradicting the text's 'no pre-treatment effect' claim; with a 7-week post-COVID pre-period and T2's higher baseline violations (Table 2), mean reversion may inflate DiD estimates.\",\"Heavy-tailed SO2 concentrations (SD ≈ 4× mean) with no reported winsorizing, log transforms or outlier robustness; a few pipes could drive the emissions results.\",\"The ambient SO2 GE result (3.5%, p<0.1) is implausibly large relative to the firm-level effects and the 25 pp saturation difference, appears concentrated in late-year winter weeks, and is over-interpreted as confirming no data manipulation.\",\"GE tests for control firms are underpowered (only 5% control in high-saturation prefectures) and cannot rule out meaningful crowd-out; the treatment-firm GE effect is significant only at 10%.\",\"Mechanism evidence (T2B visibility) rests on 662 appeals with p≈0.05–0.10 and regulator-reported Weibo replies; this measures communicative responsiveness more than enforcement, and the firm-level follow-up is marginal and contaminated by cross-over.\",\"The 'regulators tilt from growth toward avoiding unrest' interpretation is not sharply distinguished from alternatives (superior visibility/accountability, firm reputation, platform processing); the null escalation-threat arms are imprecise, and the term-cycle heterogeneity is observational and ambiguous.\",\"No multiple-hypothesis correction across many arms, outcomes and heterogeneity cuts; no discussion of adherence to the registered pre-analysis plan.\",\"The cost-benefit extrapolation is loose: unexplained derivation of the 9.2%/2.9% reductions, linear scaling to 51,000 appeals ignoring capacity, levies treated as a lower-bound benefit, and verification costs omitted.\",\"Total-emissions conclusions rest on imprecise null effects on CEMS-reported flows.\",\"Reporting inconsistencies: µg vs mg units between text and tables, percentage points written as percent, and a confusingly labeled one-sided test (H0: T1<T2).\",\"Ethical issues (purchased likes via bot accounts, concealed volunteer affiliation, regulators as unconsenting subjects) are under-discussed.\",\"Replication depends on administrative MEE data and a human-judgment violation-verification step; code and data availability are not clearly stated beyond a data appendix link.\"],\"metrics\":{\"overall\":{\"midpoint\":76,\"lower_bound\":62,\"upper_bound\":87},\"claims_evidence\":{\"midpoint\":68,\"lower_bound\":54,\"upper_bound\":80},\"methods\":{\"midpoint\":72,\"lower_bound\":58,\"upper_bound\":83},\"advancing_knowledge\":{\"midpoint\":80,\"lower_bound\":66,\"upper_bound\":90},\"logic_communication\":{\"midpoint\":72,\"lower_bound\":60,\"upper_bound\":82},\"open_science\":{\"midpoint\":52,\"lower_bound\":35,\"upper_bound\":68},\"global_relevance\":{\"midpoint\":80,\"lower_bound\":66,\"upper_bound\":90},\"tier_should\":{\"score\":4.0,\"ci_lower\":3.3,\"ci_upper\":4.6},\"tier_will\":{\"score\":4.3,\"ci_lower\":3.5,\"ci_upper\":4.9}}}",
+  "thinking_summaries": [
+    "I'm going through the key issues, starting with the pre-trends in Figure 3b. T2 shows positive pre-period coefficients before the RCT start, with confidence intervals reaching up to 0.005, so the claim of no evidence of a treatment effect looks overstated. Table 2 also shows T2 with higher baseline violations, and I want to check whether those two things point the same way.\n\nI'm checking the remaining points: the outcome definition in the regressions, which uses official MEE data rather than the verified violations used for appeals, and the mechanism result for T2B. That result rests on a small appeal-level sample of 662 with a p-value near 0.05, and its response is measured only through Weibo replies, with outcomes self-reported by regulators. I also want to weigh the interpretation that the effect reflects a shift toward avoiding unrest against alternatives, like public visibility to superiors, given that the threat treatments came out null.\n\nI'm now weighing the general-equilibrium results, which look internally inconsistent: the control group is only about 5% of firms, so the standard errors are large and meaningful crowd-out can't be ruled out. The ambient SO2 drop of about 3.5% looks too big compared with what the firm-level effects and the share of newly treated firms would predict, which makes me suspect large spillovers or something else at work.\n\nI'm moving through the remaining points: the sample size and monitor count for the prefecture-level analysis, the lack of any multiple-hypothesis correction across the many arms and outcomes despite the registered plan, and the cost-benefit extrapolation to a 9.2% industrial SO2 reduction, which seems to assume all firms appeal publicly and ignores scale effects and regulator capacity. I also want to flag the notation slips, the 0.227% versus percentage-point confusion, and the mismatch between ug/m3 in the text and mg/m3 in the table.\n\nI'm checking the remaining methodological points: the SO2 distribution, with a standard deviation of 539 against a mean of 132, which suggests heavy tails that could be driving results, and the absence of any winsorization or log specification. I'm also weighing external validity, given the China-specific setting, the volunteer sample, and the small share of appeals made on Weibo, along with the ethics of using purchased likes and the fact that regulators are effectively study subjects.\n\nI'm weighing the spillover concern, since the control firms in 95% of prefectures are so few that the main estimates mix treated and untreated comparisons. I'm also noting that T1 covers about five of seven firms while T2 covers one, and that T2 already had higher baseline violations before treatment. My overall read is that this is a strong, important large-scale RCT, and I'm leaning toward a score of about 4.2 out of 5 on journal tier.\n\n"
+  ]
+}

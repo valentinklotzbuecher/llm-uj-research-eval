@@ -1,0 +1,127 @@
+{
+  "provenance": {
+    "paper": "Williams_et_al._2024",
+    "evaluator_label": "E2",
+    "source_slug": "e2naturalregeneration",
+    "source_sha256": "c67e81c0625aad28d3b89a9966cd016f6ebaabaf3f9925993e06937f18f481d1",
+    "source_body_chars": 50172,
+    "inputs_seen_by_extractor": "this evaluation's body text only (no paper, no model output)",
+    "model_requested": "claude-haiku-5-5",
+    "effort": "medium",
+    "system_prompt_sha256": "09ebe7eb50d0e0a238f0a7a5973a32ee4c248a85395c7a2e4b706197f2bf392d",
+    "schema_sha256": "8c9d6392cbe2f995716784a5c6327fd4197ecc0610e325463ef4203ca929507c",
+    "completed_at": "2026-11-10T13:51:56.285728+00:00",
+    "model_returned": "claude-haiku-5-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 19816,
+      "output_tokens": 2160,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    "est_cost_usd": 0.00306,
+    "elapsed_seconds": 9.1,
+    "response_id": "msg_011CguMfdf4vjD4wnKwzfCCQ",
+    "error": null
+  },
+  "issues": [
+    {
+      "id": "Williams_et_al._2024::E2::H01",
+      "text": "Data leakage via predictors potentially derived from the outcome: the SoilGrids predictor appears to be built from land cover data (2010) that includes forest classes related to the outcome, and it is the third most important variable, inflating apparent model performance and undermining explanatory power.",
+      "quote": "The SoilGrids predictor variable appears to be from 2014 or 2016, potentially created using land cover classification data from 2010 that includes forest classifications",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H02",
+      "text": "Temporal leakage from predictors (e.g., NPP 2000-2015, burned area 2001-2017) that overlap the regeneration outcome period and may be influenced by regeneration itself, creating reverse causality and inflating retrospective accuracy.",
+      "quote": "Predictor variables averaged or derived from periods overlapping or extending beyond the 2000 start date of the regeneration outcome (e.g., NPP 2000-2015, burned area 2001--2017) may incorporate information influenced by the regeneration itself",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H03",
+      "text": "Predictors such as post-2000 human settlement and roads reflect conditions during the observed regeneration period, so using them to predict 2030 potential assumes socioeconomic patterns remain stable, which may not hold and limits future predictive reliability.",
+      "quote": "Predictors like human settlement and roads from post-2000 (arguably have less reverse causality though probably not none), would still threaten future prediction with the model",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H04",
+      "text": "Reported model validation accuracy likely does not reflect true predictive performance because of the leakage issues, so accuracy figures should not be extrapolated to 2030 projections or taken as evidence of explanatory power for 2000-2016.",
+      "quote": "Given the above issues with leakage, the reported model accuracy derived from validation likely does not reflect true predictive performance.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H05",
+      "text": "The study relies on an outdated version of Global Forest Change gain data (v1.5) when improved, newer GFC gain datasets (including GEDI-based and multi-epoch versions) are available; re-running with current data and testing sensitivity to potentially leaky predictors is recommended.",
+      "quote": "The study relies on an older version of the Global Forest Change (GFC) gain data (v1.5, covering 2000-2012/2016).",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H06",
+      "text": "Fagan et al.'s definition treats all non-plantation gain as natural regrowth, conflating natural regeneration with assisted regeneration and diverse plantings; the authors must disaggregate these or temper claims about purely natural regrowth.",
+      "quote": "which appears to conflate truly natural processes with human-assisted regeneration or diverse tree plantings not classified as monoculture plantations.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H07",
+      "text": "Omission error in the Fagan et al. input map (producer's accuracy around 18.7% for regrowth) means roughly 26 Mha of actual regrowth is excluded from the mapped regrowth used for exclusion, so the 215 Mha estimate likely includes already-regrown areas and is overestimated; prioritization risks targeting areas already restored.",
+      "quote": "This means the Fagan map used for exclusion missed a large area (~26 Mha) of *actual* regrowth (estimated at 31.6 Mha). Consequently, the Williams et al. potential area (215 Mha) includes these already-regrown areas",
+      "importance": "major",
+      "quote_verified": false
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H08",
+      "text": "Uncertainty is underestimated: the RF model's minimal uncertainty ignores the large uncertainty from the Fagan et al. accuracy assessment (31.6 ± 11.9 Mha), which would widen the interval for the omission-corrected estimate (about 189 Mha).",
+      "quote": "The current approach (reporting just minimal uncertainty from the RF model)  ignores this driving source of uncertainty.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H09",
+      "text": "The paper does not use stratification techniques known to mitigate omission error effects on area estimates for rare classes; the evaluator suggests a buffer-based stratification near forest edges, supported by the finding that most potential regrowth lies within 300 m of forest edges.",
+      "quote": "The paper does not appear to leverage stratification techniques known to mitigate the impact of omission errors on area estimates, particularly for rare classes like forest gain",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H10",
+      "text": "Design-based SE with Wald confidence intervals may be unreliable for rare classes or low-accuracy metrics such as regrowth producer's accuracy; bootstrap percentile intervals are suggested as more realistic.",
+      "quote": "the standard practice of constructing confidence intervals using the design-based SE and the Wald method (assuming normality) may be unreliable for rare land-use classes",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H11",
+      "text": "The focus on extensive gains in forest area neglects intensive regrowth (canopy recovery within existing forest pixels), so the estimate of natural regrowth potential is incomplete; at minimum the results need reframing with this caveat, as the abstract implies the 215 Mha is all potential regrowth.",
+      "quote": "makes it sound like this is all potential regrowth, not just extensive gain potential, and prioritization based solely on extensive gain ignores significant potential within existing forest areas.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H12",
+      "text": "Sensitivity of predictions to the modelling approach is not tested; the evaluator requests comparison with alternative algorithms such as Gradient Boosting Machines or Neural Networks for subsets of the study area.",
+      "quote": "Could the authors provide a brief comparison of predictions using either Gradient Boosting Machines or Neural Networks for subsets of the study area?",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H13",
+      "text": "Using only biophysical variables for the final map limits its usefulness for prioritizing restoration, since opportunity costs and persistence of regenerated areas depend on socioeconomic context; higher-resolution socioeconomic proxies could help.",
+      "quote": "translating this potential map directly into prioritization for restoration interventions requires careful consideration of socioeconomic context, including opportunity costs and factors influencing the persistence of regenerated areas",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Williams_et_al._2024::E2::H14",
+      "text": "The text cites Extended Data Fig. 1 for producer's accuracy values, but that figure appears to show model accuracy versus number of variables, so the figure reference appears incorrect.",
+      "quote": "However, Extended Data Fig. 1 appears to show model accuracy versus the number of variables. Please verify the correct figure reference",
+      "importance": "minor",
+      "quote_verified": true
+    }
+  ]
+}
