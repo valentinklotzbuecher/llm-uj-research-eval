@@ -405,6 +405,26 @@ def boot_tables(judges: dict[str, Any], level: str = "###") -> list[str]:
     return out
 
 
+def per_paper_table(rows_by_judge: dict[str, list[dict[str, Any]]], rule: str = "score>=30") -> list[str]:
+    """Per paper: model coverage of all human issues, and each evaluator's coverage of the other."""
+    judges = sorted(rows_by_judge)
+    out = [f"## Per paper, both judges ({pilot.RULE_LABEL[rule]})", "",
+           "Real: human issues (all evaluators) the model also raised. Human-human: E1 issues that E2 also raised, "
+           "and E2 issues that E1 also raised.", "",
+           "| Paper | " + " | ".join(f"{j} real | {j} E1 by E2 | {j} E2 by E1" for j in judges) + " |",
+           "|---|" + "---|" * (3 * len(judges))]
+    papers = sorted({r["paper"] for rs in rows_by_judge.values() for r in rs})
+    for p in papers:
+        cells = []
+        for j in judges:
+            real = next((r for r in rows_by_judge[j] if r["paper"] == p and r["kind"] == "real"), None)
+            hh = next((r for r in rows_by_judge[j] if r["paper"] == p and r["kind"] == "human_human"), None)
+            cells.append(f"{real[f'c1[{rule}]']}/{real['n1']}" if real else "")
+            cells += [f"{hh[f'c1[{rule}]']}/{hh['n1']}", f"{hh[f'c2[{rule}]']}/{hh['n2']}"] if hh else ["", ""]
+        out.append(f"| {p} | " + " | ".join(cells) + " |")
+    return out + [""]
+
+
 def issue_table(summary: dict[str, Any]) -> list[str]:
     lines = ["| Paper | E1 issues | E2 issues | E3 issues | Model issues | Model issues from |",
              "|---|---:|---:|---:|---:|---|"]
@@ -441,7 +461,7 @@ def stage_summarize(args, run_dir: pathlib.Path) -> int:
     end = next(i for i in range(start, len(md)) if not md[i].startswith("|"))
     md = md[:start] + issue_table(summary) + md[end:]
     cost = md.index("## Cost (estimated from token usage)")
-    md = md[:cost] + bootstrap_markdown(boot).splitlines() + [""] + md[cost:]
+    md = md[:cost] + bootstrap_markdown(boot).splitlines() + [""] + per_paper_table(rows) + md[cost:]
     text = "\n".join(md).replace(
         "Model issues reused from the 2026-11-04 run are not re-billed.",
         "Model issues reused from earlier runs (pilot, 2026-11-04, 2026-11-10 expansion) are not re-billed here.")

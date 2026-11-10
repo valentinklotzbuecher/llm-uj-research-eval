@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "run_id": "critique_overlap_scaled_2026-11-10",
+    "paper": "Adena_and_Hager_2024",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Adena_and_Hager_2024.pdf",
+    "pdf_sha256": "bc3997f97b9ffd96299e60882d35c0707d29dec3887d1c099f26bc7f7b2dc8ae",
+    "pdf_pages": 39,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T15:52:57.519399+00:00",
+    "completed_at": "2026-11-10T15:53:51.446604+00:00",
+    "elapsed_seconds": 53.9,
+    "request_id": "req_011CguWuaFcqts3Fqoyp4GA9",
+    "response_id": "msg_011CguWugyRnZx4bEdDYZgoY",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 96147
+      },
+      "cache_creation_input_tokens": 96147,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 4539,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.5716,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This paper reports a large geo-randomized natural field experiment. Within blocks of six, 7,686 German postal codes were assigned to a 14-day Facebook video fundraising campaign for Save the Children (4/6) or to a pure control (2/6). Within the treated group, a 2x2 design varied video content (empathy vs effectiveness) and impression allocation (free Facebook allocation vs fixed postal-code budgets). The main outcome is the charity's full universe of postal-code-linked donations across all channels. This sidesteps channel substitution and the attribution problems of click-based designs. Using partner data from a 23-charity alliance and betterplace.org, the paper also examines effects on competing charities. The design is a genuine strength: whole-country coverage, a pure control, outcome data independent of the ad platform, a pre-period for balance checks, a long post-period covering the Christmas giving season, and preregistration. The question is highly relevant for charities and for the literature on fundraising-induced crowding out.\n\nSeveral issues limit how strongly the conclusions are supported.\n\nFirst, the headline revenue effect is statistically fragile.\n- The short-term revenue effect is not significant.\n- The long-term revenue effect (€17.65 per million inhabitants per day, SE 9.63) is significant only at p<0.1.\n- There is a non-trivial, though non-significant, pretreatment revenue imbalance (−11 per million per day), so the result depends on the lagged-DV adjustment.\n- Frequency effects are more robust (p<0.01), and randomization inference is reported.\n\nThe paper nonetheless states in the abstract and conclusion that the campaign 'was profitable'. Yet the 90% CI on immediate return per euro is 0.15–2.74, and the long-run figure (€2.53, CI 0.26–4.80) rests on an assumed lifetime-value multiplier of 1.75. That multiplier is assembled from retention heuristics and online sources, and it is applied equally to repeat donors. Profitability is therefore a point-estimate statement with substantial probability of being below break-even. The language should be hedged accordingly. The paper itself also notes that 2.53 is below industry cost norms, which sits uneasily with 'reassuringly profitable'.\n\nSecond, the crowding-out evidence is weak and mixed, yet it carries strong interpretive weight ('money spent on fundraising could merely cause some redistribution and thus be ultimately lost to the charitable sector').\n- For the 23-charity alliance there are significant pretreatment imbalances. The lagged-DV estimates are insignificant, and only the DiD revenue estimates reach p<0.1. Frequency effects are insignificant throughout.\n- For betterplace, only one of four interaction coefficients (short-term revenue) is significant in the main specification. A footnote says DiD versions are 'highly significant', which raises questions about specification choice.\n- The point estimates imply competitor losses larger than Save the Children's gains, which the authors rationalize post hoc. With CIs this wide, net sectoral effects are essentially unidentified.\n\nThird, the spillover analysis produces implausible magnitudes that undercut internal coherence. The implied 'total effect' of €170 per million per day is roughly ten times the direct effect. Taken literally, this would imply a return of around €14 per euro spent, which the paper does not reconcile with its profitability section. The 'share of treated neighbours within 30 km' varies with urban density and local block composition. Its coefficients (e.g., 511 for rural codes near treated urban codes) may pick up structure in the randomization or geography rather than true spillovers. The claim that main estimates are lower bounds is plausible, but the spillover quantification should be treated as fragile.\n\nFourth, there are multiple-testing and specification-search concerns.\n- The paper examines two outcomes, two horizons, multiple data sources, a 2x2 arm comparison, decompositions, and twelve binarized heterogeneity splits, with no multiplicity adjustment.\n- The heterogeneity results are presented as targeting advice ('could have been greatly improved'). Some splits (e.g., below-median estimated potential showing a significantly negative effect) look odd and are not interrogated.\n- There are acknowledged deviations from the preregistration: blocking on reach, and the added allocation arm.\n- The paper does not clearly state which analyses (competition, spillovers, heterogeneity) were preregistered versus exploratory.\n\nFifth, the claim that click metrics are misleading rests on thin evidence. Video-type differences in donations are not statistically significant at either horizon, so 'clicks favoured empathy but donations did not' is a contrast between a significant and a non-significant result. The proportions tests on click data treat impressions as independent, which overstates precision. The allocation-arm comparison actually shows clicks and donations aligned.\n\nOther methodological points:\n- Robust but spatially unclustered SEs may understate uncertainty, given geographic correlation and documented spillovers.\n- Winsorization at €1,000 at the PLZ-day level is reasonable, but the unwinsorized results are only asserted.\n- Treatment intensity was low (~10% of reachable users received an impression), so the estimates are ITT at the postal-code level. Per-impression interpretations require care.\n- The free-allocation arm targeted groups of postal codes, so spend per postal code is endogenous to Facebook's algorithm. This complicates the arm comparison.\n\nOn external validity, the paper overclaims. It speaks of 'a high degree of external validity' and says 'no matter the specific campaign design, online fundraising works'. The evidence comes from one charity, one country, one season, one platform in 2017 (before major tracking and privacy changes), and two videos.\n\nPresentation is generally clear, but there are minor problems. Figure 1 uses truncated axes that visually exaggerate differences. Table 7 is titled 'Long-term' yet includes short-term results. The heterogeneity table is hard to read. Some claims rest on 'not presented here' results.\n\nOn transparency, there is no mention of a replication package. The donation data are proprietary partner aggregates, so replication would be difficult, although the preregistration link and video links are provided.\n\nOverall, this is a valuable, well-designed and policy-relevant field experiment whose core finding (more donations to the advertising charity) is credible. Its secondary claims (profitability, crowding out, spillover magnitude, click metrics misleading) are stated more confidently than the evidence warrants.",
+    "key_issues": [
+      "1. Headline revenue effect is significant only at p<0.1 (long-term) and not significant in the short term; it depends on lagged-DV adjustment given a non-significant pretreatment imbalance.",
+      "2. Profitability claims ('campaign was profitable') are overstated: the immediate return CI is 0.15–2.74, and the long-run €2.53 rests on an ad hoc LTV multiplier of 1.75 also applied to repeat donors.",
+      "3. Crowding-out evidence is weak and specification-dependent: there are significant pretreatment imbalances in the alliance data, only DiD estimates reach p<0.1, and only 1 of 4 betterplace coefficients is significant. Yet strong conclusions about money being 'lost to the charitable sector' are drawn.",
+      "4. Spillover estimates imply a total effect about 10x the direct effect (≈€170 vs €17.7 per million per day), which is implausible and unreconciled with the profitability analysis. The neighbour-share measure may proxy for geography or urban density.",
+      "5. No multiple-testing correction across outcomes, horizons, arms, data sources, decompositions, and 12 heterogeneity splits. Heterogeneity results are presented as targeting advice without caveats about exploratory status.",
+      "6. Deviations from preregistration (blocking variable, added allocation arm) are noted, but the paper does not distinguish preregistered from exploratory analyses (competition, spillovers, heterogeneity).",
+      "7. The claim that click metrics mislead rests on comparing significant click differences with non-significant donation differences. The click proportions tests treat impressions as independent.",
+      "8. Standard errors are robust but not spatially clustered, despite evidence of geographic spillovers; this may understate uncertainty (randomization inference partly mitigates this).",
+      "9. External validity is overstated ('no matter the specific campaign design, online fundraising works'): there is one charity, one country, one season, two videos, and a 2017 platform environment.",
+      "10. Low treatment intensity (~10% of reachable users received an impression) and endogenous spend allocation in the free-allocation arm complicate interpretation of the arm comparisons and per-impression returns.",
+      "11. Replication barriers: there is no mention of a code/data package and the donation data are proprietary partner aggregates; several robustness claims are 'not presented here'.",
+      "12. Presentation issues: Figure 1 uses truncated axes, Table 7 is mislabeled ('Long-term' includes short-term), and the heterogeneity table is hard to read."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 70,
+        "lower_bound": 55,
+        "upper_bound": 82
+      },
+      "claims_evidence": {
+        "midpoint": 60,
+        "lower_bound": 45,
+        "upper_bound": 74
+      },
+      "methods": {
+        "midpoint": 70,
+        "lower_bound": 56,
+        "upper_bound": 82
+      },
+      "advancing_knowledge": {
+        "midpoint": 74,
+        "lower_bound": 60,
+        "upper_bound": 86
+      },
+      "logic_communication": {
+        "midpoint": 68,
+        "lower_bound": 55,
+        "upper_bound": 80
+      },
+      "open_science": {
+        "midpoint": 48,
+        "lower_bound": 30,
+        "upper_bound": 65
+      },
+      "global_relevance": {
+        "midpoint": 70,
+        "lower_bound": 55,
+        "upper_bound": 83
+      },
+      "tier_should": {
+        "score": 3.6,
+        "ci_lower": 2.9,
+        "ci_upper": 4.3
+      },
+      "tier_will": {
+        "score": 3.8,
+        "ci_lower": 3.0,
+        "ci_upper": 4.5
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This paper reports a large geo-randomized natural field experiment. Within blocks of six, 7,686 German postal codes were assigned to a 14-day Facebook video fundraising campaign for Save the Children (4/6) or to a pure control (2/6). Within the treated group, a 2x2 design varied video content (empathy vs effectiveness) and impression allocation (free Facebook allocation vs fixed postal-code budgets). The main outcome is the charity's full universe of postal-code-linked donations across all channels. This sidesteps channel substitution and the attribution problems of click-based designs. Using partner data from a 23-charity alliance and betterplace.org, the paper also examines effects on competing charities. The design is a genuine strength: whole-country coverage, a pure control, outcome data independent of the ad platform, a pre-period for balance checks, a long post-period covering the Christmas giving season, and preregistration. The question is highly relevant for charities and for the literature on fundraising-induced crowding out.\\n\\nSeveral issues limit how strongly the conclusions are supported.\\n\\nFirst, the headline revenue effect is statistically fragile.\\n- The short-term revenue effect is not significant.\\n- The long-term revenue effect (€17.65 per million inhabitants per day, SE 9.63) is significant only at p<0.1.\\n- There is a non-trivial, though non-significant, pretreatment revenue imbalance (−11 per million per day), so the result depends on the lagged-DV adjustment.\\n- Frequency effects are more robust (p<0.01), and randomization inference is reported.\\n\\nThe paper nonetheless states in the abstract and conclusion that the campaign 'was profitable'. Yet the 90% CI on immediate return per euro is 0.15–2.74, and the long-run figure (€2.53, CI 0.26–4.80) rests on an assumed lifetime-value multiplier of 1.75. That multiplier is assembled from retention heuristics and online sources, and it is applied equally to repeat donors. Profitability is therefore a point-estimate statement with substantial probability of being below break-even. The language should be hedged accordingly. The paper itself also notes that 2.53 is below industry cost norms, which sits uneasily with 'reassuringly profitable'.\\n\\nSecond, the crowding-out evidence is weak and mixed, yet it carries strong interpretive weight ('money spent on fundraising could merely cause some redistribution and thus be ultimately lost to the charitable sector').\\n- For the 23-charity alliance there are significant pretreatment imbalances. The lagged-DV estimates are insignificant, and only the DiD revenue estimates reach p<0.1. Frequency effects are insignificant throughout.\\n- For betterplace, only one of four interaction coefficients (short-term revenue) is significant in the main specification. A footnote says DiD versions are 'highly significant', which raises questions about specification choice.\\n- The point estimates imply competitor losses larger than Save the Children's gains, which the authors rationalize post hoc. With CIs this wide, net sectoral effects are essentially unidentified.\\n\\nThird, the spillover analysis produces implausible magnitudes that undercut internal coherence. The implied 'total effect' of €170 per million per day is roughly ten times the direct effect. Taken literally, this would imply a return of around €14 per euro spent, which the paper does not reconcile with its profitability section. The 'share of treated neighbours within 30 km' varies with urban density and local block composition. Its coefficients (e.g., 511 for rural codes near treated urban codes) may pick up structure in the randomization or geography rather than true spillovers. The claim that main estimates are lower bounds is plausible, but the spillover quantification should be treated as fragile.\\n\\nFourth, there are multiple-testing and specification-search concerns.\\n- The paper examines two outcomes, two horizons, multiple data sources, a 2x2 arm comparison, decompositions, and twelve binarized heterogeneity splits, with no multiplicity adjustment.\\n- The heterogeneity results are presented as targeting advice ('could have been greatly improved'). Some splits (e.g., below-median estimated potential showing a significantly negative effect) look odd and are not interrogated.\\n- There are acknowledged deviations from the preregistration: blocking on reach, and the added allocation arm.\\n- The paper does not clearly state which analyses (competition, spillovers, heterogeneity) were preregistered versus exploratory.\\n\\nFifth, the claim that click metrics are misleading rests on thin evidence. Video-type differences in donations are not statistically significant at either horizon, so 'clicks favoured empathy but donations did not' is a contrast between a significant and a non-significant result. The proportions tests on click data treat impressions as independent, which overstates precision. The allocation-arm comparison actually shows clicks and donations aligned.\\n\\nOther methodological points:\\n- Robust but spatially unclustered SEs may understate uncertainty, given geographic correlation and documented spillovers.\\n- Winsorization at €1,000 at the PLZ-day level is reasonable, but the unwinsorized results are only asserted.\\n- Treatment intensity was low (~10% of reachable users received an impression), so the estimates are ITT at the postal-code level. Per-impression interpretations require care.\\n- The free-allocation arm targeted groups of postal codes, so spend per postal code is endogenous to Facebook's algorithm. This complicates the arm comparison.\\n\\nOn external validity, the paper overclaims. It speaks of 'a high degree of external validity' and says 'no matter the specific campaign design, online fundraising works'. The evidence comes from one charity, one country, one season, one platform in 2017 (before major tracking and privacy changes), and two videos.\\n\\nPresentation is generally clear, but there are minor problems. Figure 1 uses truncated axes that visually exaggerate differences. Table 7 is titled 'Long-term' yet includes short-term results. The heterogeneity table is hard to read. Some claims rest on 'not presented here' results.\\n\\nOn transparency, there is no mention of a replication package. The donation data are proprietary partner aggregates, so replication would be difficult, although the preregistration link and video links are provided.\\n\\nOverall, this is a valuable, well-designed and policy-relevant field experiment whose core finding (more donations to the advertising charity) is credible. Its secondary claims (profitability, crowding out, spillover magnitude, click metrics misleading) are stated more confidently than the evidence warrants.\",\"key_issues\":[\"1. Headline revenue effect is significant only at p<0.1 (long-term) and not significant in the short term; it depends on lagged-DV adjustment given a non-significant pretreatment imbalance.\",\"2. Profitability claims ('campaign was profitable') are overstated: the immediate return CI is 0.15–2.74, and the long-run €2.53 rests on an ad hoc LTV multiplier of 1.75 also applied to repeat donors.\",\"3. Crowding-out evidence is weak and specification-dependent: there are significant pretreatment imbalances in the alliance data, only DiD estimates reach p<0.1, and only 1 of 4 betterplace coefficients is significant. Yet strong conclusions about money being 'lost to the charitable sector' are drawn.\",\"4. Spillover estimates imply a total effect about 10x the direct effect (≈€170 vs €17.7 per million per day), which is implausible and unreconciled with the profitability analysis. The neighbour-share measure may proxy for geography or urban density.\",\"5. No multiple-testing correction across outcomes, horizons, arms, data sources, decompositions, and 12 heterogeneity splits. Heterogeneity results are presented as targeting advice without caveats about exploratory status.\",\"6. Deviations from preregistration (blocking variable, added allocation arm) are noted, but the paper does not distinguish preregistered from exploratory analyses (competition, spillovers, heterogeneity).\",\"7. The claim that click metrics mislead rests on comparing significant click differences with non-significant donation differences. The click proportions tests treat impressions as independent.\",\"8. Standard errors are robust but not spatially clustered, despite evidence of geographic spillovers; this may understate uncertainty (randomization inference partly mitigates this).\",\"9. External validity is overstated ('no matter the specific campaign design, online fundraising works'): there is one charity, one country, one season, two videos, and a 2017 platform environment.\",\"10. Low treatment intensity (~10% of reachable users received an impression) and endogenous spend allocation in the free-allocation arm complicate interpretation of the arm comparisons and per-impression returns.\",\"11. Replication barriers: there is no mention of a code/data package and the donation data are proprietary partner aggregates; several robustness claims are 'not presented here'.\",\"12. Presentation issues: Figure 1 uses truncated axes, Table 7 is mislabeled ('Long-term' includes short-term), and the heterogeneity table is hard to read.\"],\"metrics\":{\"overall\":{\"midpoint\":70,\"lower_bound\":55,\"upper_bound\":82},\"claims_evidence\":{\"midpoint\":60,\"lower_bound\":45,\"upper_bound\":74},\"methods\":{\"midpoint\":70,\"lower_bound\":56,\"upper_bound\":82},\"advancing_knowledge\":{\"midpoint\":74,\"lower_bound\":60,\"upper_bound\":86},\"logic_communication\":{\"midpoint\":68,\"lower_bound\":55,\"upper_bound\":80},\"open_science\":{\"midpoint\":48,\"lower_bound\":30,\"upper_bound\":65},\"global_relevance\":{\"midpoint\":70,\"lower_bound\":55,\"upper_bound\":83},\"tier_should\":{\"score\":3.6,\"ci_lower\":2.9,\"ci_upper\":4.3},\"tier_will\":{\"score\":3.8,\"ci_lower\":3.0,\"ci_upper\":4.5}}}",
+  "thinking_summaries": [
+    "I'm drafting an assessment of the paper, aiming for about 1000 words plus some metrics. The main issues I've noted are that the revenue effect only reaches significance at p<0.1 in the long term, the short-term effect isn't significant, and the profitability confidence interval of 0.15 to 2.74 includes values below 1, so calling the result \"reassuringly profitable\" overstates it. I'm also checking the 1.75 lifetime-value multiplier, which looks ad hoc and is applied to repeat donors as well, and I'm starting to look at the crowding-out evidence.\n\nI'm checking Table 3 next, where the pretreatment imbalance is significant for the alliance data and only the difference-in-differences estimate clears p<0.1, with the control-adjusted levels insignificant and betterplace showing just one significant coefficient. The competitor losses could plausibly outweigh the StC gain given the wide intervals, so calling it money lost to the charitable sector seems too strong, especially since the footnote says all the DiD results in Table A5 are highly significant.\n\nI'm now weighing the spillover analysis: the implied total effect of 170 looks roughly ten times the direct estimate, which would make the profitability far stronger than the authors emphasize, so the magnitudes call the spillover credibility into question. I'm also noting that the lagged revenue imbalance matters for the difference-in-differences results, and that the deviations from the preregistration and the lack of clarity about which analyses were preregistered need flagging.\n\nI'm going through the remaining weak spots: the click-based proxy rests on two non-significant comparisons, and the external validity is limited to one charity, one country, and one year before iOS14 changed tracking. I'm also noting that the standard errors aren't clustered spatially, that Figure 1's y-axis is truncated, and that the Table 7 title mislabels short-term results as long-term. I'm leaning toward a middling score, around the 70th percentile, and a tier near 3.5 to 3.8.\n\nI'm about to write up the summary now.\n\n"
+  ]
+}
