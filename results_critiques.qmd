@@ -17,6 +17,7 @@ Detailed paper-by-paper critique comparisons (matched issue pairs, severity labe
 
 source("scripts/analysis_checks.R")
 h <- critique_headline("results/key_issues_comparison_results.json")
+v2 <- critique_v2_headline()
 pct <- function(x) sprintf("%.0f%%", x)
 ```
 
@@ -25,7 +26,9 @@ pct <- function(x) sprintf("%.0f%%", x)
 ::: {.callout-tip}
 ## Headline result: overlap between model and expert critiques (n = `r h$n_papers` papers)
 
-**Coverage: `r pct(h$coverage_mean)`.** For each paper we compared the key issues in the one-shot GPT-5.2 Pro report with the curated human consensus issues: the concerns that the evaluation manager judged most important across the human evaluations. On average the model raised `r pct(h$coverage_mean)` of those human issues (range across papers `r h$coverage_min`–`r pct(h$coverage_max)`).
+**Coverage: between about `r pct(v2$standard_cov)` and `r pct(h$coverage_mean)`, depending on the judge (see below).** The figures that follow are from the original judge.
+
+**Original judge, coverage: `r pct(h$coverage_mean)`.** For each paper we compared the key issues in the one-shot GPT-5.2 Pro report with the curated human consensus issues: the concerns that the evaluation manager judged most important across the human evaluations. On average the model raised `r pct(h$coverage_mean)` of those human issues (range across papers `r h$coverage_min`–`r pct(h$coverage_max)`).
 
 **LLM overlap rate: `r pct(h$overlap_mean)`.** On average, `r pct(h$overlap_mean)` of the issues the model raised matched a concern on the curated human list (range `r h$overlap_min`–`r pct(h$overlap_max)`).
 
@@ -33,16 +36,30 @@ pct <- function(x) sprintf("%.0f%%", x)
 
 **What the unmatched model issues mean.** We have not yet checked the `r h$llm_unmatched` unmatched model issues. Some are probably valid points that the human evaluators did not raise or that did not make the curated list; others may be wrong, minor, or repetitive. An unmatched issue is not, by itself, an error.
 
-**Short version to quote:** "`r critique_headline_text(h)`"
+**A stricter judge gives lower figures.** We re-judged the same `r v2$n_papers` papers with a revised, blinded judge (November 2026). Both issue lists were first rewritten into neutral statements so the judge could not tell which was human; a different model (Claude Opus 5.5) then classified each pair by whether it concerns the same result and the same reason for criticising it. Coverage then depends on what counts as a match:
+
+| What counts as a match | Coverage of human issues | Model issues matched |
+|---|---:|---:|
+| Original judge (GPT-5.2 Pro, 0–100 score, 30 or more) | `r pct(h$coverage_mean)` | `r pct(h$overlap_mean)` |
+| Revised judge: same concern | `r pct(v2$strict_cov)` | `r pct(v2$strict_ovl)` |
+| Revised judge: same concern, possibly broader or narrower | `r pct(v2$standard_cov)` | `r pct(v2$standard_ovl)` |
+| Revised judge: also the same result criticised for a different reason | `r pct(v2$loose_cov)` | `r pct(v2$loose_ovl)` |
+
+: Mean per-paper rates. Revised-judge rates average two runs. {.striped}
+
+In `r v2$n_controls` control cases that paired critiques of *different* papers, the revised judge found no matches at any level (maximum coverage `r pct(v2$controls_max_loose_cov)`), so chance matches are rare under its rubric. Its two runs agreed on whether each human issue was covered for `r v2$rep_agree` of `r v2$rep_n` issues. Spot checks suggest the original judge was generous: it credited a match on data leakage to model points that do not mention leakage. They also suggest the revised judge can be strict, when both sides question the same confidence intervals for different reasons. **Until human annotators check the borderline pairs, we treat the overlap as uncertain, somewhere between about `r pct(v2$standard_cov)` and `r pct(h$coverage_mean)`.** Details: [revised-judge note](https://github.com/valentinklotzbuecher/llm-uj-research-eval/blob/working-paper/docs/issue_match_judge_v2_pilot_2026-11-10.md).
+
+**Short version to quote:** "`r critique_headline_text(h)` `r critique_v2_text(v2)`"
 
 **Caveats.**
 
--   Matches were judged by GPT-5.2 Pro, the same model that wrote the critiques. Human validation of the matches is underway.
+-   The original matches were judged by GPT-5.2 Pro, the same model that wrote the critiques. The revised judge uses a different model and blinding but has not yet been checked against human annotators; that check is the next step.
+-   The revised judge splits the human critiques into `r v2$n_human_items` items, against `r h$human_total` in the original run, so per-paper rates are not exactly comparable.
 -   `r h$n_papers` papers, so this is exploratory. Two of the 14 original pairings are excluded because the human and model critiques concern different manuscripts (see *Data sources* below).
 -   The human reference is the curated consensus list, not every point raised by individual evaluators.
 -   The separate Claude Opus 5.5 [persistent-misses diagnostic](persistent_misses.qmd) is not pooled with these numbers.
 
-The [paper-by-paper comparison](#sec-paper-comparison) shows the matches, misses, and additional model concerns behind these figures.
+The [per-paper figure](#fig-coverage-precision) below shows how the original judge's coverage and overlap vary across papers. Every judged pair, with the judge's explanation, is in the repository: `results/key_issues_comparison_results.json` (original) and `results/issue_match_judge_v2_opus55_2026-11-10/` (revised).
 :::
 
 ```{r}

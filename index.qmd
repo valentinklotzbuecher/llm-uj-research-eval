@@ -61,11 +61,12 @@ A collaboration with [The Unjournal](https://www.unjournal.org/) (55+ open evalu
 
 source("scripts/analysis_checks.R")
 crit_h <- critique_headline("results/key_issues_comparison_results.json")
+crit_v2 <- critique_v2_headline()
 ```
 
-`r critique_headline_text(crit_h)` Pooled over these papers, the model raised `r crit_h$llm_total` issues; `r crit_h$llm_unmatched` of them matched no curated human concern, against `r crit_h$human_total` curated human issues in total. Those unmatched issues have not been checked yet: some may be valid points the human evaluators did not raise, others may be noise. Matches were judged by GPT-5.2 Pro, the same model that wrote the critiques; human validation is underway.
+`r critique_headline_text(crit_h)` Pooled over these papers, the model raised `r crit_h$llm_total` issues; `r crit_h$llm_unmatched` of them matched no curated human concern, against `r crit_h$human_total` curated human issues in total. Those unmatched issues have not been checked yet: some may be valid points the human evaluators did not raise, others may be noise. Matches were judged by GPT-5.2 Pro, the same model that wrote the critiques. `r critique_v2_text(crit_v2)` Until human annotators check the borderline matches, we treat coverage as uncertain within that range.
 
-[Headline figures and caveats](results_critiques.qmd#critique-headline) · [Paper-by-paper issue comparisons](results_critiques.qmd#sec-paper-comparison)
+[Headline figures and caveats](results_critiques.qmd#critique-headline) · [Per-paper coverage](results_critiques.qmd#fig-coverage-precision)
 :::
 
 ::: {.callout-note collapse="true"}

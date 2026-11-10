@@ -51,4 +51,8 @@ stopifnot(h$n_papers == 2, h$coverage_mean == 75, h$overlap_mean == 75,
           h$human_matched == 3, h$human_unmatched == 1, h$human_total == 4,
           h$llm_total == 6, h$llm_unmatched == 2, h$llm_matched == 4,
           grepl("In 2 eligible papers", critique_headline_text(h)))
+v <- critique_v2_headline()
+stopifnot(v$n_papers == 12, v$standard_cov <= v$loose_cov, v$strict_cov <= v$standard_cov,
+          v$n_controls == 8, v$rep_agree <= v$rep_n,
+          grepl("12 papers", critique_v2_text(v)))
 cat("Analysis checks passed.\n")

@@ -63,6 +63,40 @@ critique_headline_text <- function(h) {
     h$overlap_mean)
 }
 
+critique_v2_headline <- function(
+    comparison_file = "results/issue_match_judge_v2_opus55_2026-11-10/comparison.json") {
+  # Exploratory blinded re-judging (scripts/run_issue_match_judge.py;
+  # docs/issue_match_judge_v2_pilot_2026-11-10.md). Means of per-paper rates,
+  # averaged over two replicates, at three strictness levels.
+  x <- jsonlite::fromJSON(comparison_file, simplifyVector = FALSE)
+  lv <- function(l, f) as.numeric(x$real[[l]][[f]])
+  ctl <- Filter(function(r) r$kind %in% c("cross_paper_control", "documented_mismatch"), x$controls)
+  ctl_cov <- vapply(ctl, function(r) as.numeric(r$loose_coverage), numeric(1))
+  rep_h <- as.numeric(strsplit(x$replicate_agreement$human_items, "/")[[1]])
+  stopifnot(length(x$papers) > 0, length(ctl) > 0)
+  list(
+    n_papers = length(x$papers),
+    n_human_items = sum(vapply(x$papers, function(p) as.numeric(p$n_human), numeric(1))),
+    strict_cov = lv("strict", "mean_paper_coverage"),
+    standard_cov = lv("standard", "mean_paper_coverage"),
+    loose_cov = lv("loose", "mean_paper_coverage"),
+    strict_ovl = lv("strict", "mean_paper_overlap"),
+    standard_ovl = lv("standard", "mean_paper_overlap"),
+    loose_ovl = lv("loose", "mean_paper_overlap"),
+    n_controls = length(ctl),
+    controls_max_loose_cov = max(ctl_cov),
+    rep_agree = rep_h[1], rep_n = rep_h[2]
+  )
+}
+
+critique_v2_text <- function(v) {
+  sprintf(paste0(
+    "A stricter, blinded re-judging of the same %d papers gives lower overlap: ",
+    "%.0f%% coverage when only the same concern counts, %.0f%% at a loose level ",
+    "that also counts criticism of the same result for a different reason."),
+    v$n_papers, v$standard_cov, v$loose_cov)
+}
+
 sb_sensitivity_factor <- function(r_hh, k) {
   # A classical reliability approximation, not an exact adjustment for
   # Spearman correlations or unequal, non-exchangeable human panels.
