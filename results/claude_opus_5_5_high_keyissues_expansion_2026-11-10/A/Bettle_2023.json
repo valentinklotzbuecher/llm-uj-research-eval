@@ -1,0 +1,130 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_keyissues_expansion_2026-11-10",
+    "paper": "Bettle_2023",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Bettle_2023.pdf",
+    "pdf_sha256": "8d37c10358b7cee315da394811a600c68d3df23e0feec15285a9b3f265322a1a",
+    "pdf_pages": 41,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T15:47:51.062454+00:00",
+    "completed_at": "2026-11-10T15:48:53.864034+00:00",
+    "elapsed_seconds": 62.8,
+    "request_id": "req_011CguWWzDNwAiJ9PjkczpTC",
+    "response_id": "msg_011CguWX3KubvgpNhM34SqTh",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 96339
+      },
+      "cache_creation_input_tokens": 96339,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 5412,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.59,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This Founders Pledge methodological report proposes a practical workflow for discounting RCT effect sizes in global health and development cost-effectiveness analyses (CEAs). It separates internal replicability, framed as Type M and Type S errors following Gelman and Carlin, from external validity, framed through Duflo and Banerjee's categories. It supports these with a summary table of replication and meta-analytic inflation estimates and a worked example: a mass-media family-planning RCT. The topic matters for evaluators: implicit, inconsistent discounting is a real source of error in charity CEAs. Making discounts explicit, decomposed and benchmarked is a useful step. The writing is accessible and candid about uncertainty, and the document includes researcher-facing checklists. However, several conceptual, numerical and procedural problems limit how far the specific numbers and procedures can be trusted.\n\nMost importantly, the Type S treatment contains a conceptual misstep.\n- The retrodesign Type S output is the probability that a statistically significant estimate has the wrong sign, conditional on an assumed true effect A of known sign.\n- The guide instead tells researchers to enter this value into the CEA as an 'X% chance this effect went in the other direction'. That is a posterior probability about the sign of the true effect, which retrodesign does not provide.\n- The headline claim that 0–15% of RCTs need a Type S adjustment comes largely from Ioannidis-style false-positive (PPV) reasoning and Jager and Leek's false-discovery estimates. False positives (true effect near zero) are a different quantity from sign errors. The two are conflated, and '15%' is used both as a share of studies needing adjustment and as an error rate.\n- There is also a minor inconsistency: the text says Type S is plausible below about 0.2 power, while the Fig 3 caption says below 0.1.\n\nThe Type M guidance draws on two figures that give very different answers, and the guide does not reconcile them. At 20% power, Gelman and Carlin's exaggeration ratio (Fig 9a) implies roughly 2x inflation, whereas Button et al.'s relative bias curve (Fig 9b) implies about 30%. Researchers are told to read inflation off 'figures 9a and 9b' without being told which applies or why they differ. The power-based exaggeration is also only meaningful conditional on statistical significance and on an assumed true effect; it is not a property of the study alone. The ex-ante design power reported in a pre-registration (as in the worked example) is power for a hypothesised effect, not for the true one.\n\nThe workflow then multiplies three components:\n- power/publication-bias inflation;\n- methodological bias;\n- researcher bias.\nThis assumes the components are separable and independent. In reality p-hacking, publication selection and small-study effects are entangled, risking double counting. Fanelli et al.'s 'small-study effects' are cited as evidence that low power is the dominant bias, but small-study effects partly reflect selective reporting and other biases rather than power itself.\n\nTable 1, the main empirical anchor, has internal numerical inconsistencies.\n- Coville and Vivalt: the footnote averages exaggeration factors of 1.2, 2.2 and 1.4 to get 1.44. Their arithmetic mean is 1.6, implying 62.5%, not 69%. The appendix instead uses a 1.7 midpoint to derive 59%, so three figures for the same source appear.\n- Bartoš et al.: Table 1 reports 54%, 35% and 70% (ratios of median d), while the appendix reports 57%, 46% and 72% (from overestimation factors), with no explanation.\n- The appendix states the Cochrane data span 1997–2000, which looks like a typo.\n- Lab replications in psychology and experimental economics are pooled with meta-analytic corrections and treated as benchmarks for development field RCTs. These populations differ substantially in power, prior plausibility and outcome type.\n- The headline '50–60% Type M discount for many RCTs' is not derived from any analysis of Founders Pledge's actual portfolio of studies. It is a judgemental synthesis of heterogeneous sources selected non-systematically.\n\nTerminology about 'discounts' is inconsistent and could cause implementation errors. '82% discount' means multiply by 0.82, and '50–60% discount' means multiply by 0.5–0.6. Yet 'discount 20%' in the external validity steps means divide by 1.2, which is a 17% reduction. A consistent convention, such as 'adjustment factor', is needed.\n\nThe step that combines a prior baseline estimate with the discounted RCT estimate uses ad hoc percentage weights (25/75, 80/20). Precision-weighted Bayesian shrinkage, which the author mentions as a future goal (van Zwet and Gelman), would be more principled. In the worked example the baseline is itself built from an assumed 50% inflation plus a questionable multiplication by 0.75 for null studies (whose zeros are presumably already in the mean). The author then declines to reconcile the baseline with the RCT estimate. Some adjustments were 'bumped up after sanity checks' against Table 1 and existing discounts, which risks circular anchoring to prior practice rather than evidence.\n\nThe external validity section is the least developed, as the author acknowledges.\n- Vivalt's 99% median absolute prediction error and 61–65% sign-prediction rate are translated into claims that effects 'vary by around 99%' and that '35% of RCTs have effects going in the other direction'.\n- Both statistics include sampling noise and Type M error in each study, so they overstate true contextual heterogeneity. The author partially recognises this by calling them upper bounds, but does not provide a quantitative default or a variance-decomposition approach.\n- The worked example's 20%/20%/5% external discounts are essentially subjective.\n- Hawthorne effects appear in both the internal and external categories, inviting double counting despite the caveat.\n- Treating government-implementation coefficients as 'special care' effects is a plausible but untested interpretation.\n\nThe quasi-experimental appendix rests on two studies and a short assumption checklist, and is explicitly incomplete. The guide does not test whether its procedure improves predictive accuracy: it offers no back-testing against replications or later RCTs, and no inter-rater reliability check.\n\nOn transparency, the reasoning is explicit and reproducible in principle. However, key resources (the discounts library and power guidance) are internal links, and no code or data for Table 1 are provided.\n\nOverall, this is a useful, readable practitioner guide that raises awareness of power, winner's curse and contextual mechanisms, but its quantitative guidance contains errors and unvalidated heuristics that warrant revision before being relied on.",
+    "key_issues": [
+      "1. Type S misapplied: retrodesign's Type S probability, which is conditional on an assumed true effect and on significance, is recommended for direct use as the probability the true effect has the opposite sign; this is a conceptual error.",
+      "2. The 0–15% Type S estimate is derived largely from false-positive/PPV literature (Ioannidis; Jager and Leek), conflating false positives with sign errors.",
+      "3. Figs 9a (Gelman–Carlin exaggeration ratio) and 9b (Button et al. relative bias) imply very different inflation at the same power (about 2x vs about 30% at 20% power), yet researchers are told to use both without reconciliation.",
+      "4. Numerical inconsistencies in Table 1: the Coville and Vivalt average is miscomputed (mean of 1.2, 2.2 and 1.4 is 1.6, not 1.44), conflicting with the appendix's 59%; Bartoš figures differ between table and appendix (54/35/70 vs 57/46/72).",
+      "5. Multiplicative combination of power, methodological-bias and researcher-bias inflation assumes independence and risks double counting, since publication selection, p-hacking and small-study effects overlap.",
+      "6. The headline '50–60% Type M discount' is not derived from analysis of the RCTs actually used in the organisation's CEAs; benchmarks pool lab replications from psychology and economics that may not transfer to development field RCTs.",
+      "7. Inconsistent 'discount' terminology (multiplier vs percentage reduction vs divide-by-1.2) could cause implementation errors in CEAs.",
+      "8. Prior–RCT combination uses ad hoc percentage weights rather than precision-weighted shrinkage; in the worked example, adjustments were tuned after 'sanity checks' against existing discounts, risking circular anchoring.",
+      "9. Vivalt (2020) statistics (99% prediction error; 35% sign reversal) include sampling noise and are not converted into a principled external-validity prior; external discounts remain largely subjective.",
+      "10. Use of ex-ante pre-registered power (computed for a hypothesised effect) to infer exaggeration is only valid if the hypothesised effect approximates the true effect; this assumption is not discussed.",
+      "11. No validation of the proposed procedure against replication outcomes or later RCTs, and no inter-rater reliability assessment.",
+      "12. Hawthorne effects appear in both internal and external categories, inviting double counting.",
+      "13. The quasi-experimental guidance is thin (two supporting studies) and acknowledged as incomplete.",
+      "14. Key resources (discount library, power guidance) are internal links; no code or data are provided for Table 1 calculations."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 45,
+        "lower_bound": 30,
+        "upper_bound": 60
+      },
+      "claims_evidence": {
+        "midpoint": 38,
+        "lower_bound": 24,
+        "upper_bound": 52
+      },
+      "methods": {
+        "midpoint": 36,
+        "lower_bound": 22,
+        "upper_bound": 50
+      },
+      "advancing_knowledge": {
+        "midpoint": 48,
+        "lower_bound": 32,
+        "upper_bound": 63
+      },
+      "logic_communication": {
+        "midpoint": 55,
+        "lower_bound": 40,
+        "upper_bound": 68
+      },
+      "open_science": {
+        "midpoint": 48,
+        "lower_bound": 32,
+        "upper_bound": 62
+      },
+      "global_relevance": {
+        "midpoint": 68,
+        "lower_bound": 52,
+        "upper_bound": 80
+      },
+      "tier_should": {
+        "score": 1.6,
+        "ci_lower": 0.8,
+        "ci_upper": 2.5
+      },
+      "tier_will": {
+        "score": 1.0,
+        "ci_lower": 0.3,
+        "ci_upper": 2.0
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This Founders Pledge methodological report proposes a practical workflow for discounting RCT effect sizes in global health and development cost-effectiveness analyses (CEAs). It separates internal replicability, framed as Type M and Type S errors following Gelman and Carlin, from external validity, framed through Duflo and Banerjee's categories. It supports these with a summary table of replication and meta-analytic inflation estimates and a worked example: a mass-media family-planning RCT. The topic matters for evaluators: implicit, inconsistent discounting is a real source of error in charity CEAs. Making discounts explicit, decomposed and benchmarked is a useful step. The writing is accessible and candid about uncertainty, and the document includes researcher-facing checklists. However, several conceptual, numerical and procedural problems limit how far the specific numbers and procedures can be trusted.\\n\\nMost importantly, the Type S treatment contains a conceptual misstep.\\n- The retrodesign Type S output is the probability that a statistically significant estimate has the wrong sign, conditional on an assumed true effect A of known sign.\\n- The guide instead tells researchers to enter this value into the CEA as an 'X% chance this effect went in the other direction'. That is a posterior probability about the sign of the true effect, which retrodesign does not provide.\\n- The headline claim that 0–15% of RCTs need a Type S adjustment comes largely from Ioannidis-style false-positive (PPV) reasoning and Jager and Leek's false-discovery estimates. False positives (true effect near zero) are a different quantity from sign errors. The two are conflated, and '15%' is used both as a share of studies needing adjustment and as an error rate.\\n- There is also a minor inconsistency: the text says Type S is plausible below about 0.2 power, while the Fig 3 caption says below 0.1.\\n\\nThe Type M guidance draws on two figures that give very different answers, and the guide does not reconcile them. At 20% power, Gelman and Carlin's exaggeration ratio (Fig 9a) implies roughly 2x inflation, whereas Button et al.'s relative bias curve (Fig 9b) implies about 30%. Researchers are told to read inflation off 'figures 9a and 9b' without being told which applies or why they differ. The power-based exaggeration is also only meaningful conditional on statistical significance and on an assumed true effect; it is not a property of the study alone. The ex-ante design power reported in a pre-registration (as in the worked example) is power for a hypothesised effect, not for the true one.\\n\\nThe workflow then multiplies three components:\\n- power/publication-bias inflation;\\n- methodological bias;\\n- researcher bias.\\nThis assumes the components are separable and independent. In reality p-hacking, publication selection and small-study effects are entangled, risking double counting. Fanelli et al.'s 'small-study effects' are cited as evidence that low power is the dominant bias, but small-study effects partly reflect selective reporting and other biases rather than power itself.\\n\\nTable 1, the main empirical anchor, has internal numerical inconsistencies.\\n- Coville and Vivalt: the footnote averages exaggeration factors of 1.2, 2.2 and 1.4 to get 1.44. Their arithmetic mean is 1.6, implying 62.5%, not 69%. The appendix instead uses a 1.7 midpoint to derive 59%, so three figures for the same source appear.\\n- Bartoš et al.: Table 1 reports 54%, 35% and 70% (ratios of median d), while the appendix reports 57%, 46% and 72% (from overestimation factors), with no explanation.\\n- The appendix states the Cochrane data span 1997–2000, which looks like a typo.\\n- Lab replications in psychology and experimental economics are pooled with meta-analytic corrections and treated as benchmarks for development field RCTs. These populations differ substantially in power, prior plausibility and outcome type.\\n- The headline '50–60% Type M discount for many RCTs' is not derived from any analysis of Founders Pledge's actual portfolio of studies. It is a judgemental synthesis of heterogeneous sources selected non-systematically.\\n\\nTerminology about 'discounts' is inconsistent and could cause implementation errors. '82% discount' means multiply by 0.82, and '50–60% discount' means multiply by 0.5–0.6. Yet 'discount 20%' in the external validity steps means divide by 1.2, which is a 17% reduction. A consistent convention, such as 'adjustment factor', is needed.\\n\\nThe step that combines a prior baseline estimate with the discounted RCT estimate uses ad hoc percentage weights (25/75, 80/20). Precision-weighted Bayesian shrinkage, which the author mentions as a future goal (van Zwet and Gelman), would be more principled. In the worked example the baseline is itself built from an assumed 50% inflation plus a questionable multiplication by 0.75 for null studies (whose zeros are presumably already in the mean). The author then declines to reconcile the baseline with the RCT estimate. Some adjustments were 'bumped up after sanity checks' against Table 1 and existing discounts, which risks circular anchoring to prior practice rather than evidence.\\n\\nThe external validity section is the least developed, as the author acknowledges.\\n- Vivalt's 99% median absolute prediction error and 61–65% sign-prediction rate are translated into claims that effects 'vary by around 99%' and that '35% of RCTs have effects going in the other direction'.\\n- Both statistics include sampling noise and Type M error in each study, so they overstate true contextual heterogeneity. The author partially recognises this by calling them upper bounds, but does not provide a quantitative default or a variance-decomposition approach.\\n- The worked example's 20%/20%/5% external discounts are essentially subjective.\\n- Hawthorne effects appear in both the internal and external categories, inviting double counting despite the caveat.\\n- Treating government-implementation coefficients as 'special care' effects is a plausible but untested interpretation.\\n\\nThe quasi-experimental appendix rests on two studies and a short assumption checklist, and is explicitly incomplete. The guide does not test whether its procedure improves predictive accuracy: it offers no back-testing against replications or later RCTs, and no inter-rater reliability check.\\n\\nOn transparency, the reasoning is explicit and reproducible in principle. However, key resources (the discounts library and power guidance) are internal links, and no code or data for Table 1 are provided.\\n\\nOverall, this is a useful, readable practitioner guide that raises awareness of power, winner's curse and contextual mechanisms, but its quantitative guidance contains errors and unvalidated heuristics that warrant revision before being relied on.\",\"key_issues\":[\"1. Type S misapplied: retrodesign's Type S probability, which is conditional on an assumed true effect and on significance, is recommended for direct use as the probability the true effect has the opposite sign; this is a conceptual error.\",\"2. The 0–15% Type S estimate is derived largely from false-positive/PPV literature (Ioannidis; Jager and Leek), conflating false positives with sign errors.\",\"3. Figs 9a (Gelman–Carlin exaggeration ratio) and 9b (Button et al. relative bias) imply very different inflation at the same power (about 2x vs about 30% at 20% power), yet researchers are told to use both without reconciliation.\",\"4. Numerical inconsistencies in Table 1: the Coville and Vivalt average is miscomputed (mean of 1.2, 2.2 and 1.4 is 1.6, not 1.44), conflicting with the appendix's 59%; Bartoš figures differ between table and appendix (54/35/70 vs 57/46/72).\",\"5. Multiplicative combination of power, methodological-bias and researcher-bias inflation assumes independence and risks double counting, since publication selection, p-hacking and small-study effects overlap.\",\"6. The headline '50–60% Type M discount' is not derived from analysis of the RCTs actually used in the organisation's CEAs; benchmarks pool lab replications from psychology and economics that may not transfer to development field RCTs.\",\"7. Inconsistent 'discount' terminology (multiplier vs percentage reduction vs divide-by-1.2) could cause implementation errors in CEAs.\",\"8. Prior–RCT combination uses ad hoc percentage weights rather than precision-weighted shrinkage; in the worked example, adjustments were tuned after 'sanity checks' against existing discounts, risking circular anchoring.\",\"9. Vivalt (2020) statistics (99% prediction error; 35% sign reversal) include sampling noise and are not converted into a principled external-validity prior; external discounts remain largely subjective.\",\"10. Use of ex-ante pre-registered power (computed for a hypothesised effect) to infer exaggeration is only valid if the hypothesised effect approximates the true effect; this assumption is not discussed.\",\"11. No validation of the proposed procedure against replication outcomes or later RCTs, and no inter-rater reliability assessment.\",\"12. Hawthorne effects appear in both internal and external categories, inviting double counting.\",\"13. The quasi-experimental guidance is thin (two supporting studies) and acknowledged as incomplete.\",\"14. Key resources (discount library, power guidance) are internal links; no code or data are provided for Table 1 calculations.\"],\"metrics\":{\"overall\":{\"midpoint\":45,\"lower_bound\":30,\"upper_bound\":60},\"claims_evidence\":{\"midpoint\":38,\"lower_bound\":24,\"upper_bound\":52},\"methods\":{\"midpoint\":36,\"lower_bound\":22,\"upper_bound\":50},\"advancing_knowledge\":{\"midpoint\":48,\"lower_bound\":32,\"upper_bound\":63},\"logic_communication\":{\"midpoint\":55,\"lower_bound\":40,\"upper_bound\":68},\"open_science\":{\"midpoint\":48,\"lower_bound\":32,\"upper_bound\":62},\"global_relevance\":{\"midpoint\":68,\"lower_bound\":52,\"upper_bound\":80},\"tier_should\":{\"score\":1.6,\"ci_lower\":0.8,\"ci_upper\":2.5},\"tier_will\":{\"score\":1.0,\"ci_lower\":0.3,\"ci_upper\":2.0}}}",
+  "thinking_summaries": [
+    "I'm working out a roughly 1000-word assessment with metrics, and first I need to pin down the main problems. One issue stands out: the reasoning treats Type S error (the chance a significant result has the wrong sign) as if it were the false positive rate, and it borrows the \"0-15% of RCTs\" figure from the false positive argument, which mixes two different quantities.\n\nI'm now checking the remaining issues: the Fig 3 inconsistency between text and caption on the power threshold, and the multiplicative stacking of discounts that may double count. I also see that Figures 9a and 9b give very different corrections at 20% power, and the Table 1 averaging of exaggeration factors comes out to 1.6 rather than the stated 1.44, so the reported percentage is off.\n\nI'm checking the remaining inconsistencies in the Bartoš figures: Table 1 and the appendix give different discounts (54/35/70% against 57/46/72%), and the medicine dataset's date range looks wrong. I also want to flag a terminology problem, since \"discount\" is used both as a multiplier and as a percentage reduction, which makes the external validity step confusing. Finally, the Vivalt reading seems to treat between-study prediction error as if it were effect-size variation, which would fold in sampling error.\n\nI'm checking the remaining points: the worked example's baseline step (16×0.75×0.5=6) seems questionable, since the mean may already include null studies, and the 80% power figure only justifies an inflation estimate if the true effect is about 6pp.\n\nI'm checking the remaining points: the worked example's baseline step seems shaky, since the 75% multiplier may double count null studies and the adjustments look like they were tuned after the fact. I'm also weighing the informal weighting step against a precision-weighted approach, and the risk that discounting a study and then averaging it with an already-discounted prior counts the same correction twice. Last, I'm asking whether winner's curse corrections even apply to studies selected for cost-effectiveness analysis, given they're conditioned on significance.\n\nI'm going through the last few points: the Type S error is being read as a posterior probability that the effect is negative, which is a misreading, since it's conditional on a significant estimate and a given true effect. I also see the write-up citing \"50-60%\" figures that aren't derived from the source portfolio, plus Hawthorne appearing under both internal and external validity, and a quasi-experimental section that's too thin to support its claim about no extra discount.\n\nI'm settling on scores for the review: around 45-50 overall, with claims evidence near 40 and methods near 38, and I'm leaning toward a tier of about 1.0 since it's unlikely to be published in a journal.\n\n"
+  ]
+}

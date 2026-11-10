@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_keyissues_expansion_2026-11-10",
+    "paper": "Carson_et_al._2023",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Carson_et_al._2023.pdf",
+    "pdf_sha256": "c8b01ae9b7c49da9395ccd061fa77f13fd021fde765869a91b0776041b2189ff",
+    "pdf_pages": 31,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T15:52:09.640993+00:00",
+    "completed_at": "2026-11-10T15:53:07.245923+00:00",
+    "elapsed_seconds": 57.6,
+    "request_id": "req_011CguWr2xr8byVXMs8gWPzZ",
+    "response_id": "msg_011CguWr3oxhPnuDxHaPEDSe",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 80863
+      },
+      "cache_creation_input_tokens": 80863,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 4995,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.5043,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "The paper asks whether scientists, if allowed to aggregate peer-review scores, would weight only the mean, as NIH effectively does, or would also value dissensus. It uses a discrete choice experiment with 313 NIH-funded biomedical researchers (Study 1). A separate randomized sample of 250 (Study 2) receives a budget-shock exercise. Rankings over experimentally assigned score distributions are estimated with a participant fixed-effect conditional logit. The headline estimates are as follows:\n- A standardized variance coefficient of about 0.08, against 0.82 for the mean; this is roughly 1.8 pp in choice probability.\n- Stronger variance preference when the project is closer to the respondent's MeSH profile.\n- No preference for bimodality.\n- Roughly symmetric marginal effects of high and low scores.\n- Higher-variance projects dropped under budget cuts.\n- Simulated funding reversals of about 5–10% when the estimated preferences are applied to score data from Pier et al. and Lane et al.\n\nThe question is policy-relevant and under-studied, the design is clean in its core randomization, and the null hypothesis (zero weight on variance) is well posed. However, several issues limit how far the evidence supports the framing.\n\nFirst, and most important, the paper shows what successful scientists say they would prefer in a hypothetical task. It does not show that dissensus-weighted rules yield better science. The abstract and conclusion slide from preference to prescription, e.g. 'would change marginal funding decisions… worth billions of dollars per year'. Three points are not demonstrated:\n- that the reversals are improvements;\n- that stated preferences are not driven by task framing;\n- that the 'billions' figure is anything beyond a back-of-envelope extrapolation, which is not shown.\nThe authors acknowledge, only at the very end, that the causal link between scores and impact is unknown.\n\nSecond, external validity of the stimuli is questionable:\n- Each project shows 30 scores, created by duplicating 10 ratings three times. Real NIH applications have 2–5 assigned reviewers plus panel votes clustered around the assigned reviewers' range, and final scores rounded.\n- The informational content of variance among 30 independent-looking ratings is very different from that among three reviewers.\n- Explicitly displaying the mean and SD makes variance salient and may induce experimenter-demand effects. Respondents may infer that the researchers care about variance.\n- The magnitude is modest. The summary statistic 'accept 0.1 points lower average for a variance increase of 1' appears to conflate standardized coefficient ratios with raw units, and the conversion is not shown.\n\nThird, modeling choices deserve more scrutiny:\n- The ranking is exploded into sequential conditional logits. This assumes common preferences and scale across rank positions, yet the multinomial logit robustness check reveals no variance preference when choosing between third and fourth.\n- The design is described as best/worst, but the analysis treats responses as full rankings; how BWS responses map to rankings is not explained.\n- Mean, variance, skew, min and max are mechanically linked under bounded 1–9 scores. The claim of 'orthogonal' mean-SD combinations does not guarantee identification of skew versus variance. The interpretation of the skew result after reverse coding is muddled.\n\nFourth, the expertise result is identified within person, from which projects happen to be near a respondent's MeSH profile. It is significant only at 5% and rests on a single interaction. The 'placebo' split by self-reported hovering is endogenous; the difference between subgroups (0.081 vs 0.012) is not formally tested and would likely be imprecise. Additional heterogeneity analyses (gender, risk aversion, breadth) raise multiple-testing concerns, and there is no mention of a pre-analysis plan.\n\nFifth, Study 2 is weakly presented:\n- Table 5 sign conventions are confusing: average score is negative in columns 1 and 3 but positive in columns 2 and 4, without clear definition of the outcome in each comparison.\n- The notes say 'baseline sample' although this is a different sample.\n- Only one of four variance coefficients is significant (p<.05).\n- The claim that dissensus appetite 'shrinks but does not disappear' is not directly estimated, since Study 2 reports no variance preference for the initial portfolio choice.\n\nSixth, the funding-reversal simulations are fragile:\n- Standardized coefficients from the experimental distribution are applied to datasets with different scales, reviewer counts and contexts; Lane et al. is not NIH.\n- With few reviewers, sample variance is very noisy.\n- The headline 10% figure uses the 'relative expert' preferences (+1 SD MeSH match), which is an upper-end choice.\n- There are internal inconsistencies: 'fifty-eight percent' of projects change rank in the intro versus 'half' in the results, and Lane 2022a versus 2022b are cited interchangeably for the 20% reversal rate.\n\nSeventh, representativeness: the response rate is 9.2%, and attrition checks cover only grant observables. The text misreads Table 1: OBT/OTC researchers were less, not more, likely to finish. One standard error ('unique projects', 0.54) looks inconsistent with the others.\n\nEighth, the institutional characterization is somewhat stylized:\n- NIH councils and program staff exercise discretion.\n- Reviewers' scores already embed risk judgments.\n- Scientific Review Officers do not choose which projects to fund, so the role assigned to participants is misdescribed.\n\nReplicability: a data appendix is referenced. The appendix tables (A2–A8), the code and the full design matrix are not visible in the main text, and several cross-references are broken ('Section D', 'Section B..').\n\nOverall, this is a useful, novel and clearly motivated piece of evidence on scientists' stated aggregation preferences. Its causal and policy claims outpace what a hypothetical stated-preference experiment can deliver, and several presentation and robustness gaps remain.",
+    "key_issues": [
+      "1. Stated preferences of scientists are treated as normatively informative for funding rules. There is no evidence that dissensus-weighted rules yield better outcomes, and the 'billions of dollars' policy framing overreaches.",
+      "2. The stimuli are unrealistic: 30 reviewer scores built by triplicating 10 ratings, with mean and SD explicitly displayed. This raises salience and demand-effect concerns and limits transfer to NIH panels with 2–5 assigned reviewers.",
+      "3. The effect size is modest (about 1.8 pp per SD of variance; ratio about 0.1 to the mean). The '0.1 points lower average per unit variance' trade-off appears to conflate standardized and raw units.",
+      "4. The exploded-ranking conditional logit assumes homogeneous preferences across rank positions, but the MNL check shows no variance preference at lower ranks. How best/worst responses map to full rankings is unexplained.",
+      "5. Bounded scores mechanically link mean, variance, skew, min and max. Separate identification of variance versus skew is asserted rather than demonstrated, and the skew interpretation is confusing.",
+      "6. The expertise interaction is only marginally robust (p<.05, single interaction). The hover 'placebo' is self-reported and endogenous, with no formal test of the subgroup difference. Multiple heterogeneity analyses lack multiple-testing correction or a pre-analysis plan.",
+      "7. Study 2 results are weak and poorly presented: unclear sign conventions in Table 5, only one significant variance coefficient, and no direct estimate supporting 'appetite shrinks but does not disappear'.",
+      "8. Reversal simulations apply standardized coefficients to external datasets with different scales and few reviewers, where variance is very noisy. The headline 10% uses expert (+1 SD) preferences, and the 'billions' extrapolation is not shown.",
+      "9. The 9.2% response rate creates selection concerns. Attrition checks cover only grant observables, and the text misreads Table 1 on OBT/OTC completion.",
+      "10. Internal inconsistencies: 58% versus 'half' of projects changing rank; Lane 2022a/2022b citation mix-up; the Study 2 table labeled 'baseline sample'; an odd standard error in Table 1; broken section references.",
+      "11. NIH funding practice is simplified: reviewers already embed risk, councils and program officers exercise discretion, and SROs do not choose which projects are funded.",
+      "12. Replication materials (code, design matrix, appendix tables) are not evident in the main text. Reproducibility depends on an external data appendix."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 60,
+        "lower_bound": 44,
+        "upper_bound": 74
+      },
+      "claims_evidence": {
+        "midpoint": 52,
+        "lower_bound": 38,
+        "upper_bound": 66
+      },
+      "methods": {
+        "midpoint": 57,
+        "lower_bound": 42,
+        "upper_bound": 70
+      },
+      "advancing_knowledge": {
+        "midpoint": 64,
+        "lower_bound": 48,
+        "upper_bound": 78
+      },
+      "logic_communication": {
+        "midpoint": 60,
+        "lower_bound": 46,
+        "upper_bound": 73
+      },
+      "open_science": {
+        "midpoint": 48,
+        "lower_bound": 30,
+        "upper_bound": 65
+      },
+      "global_relevance": {
+        "midpoint": 66,
+        "lower_bound": 50,
+        "upper_bound": 80
+      },
+      "tier_should": {
+        "score": 3.2,
+        "ci_lower": 2.4,
+        "ci_upper": 4.0
+      },
+      "tier_will": {
+        "score": 3.4,
+        "ci_lower": 2.5,
+        "ci_upper": 4.2
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"The paper asks whether scientists, if allowed to aggregate peer-review scores, would weight only the mean, as NIH effectively does, or would also value dissensus. It uses a discrete choice experiment with 313 NIH-funded biomedical researchers (Study 1). A separate randomized sample of 250 (Study 2) receives a budget-shock exercise. Rankings over experimentally assigned score distributions are estimated with a participant fixed-effect conditional logit. The headline estimates are as follows:\\n- A standardized variance coefficient of about 0.08, against 0.82 for the mean; this is roughly 1.8 pp in choice probability.\\n- Stronger variance preference when the project is closer to the respondent's MeSH profile.\\n- No preference for bimodality.\\n- Roughly symmetric marginal effects of high and low scores.\\n- Higher-variance projects dropped under budget cuts.\\n- Simulated funding reversals of about 5–10% when the estimated preferences are applied to score data from Pier et al. and Lane et al.\\n\\nThe question is policy-relevant and under-studied, the design is clean in its core randomization, and the null hypothesis (zero weight on variance) is well posed. However, several issues limit how far the evidence supports the framing.\\n\\nFirst, and most important, the paper shows what successful scientists say they would prefer in a hypothetical task. It does not show that dissensus-weighted rules yield better science. The abstract and conclusion slide from preference to prescription, e.g. 'would change marginal funding decisions… worth billions of dollars per year'. Three points are not demonstrated:\\n- that the reversals are improvements;\\n- that stated preferences are not driven by task framing;\\n- that the 'billions' figure is anything beyond a back-of-envelope extrapolation, which is not shown.\\nThe authors acknowledge, only at the very end, that the causal link between scores and impact is unknown.\\n\\nSecond, external validity of the stimuli is questionable:\\n- Each project shows 30 scores, created by duplicating 10 ratings three times. Real NIH applications have 2–5 assigned reviewers plus panel votes clustered around the assigned reviewers' range, and final scores rounded.\\n- The informational content of variance among 30 independent-looking ratings is very different from that among three reviewers.\\n- Explicitly displaying the mean and SD makes variance salient and may induce experimenter-demand effects. Respondents may infer that the researchers care about variance.\\n- The magnitude is modest. The summary statistic 'accept 0.1 points lower average for a variance increase of 1' appears to conflate standardized coefficient ratios with raw units, and the conversion is not shown.\\n\\nThird, modeling choices deserve more scrutiny:\\n- The ranking is exploded into sequential conditional logits. This assumes common preferences and scale across rank positions, yet the multinomial logit robustness check reveals no variance preference when choosing between third and fourth.\\n- The design is described as best/worst, but the analysis treats responses as full rankings; how BWS responses map to rankings is not explained.\\n- Mean, variance, skew, min and max are mechanically linked under bounded 1–9 scores. The claim of 'orthogonal' mean-SD combinations does not guarantee identification of skew versus variance. The interpretation of the skew result after reverse coding is muddled.\\n\\nFourth, the expertise result is identified within person, from which projects happen to be near a respondent's MeSH profile. It is significant only at 5% and rests on a single interaction. The 'placebo' split by self-reported hovering is endogenous; the difference between subgroups (0.081 vs 0.012) is not formally tested and would likely be imprecise. Additional heterogeneity analyses (gender, risk aversion, breadth) raise multiple-testing concerns, and there is no mention of a pre-analysis plan.\\n\\nFifth, Study 2 is weakly presented:\\n- Table 5 sign conventions are confusing: average score is negative in columns 1 and 3 but positive in columns 2 and 4, without clear definition of the outcome in each comparison.\\n- The notes say 'baseline sample' although this is a different sample.\\n- Only one of four variance coefficients is significant (p<.05).\\n- The claim that dissensus appetite 'shrinks but does not disappear' is not directly estimated, since Study 2 reports no variance preference for the initial portfolio choice.\\n\\nSixth, the funding-reversal simulations are fragile:\\n- Standardized coefficients from the experimental distribution are applied to datasets with different scales, reviewer counts and contexts; Lane et al. is not NIH.\\n- With few reviewers, sample variance is very noisy.\\n- The headline 10% figure uses the 'relative expert' preferences (+1 SD MeSH match), which is an upper-end choice.\\n- There are internal inconsistencies: 'fifty-eight percent' of projects change rank in the intro versus 'half' in the results, and Lane 2022a versus 2022b are cited interchangeably for the 20% reversal rate.\\n\\nSeventh, representativeness: the response rate is 9.2%, and attrition checks cover only grant observables. The text misreads Table 1: OBT/OTC researchers were less, not more, likely to finish. One standard error ('unique projects', 0.54) looks inconsistent with the others.\\n\\nEighth, the institutional characterization is somewhat stylized:\\n- NIH councils and program staff exercise discretion.\\n- Reviewers' scores already embed risk judgments.\\n- Scientific Review Officers do not choose which projects to fund, so the role assigned to participants is misdescribed.\\n\\nReplicability: a data appendix is referenced. The appendix tables (A2–A8), the code and the full design matrix are not visible in the main text, and several cross-references are broken ('Section D', 'Section B..').\\n\\nOverall, this is a useful, novel and clearly motivated piece of evidence on scientists' stated aggregation preferences. Its causal and policy claims outpace what a hypothetical stated-preference experiment can deliver, and several presentation and robustness gaps remain.\",\"key_issues\":[\"1. Stated preferences of scientists are treated as normatively informative for funding rules. There is no evidence that dissensus-weighted rules yield better outcomes, and the 'billions of dollars' policy framing overreaches.\",\"2. The stimuli are unrealistic: 30 reviewer scores built by triplicating 10 ratings, with mean and SD explicitly displayed. This raises salience and demand-effect concerns and limits transfer to NIH panels with 2–5 assigned reviewers.\",\"3. The effect size is modest (about 1.8 pp per SD of variance; ratio about 0.1 to the mean). The '0.1 points lower average per unit variance' trade-off appears to conflate standardized and raw units.\",\"4. The exploded-ranking conditional logit assumes homogeneous preferences across rank positions, but the MNL check shows no variance preference at lower ranks. How best/worst responses map to full rankings is unexplained.\",\"5. Bounded scores mechanically link mean, variance, skew, min and max. Separate identification of variance versus skew is asserted rather than demonstrated, and the skew interpretation is confusing.\",\"6. The expertise interaction is only marginally robust (p<.05, single interaction). The hover 'placebo' is self-reported and endogenous, with no formal test of the subgroup difference. Multiple heterogeneity analyses lack multiple-testing correction or a pre-analysis plan.\",\"7. Study 2 results are weak and poorly presented: unclear sign conventions in Table 5, only one significant variance coefficient, and no direct estimate supporting 'appetite shrinks but does not disappear'.\",\"8. Reversal simulations apply standardized coefficients to external datasets with different scales and few reviewers, where variance is very noisy. The headline 10% uses expert (+1 SD) preferences, and the 'billions' extrapolation is not shown.\",\"9. The 9.2% response rate creates selection concerns. Attrition checks cover only grant observables, and the text misreads Table 1 on OBT/OTC completion.\",\"10. Internal inconsistencies: 58% versus 'half' of projects changing rank; Lane 2022a/2022b citation mix-up; the Study 2 table labeled 'baseline sample'; an odd standard error in Table 1; broken section references.\",\"11. NIH funding practice is simplified: reviewers already embed risk, councils and program officers exercise discretion, and SROs do not choose which projects are funded.\",\"12. Replication materials (code, design matrix, appendix tables) are not evident in the main text. Reproducibility depends on an external data appendix.\"],\"metrics\":{\"overall\":{\"midpoint\":60,\"lower_bound\":44,\"upper_bound\":74},\"claims_evidence\":{\"midpoint\":52,\"lower_bound\":38,\"upper_bound\":66},\"methods\":{\"midpoint\":57,\"lower_bound\":42,\"upper_bound\":70},\"advancing_knowledge\":{\"midpoint\":64,\"lower_bound\":48,\"upper_bound\":78},\"logic_communication\":{\"midpoint\":60,\"lower_bound\":46,\"upper_bound\":73},\"open_science\":{\"midpoint\":48,\"lower_bound\":30,\"upper_bound\":65},\"global_relevance\":{\"midpoint\":66,\"lower_bound\":50,\"upper_bound\":80},\"tier_should\":{\"score\":3.2,\"ci_lower\":2.4,\"ci_upper\":4.0},\"tier_will\":{\"score\":3.4,\"ci_lower\":2.5,\"ci_upper\":4.2}}}",
+  "thinking_summaries": [
+    "I'm going to evaluate this paper carefully, starting with its discrete choice experiment on NIH-funded biomedical scientists and how the reviewer scores and budget changes feed into the ranking results.\n\nNow I'm going through the list of concerns: the gap between what scientists say they prefer and what actually produces good outcomes, and whether the policy claims about billions of dollars go further than the evidence supports. I'm also checking the design itself, since 30 reviewer scores per project doesn't match how NIH panels are actually built, and the displayed variance may be prompting participants in ways that shape their answers. Finally, the effect sizes look small and the conversion between standardized coefficients and point scores isn't clearly explained.\n\nNow I'm working through the expertise interaction: whether the MeSH match really varies within person, whether abstract assignment is independent of the score distribution, and whether the placebo split holds up, since the 0.081 vs 0.012 gap doesn't look clearly significant.\n\nNow I'm checking whether the pre-registration question and multiple-testing across the heterogeneity splits undermine the expertise results. For Study 2, the sign conventions in Table 5 are hard to follow, and the variance effect is only significant in the first column while the others are null, so the claim that appetite shrinks without disappearing isn't directly backed by the table.\n\nNow I'm checking the Table 1 standard error for unique projects, which looks off next to the others, and the claim that more MDCN and OBT/OTC scientists finished, since the OBT/OTC share is actually lower among finishers. Then I'm looking at the reversal simulation, which applies coefficients from one setting to datasets on different scales with only a few reviewers per project, and the \"billions of dollars\" figure that doesn't appear to be shown anywhere.\n\nNow I'm checking the remaining points: the mean-only description of the NIH rule ignores paylines, program officer discretion, and the out-of-order funding, and the open-science section references appendix tables and sections that don't appear in the text I have.\n\nI'm settling on a rating for the paper: a bit above the middle of the range, with the methods sound but limited, and I'm weighing where a journal of that tier would place it.\n\n"
+  ]
+}

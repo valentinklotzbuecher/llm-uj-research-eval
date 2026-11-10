@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_keyissues_expansion_2026-11-10",
+    "paper": "Bhattacharya_and_Packalen_2020",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Bhattacharya_and_Packalen_2020.pdf",
+    "pdf_sha256": "617a3a3430f24a8b63a82f05424a3fd2f14de048957ff6959981bf092643bdec",
+    "pdf_pages": 43,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T15:49:37.173146+00:00",
+    "completed_at": "2026-11-10T15:50:19.197988+00:00",
+    "elapsed_seconds": 42.0,
+    "request_id": "req_011CguWeo2tz5hZfnBZaZ26y",
+    "response_id": "msg_011CguWeq2x6yDU13jrXgYQb",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 105350
+      },
+      "cache_creation_input_tokens": 105350,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 3971,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.6063,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This paper is a policy-oriented essay rather than an empirical or formal research article. It advances a strong causal thesis: the 'citation revolution' (the rise of citation counts, impact factors and the h-index in evaluating scientists) shifted incentives away from exploratory, high-failure-rate work toward incremental science, and this shift caused scientific stagnation and, by extension, part of the productivity-growth slowdown. It proposes that academic search engines, administrators and funders adopt text-based novelty metrics ('edge factors') alongside citation metrics.\n\nThe central problem is the gap between the strength of the causal claims and the evidence offered. The abstract and conclusion say that changed incentives are 'the cause of scientific stagnation' and that 'we are certain' rewarding novelty will 'reignite science.' No analysis in the paper identifies this effect. There is:\n- no time-series evidence linking the timing or intensity of citation-metric adoption to declines in exploration or research productivity;\n- no cross-field or cross-institution variation in metric use;\n- no natural experiment, and no use of the authors' own novelty measure over time.\n\nThe timing is itself problematic and not addressed. Measured slowdowns in research productivity and TFP begin around the early 1970s, and the paper itself dates the start of the citation revolution's momentum to the 1970s. But widespread individual-level use of citation metrics (the h-index dates from 2005; Google Scholar profiles from about 2011) comes much later. This makes the claimed causal ordering uncertain.\n\nCompeting explanations are dismissed rather than engaged. These include:\n- the burden of knowledge and rising team sizes;\n- aging of the scientific workforce;\n- hypercompetition for funding and the structure of grant peer review;\n- regulatory costs in drug development;\n- measurement issues in productivity statistics;\n- genuinely diminishing opportunities.\nThe 'ideas are getting harder to find' view is characterized as claiming slowdown is 'inevitable' and as 'absolving' scientists. This is a somewhat uncharitable reading of a literature that mostly documents rising research effort per unit of output without asserting inevitability. Rebutting it with historical anecdotes (the Michelson quote) is rhetorical rather than evidential.\n\nThe 'model' is a verbal S-curve framework illustrated with stylized figures. It is not a formal model. It has no:\n- agents, objective functions or equilibrium;\n- parameters;\n- derived comparative statics showing that citation-based rewards reduce exploration relative to some alternative regime.\nThe framework is intuitive and consistent with prior work on research cycles and Kuhnian dynamics, and the 'giants vs. standing on shoulders' framing is a useful heuristic. But it cannot carry the causal weight placed on it.\n\nSeveral internal tensions are left unresolved. The paper argues that citations penalize exploration, yet its own Figure 7 shows the share of novel papers rising monotonically with citation percentile, from roughly 5% in the bottom bin to roughly 37% in the top 5%. Taken at face value, a citation-based reward system rewards novel papers more on average. The argument therefore has to rest on risk, variance and publication failure (as in the quoted Foster et al. result). The paper mentions this only via the quotation and never confronts the implication of its own figure. Similarly, the paper claims both that incremental work attracts disproportionate citations and that mature ideas stop being cited. These are reconcilable, but the reconciliation is not worked through.\n\nThe empirical component is thin and under-documented. It is a single cross-section of 191,354 PubMed/Web of Science papers from 2001, with:\n- a binary 'top 20% of idea-vintage recency' novelty indicator;\n- citation percentiles computed through 2015.\nKey details are missing:\n- whether text comes from titles, abstracts or MeSH terms;\n- how idea vintage is computed and aggregated within a paper (newest term, average, count above a threshold);\n- how UMLS mapping was applied;\n- whether fields or journals are controlled for;\n- whether coverage differs between PubMed and Web of Science.\nNo correlation coefficient, regression or robustness check (alternative thresholds, years, fields, citation windows) is reported. The conclusion that novelty and impact are 'correlated but distinct' is nearly guaranteed for any two noisy measures and offers little discriminating evidence. The figure's dual-axis bar design is also somewhat hard to read.\n\nThe claim that measuring novelty is 'no more difficult or flawed' than measuring impact is asserted, not demonstrated. The paper offers no validation of the edge measure against expert judgments or later breakthroughs, and no comparison with alternative novelty measures (Uzzi et al., Wang et al.), which are cited only in a footnote. Concerns about Goodhart effects are dismissed on the basis of reputational costs and future algorithms. Yet the paper's own logic — that scientists respond strongly to metrics — implies that gaming of a vocabulary-based metric (inserting new terms, coining jargon) would be a serious threat. Possible distributional effects (field-specific vocabularies, terminology churn) are not discussed.\n\nThe historical vignettes (PCR and Taq polymerase, CRISPR, H. pylori) are well-chosen illustrations of delayed recognition. However, they are selected on the outcome and do not establish that exploration has declined or that citation incentives were responsible. The paper also contains minor errors that suggest limited polishing: 'Jorge Hirsh' for Hirsch, 'pectic ulcers' for peptic, 'Calquhoun' for Colquhoun, and inconsistent reference years (Osterloh and Frey 2013 vs. 2015).\n\nReplicability is low. No data or code are provided, and the novelty method is described only by reference to the authors' prior papers. The underlying data (PubMed, Web of Science) are partly proprietary.\n\nOn the positive side, the paper is clearly written and accessible. It addresses a genuinely important question for science policy and meta-science, and offers a concrete, implementable policy idea (report novelty metrics alongside citation metrics). It also usefully synthesizes literature on conservatism in science and on funding structures that tolerate failure. Its value lies mainly as a provocative perspective piece and hypothesis generator, not as credible evidence for its headline causal claim.",
+    "key_issues": [
+      "1. The headline causal claim — that the citation revolution caused scientific (and economic) stagnation — is asserted without any identification strategy, time-series test, or exploitation of variation in metric adoption.",
+      "2. The timing problem is unaddressed: the productivity slowdown begins around the early 1970s, while individual-level citation metrics (h-index 2005, Google Scholar profiles) became prominent much later.",
+      "3. Alternative explanations (burden of knowledge, team size, workforce aging, funding hypercompetition, regulation, measurement issues) are dismissed rather than tested or weighed, and the 'ideas harder to find' literature is characterized somewhat uncharitably.",
+      "4. The 'model' is a verbal S-curve with stylized figures. It has no formal incentive structure, equilibrium or derived predictions, so it cannot show that citation-based rewards reduce exploration relative to alternatives.",
+      "5. The paper's own Figure 7 shows novel papers are disproportionately highly cited, which on its face implies citation metrics reward novelty on average. The argument would need to rest on risk and variance, and this tension is not confronted.",
+      "6. The empirical analysis is a single 2001 cross-section with a binary top-20% novelty indicator. It reports no correlation statistics, regressions, field controls or robustness to thresholds, years or citation windows.",
+      "7. The novelty measure is under-documented (text source, vintage aggregation, UMLS mapping) and unvalidated against expert judgment or later breakthroughs. The claim that it is 'no more flawed than citations' is unsupported.",
+      "8. Goodhart and gaming risks of a vocabulary-based edge metric are dismissed too lightly, despite the paper's own premise that scientists respond strongly to metrics.",
+      "9. The historical case studies (PCR, CRISPR, H. pylori) are selected on the outcome and illustrate delayed recognition, but do not show that exploration has declined over time.",
+      "10. Overconfident conclusions ('we are certain... reignite science') overstate what the evidence supports.",
+      "11. No data or code are provided; replication depends on prior papers and partly proprietary databases.",
+      "12. Minor errors (Hirsh/Hirsch, pectic/peptic, Calquhoun/Colquhoun, inconsistent reference years) indicate limited polishing."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 30,
+        "lower_bound": 15,
+        "upper_bound": 48
+      },
+      "claims_evidence": {
+        "midpoint": 17,
+        "lower_bound": 7,
+        "upper_bound": 32
+      },
+      "methods": {
+        "midpoint": 17,
+        "lower_bound": 7,
+        "upper_bound": 32
+      },
+      "advancing_knowledge": {
+        "midpoint": 35,
+        "lower_bound": 18,
+        "upper_bound": 55
+      },
+      "logic_communication": {
+        "midpoint": 50,
+        "lower_bound": 32,
+        "upper_bound": 68
+      },
+      "open_science": {
+        "midpoint": 15,
+        "lower_bound": 5,
+        "upper_bound": 30
+      },
+      "global_relevance": {
+        "midpoint": 50,
+        "lower_bound": 30,
+        "upper_bound": 68
+      },
+      "tier_should": {
+        "score": 1.8,
+        "ci_lower": 1.0,
+        "ci_upper": 2.7
+      },
+      "tier_will": {
+        "score": 2.1,
+        "ci_lower": 1.2,
+        "ci_upper": 3.2
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This paper is a policy-oriented essay rather than an empirical or formal research article. It advances a strong causal thesis: the 'citation revolution' (the rise of citation counts, impact factors and the h-index in evaluating scientists) shifted incentives away from exploratory, high-failure-rate work toward incremental science, and this shift caused scientific stagnation and, by extension, part of the productivity-growth slowdown. It proposes that academic search engines, administrators and funders adopt text-based novelty metrics ('edge factors') alongside citation metrics.\\n\\nThe central problem is the gap between the strength of the causal claims and the evidence offered. The abstract and conclusion say that changed incentives are 'the cause of scientific stagnation' and that 'we are certain' rewarding novelty will 'reignite science.' No analysis in the paper identifies this effect. There is:\\n- no time-series evidence linking the timing or intensity of citation-metric adoption to declines in exploration or research productivity;\\n- no cross-field or cross-institution variation in metric use;\\n- no natural experiment, and no use of the authors' own novelty measure over time.\\n\\nThe timing is itself problematic and not addressed. Measured slowdowns in research productivity and TFP begin around the early 1970s, and the paper itself dates the start of the citation revolution's momentum to the 1970s. But widespread individual-level use of citation metrics (the h-index dates from 2005; Google Scholar profiles from about 2011) comes much later. This makes the claimed causal ordering uncertain.\\n\\nCompeting explanations are dismissed rather than engaged. These include:\\n- the burden of knowledge and rising team sizes;\\n- aging of the scientific workforce;\\n- hypercompetition for funding and the structure of grant peer review;\\n- regulatory costs in drug development;\\n- measurement issues in productivity statistics;\\n- genuinely diminishing opportunities.\\nThe 'ideas are getting harder to find' view is characterized as claiming slowdown is 'inevitable' and as 'absolving' scientists. This is a somewhat uncharitable reading of a literature that mostly documents rising research effort per unit of output without asserting inevitability. Rebutting it with historical anecdotes (the Michelson quote) is rhetorical rather than evidential.\\n\\nThe 'model' is a verbal S-curve framework illustrated with stylized figures. It is not a formal model. It has no:\\n- agents, objective functions or equilibrium;\\n- parameters;\\n- derived comparative statics showing that citation-based rewards reduce exploration relative to some alternative regime.\\nThe framework is intuitive and consistent with prior work on research cycles and Kuhnian dynamics, and the 'giants vs. standing on shoulders' framing is a useful heuristic. But it cannot carry the causal weight placed on it.\\n\\nSeveral internal tensions are left unresolved. The paper argues that citations penalize exploration, yet its own Figure 7 shows the share of novel papers rising monotonically with citation percentile, from roughly 5% in the bottom bin to roughly 37% in the top 5%. Taken at face value, a citation-based reward system rewards novel papers more on average. The argument therefore has to rest on risk, variance and publication failure (as in the quoted Foster et al. result). The paper mentions this only via the quotation and never confronts the implication of its own figure. Similarly, the paper claims both that incremental work attracts disproportionate citations and that mature ideas stop being cited. These are reconcilable, but the reconciliation is not worked through.\\n\\nThe empirical component is thin and under-documented. It is a single cross-section of 191,354 PubMed/Web of Science papers from 2001, with:\\n- a binary 'top 20% of idea-vintage recency' novelty indicator;\\n- citation percentiles computed through 2015.\\nKey details are missing:\\n- whether text comes from titles, abstracts or MeSH terms;\\n- how idea vintage is computed and aggregated within a paper (newest term, average, count above a threshold);\\n- how UMLS mapping was applied;\\n- whether fields or journals are controlled for;\\n- whether coverage differs between PubMed and Web of Science.\\nNo correlation coefficient, regression or robustness check (alternative thresholds, years, fields, citation windows) is reported. The conclusion that novelty and impact are 'correlated but distinct' is nearly guaranteed for any two noisy measures and offers little discriminating evidence. The figure's dual-axis bar design is also somewhat hard to read.\\n\\nThe claim that measuring novelty is 'no more difficult or flawed' than measuring impact is asserted, not demonstrated. The paper offers no validation of the edge measure against expert judgments or later breakthroughs, and no comparison with alternative novelty measures (Uzzi et al., Wang et al.), which are cited only in a footnote. Concerns about Goodhart effects are dismissed on the basis of reputational costs and future algorithms. Yet the paper's own logic — that scientists respond strongly to metrics — implies that gaming of a vocabulary-based metric (inserting new terms, coining jargon) would be a serious threat. Possible distributional effects (field-specific vocabularies, terminology churn) are not discussed.\\n\\nThe historical vignettes (PCR and Taq polymerase, CRISPR, H. pylori) are well-chosen illustrations of delayed recognition. However, they are selected on the outcome and do not establish that exploration has declined or that citation incentives were responsible. The paper also contains minor errors that suggest limited polishing: 'Jorge Hirsh' for Hirsch, 'pectic ulcers' for peptic, 'Calquhoun' for Colquhoun, and inconsistent reference years (Osterloh and Frey 2013 vs. 2015).\\n\\nReplicability is low. No data or code are provided, and the novelty method is described only by reference to the authors' prior papers. The underlying data (PubMed, Web of Science) are partly proprietary.\\n\\nOn the positive side, the paper is clearly written and accessible. It addresses a genuinely important question for science policy and meta-science, and offers a concrete, implementable policy idea (report novelty metrics alongside citation metrics). It also usefully synthesizes literature on conservatism in science and on funding structures that tolerate failure. Its value lies mainly as a provocative perspective piece and hypothesis generator, not as credible evidence for its headline causal claim.\",\"key_issues\":[\"1. The headline causal claim — that the citation revolution caused scientific (and economic) stagnation — is asserted without any identification strategy, time-series test, or exploitation of variation in metric adoption.\",\"2. The timing problem is unaddressed: the productivity slowdown begins around the early 1970s, while individual-level citation metrics (h-index 2005, Google Scholar profiles) became prominent much later.\",\"3. Alternative explanations (burden of knowledge, team size, workforce aging, funding hypercompetition, regulation, measurement issues) are dismissed rather than tested or weighed, and the 'ideas harder to find' literature is characterized somewhat uncharitably.\",\"4. The 'model' is a verbal S-curve with stylized figures. It has no formal incentive structure, equilibrium or derived predictions, so it cannot show that citation-based rewards reduce exploration relative to alternatives.\",\"5. The paper's own Figure 7 shows novel papers are disproportionately highly cited, which on its face implies citation metrics reward novelty on average. The argument would need to rest on risk and variance, and this tension is not confronted.\",\"6. The empirical analysis is a single 2001 cross-section with a binary top-20% novelty indicator. It reports no correlation statistics, regressions, field controls or robustness to thresholds, years or citation windows.\",\"7. The novelty measure is under-documented (text source, vintage aggregation, UMLS mapping) and unvalidated against expert judgment or later breakthroughs. The claim that it is 'no more flawed than citations' is unsupported.\",\"8. Goodhart and gaming risks of a vocabulary-based edge metric are dismissed too lightly, despite the paper's own premise that scientists respond strongly to metrics.\",\"9. The historical case studies (PCR, CRISPR, H. pylori) are selected on the outcome and illustrate delayed recognition, but do not show that exploration has declined over time.\",\"10. Overconfident conclusions ('we are certain... reignite science') overstate what the evidence supports.\",\"11. No data or code are provided; replication depends on prior papers and partly proprietary databases.\",\"12. Minor errors (Hirsh/Hirsch, pectic/peptic, Calquhoun/Colquhoun, inconsistent reference years) indicate limited polishing.\"],\"metrics\":{\"overall\":{\"midpoint\":30,\"lower_bound\":15,\"upper_bound\":48},\"claims_evidence\":{\"midpoint\":17,\"lower_bound\":7,\"upper_bound\":32},\"methods\":{\"midpoint\":17,\"lower_bound\":7,\"upper_bound\":32},\"advancing_knowledge\":{\"midpoint\":35,\"lower_bound\":18,\"upper_bound\":55},\"logic_communication\":{\"midpoint\":50,\"lower_bound\":32,\"upper_bound\":68},\"open_science\":{\"midpoint\":15,\"lower_bound\":5,\"upper_bound\":30},\"global_relevance\":{\"midpoint\":50,\"lower_bound\":30,\"upper_bound\":68},\"tier_should\":{\"score\":1.8,\"ci_lower\":1.0,\"ci_upper\":2.7},\"tier_will\":{\"score\":2.1,\"ci_lower\":1.2,\"ci_upper\":3.2}}}",
+  "thinking_summaries": [
+    "I'm working out what this paper is: an essay-style piece built on a verbal model with S-curve figures and one descriptive figure, and I need a roughly 1000-word summary along with its key issues and metrics. The main concern is the causal claim that the citation revolution drives stagnation, which the evidence doesn't yet support, and the timing doesn't line up cleanly either, since the productivity slowdown predates the rise of citation metrics.\n\nI'm now checking the evidence against the alternatives, including burden of knowledge, team size, and funding competition, and noting that the model lacks a formal equilibrium. I'm also flagging the novelty measure as underspecified and the conclusion's certainty as overstated.\n\nI'm checking whether the paper ever tests if exploration actually declined using its own novelty measure, and I'm noting that no data or code is shared. I'm also sketching rough scores for each dimension, landing near 30 overall, and settling on a tier of about 2.0.\n\n"
+  ]
+}

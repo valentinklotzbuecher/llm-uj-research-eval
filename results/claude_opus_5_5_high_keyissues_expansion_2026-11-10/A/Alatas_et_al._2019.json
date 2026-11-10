@@ -1,0 +1,127 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_keyissues_expansion_2026-11-10",
+    "paper": "Alatas_et_al._2019",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Alatas_et_al._2019.pdf",
+    "pdf_sha256": "0ff03823b84df8664fedc00e8605b8d410442cc002db8bf84cc6834d90111e09",
+    "pdf_pages": 56,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T15:35:19.461540+00:00",
+    "completed_at": "2026-11-10T15:36:14.368869+00:00",
+    "elapsed_seconds": 54.9,
+    "request_id": "req_011CguVZa4nQnjFXpYj8zL1c",
+    "response_id": "msg_011CguVZcYcMFRRUoLTsHXh2",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 140450
+      },
+      "cache_creation_input_tokens": 140450,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 5130,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.8049,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This paper reports a large field experiment run through Indonesian Twitter in 2015–16. Thirty-seven celebrities and nine organizations (7.8M follower links, 5.5M unique followers) let the researchers post randomized pro-immunization tweets and retweets. The paper has two components.\n\n**Within-celebrity tweet-level randomizations (online outcomes).**\n- Celebrity-composed vs Joe/Jane-composed-then-celebrity-retweeted, to separate endorsement from reach.\n- Source citation.\n- Exposure counts, used to study complex contagion.\n\n**Between-celebrity phase randomization (offline outcomes).** A phone survey fielded between phases measures awareness, knowledge, and network immunization behavior. The setting is policy-relevant, the partnership is unusual, and the core design idea is genuinely clever. It exploits the fact that intermediate retweeters are invisible on Twitter to blind second-degree followers (F2s) to celebrity involvement. However, the analysis and reporting have several weaknesses that limit how strongly the claims can be read.\n\n**Endorsement estimate.** The main estimate (Table 2, coefficient 0.544, ≈1.7-fold) conditions on F1s who chose to retweet. That choice is itself affected by treatment: Table 3 shows celebrity authorship triples F1 engagement. So the composition of F1s, and hence of exposed F2s, differs across arms. Controlling for log F1 followers does not address selection on F1 type, timing, or audience.\n- The clean test using exogenously forced Joe/Jane retweeters gives larger point estimates but p≈0.11–0.12 on a low-base-rate sample. It is fairly described as \"not inconsistent\" with the main result, not as confirming it.\n- The displayed retweet/like counters also differ by arm. The forced-retweet count randomization (Appendix C) is reassuring but imprecise.\n- The contrast is \"celebrity name vs an unknown Joe's name\". It therefore mixes positive endorsement with any penalty for unfamiliar originators.\n- The text variously describes the effect as a \"70 percent increase\", \"1.7-fold\" and \"almost triples\", which is internally inconsistent.\n\n**Source-citation result.** The finding that sourcing reduces retweets is interesting, but fragile:\n- Samples are small (131–191 tweets in subgroup regressions).\n- Table 4 notes say SEs are clustered at the celebrity/organization level, roughly 46 clusters. That conflicts with the stated tweet-level randomization and with the text's clustering description.\n- The pooled effect is only marginal (p=0.051).\n- The source treatment bundles several features: a URL, a link-preview card, and lost characters. These could mechanically change engagement independent of credibility.\n- Sensitive tweets always carried sources and were prioritized for low-count celebrities, so the randomized subset is a selected one.\n- The headline policy recommendation to \"send messages without citing credible sources\" overreaches. Diffusion is not persuasion or accuracy, and the welfare implications in a misinformation-prone health domain are not considered.\n\n**Complex-contagion analysis.** This section has a conceptual problem. The outcome is the count of campaign retweets on a user-day, and a user exposed to k tweets has k opportunities to retweet. A roughly doubling of retweets when going from 1 to 2 exposures is therefore what simple contagion with independent per-tweet adoption predicts. It is not evidence against it. A per-tweet retweet probability, or a test of whether a given tweet is more likely retweeted when other exposures occur, would be needed. Further problems:\n- The 3-exposure estimate is p=0.08 and the 4–7 estimate is very imprecise. Neither \"concavity\" nor \"no effect after the third exposure\" is statistically established.\n- The sample is restricted to users following at least 3 celebrities.\n- The derived policy advice is weakly grounded.\n\n**Offline analysis.** Identification relies on assigning 46 accounts to two phases, so the effective number of independent randomization units is small. Randomization inference is the appropriate guide, and RI p-values often diverge sharply from clustered ones (e.g., neighbor knowledge 0.004 vs 0.088; hashtag awareness 0.044 vs 0.107).\n- Roughly 18 outcomes are examined. Only one of four knowledge outcomes moves, and its Bonferroni-adjusted p-values (0.168 clustered, 0.112 RI) are not significant.\n- Opinion outcomes are null and top-coded.\n- Network immunization outcomes condition on knowledge of network members' status, which the paper itself shows is affected by treatment. The authors acknowledge this post-treatment selection.\n- All outcomes are self-reports from a sample recruited through promoted tweets. The sample is self-selected and more urban, and roughly 27% lacked a baseline survey.\n- The abstract appropriately says \"suggestive\". The conclusion instead says \"we then demonstrated\" and \"much more likely\" and speaks of \"sizeable shifts\", which overstates the evidence.\n\n**Numerical inconsistencies.** These are numerous and the most likely to confuse a reader:\n- Effect sizes for the same results differ between the introduction and Section 4: 20% vs 16.75%, 11% vs 8.3%, 14% vs 11.2%, 12% vs 5% for domestic production, 23% vs 5.2% for neighbor knowledge.\n- The number of organizations is given as 9 and as 7.\n- Organization follower means are 132,300 vs 145,300; Joe/Jane follower means are 511, 508 and 574.\n- The tweet bank is 549 vs 550 tweets.\n- The exposure window is described as \"one month\" vs \"four-month\".\n- There is a timeline typo (Phase II ending \"Dec 4, 2016\").\n\n**Remaining points.**\n- The theoretical appendix shows only that effects are ambiguous ex ante. It generates no testable discriminating predictions, and its use to rationalize the sourcing result is post hoc.\n- The trial is registered, but no pre-analysis plan comparison is reported.\n- No code or data are provided, which is understandable given Twitter data terms but limits replication.\n- External validity is limited: the chronological-feed era, Indonesian Twitter, and celebrities who volunteered.\n\nOverall this is a valuable and creative contribution with credible evidence that celebrity authorship increases engagement. The source, contagion and offline findings are considerably weaker than the presentation suggests.",
+    "key_issues": [
+      "Main endorsement estimate (Table 2) conditions on F1s who endogenously retweet; celebrity authorship itself triples F1 engagement, so the composition of exposed F2s differs by arm. The clean forced-F1 subsample is imprecise (p≈0.11).",
+      "Complex-contagion test uses the count of retweets per user-day, which mechanically scales with the number of tweets seen. A doubling from 1 to 2 exposures is consistent with simple contagion, so the claimed rejection of simple contagion and the 'concavity' finding are not supported (3 and 4–7 exposure estimates are imprecise).",
+      "Offline effects rest on randomizing 46 accounts into two phases. RI p-values are often far weaker than clustered ones, many outcomes are tested, only 1 of 4 knowledge outcomes is significant, and it does not survive Bonferroni adjustment.",
+      "Network-behavior outcomes (Table 8 Panel B) condition on knowledge of network members' immunization status, which is itself affected by treatment (post-treatment selection); outcomes are self-reported.",
+      "Source-citation treatment bundles credibility with URLs and link-preview cards. Samples are small, clustering is inconsistent (celebrity level in Table 4 vs tweet level in text), and the pooled effect is marginal.",
+      "Policy recommendations ('send messages without citing credible sources', budget spreading for multiple exposures) overreach relative to the evidence and ignore that engagement is not persuasion or accuracy.",
+      "Numerous internal inconsistencies: introduction vs Section 4 effect sizes (20% vs 16.75%, 12% vs 5%, 23% vs 5.2%), '1.7-fold' vs 'almost triples', 7 vs 9 organizations, varying follower means, one vs four months of exposure.",
+      "Offline survey sample is self-selected through promoted tweets and more urban; roughly 27% lack baseline; generalizability of survey effects is unclear.",
+      "Theoretical appendix only demonstrates ex ante ambiguity, offers no discriminating predictions, and is used post hoc to rationalize the sourcing result.",
+      "No pre-analysis-plan comparison is reported despite registration; no code or data are shared; specification choices (LASSO controls, sample conditions) are not fully documented.",
+      "External validity is limited: chronological-feed Twitter era, Indonesia-specific, volunteer celebrities, and engagement metrics rather than actual immunization."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 70,
+        "lower_bound": 55,
+        "upper_bound": 82
+      },
+      "claims_evidence": {
+        "midpoint": 60,
+        "lower_bound": 45,
+        "upper_bound": 74
+      },
+      "methods": {
+        "midpoint": 66,
+        "lower_bound": 50,
+        "upper_bound": 78
+      },
+      "advancing_knowledge": {
+        "midpoint": 74,
+        "lower_bound": 60,
+        "upper_bound": 86
+      },
+      "logic_communication": {
+        "midpoint": 58,
+        "lower_bound": 44,
+        "upper_bound": 72
+      },
+      "open_science": {
+        "midpoint": 45,
+        "lower_bound": 30,
+        "upper_bound": 62
+      },
+      "global_relevance": {
+        "midpoint": 72,
+        "lower_bound": 58,
+        "upper_bound": 84
+      },
+      "tier_should": {
+        "score": 3.7,
+        "ci_lower": 3.0,
+        "ci_upper": 4.5
+      },
+      "tier_will": {
+        "score": 4.1,
+        "ci_lower": 3.2,
+        "ci_upper": 4.8
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This paper reports a large field experiment run through Indonesian Twitter in 2015–16. Thirty-seven celebrities and nine organizations (7.8M follower links, 5.5M unique followers) let the researchers post randomized pro-immunization tweets and retweets. The paper has two components.\\n\\n**Within-celebrity tweet-level randomizations (online outcomes).**\\n- Celebrity-composed vs Joe/Jane-composed-then-celebrity-retweeted, to separate endorsement from reach.\\n- Source citation.\\n- Exposure counts, used to study complex contagion.\\n\\n**Between-celebrity phase randomization (offline outcomes).** A phone survey fielded between phases measures awareness, knowledge, and network immunization behavior. The setting is policy-relevant, the partnership is unusual, and the core design idea is genuinely clever. It exploits the fact that intermediate retweeters are invisible on Twitter to blind second-degree followers (F2s) to celebrity involvement. However, the analysis and reporting have several weaknesses that limit how strongly the claims can be read.\\n\\n**Endorsement estimate.** The main estimate (Table 2, coefficient 0.544, ≈1.7-fold) conditions on F1s who chose to retweet. That choice is itself affected by treatment: Table 3 shows celebrity authorship triples F1 engagement. So the composition of F1s, and hence of exposed F2s, differs across arms. Controlling for log F1 followers does not address selection on F1 type, timing, or audience.\\n- The clean test using exogenously forced Joe/Jane retweeters gives larger point estimates but p≈0.11–0.12 on a low-base-rate sample. It is fairly described as \\\"not inconsistent\\\" with the main result, not as confirming it.\\n- The displayed retweet/like counters also differ by arm. The forced-retweet count randomization (Appendix C) is reassuring but imprecise.\\n- The contrast is \\\"celebrity name vs an unknown Joe's name\\\". It therefore mixes positive endorsement with any penalty for unfamiliar originators.\\n- The text variously describes the effect as a \\\"70 percent increase\\\", \\\"1.7-fold\\\" and \\\"almost triples\\\", which is internally inconsistent.\\n\\n**Source-citation result.** The finding that sourcing reduces retweets is interesting, but fragile:\\n- Samples are small (131–191 tweets in subgroup regressions).\\n- Table 4 notes say SEs are clustered at the celebrity/organization level, roughly 46 clusters. That conflicts with the stated tweet-level randomization and with the text's clustering description.\\n- The pooled effect is only marginal (p=0.051).\\n- The source treatment bundles several features: a URL, a link-preview card, and lost characters. These could mechanically change engagement independent of credibility.\\n- Sensitive tweets always carried sources and were prioritized for low-count celebrities, so the randomized subset is a selected one.\\n- The headline policy recommendation to \\\"send messages without citing credible sources\\\" overreaches. Diffusion is not persuasion or accuracy, and the welfare implications in a misinformation-prone health domain are not considered.\\n\\n**Complex-contagion analysis.** This section has a conceptual problem. The outcome is the count of campaign retweets on a user-day, and a user exposed to k tweets has k opportunities to retweet. A roughly doubling of retweets when going from 1 to 2 exposures is therefore what simple contagion with independent per-tweet adoption predicts. It is not evidence against it. A per-tweet retweet probability, or a test of whether a given tweet is more likely retweeted when other exposures occur, would be needed. Further problems:\\n- The 3-exposure estimate is p=0.08 and the 4–7 estimate is very imprecise. Neither \\\"concavity\\\" nor \\\"no effect after the third exposure\\\" is statistically established.\\n- The sample is restricted to users following at least 3 celebrities.\\n- The derived policy advice is weakly grounded.\\n\\n**Offline analysis.** Identification relies on assigning 46 accounts to two phases, so the effective number of independent randomization units is small. Randomization inference is the appropriate guide, and RI p-values often diverge sharply from clustered ones (e.g., neighbor knowledge 0.004 vs 0.088; hashtag awareness 0.044 vs 0.107).\\n- Roughly 18 outcomes are examined. Only one of four knowledge outcomes moves, and its Bonferroni-adjusted p-values (0.168 clustered, 0.112 RI) are not significant.\\n- Opinion outcomes are null and top-coded.\\n- Network immunization outcomes condition on knowledge of network members' status, which the paper itself shows is affected by treatment. The authors acknowledge this post-treatment selection.\\n- All outcomes are self-reports from a sample recruited through promoted tweets. The sample is self-selected and more urban, and roughly 27% lacked a baseline survey.\\n- The abstract appropriately says \\\"suggestive\\\". The conclusion instead says \\\"we then demonstrated\\\" and \\\"much more likely\\\" and speaks of \\\"sizeable shifts\\\", which overstates the evidence.\\n\\n**Numerical inconsistencies.** These are numerous and the most likely to confuse a reader:\\n- Effect sizes for the same results differ between the introduction and Section 4: 20% vs 16.75%, 11% vs 8.3%, 14% vs 11.2%, 12% vs 5% for domestic production, 23% vs 5.2% for neighbor knowledge.\\n- The number of organizations is given as 9 and as 7.\\n- Organization follower means are 132,300 vs 145,300; Joe/Jane follower means are 511, 508 and 574.\\n- The tweet bank is 549 vs 550 tweets.\\n- The exposure window is described as \\\"one month\\\" vs \\\"four-month\\\".\\n- There is a timeline typo (Phase II ending \\\"Dec 4, 2016\\\").\\n\\n**Remaining points.**\\n- The theoretical appendix shows only that effects are ambiguous ex ante. It generates no testable discriminating predictions, and its use to rationalize the sourcing result is post hoc.\\n- The trial is registered, but no pre-analysis plan comparison is reported.\\n- No code or data are provided, which is understandable given Twitter data terms but limits replication.\\n- External validity is limited: the chronological-feed era, Indonesian Twitter, and celebrities who volunteered.\\n\\nOverall this is a valuable and creative contribution with credible evidence that celebrity authorship increases engagement. The source, contagion and offline findings are considerably weaker than the presentation suggests.\",\"key_issues\":[\"Main endorsement estimate (Table 2) conditions on F1s who endogenously retweet; celebrity authorship itself triples F1 engagement, so the composition of exposed F2s differs by arm. The clean forced-F1 subsample is imprecise (p≈0.11).\",\"Complex-contagion test uses the count of retweets per user-day, which mechanically scales with the number of tweets seen. A doubling from 1 to 2 exposures is consistent with simple contagion, so the claimed rejection of simple contagion and the 'concavity' finding are not supported (3 and 4–7 exposure estimates are imprecise).\",\"Offline effects rest on randomizing 46 accounts into two phases. RI p-values are often far weaker than clustered ones, many outcomes are tested, only 1 of 4 knowledge outcomes is significant, and it does not survive Bonferroni adjustment.\",\"Network-behavior outcomes (Table 8 Panel B) condition on knowledge of network members' immunization status, which is itself affected by treatment (post-treatment selection); outcomes are self-reported.\",\"Source-citation treatment bundles credibility with URLs and link-preview cards. Samples are small, clustering is inconsistent (celebrity level in Table 4 vs tweet level in text), and the pooled effect is marginal.\",\"Policy recommendations ('send messages without citing credible sources', budget spreading for multiple exposures) overreach relative to the evidence and ignore that engagement is not persuasion or accuracy.\",\"Numerous internal inconsistencies: introduction vs Section 4 effect sizes (20% vs 16.75%, 12% vs 5%, 23% vs 5.2%), '1.7-fold' vs 'almost triples', 7 vs 9 organizations, varying follower means, one vs four months of exposure.\",\"Offline survey sample is self-selected through promoted tweets and more urban; roughly 27% lack baseline; generalizability of survey effects is unclear.\",\"Theoretical appendix only demonstrates ex ante ambiguity, offers no discriminating predictions, and is used post hoc to rationalize the sourcing result.\",\"No pre-analysis-plan comparison is reported despite registration; no code or data are shared; specification choices (LASSO controls, sample conditions) are not fully documented.\",\"External validity is limited: chronological-feed Twitter era, Indonesia-specific, volunteer celebrities, and engagement metrics rather than actual immunization.\"],\"metrics\":{\"overall\":{\"midpoint\":70,\"lower_bound\":55,\"upper_bound\":82},\"claims_evidence\":{\"midpoint\":60,\"lower_bound\":45,\"upper_bound\":74},\"methods\":{\"midpoint\":66,\"lower_bound\":50,\"upper_bound\":78},\"advancing_knowledge\":{\"midpoint\":74,\"lower_bound\":60,\"upper_bound\":86},\"logic_communication\":{\"midpoint\":58,\"lower_bound\":44,\"upper_bound\":72},\"open_science\":{\"midpoint\":45,\"lower_bound\":30,\"upper_bound\":62},\"global_relevance\":{\"midpoint\":72,\"lower_bound\":58,\"upper_bound\":84},\"tier_should\":{\"score\":3.7,\"ci_lower\":3.0,\"ci_upper\":4.5},\"tier_will\":{\"score\":4.1,\"ci_lower\":3.2,\"ci_upper\":4.8}}}",
+  "thinking_summaries": [
+    "I'm working through the paper's main claims: a Twitter field experiment in Indonesia with 46 celebrities and organizations, using endorsement and source-citation treatments. I'm now looking at the endorsement design, where the first-stage selection may be endogenous and the forced-assignment subsample is small, and I'm noting that the comparison seems to mix up who wrote a post with who was credited for it.\n\nI'm checking the numbers in the endorsement results: the text says both \"70 percent\" and \"almost triples,\" which can't both hold since exp(0.544) is about 1.72. I'm also comparing the source-citation coefficients against their stated percentage declines, and they line up, though the clustering level described in the text doesn't match the table notes.\n\nI'm now on the offline-effects section, where the sample was self-selected through promoted tweets, so I'm weighing whether the \"potential exposure\" measure really reflects what people saw in their feeds.\n\nI'm checking the offline results next: the randomization-inference p-values for knowledge of neighbors and friend behavior are marginal, and only one of four knowledge outcomes clears significance, which fails after the Bonferroni adjustment. With just 46 celebrities as the effective randomization units, the claim that the campaign changed offline beliefs looks overstated, even though the abstract's \"suggestive\" framing is appropriate.\n\nI'm checking the remaining inconsistencies in the marginal effects, where the intro and Section 4 report different percentages for the same results. I'm also noting mismatched counts for celebrities, organizations, followers, and tweets across the text and tables, and the timeline details cut off before the Phase II dates.\n\nI'm now going through the paper's remaining sections: the pre-registration, which is registered but doesn't get a pre-analysis-plan comparison, and the LASSO-selected controls. I'm also noting that the data and code aren't provided, and that the appendix model is ambiguous, untested, and post hoc. The last points are external validity, since the setting is a particular era of Indonesian Twitter with self-selected celebrities, and whether likes and retweets measure engagement rather than actual persuasion.\n\nI'm settling on an overall score for the paper, around 72, and placing it in a middle tier.\n\n"
+  ]
+}

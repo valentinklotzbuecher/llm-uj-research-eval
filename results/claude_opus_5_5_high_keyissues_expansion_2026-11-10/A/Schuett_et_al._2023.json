@@ -1,0 +1,127 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_keyissues_expansion_2026-11-10",
+    "paper": "Schuett_et_al._2023",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Schuett_et_al._2023.pdf",
+    "pdf_sha256": "bb18071c3a08ee06af0b4bf8f764cafa6ba42a8f94fb5f42e8d7dd7c31edd5e9",
+    "pdf_pages": 38,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T16:23:19.311764+00:00",
+    "completed_at": "2026-11-10T16:24:06.409085+00:00",
+    "elapsed_seconds": 47.1,
+    "request_id": "req_011CguZDrf5VTqMWVbzPu3QL",
+    "response_id": "msg_011CguZDujcyBVDQJ24RLtCn",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 114710
+      },
+      "cache_creation_input_tokens": 114710,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 3669,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.647,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "The paper reports a purposive expert survey (92 invited, 51 responses, 26 April–8 May 2023) asking respondents from AGI labs, academia and civil society how far they agree with 50 short normative statements about what AGI labs should do. Every item has a positive mean; 49 of 50 have majority agreement; pre-deployment risk assessment, dangerous-capability evaluations, third-party audits, safety restrictions and red teaming reach about 98% agreement. The study is timely, transparent about many of its limits, pre-registered, and shares code and data on OSF. The resulting list of practices is a useful agenda-setting artefact for standards bodies, regulators and lab governance teams. However, several design and analysis choices limit how much evidential weight the headline \"consensus\" can bear.\n\nFirst, sampling. The sampling frame was built by the author team through subjective judgments of expertise and availability, which the authors acknowledge biases it toward people they knew. The named respondents (33 of 51) are concentrated in one intellectual community: AI-safety/longtermist-adjacent organisations, philanthropic funders and, notably, Google DeepMind (12 of the 33 named). AGI-lab staff are 44% of the sample. Affiliation alone is not evidence of bias. Still, the population is plausibly much more favourable to safety-oriented governance than the wider set of relevant experts (ML researchers, open-source advocates, safety engineers, policy generalists, Global South perspectives). The 55% response rate adds possible self-selection on sympathy for the project. \"Consensus among leading experts\" is therefore better read as consensus within a fairly homogeneous safety-governance community. The abstract and key findings do not flag this clearly enough.\n\nSecond, item design. The authors concede that the statements are abstract and lack timing, thresholds, costs or trade-offs, and they call the resulting high agreement \"a feature, not a bug\". This undermines the inference that the items are \"best practices\". Agreeing that labs should \"take extensive measures\" or \"implement state-of-the-art techniques\" is nearly costless. With no forced ranking, budget allocation or trade-off questions, the survey cannot tell regulators what to prioritise, despite the policy section claiming it can. The near-universal agreement and ceiling effects compress variance, so relative rankings among the top 30 items rest on small differences. Acquiescence bias in uniformly positively worded \"labs should\" items is not addressed. Wording is also inconsistent: one item says \"strongly consider\", some items embed specific examples, and the enterprise-risk-management (ERM) item had 25% \"I don't know\". This muddies cross-item comparisons, which the authors partly acknowledge. In addition, 20 items were optional, with n of roughly 36–39 rather than 51. Respondents who skip optional items may differ systematically, yet optional and required items are compared directly in the rankings. Excluding \"I don't know\" responses from the means inflates apparent agreement for low-familiarity items, and the Likert scale is treated as interval when reporting means and confidence intervals.\n\nThird, inferential statistics. The headline sector difference (AGI-lab respondents agree more) uses Mann-Whitney U tests on pooled ratings across all items. The very large U statistics (e.g., 1,106,715) imply that individual ratings from the same person across 50 items were treated as independent observations. This is pseudo-replication that greatly overstates the effective sample size, so the p<0.001 results are not credible as stated. A respondent-level test, or a mixed model with respondent and item random effects, would be appropriate. Notably, the pre-registered regressions were dropped. The item-level chi-squared tests with groups of about 11–25 have very small expected cell counts and almost no power after Holm correction, so \"no significant differences\" is uninformative. The discussion nonetheless interprets several non-significant subgroup differences substantively (e.g., labs less keen on pausing and state notification). The k-means cluster analysis on 51 respondents, mixing one-hot demographics with responses, is essentially uninformative, as the authors admit.\n\nFourth, internal consistency and reporting. Table 4 lists n=25/11/11 for every item, including optional items, which conflicts with the text (N=13 for academia and civil society) and with Table 5's varying n. Table 3 appears to swap n values (bug bounty n=39 vs. publish alignment strategy n=51; staged deployment vs. background checks). The captions of Tables 1–2 say \"total agreement column\" for disagreement. Sector categories allowed multiple selections, which complicates group comparisons. Some discussion is speculative: inferring inter-lab notification from same-day GPT-4/Claude releases, or assuming Anthropic monitors deployments. The policy implications (e.g., that findings \"suggest\" CEN-CENELEC should include pre-training risk assessment) go beyond what attitudinal data from a self-selected sample can support. The workshop summary is useful context but is anecdotal and unsystematic.\n\nStrengths:\n- Clear presentation, with full item wording and frequency tables.\n- Pre-registration, with deviations disclosed.\n- Open data and code, with demographics withheld for privacy.\n- A candid limitations section.\n- A practical, reusable item bank that later surveys and lab-practice scorecards can build on.\n\nOverall, the paper is a valuable, quick-turnaround descriptive snapshot with real agenda-setting utility. As evidence about which practices are justified or should be prioritised, it is weak. Its main inferential claim about sector differences is statistically flawed.",
+    "key_issues": [
+      "1. Purposive, author-selected sample drawn largely from one safety-governance community (heavy AGI-lab and Google DeepMind representation among named respondents), so 'expert consensus' may reflect in-group agreement rather than field-wide views.",
+      "2. Statements are abstract, uniformly positively worded 'labs should' claims with no costs, thresholds, timing or trade-offs; near-universal agreement and acquiescence bias limit their value as evidence of 'best practices'.",
+      "3. No forced ranking, budget allocation or trade-off elicitation, so the survey cannot support the claimed use of prioritising policy interventions; ceiling effects compress differences among the top items.",
+      "4. The sector-difference Mann-Whitney tests appear to pool all item-level ratings as independent observations (U ≈ 1.1 million), which is pseudo-replication; the p<0.001 headline finding is unreliable, and a respondent-level or mixed-effects analysis is needed.",
+      "5. Item-level chi-squared tests with subgroups of about 11–25 and small expected counts are severely underpowered, yet non-significant subgroup differences are discussed substantively.",
+      "6. 20 optional items (n ≈ 36–39) and the exclusion of 'I don't know' responses introduce selection effects and inflate means, especially for low-familiarity items such as ERM; cross-item comparisons mix required and optional items.",
+      "7. Reporting inconsistencies: Table 4 shows n=25/11/11 for all items (conflicting with text and Table 5); Table 3 appears to swap n values for some items; Tables 1–2 captions mislabel the disagreement column; sector was multi-select.",
+      "8. Pre-registered regression analyses were dropped; the cluster analysis on n=51 is uninformative.",
+      "9. Policy implications (e.g., for EU harmonised standards or US regulation) overreach what attitudinal data from a self-selected sample can justify.",
+      "10. Some speculative claims (e.g., same-day GPT-4/Claude releases as evidence of inter-lab notification) and an anecdotal workshop summary weaken the discussion's rigour.",
+      "11. Likert responses are treated as interval for means and CIs, and respondents' reasoning was not elicited, limiting interpretation of the low-agreement and high-uncertainty items."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 52,
+        "lower_bound": 35,
+        "upper_bound": 68
+      },
+      "claims_evidence": {
+        "midpoint": 42,
+        "lower_bound": 27,
+        "upper_bound": 58
+      },
+      "methods": {
+        "midpoint": 38,
+        "lower_bound": 24,
+        "upper_bound": 54
+      },
+      "advancing_knowledge": {
+        "midpoint": 60,
+        "lower_bound": 42,
+        "upper_bound": 76
+      },
+      "logic_communication": {
+        "midpoint": 64,
+        "lower_bound": 50,
+        "upper_bound": 77
+      },
+      "open_science": {
+        "midpoint": 68,
+        "lower_bound": 52,
+        "upper_bound": 82
+      },
+      "global_relevance": {
+        "midpoint": 74,
+        "lower_bound": 58,
+        "upper_bound": 87
+      },
+      "tier_should": {
+        "score": 2.3,
+        "ci_lower": 1.5,
+        "ci_upper": 3.2
+      },
+      "tier_will": {
+        "score": 2.5,
+        "ci_lower": 1.5,
+        "ci_upper": 3.5
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"The paper reports a purposive expert survey (92 invited, 51 responses, 26 April–8 May 2023) asking respondents from AGI labs, academia and civil society how far they agree with 50 short normative statements about what AGI labs should do. Every item has a positive mean; 49 of 50 have majority agreement; pre-deployment risk assessment, dangerous-capability evaluations, third-party audits, safety restrictions and red teaming reach about 98% agreement. The study is timely, transparent about many of its limits, pre-registered, and shares code and data on OSF. The resulting list of practices is a useful agenda-setting artefact for standards bodies, regulators and lab governance teams. However, several design and analysis choices limit how much evidential weight the headline \\\"consensus\\\" can bear.\\n\\nFirst, sampling. The sampling frame was built by the author team through subjective judgments of expertise and availability, which the authors acknowledge biases it toward people they knew. The named respondents (33 of 51) are concentrated in one intellectual community: AI-safety/longtermist-adjacent organisations, philanthropic funders and, notably, Google DeepMind (12 of the 33 named). AGI-lab staff are 44% of the sample. Affiliation alone is not evidence of bias. Still, the population is plausibly much more favourable to safety-oriented governance than the wider set of relevant experts (ML researchers, open-source advocates, safety engineers, policy generalists, Global South perspectives). The 55% response rate adds possible self-selection on sympathy for the project. \\\"Consensus among leading experts\\\" is therefore better read as consensus within a fairly homogeneous safety-governance community. The abstract and key findings do not flag this clearly enough.\\n\\nSecond, item design. The authors concede that the statements are abstract and lack timing, thresholds, costs or trade-offs, and they call the resulting high agreement \\\"a feature, not a bug\\\". This undermines the inference that the items are \\\"best practices\\\". Agreeing that labs should \\\"take extensive measures\\\" or \\\"implement state-of-the-art techniques\\\" is nearly costless. With no forced ranking, budget allocation or trade-off questions, the survey cannot tell regulators what to prioritise, despite the policy section claiming it can. The near-universal agreement and ceiling effects compress variance, so relative rankings among the top 30 items rest on small differences. Acquiescence bias in uniformly positively worded \\\"labs should\\\" items is not addressed. Wording is also inconsistent: one item says \\\"strongly consider\\\", some items embed specific examples, and the enterprise-risk-management (ERM) item had 25% \\\"I don't know\\\". This muddies cross-item comparisons, which the authors partly acknowledge. In addition, 20 items were optional, with n of roughly 36–39 rather than 51. Respondents who skip optional items may differ systematically, yet optional and required items are compared directly in the rankings. Excluding \\\"I don't know\\\" responses from the means inflates apparent agreement for low-familiarity items, and the Likert scale is treated as interval when reporting means and confidence intervals.\\n\\nThird, inferential statistics. The headline sector difference (AGI-lab respondents agree more) uses Mann-Whitney U tests on pooled ratings across all items. The very large U statistics (e.g., 1,106,715) imply that individual ratings from the same person across 50 items were treated as independent observations. This is pseudo-replication that greatly overstates the effective sample size, so the p<0.001 results are not credible as stated. A respondent-level test, or a mixed model with respondent and item random effects, would be appropriate. Notably, the pre-registered regressions were dropped. The item-level chi-squared tests with groups of about 11–25 have very small expected cell counts and almost no power after Holm correction, so \\\"no significant differences\\\" is uninformative. The discussion nonetheless interprets several non-significant subgroup differences substantively (e.g., labs less keen on pausing and state notification). The k-means cluster analysis on 51 respondents, mixing one-hot demographics with responses, is essentially uninformative, as the authors admit.\\n\\nFourth, internal consistency and reporting. Table 4 lists n=25/11/11 for every item, including optional items, which conflicts with the text (N=13 for academia and civil society) and with Table 5's varying n. Table 3 appears to swap n values (bug bounty n=39 vs. publish alignment strategy n=51; staged deployment vs. background checks). The captions of Tables 1–2 say \\\"total agreement column\\\" for disagreement. Sector categories allowed multiple selections, which complicates group comparisons. Some discussion is speculative: inferring inter-lab notification from same-day GPT-4/Claude releases, or assuming Anthropic monitors deployments. The policy implications (e.g., that findings \\\"suggest\\\" CEN-CENELEC should include pre-training risk assessment) go beyond what attitudinal data from a self-selected sample can support. The workshop summary is useful context but is anecdotal and unsystematic.\\n\\nStrengths:\\n- Clear presentation, with full item wording and frequency tables.\\n- Pre-registration, with deviations disclosed.\\n- Open data and code, with demographics withheld for privacy.\\n- A candid limitations section.\\n- A practical, reusable item bank that later surveys and lab-practice scorecards can build on.\\n\\nOverall, the paper is a valuable, quick-turnaround descriptive snapshot with real agenda-setting utility. As evidence about which practices are justified or should be prioritised, it is weak. Its main inferential claim about sector differences is statistically flawed.\",\"key_issues\":[\"1. Purposive, author-selected sample drawn largely from one safety-governance community (heavy AGI-lab and Google DeepMind representation among named respondents), so 'expert consensus' may reflect in-group agreement rather than field-wide views.\",\"2. Statements are abstract, uniformly positively worded 'labs should' claims with no costs, thresholds, timing or trade-offs; near-universal agreement and acquiescence bias limit their value as evidence of 'best practices'.\",\"3. No forced ranking, budget allocation or trade-off elicitation, so the survey cannot support the claimed use of prioritising policy interventions; ceiling effects compress differences among the top items.\",\"4. The sector-difference Mann-Whitney tests appear to pool all item-level ratings as independent observations (U ≈ 1.1 million), which is pseudo-replication; the p<0.001 headline finding is unreliable, and a respondent-level or mixed-effects analysis is needed.\",\"5. Item-level chi-squared tests with subgroups of about 11–25 and small expected counts are severely underpowered, yet non-significant subgroup differences are discussed substantively.\",\"6. 20 optional items (n ≈ 36–39) and the exclusion of 'I don't know' responses introduce selection effects and inflate means, especially for low-familiarity items such as ERM; cross-item comparisons mix required and optional items.\",\"7. Reporting inconsistencies: Table 4 shows n=25/11/11 for all items (conflicting with text and Table 5); Table 3 appears to swap n values for some items; Tables 1–2 captions mislabel the disagreement column; sector was multi-select.\",\"8. Pre-registered regression analyses were dropped; the cluster analysis on n=51 is uninformative.\",\"9. Policy implications (e.g., for EU harmonised standards or US regulation) overreach what attitudinal data from a self-selected sample can justify.\",\"10. Some speculative claims (e.g., same-day GPT-4/Claude releases as evidence of inter-lab notification) and an anecdotal workshop summary weaken the discussion's rigour.\",\"11. Likert responses are treated as interval for means and CIs, and respondents' reasoning was not elicited, limiting interpretation of the low-agreement and high-uncertainty items.\"],\"metrics\":{\"overall\":{\"midpoint\":52,\"lower_bound\":35,\"upper_bound\":68},\"claims_evidence\":{\"midpoint\":42,\"lower_bound\":27,\"upper_bound\":58},\"methods\":{\"midpoint\":38,\"lower_bound\":24,\"upper_bound\":54},\"advancing_knowledge\":{\"midpoint\":60,\"lower_bound\":42,\"upper_bound\":76},\"logic_communication\":{\"midpoint\":64,\"lower_bound\":50,\"upper_bound\":77},\"open_science\":{\"midpoint\":68,\"lower_bound\":52,\"upper_bound\":82},\"global_relevance\":{\"midpoint\":74,\"lower_bound\":58,\"upper_bound\":87},\"tier_should\":{\"score\":2.3,\"ci_lower\":1.5,\"ci_upper\":3.2},\"tier_will\":{\"score\":2.5,\"ci_lower\":1.5,\"ci_upper\":3.5}}}",
+  "thinking_summaries": [
+    "I'm weighing the paper's main weaknesses: the 51 experts were picked by the authors, so the sample is likely skewed toward one community with heavy representation from one lab. I also want to flag acquiescence bias, vague abstract statements, \"should\" claims that ignore costs, and the lack of any forced ranking, since agreement alone doesn't establish best practice.\n\nI'm checking the statistics next: the sector comparison seems to treat ratings across items as independent, which would inflate significance, and the chi-squared tests have small expected counts. I'm also noticing sample-size inconsistencies in the tables and a couple of swapped n values in Table 3.\n\nI'm wrapping up the critique: the paper's contribution is influential and timely but methodologically simple, and I'm settling on an overall score around 55 with a journal tier estimate of about 2.3 to 2.5.\n\n"
+  ]
+}

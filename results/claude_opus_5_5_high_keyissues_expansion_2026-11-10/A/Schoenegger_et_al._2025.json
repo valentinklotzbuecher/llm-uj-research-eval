@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "run_id": "claude_opus_5_5_high_keyissues_expansion_2026-11-10",
+    "paper": "Schoenegger_et_al._2025",
+    "condition": "A",
+    "claim_id": null,
+    "replicate": 1,
+    "interface": "Anthropic Messages API (streaming), anthropic Python SDK",
+    "sdk_version": "0.96.0",
+    "model_requested": "claude-opus-5-5",
+    "effort": "high",
+    "thinking": "adaptive, display summarized",
+    "max_tokens": 64000,
+    "fallbacks": "none (refusals are recorded, not rerouted)",
+    "prompt_version": "methods_qmd_SYSTEM_PROMPT_WITH_ISSUES",
+    "system_prompt_sha256": "ed191db91a1d12272c75c896ac50824695384aba562b83741e08d88a89d9d95b",
+    "user_text_sha256": "76644048c5c17658cf77219f2e80ee6f4f2e180359f041653e90e94438d5ed2e",
+    "schema_sha256": "36d7c9b04bf1bbee4444cecd39f7b254f08c419fe7ab8fae9a6565ccf8cfcd8d",
+    "schema_note": "numeric and array-length bounds stripped for structured outputs; checked locally",
+    "methods_qmd_sha256": "70ac129a5efa1efb227441981097a2d7c204871cf30c2d5144812e24a34cfaab",
+    "methods_qmd_last_commit": "f7eb01ecf418292b7fb6c74fc23d51b2087488f6",
+    "pdf_path": "papers/Schoenegger_et_al._2025.pdf",
+    "pdf_sha256": "d913d7a94a2b7dfb0e32aa520a32d219e21a6b193e245a8555e2edda038db969",
+    "pdf_pages": 25,
+    "pdf_last_commit": "c304c9c962c408092fcb8349377688b462476b13",
+    "input_modality": "native PDF document block (base64), cache breakpoint after the PDF",
+    "tools": "none",
+    "started_at": "2026-11-10T16:22:16.304537+00:00",
+    "completed_at": "2026-11-10T16:23:19.161541+00:00",
+    "elapsed_seconds": 62.8,
+    "request_id": "req_011CguZ9DX4LcpJ2sAbCwXJq",
+    "response_id": "msg_011CguZ9icXTXV24ACdXEfrR",
+    "model_returned": "claude-opus-5-5",
+    "stop_reason": "end_turn",
+    "stop_details": null,
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 78174
+      },
+      "cache_creation_input_tokens": 78174,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 23,
+      "output_tokens": 4907,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "est_cost_usd": 0.4891,
+    "price_basis_usd_per_mtok": {
+      "input": 4.0,
+      "output": 20.0,
+      "cache_write_5m": 5.0,
+      "cache_read": 0.2
+    },
+    "validation_errors": []
+  },
+  "claim": null,
+  "user_text": "Return STRICT JSON per schema. No extra text.",
+  "parsed": {
+    "assessment_summary": "This preregistered online experiment (N=991 Prolific participants after exclusions) randomizes participants to one of three chat assistants: a GPT-4-Turbo assistant with a 'superforecasting' system prompt, a GPT-4-Turbo assistant prompted to be overconfident and to neglect base rates ('noisy'), or a control using text-davinci-003 instructed never to provide forecasts. Participants then forecast six continuous-outcome questions resolving about five weeks later. The headline result is that both GPT-4-Turbo arms reduce standardized absolute error by roughly 24–28% relative to control, with no significant difference between them. After excluding one question post hoc, the superforecasting arm outperforms the noisy arm. The topic is timely and practically relevant, the design is prospective (no training-data leakage), the sample is large, and the analysis plan was preregistered with a power analysis. Several features, however, substantially limit what can be concluded.\n\n**The treatment–control contrast is heavily bundled.** The control differs from the treatments in at least three ways:\n- model capability (davinci-003 vs GPT-4-Turbo);\n- an explicit prohibition on giving forecasts;\n- a minimal versus an elaborate system prompt.\n\nThe effect therefore cannot be attributed to 'LLM augmentation' as such, nor to interactive deliberation specifically. It may simply reflect access to a model that will output plausible numerical magnitudes. There is no human-only arm and no systematically evaluated LLM-alone benchmark; Table 3 reports a single direct query per question. The paper therefore cannot establish human–AI complementarity, i.e., that the hybrid beats either component. Notably, the superforecasting model's direct forecasts were within about 4–6% of the truth on Q1 and Q4, suggesting participants may largely have adopted model numbers.\n\n**Mechanism evidence points toward error avoidance, not better reasoning.** The noisy assistant performs as well as the superforecasting one. On Q4 it produces the best accuracy of any arm, and on Q3 (Bitcoin hash rate) it dominates. The appendix CDFs show the noisy arm's advantage comes mainly from fewer predictions at the winsorization bound. This suggests the dominant effect is correcting gross unit or magnitude errors (e.g., confusing hash rate with price), not improving calibrated reasoning. Yet the discussion attributes gains to 'continuous back-and-forth', 'induced deliberation' and 'true human-AI complementarity'. No chat logs, usage intensity, copying behaviour or time-on-task data are analysed, so these mechanism claims are speculative.\n\n**Outcome construction is fragile and partly post hoc.**\n- Errors are absolute differences on wildly different scales.\n- They are trimmed or winsorized at 5%/95%. The text says 'removing', which implies trimming, not winsorizing, and the procedure was applied to all groups as a stated deviation from the preregistration.\n- They are then scaled by the control-group SD and winsorized again at 3 SD.\n\nPercentage improvements (24–28%, 41%) are relative to this constructed metric and are not interpretable in natural units. No alternative scoring rules (log or percentage error, rank-based measures) are reported. Because the 5% step was changed after seeing that conditions differed by orders of magnitude, robustness to the original rule matters and should be shown.\n\n**Generalization rests on six questions answered at one time point.** Inference treats participants as independent units, while question-level heterogeneity is enormous: treatment effects even reverse sign by question (e.g., noisy is worse than control on Q6). With six items, the effective sample for generalizing across forecasting tasks is tiny. The leave-one-out sensitivity analysis shows conclusions hinge on a single item. The abstract foregrounds the exploratory 41% vs 29% contrast that drops Q3, a forking-paths result, although the limitations section acknowledges this.\n\n**Exclusions and balance are not documented.** 161 participants (14%) were excluded, partly for not engaging with the assistant. Engagement could plausibly differ by arm, since a non-forecasting davinci bot is less useful. Arm-level Ns, exclusion rates by arm, and covariate balance are not reported. Outside internet or LLM use was not monitored.\n\n**Secondary hypotheses are weakly operationalized.**\n- *Skill (H2):* skill is a median split from three binary questions plus intersubjective accuracy. This is very noisy, so the null interaction is low-powered against measurement error. The paper's claim that it 'adds to the body of evidence against' skill-compression findings is overstated.\n- *Difficulty (H4):* difficulty is defined from ratings by roughly 10% of control participants and labels only two questions as hard, one of which is the anomalous Q3. Difficulty is thus confounded with question identity.\n- *Aggregation (H3):* the analysis is ambiguous about whether it computes the error of the median forecast or the median of individual errors. It reports bootstrap CIs that are implausibly narrow and asymmetric (e.g., 0.41 [0.40, 0.46]). It does not directly measure forecast diversity. The conclusion that the data 'reject the worry' of degraded aggregation is not warranted, given the paper itself calls the results mixed and question-dependent.\n\n**Minor issues.**\n- The H4 p-value is reported as 0.067 in Table 6 but 0.065 in the BH list.\n- The listed p = 0.001 for H1 is actually p < .001.\n- Much text is spent on leaderboard and hallucination-rate claims for GPT-4-Turbo that are irrelevant to the experiment.\n- The 'cost per 1,000 tokens' framing lacks any cost-effectiveness analysis.\n\n**Open science.** The OSF preregistration link and full prompts aid transparency. However, data and code availability is not stated in the paper, and davinci-003 has since been deprecated, impeding exact replication.\n\n**Overall.** This is a useful, preregistered first RCT on LLM-assisted judgmental forecasting with a credible primary finding: access to a numerically forthcoming frontier model reduced large errors relative to a non-forecasting weak model. Its interpretation, mechanism claims and secondary conclusions are considerably stronger than the design supports.",
+    "key_issues": [
+      "1. The control bundles a weaker model (davinci-003), an explicit no-forecast instruction and a minimal prompt, so effects cannot be attributed to LLM augmentation, interactivity or prompt design. There is no human-only arm and no systematic LLM-alone benchmark, so complementarity is not established.",
+      "2. The noisy (biased) assistant matches the superforecasting assistant, and the appendix CDFs show gains come mostly from fewer extreme errors at the winsorization bound. This points to correction of magnitude/unit errors rather than improved reasoning, contrary to the discussion's mechanism claims.",
+      "3. Only six continuous questions from a single date are used, with large sign-reversing heterogeneity across questions. Inference treats participants as units, ignoring that generalization across tasks rests on n=6 items.",
+      "4. Key comparative conclusions (superforecasting > noisy; the 41% vs 29% figures highlighted in the abstract) depend on post hoc exclusion of Q3, which constitutes a forking-paths risk.",
+      "5. Outcome construction is fragile: absolute errors on heterogeneous scales; 5% trimming/winsorizing applied to all groups as a post-data deviation from the preregistration; scaling by control SD; second 3-SD winsorization. No alternative scoring rules or robustness to the preregistered rule are shown.",
+      "6. 14% of participants were excluded, partly for non-engagement with the assistant, without arm-level exclusion counts, final arm Ns or balance checks. Differential exclusion could bias comparisons.",
+      "7. No chat-log, usage, copying or time-on-task analysis is provided, and outside internet/LLM use was not controlled, leaving mechanisms unexamined.",
+      "8. The aggregation (H3) analysis is ambiguously defined, with implausibly narrow and asymmetric bootstrap CIs and no direct diversity measure. The claim that it rejects worries about crowd-wisdom degradation is overstated.",
+      "9. The skill measure (median split from three binary questions plus intersubjective accuracy) is very noisy, so the null skill interaction is weak evidence and is overinterpreted as evidence against skill-compression findings.",
+      "10. The difficulty classification rests on ratings from about 10% of control participants and only two 'hard' questions (including anomalous Q3), confounding difficulty with question identity.",
+      "11. There are minor reporting inconsistencies (p = .067 vs .065; p < .001 entered as .001 in the BH list), and the paper includes irrelevant leaderboard and hallucination-rate claims.",
+      "12. Data and code availability is not stated, and the deprecated control model hinders exact replication, though the preregistration and full prompts are provided."
+    ],
+    "metrics": {
+      "overall": {
+        "midpoint": 52,
+        "lower_bound": 38,
+        "upper_bound": 66
+      },
+      "claims_evidence": {
+        "midpoint": 45,
+        "lower_bound": 32,
+        "upper_bound": 60
+      },
+      "methods": {
+        "midpoint": 46,
+        "lower_bound": 33,
+        "upper_bound": 60
+      },
+      "advancing_knowledge": {
+        "midpoint": 57,
+        "lower_bound": 42,
+        "upper_bound": 70
+      },
+      "logic_communication": {
+        "midpoint": 55,
+        "lower_bound": 42,
+        "upper_bound": 68
+      },
+      "open_science": {
+        "midpoint": 55,
+        "lower_bound": 38,
+        "upper_bound": 70
+      },
+      "global_relevance": {
+        "midpoint": 60,
+        "lower_bound": 45,
+        "upper_bound": 73
+      },
+      "tier_should": {
+        "score": 2.7,
+        "ci_lower": 1.9,
+        "ci_upper": 3.5
+      },
+      "tier_will": {
+        "score": 3.0,
+        "ci_lower": 2.2,
+        "ci_upper": 3.7
+      }
+    }
+  },
+  "result_text": "{\"assessment_summary\":\"This preregistered online experiment (N=991 Prolific participants after exclusions) randomizes participants to one of three chat assistants: a GPT-4-Turbo assistant with a 'superforecasting' system prompt, a GPT-4-Turbo assistant prompted to be overconfident and to neglect base rates ('noisy'), or a control using text-davinci-003 instructed never to provide forecasts. Participants then forecast six continuous-outcome questions resolving about five weeks later. The headline result is that both GPT-4-Turbo arms reduce standardized absolute error by roughly 24–28% relative to control, with no significant difference between them. After excluding one question post hoc, the superforecasting arm outperforms the noisy arm. The topic is timely and practically relevant, the design is prospective (no training-data leakage), the sample is large, and the analysis plan was preregistered with a power analysis. Several features, however, substantially limit what can be concluded.\\n\\n**The treatment–control contrast is heavily bundled.** The control differs from the treatments in at least three ways:\\n- model capability (davinci-003 vs GPT-4-Turbo);\\n- an explicit prohibition on giving forecasts;\\n- a minimal versus an elaborate system prompt.\\n\\nThe effect therefore cannot be attributed to 'LLM augmentation' as such, nor to interactive deliberation specifically. It may simply reflect access to a model that will output plausible numerical magnitudes. There is no human-only arm and no systematically evaluated LLM-alone benchmark; Table 3 reports a single direct query per question. The paper therefore cannot establish human–AI complementarity, i.e., that the hybrid beats either component. Notably, the superforecasting model's direct forecasts were within about 4–6% of the truth on Q1 and Q4, suggesting participants may largely have adopted model numbers.\\n\\n**Mechanism evidence points toward error avoidance, not better reasoning.** The noisy assistant performs as well as the superforecasting one. On Q4 it produces the best accuracy of any arm, and on Q3 (Bitcoin hash rate) it dominates. The appendix CDFs show the noisy arm's advantage comes mainly from fewer predictions at the winsorization bound. This suggests the dominant effect is correcting gross unit or magnitude errors (e.g., confusing hash rate with price), not improving calibrated reasoning. Yet the discussion attributes gains to 'continuous back-and-forth', 'induced deliberation' and 'true human-AI complementarity'. No chat logs, usage intensity, copying behaviour or time-on-task data are analysed, so these mechanism claims are speculative.\\n\\n**Outcome construction is fragile and partly post hoc.**\\n- Errors are absolute differences on wildly different scales.\\n- They are trimmed or winsorized at 5%/95%. The text says 'removing', which implies trimming, not winsorizing, and the procedure was applied to all groups as a stated deviation from the preregistration.\\n- They are then scaled by the control-group SD and winsorized again at 3 SD.\\n\\nPercentage improvements (24–28%, 41%) are relative to this constructed metric and are not interpretable in natural units. No alternative scoring rules (log or percentage error, rank-based measures) are reported. Because the 5% step was changed after seeing that conditions differed by orders of magnitude, robustness to the original rule matters and should be shown.\\n\\n**Generalization rests on six questions answered at one time point.** Inference treats participants as independent units, while question-level heterogeneity is enormous: treatment effects even reverse sign by question (e.g., noisy is worse than control on Q6). With six items, the effective sample for generalizing across forecasting tasks is tiny. The leave-one-out sensitivity analysis shows conclusions hinge on a single item. The abstract foregrounds the exploratory 41% vs 29% contrast that drops Q3, a forking-paths result, although the limitations section acknowledges this.\\n\\n**Exclusions and balance are not documented.** 161 participants (14%) were excluded, partly for not engaging with the assistant. Engagement could plausibly differ by arm, since a non-forecasting davinci bot is less useful. Arm-level Ns, exclusion rates by arm, and covariate balance are not reported. Outside internet or LLM use was not monitored.\\n\\n**Secondary hypotheses are weakly operationalized.**\\n- *Skill (H2):* skill is a median split from three binary questions plus intersubjective accuracy. This is very noisy, so the null interaction is low-powered against measurement error. The paper's claim that it 'adds to the body of evidence against' skill-compression findings is overstated.\\n- *Difficulty (H4):* difficulty is defined from ratings by roughly 10% of control participants and labels only two questions as hard, one of which is the anomalous Q3. Difficulty is thus confounded with question identity.\\n- *Aggregation (H3):* the analysis is ambiguous about whether it computes the error of the median forecast or the median of individual errors. It reports bootstrap CIs that are implausibly narrow and asymmetric (e.g., 0.41 [0.40, 0.46]). It does not directly measure forecast diversity. The conclusion that the data 'reject the worry' of degraded aggregation is not warranted, given the paper itself calls the results mixed and question-dependent.\\n\\n**Minor issues.**\\n- The H4 p-value is reported as 0.067 in Table 6 but 0.065 in the BH list.\\n- The listed p = 0.001 for H1 is actually p < .001.\\n- Much text is spent on leaderboard and hallucination-rate claims for GPT-4-Turbo that are irrelevant to the experiment.\\n- The 'cost per 1,000 tokens' framing lacks any cost-effectiveness analysis.\\n\\n**Open science.** The OSF preregistration link and full prompts aid transparency. However, data and code availability is not stated in the paper, and davinci-003 has since been deprecated, impeding exact replication.\\n\\n**Overall.** This is a useful, preregistered first RCT on LLM-assisted judgmental forecasting with a credible primary finding: access to a numerically forthcoming frontier model reduced large errors relative to a non-forecasting weak model. Its interpretation, mechanism claims and secondary conclusions are considerably stronger than the design supports.\",\"key_issues\":[\"1. The control bundles a weaker model (davinci-003), an explicit no-forecast instruction and a minimal prompt, so effects cannot be attributed to LLM augmentation, interactivity or prompt design. There is no human-only arm and no systematic LLM-alone benchmark, so complementarity is not established.\",\"2. The noisy (biased) assistant matches the superforecasting assistant, and the appendix CDFs show gains come mostly from fewer extreme errors at the winsorization bound. This points to correction of magnitude/unit errors rather than improved reasoning, contrary to the discussion's mechanism claims.\",\"3. Only six continuous questions from a single date are used, with large sign-reversing heterogeneity across questions. Inference treats participants as units, ignoring that generalization across tasks rests on n=6 items.\",\"4. Key comparative conclusions (superforecasting > noisy; the 41% vs 29% figures highlighted in the abstract) depend on post hoc exclusion of Q3, which constitutes a forking-paths risk.\",\"5. Outcome construction is fragile: absolute errors on heterogeneous scales; 5% trimming/winsorizing applied to all groups as a post-data deviation from the preregistration; scaling by control SD; second 3-SD winsorization. No alternative scoring rules or robustness to the preregistered rule are shown.\",\"6. 14% of participants were excluded, partly for non-engagement with the assistant, without arm-level exclusion counts, final arm Ns or balance checks. Differential exclusion could bias comparisons.\",\"7. No chat-log, usage, copying or time-on-task analysis is provided, and outside internet/LLM use was not controlled, leaving mechanisms unexamined.\",\"8. The aggregation (H3) analysis is ambiguously defined, with implausibly narrow and asymmetric bootstrap CIs and no direct diversity measure. The claim that it rejects worries about crowd-wisdom degradation is overstated.\",\"9. The skill measure (median split from three binary questions plus intersubjective accuracy) is very noisy, so the null skill interaction is weak evidence and is overinterpreted as evidence against skill-compression findings.\",\"10. The difficulty classification rests on ratings from about 10% of control participants and only two 'hard' questions (including anomalous Q3), confounding difficulty with question identity.\",\"11. There are minor reporting inconsistencies (p = .067 vs .065; p < .001 entered as .001 in the BH list), and the paper includes irrelevant leaderboard and hallucination-rate claims.\",\"12. Data and code availability is not stated, and the deprecated control model hinders exact replication, though the preregistration and full prompts are provided.\"],\"metrics\":{\"overall\":{\"midpoint\":52,\"lower_bound\":38,\"upper_bound\":66},\"claims_evidence\":{\"midpoint\":45,\"lower_bound\":32,\"upper_bound\":60},\"methods\":{\"midpoint\":46,\"lower_bound\":33,\"upper_bound\":60},\"advancing_knowledge\":{\"midpoint\":57,\"lower_bound\":42,\"upper_bound\":70},\"logic_communication\":{\"midpoint\":55,\"lower_bound\":42,\"upper_bound\":68},\"open_science\":{\"midpoint\":55,\"lower_bound\":38,\"upper_bound\":70},\"global_relevance\":{\"midpoint\":60,\"lower_bound\":45,\"upper_bound\":73},\"tier_should\":{\"score\":2.7,\"ci_lower\":1.9,\"ci_upper\":3.5},\"tier_will\":{\"score\":3.0,\"ci_lower\":2.2,\"ci_upper\":3.7}}}",
+  "thinking_summaries": [
+    "I'm checking the study design for confounds. The control arm runs a weaker model with an instruction to withhold forecasts, so the treatments differ in model capability, forecast willingness, and prompt all at once, and there's no human-only baseline to separate the effects. I also note the sample is just six questions at one time point, with outcomes that are highly correlated.\n\nI'm weighing the outcome measure now: the absolute error is scale-dependent, the winsorization drifts from the preregistered plan and the trimming is ambiguous, and standardizing by control SD mechanically pushes the treatment values lower. I'm also considering whether the noisy assistant matching the others means the effect comes from anchoring on plausible magnitudes rather than from reasoning.\n\nI'm working through the remaining concerns: the exclusions of 161 participants without per-arm counts or balance tables, and the unreported final arm sizes against the 1.5/1/1 allocation. I'm also noting that there's no usage data or chat logs, so compliance and how the assistant was actually used can't be checked, and the aggregate H3 bootstrap intervals look suspiciously narrow and asymmetric, with unclear wording about whether medians are taken over errors or over forecasts.\n\nI'm checking the second hypothesis measure next: the Brier scores rest on only three questions, and the median split probably adds noise, so a null result there may reflect measurement error rather than real absence of an effect. I also think the claim that this is evidence against the prevailing hypothesis is overstated. Then I'm looking at the difficulty rating, which came from roughly 30 control participants and only two hard questions, one of them Q3, so it's entangled with question identity, and the reported p-values of .067 and .065 don't line up consistently in the Benjamini-Hochberg listing.\n\nI'm looking at the open-science side now: the preregistration is on OSF and the prompts are shown, but the paper doesn't say whether data and code are available, and the davinci-003 model has been retired, which makes replication harder. I'm also weighing whether the discussion overreaches. Claims about improving human reasoning and true complementarity lack a human-only baseline, and there's no systematic LLM-alone comparison, so it's unclear whether the hybrid beats the model working alone, which might already outperform the humans on some questions.\n\nI'm settling on an overall score around 52 to 55, weighing the strong preregistered design and N=991 against the confounded control arm and the few questions. I'm also noting that the journal tier shouldn't factor into the judgment, and I'm leaning toward a final rating of about 3.0.\n\n"
+  ]
+}
