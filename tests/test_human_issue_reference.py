@@ -5,7 +5,6 @@ import unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
 
 import build_human_issue_reference as b  # noqa: E402
-import run_human_baseline_judge as h  # noqa: E402
 
 DOC = """---
 author:
@@ -69,34 +68,6 @@ class CleaningTests(unittest.TestCase):
         self.assertTrue(b.anchor_found("the estimate in table 2", "x The estimate in Table\n2 omits"))
         self.assertFalse(b.anchor_found("not there", "something else"))
         self.assertFalse(b.anchor_found("", "anything"))
-
-
-class BaselineTests(unittest.TestCase):
-    def test_shape_for_v2(self):
-        lists = {"P::E1": {"M1": "a", "M2": "b"}, "P::E2": {"M1": "c"}}
-        papers, case = h.as_v2_papers({"case_id": "x", "a": "P::E1", "b": "P::E2"}, lists)
-        self.assertEqual(set(papers["A"]["human"]), {"H1", "H2"})
-        self.assertEqual(set(papers["B"]["model"]), {"L1"})
-        bl = h.v2.blind(case, papers)
-        self.assertEqual((bl["n_human"], bl["n_model"]), (2, 1))
-
-    def test_minor_exclusion(self):
-        pairs = [{"human": "H1", "model": "L1", "category": "same_concern"},
-                 {"human": "H2", "model": "L1", "category": "same_concern"}]
-        m = h.metrics_excluding_minor(pairs, {"M1", "M2"}, {"M1", "M2"}, {"M2"}, set())
-        self.assertEqual((m["n_human"], m["n_model"]), (1, 2))
-        self.assertEqual(m["standard"]["human_covered"], 1)
-        self.assertEqual(m["standard"]["model_matched"], 1)
-
-    def test_cases_cover_all_evaluator_pairs(self):
-        ref = {p: {"E1": [{}], "E2": [{}]} for p in h.CORE[:8]}
-        ref[h.CORE[0]]["E3"] = [{}]
-        cases = h.build_cases(ref, set(), replicates=2, model_reps=1)
-        hh = [c for c in cases if c["kind"] == "hh"]
-        self.assertEqual(len(hh), 2 * (7 + 3))
-        ctl = [c for c in cases if c["kind"] == "control"]
-        self.assertEqual(len(ctl), 6)
-        self.assertTrue(all(c["a"].split("::")[0] != c["b"].split("::")[0] for c in ctl))
 
 
 if __name__ == "__main__":

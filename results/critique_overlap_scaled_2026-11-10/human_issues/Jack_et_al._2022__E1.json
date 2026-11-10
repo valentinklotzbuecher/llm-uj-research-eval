@@ -1,0 +1,86 @@
+{
+  "provenance": {
+    "paper": "Jack_et_al._2022",
+    "evaluator_label": "E1",
+    "source_doc_ref": "9286d135c7b1",
+    "source_sha256": "1b7bafe322efc5d4d04aaaf24ad35b36a6cbb94a77ae2144803a2c4541fd4e5f",
+    "source_body_chars": 13285,
+    "inputs_seen_by_extractor": "this evaluation's body text only (no paper, no model output)",
+    "model_requested": "claude-haiku-5-5",
+    "effort": "medium",
+    "system_prompt_sha256": "09ebe7eb50d0e0a238f0a7a5973a32ee4c248a85395c7a2e4b706197f2bf392d",
+    "schema_sha256": "8c9d6392cbe2f995716784a5c6327fd4197ecc0610e325463ef4203ca929507c",
+    "post_check": "reviewer-name tokens replaced by [name] after the quote check",
+    "completed_at": "2026-11-10T15:49:53.689280+00:00",
+    "model_returned": "claude-haiku-5-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 5219,
+      "output_tokens": 1151,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    "est_cost_usd": 0.0011,
+    "elapsed_seconds": 5.0,
+    "response_id": "msg_011CguWfeRkpkwMLCJJDbnpU",
+    "error": null
+  },
+  "issues": [
+    {
+      "id": "Jack_et_al._2022::E1::H01",
+      "text": "The paper does not explain why experienced farmers hold negative beliefs about alternative crop residue management (CRM) techniques, given that most have tried non-burning methods and the study finds no effect on winter cropping time or yields. The evaluator sees this as an unresolved puzzle the paper should address.",
+      "quote": "If alternative CRM has no negative effects, why do *experienced* farmers have negative beliefs about it?",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H02",
+      "text": "The intent-to-treat estimates on yields may understate negative effects of alternative CRM because many upfront PES farmers never adopted it (78% still burned). The evaluator suggests an IV analysis using randomization as an instrument for alternative CRM use, which might reveal a significant negative yield effect.",
+      "quote": "It's possible that the intent-to-treat shown in Table A.8 underestimates the negative effects on yield because of the large number of never-takers",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H03",
+      "text": "Compliance may be correlated with idiosyncratic shocks to kharif harvest timing, so farmers who complied may differ systematically from those who did not. The evaluator suggests checking whether early-harvest farmers were more likely to request checks, and using a selection model, to test this.",
+      "quote": "selected into compliance because of idiosyncratic shocks to their kharif harvest time",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H04",
+      "text": "The paper does not identify the mechanism by which upfront PES works while standard PES fails. The evaluator suggests kappa-weighting to compare compliers and never-takers on beliefs, cash constraints, and trust, and argues mechanism understanding is first-order for targeting and cost-effectiveness.",
+      "quote": "The paper could do more to identify the mechanism behind why upfront PES works when standard PES fails.",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H05",
+      "text": "The cost-effectiveness analysis omits climate co-benefits of reduced stubble burning. Using external emissions estimates, the evaluator argues the cost per tonne of CO2e averted is below most social cost of carbon estimates and should be included.",
+      "quote": "It is worth including these estimates as part of the cost-effectiveness calculation.",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H06",
+      "text": "The main outcome (crop burning) is a machine learning prediction treated as perfectly measured. This non-classical prediction error can bias estimates toward zero (attenuation) and, more seriously, the conventional standard errors are too small because they ignore prediction uncertainty, risking over-rejection of the null.",
+      "quote": "The conventional standard errors they use are too small to capture the true uncertainty in the treatment effect estimates, because they fail to take into account prediction errors by the machine learning model.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H07",
+      "text": "Attenuation bias from random misclassification of plots by the machine learning model biases treatment effect estimates toward zero. The evaluator notes this makes the estimates conservative but says it is still desirable to correct.",
+      "quote": "This would make the authors\\' estimates conservative, which is not a problem for their main conclusion - though it is still desirable to fix",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Jack_et_al._2022::E1::H08",
+      "text": "The authors should correct for machine learning prediction error in inference, for example via a bootstrap across training subsamples or the Chakrabortty and Cai (2017) semi-supervised estimator, which the evaluator considers more efficient.",
+      "quote": "the efficient approach is the one constructed by [Chakrabortty and Cai (2017)]",
+      "importance": "moderate",
+      "quote_verified": true
+    }
+  ]
+}

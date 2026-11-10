@@ -120,7 +120,7 @@ TITLE_KEYS: dict[str, str | None] = {
 # Reviewed by hand (first page of the PDF against the evaluation titles):
 # title differences that suggest the PDF may not be the version evaluated.
 VERSION_NOTES = {
-    "Alatas_et_al._2019": "PDF title ('When Celebrities Speak') differs from the evaluated title ('Do Celebrity Endorsements Matter?'); possibly a different version",
+    "Alatas_et_al._2019": "VERSION MISMATCH: PDF is the 2019 NBER version ('When Celebrities Speak'); the evaluation summary says the May 2023 version ('Do Celebrity Endorsements Matter?') was evaluated, and E2 contrasts the two",
     "Bergeron_et_al._2024": "PDF title says 'Zero-Sum Environments', evaluations say 'Zero-Sum Thinking'; possibly a different version",
     "Barker_et_al._2021": "UJ_map.csv lists a different title ('Cognitive Behavioral Therapy among Ghana's Rural Poor...'); the PDF matches the evaluated title",
     "Haushofer_et_al._2020": "titles match; check the PDF date against the 2023 evaluations",
@@ -280,6 +280,16 @@ def paper_docs(stem: str, docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [d for d in docs if key in d["key"]]
 
 
+def version_statements(stem: str) -> str:
+    """Statements in the extracted reports about which paper version was evaluated (after extraction)."""
+    f = OUT_DIR / "items" / f"{stem}.json"
+    if not f.exists():
+        return ""
+    rec = json.loads(f.read_text())
+    return " | ".join(f"{s}: {' '.join(v['version_statement'].split())[:200]}" for s, v in sorted(rec["sources"].items())
+                      if v.get("version_statement", "").strip())
+
+
 def build_manifest() -> list[dict[str, Any]]:
     docs = load_docs()
     pdfs = sorted(PAPERS_DIR.glob("*.pdf"))
@@ -337,6 +347,7 @@ def build_manifest() -> list[dict[str, Any]]:
             "manager_summary_clean_chars": ";".join(str(d["clean_chars"]) for d in em),
             "n_other_docs": len(other),
             "pdf_title_matches_evaluated_title": "" if title_match is None else ("yes" if title_match else "no"),
+            "version_statements": version_statements(stem),
             "notes": " | ".join(notes),
         })
     orphan = [d for d in docs if d["file"].name not in used and d["role"] in ("E1", "E2", "E3", "EM")]

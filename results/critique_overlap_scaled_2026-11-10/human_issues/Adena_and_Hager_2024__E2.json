@@ -1,0 +1,184 @@
+{
+  "provenance": {
+    "paper": "Adena_and_Hager_2024",
+    "evaluator_label": "E2",
+    "source_doc_ref": "8ee1739ae06d",
+    "source_sha256": "59eeb75594e1b5c4a583b2c499b69b362a5754ed0ece41507d1da1a20702e0d0",
+    "source_body_chars": 67206,
+    "inputs_seen_by_extractor": "this evaluation's body text only (no paper, no model output)",
+    "model_requested": "claude-haiku-5-5",
+    "effort": "medium",
+    "system_prompt_sha256": "09ebe7eb50d0e0a238f0a7a5973a32ee4c248a85395c7a2e4b706197f2bf392d",
+    "schema_sha256": "8c9d6392cbe2f995716784a5c6327fd4197ecc0610e325463ef4203ca929507c",
+    "post_check": "reviewer-name tokens replaced by [name] after the quote check",
+    "completed_at": "2026-11-10T15:48:01.504100+00:00",
+    "model_returned": "claude-haiku-5-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 22416,
+      "output_tokens": 2699,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    "est_cost_usd": 0.00359,
+    "elapsed_seconds": 12.2,
+    "response_id": "msg_011CguWWqRJ8jaTSAQqypnkE",
+    "error": null
+  },
+  "issues": [
+    {
+      "id": "Adena_and_Hager_2024::E2::H01",
+      "text": "The primary average treatment effect is only marginally/barely statistically significant, and the evaluator thinks the authors should more carefully present confidence intervals and statistical uncertainty rather than point estimates alone.",
+      "quote": "The authors demonstrate a marginally significant ATE. ... But I think the authors might be more careful to present confidence intervals and point out how much statistical uncertainty they have in their estimates.",
+      "importance": "major",
+      "quote_verified": false
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H02",
+      "text": "The spillover estimates are implausibly large (indirect effect about ten times the direct effect), which the evaluator finds surprising and suspects may reflect specification error or artefacts of the functional form and neighbourhood definition rather than a real effect.",
+      "quote": "the spillover effects seem implausibly huge to me. ... the spillover result relies on a number of arbitrary assumptions",
+      "importance": "major",
+      "quote_verified": false
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H03",
+      "text": "The spillover model's average neighbour-treatment share (66.8%) appears inconsistent with the 50% treatment share implied by the design; the evaluator questions how the average was computed, though an editor later noted the correct share is 66.6%.",
+      "quote": "The authors report that the sample average share of neighbor postal codes treated is 66.8%. This is in itself surprising, as half the postal codes were treated in the experiment.",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H04",
+      "text": "The spillover specification relies on arbitrary choices (a step-function 30km distance threshold and linear proportion-of-treated-neighbours form); the evaluator asks for robustness to continuous distance weighting and to population-share measures.",
+      "quote": "Allowing the spillover effect to vary continuously with distance, rather than being a step function that is \"on\" if the neighboring postal code is within 30km",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H05",
+      "text": "Trimming gifts above 1000 euros (winsorizing location-days) was not in the pre-analysis plan; the evaluator considers it a post hoc degree of freedom that may boost significance and that discards information about large donations that matter to the charity.",
+      "quote": "I think this trimming might not be a good idea. ... This violates the spirit of a registered pre-analysis plan",
+      "importance": "major",
+      "quote_verified": false
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H06",
+      "text": "Normalizing donations by zip-code population was not specified in the pre-analysis plan, another deviation that gives the authors additional analytic freedom.",
+      "quote": "I didn't notice anything in the pre-analysis plan that specified that donations would be normalized by the population of each zip code.",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H07",
+      "text": "The authors deviated from the pre-analysis plan in several ways (covariates, trimming, diff-in-diff, outcome choices) without clearly flagging these deviations, raising type-I error concerns.",
+      "quote": "I think they should be more careful to specify where they have stuck to the plan, and where they have deviated from it.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H08",
+      "text": "The covariate set used in the main regressions departs from the pre-analysis plan, and the standard error increases from column (1) to column (2) in the short run, which the evaluator finds unexpected.",
+      "quote": "it is disappointing that the standard errors increase slightly from column (1) to column (2) in the short-run effects.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H09",
+      "text": "The authors use a difference-in-differences estimator in the appendix/main text where a lagged-dependent-variable regression would be more flexible and efficient; the evaluator prefers the lagged-Y specification.",
+      "quote": "So I prefer the estimate in Table 2, because the more flexible form has the opportunity to better explain the variance in Y, and thus should have smaller standard errors.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H10",
+      "text": "The competitor-charity results are weak: barely significant only in the short run, at the 5% level in one dataset and 10% in the other, and the evaluator thinks the paper overplays them given wide confidence intervals and discretionary choices (trimming, DiD).",
+      "quote": "the results are really quite weak statistically, though the paper plays them up as an important result. The point estimates are large, but the confidence intervals are very wide indeed.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H11",
+      "text": "Pre-treatment imbalance on competitor donation revenue (t-statistic near 2) is noted; the evaluator reasons about it but the concern is partly about the randomization balance on this outcome.",
+      "quote": "the authors noted that they found statistically significant pretreatment differences in the competitive outcome.",
+      "importance": "minor",
+      "quote_verified": false
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H12",
+      "text": "The profitability claim is reported with point estimates only; with 95% intervals (e.g., €1.45±€1.51 immediate return and €2.53±€2.65 long-run) the profit is highly uncertain, and the evaluator finds the conclusion's reassurance misleading.",
+      "quote": "I find it misleading because it fails to remind the reader about the degree of uncertainty in the estimate.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H13",
+      "text": "The 1.75 long-run revenue multiplier used to extrapolate profitability is poorly grounded and uncertain, and its uncertainty is not propagated into the reported estimates.",
+      "quote": "I tend to think this multiplier of 1.75 is rather uncertain, as it has been roughly calibrated from other data",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H14",
+      "text": "The authors use a 90% confidence interval for incremental revenue, which the evaluator says makes the significance claims look stronger than a 95% interval would.",
+      "quote": "The authors chose to use a 90% confidence interval of €47,700 ± €42,800 for incremental revenue",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H15",
+      "text": "The upstream-metric results on the two targeting strategies are mixed (one metric significant in the opposite direction), so the authors' summary that intermediate measures point in the same direction is overstated.",
+      "quote": "Given that one of the tests (long views per view) gives a statistically significant result in the wrong direction, I would personally tone down this statement.",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H16",
+      "text": "Differences between the two video creatives and the two targeting strategies are not statistically significant on the final donation outcome, so the comparisons are underpowered.",
+      "quote": "The point estimates in Table 5 Panel B show that the Facebook algorithm gives a higher point estimate on donations, but it is not statistically significantly different",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H17",
+      "text": "Table 6 reports only significance asterisks and difference-in-proportion tests; the evaluator wants standard errors shown and regression with covariates used instead.",
+      "quote": "I would have preferred to see standard errors of the mean reported underneath each of the means",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H18",
+      "text": "The heterogeneous treatment effects were not tested formally (no F-tests), the outcome measure is not clearly defined, and with 13 covariates checked without multiple-testing adjustment the subgroup results may be false positives; some estimates imply negative effects for half the population that lack a theory.",
+      "quote": "Unfortunately, the authors did not conduct F-tests to conclude which of these HTEs were statistically significant",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H19",
+      "text": "The outcome measure used in the heterogeneous treatment effects analysis is not defined in the text or table, leaving the reader unable to tell which of the two preferred outcomes is analysed.",
+      "quote": "I can't find in the text or the table where they have defined this outcome.",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H20",
+      "text": "The claim that the spillover effects show the main ATE is a lower bound depends on an interpretation that the evaluator does not fully understand, and the total effect of €170 per postal code seems surprisingly high.",
+      "quote": "I find this surprisingly high, and it makes me wonder whether there might be something else going on here that we are not understanding correctly.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H21",
+      "text": "Randomization inference results are reported in an appendix figure that the evaluator found hard to locate; the appendix was not accessible on the journal site.",
+      "quote": "I had difficulty finding the online Appendix on the *Management Science* website.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Adena_and_Hager_2024::E2::H22",
+      "text": "The paper's conclusion that the ATE for donations rises with longer post-treatment windows, and that advertising increases total rather than accelerates donations, is presented with insufficient uncertainty.",
+      "quote": "This tells us that advertising is probably not merely accelerating donations forward in time",
+      "importance": "moderate",
+      "quote_verified": true
+    }
+  ]
+}

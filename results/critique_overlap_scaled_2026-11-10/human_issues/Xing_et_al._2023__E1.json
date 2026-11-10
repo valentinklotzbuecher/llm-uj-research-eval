@@ -1,0 +1,163 @@
+{
+  "provenance": {
+    "paper": "Xing_et_al._2023",
+    "evaluator_label": "E1",
+    "source_doc_ref": "d878de523db7",
+    "source_sha256": "d4a1331a77c2e4792ed7f40d52dd7b0688a42501c03bfa8951fd4158aa617549",
+    "source_body_chars": 11404,
+    "inputs_seen_by_extractor": "this evaluation's body text only (no paper, no model output)",
+    "model_requested": "claude-haiku-5-5",
+    "effort": "medium",
+    "system_prompt_sha256": "09ebe7eb50d0e0a238f0a7a5973a32ee4c248a85395c7a2e4b706197f2bf392d",
+    "schema_sha256": "8c9d6392cbe2f995716784a5c6327fd4197ecc0610e325463ef4203ca929507c",
+    "post_check": "reviewer-name tokens replaced by [name] after the quote check",
+    "completed_at": "2026-11-10T15:48:25.740919+00:00",
+    "model_returned": "claude-haiku-5-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 4416,
+      "output_tokens": 2047,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    "est_cost_usd": 0.00147,
+    "elapsed_seconds": 8.5,
+    "response_id": "msg_011CguWYufbAoCeWRmVx2h9V",
+    "error": null
+  },
+  "issues": [
+    {
+      "id": "Xing_et_al._2023::E1::H01",
+      "text": "The main critique is that the paper's claims of causality are not substantiated within the current estimation framework; the evaluator views the evidence as correlational rather than causal.",
+      "quote": "The main critique is that claims of\ncausality in the paper are not substantiated within the current\nestimation framework.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H02",
+      "text": "The estimation framework is not rigorous enough to identify the claimed causal effects of MMP greening on PM2.5 and pollen exposure, so the results are correlational.",
+      "quote": "The estimation framework is not rigorous enough to identify these impacts.\nCurrently, they are correlational evidence.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H03",
+      "text": "The greening analysis fails to exploit the temporal dimension of the data; the evaluator suggests an event study and a staggered difference-in-differences design using the high-frequency NDVI data, and asks when MMP areas were planted.",
+      "quote": "Why not utilize the temporal dimension of their data and policy and\n    show a straightforward event study of the grids that were treated",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H04",
+      "text": "The paper does not explain how MMP planting areas were chosen or whether they are exogenous to the outcome, which is required for the proposed spatial regression discontinuity identification and for causal interpretation.",
+      "quote": "Of course, for this identification the MMP planting\n    areas must be exogenous to the outcome -- I believe the authors need\n    to provide more information on how exactly was MMP implemented, how\n    were these areas chosen?",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H05",
+      "text": "The evaluator suggests spatial regression discontinuity as a complement to the DiD design, which the authors do not implement.",
+      "quote": "I suggest the authors use spatial RDD as it will allow to establish a\n    counterfactual based on distance measure",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H06",
+      "text": "The greening specification omits fixed effects (e.g., for the 16 districts of Beijing) and any control variables, which may confound the estimated MMP effect.",
+      "quote": "Why no fixed effects? At the very least doesn't Beijing have 16\n    districts which itself may be an important factor in how the MMP\n    have an impact? Why the lack of any controls?",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H07",
+      "text": "Spatial autocorrelation is not addressed; the justification that Conley standard errors are too computationally intensive is not acceptable in this setting.",
+      "quote": "In this framework simply not addressing spatial autocorrelation\n    because Conley is too computationally intensive can not be justified\n    here",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H08",
+      "text": "The choice of NDVI as the vegetation measure is insufficiently justified; the evaluator asks why another index such as leaf area index was not used.",
+      "quote": "I'd like a little more discussion on how NDVI is the best for your\n    purpose - why not use another index like leaf area index?",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H09",
+      "text": "The upwind-cone environmental and health regressions include no controls, and wind direction may itself be driven by weather events that directly affect pollution and pollen, creating omitted variable bias.",
+      "quote": "But my question is again why no controls? Wind\n    direction can be a result of weather events which in turn also\n    directly impact pollution and pollen.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H10",
+      "text": "Monitor locations are not explained and may be endogenous to population density or climate exposure, so the pollution and pollen outcomes may be biased by monitor placement; the equation suffers from omitted variable bias.",
+      "quote": "also what determines the location of these monitors? The location\n    choice itself can be impacting your outcomes",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H11",
+      "text": "The event study in Figure 5(a) is not convincing because the estimated drop is not statistically significant, and several appendix figures are similarly weak; the need for the 20-day event window is unjustified.",
+      "quote": "Figure 5 Plot (a) is not very convincing because even though there\nis a drop its not significant",
+      "importance": "moderate",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H12",
+      "text": "Baseline results of the main estimating equation (7) are not presented, which the evaluator considers necessary.",
+      "quote": "What I would\nlike to see is the baseline results of the equation (7) which don't\nseem to be presented.",
+      "importance": "major",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H13",
+      "text": "The paper lacks heterogeneity analysis; for example, whether the size of the MMP patch in the upwind cone matters is not examined.",
+      "quote": "Does the MMP patch size in the upwind cone matter? A heterogeneity\n    analysis here would be interesting",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H14",
+      "text": "Equations 1 and 2 are unnecessary, poorly explained at their point in the paper, and confusing to readers; the section framing around marginalization is misleading.",
+      "quote": "Equations 1 and 2 are unnecessary and are not really explained well\n    enough at that point in the paper and simply confuse the readers.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H15",
+      "text": "Section 4.3 is redundant given the treatment of the same question in Section 5.",
+      "quote": "I don't see the need for section 4.3 when you tackle it better in\n    section 5.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H16",
+      "text": "The time unit of analysis is often unclear to readers and is not stated when specifications are described.",
+      "quote": "Many times, the time unit of analysis is not clear unless the reader\n    takes a look at the figures or tables",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H17",
+      "text": "The unit 'mu' (unit of area) is not universally understood and is not converted to standard units such as hectares or square kilometres, in the abstract or main text.",
+      "quote": "Mu (unit of area) -- the authors should not use this measurement in\n    the abstract as it is not universally understood.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H18",
+      "text": "The introduction is overly long and unfocused, and the paper tries to do too much, making it busy.",
+      "quote": "the paper is doing too much and seems very busy,\nespecially the introduction which needs to be trimmed down and more to\nthe point.",
+      "importance": "minor",
+      "quote_verified": true
+    },
+    {
+      "id": "Xing_et_al._2023::E1::H19",
+      "text": "Sections 6.3 and 7.1 overlap and could be combined, with more discussion of future policy relevance.",
+      "quote": "Section 6.3 and 7.1 can be combined and discussed especially in\nterms of future policy relevance.",
+      "importance": "minor",
+      "quote_verified": true
+    }
+  ]
+}
