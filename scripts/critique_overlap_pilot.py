@@ -241,14 +241,27 @@ def unblind_matches(raw: dict[str, Any], blinded: dict[str, Any]) -> tuple[list[
     id_map = blinded["id_map"]
     out, invalid = [], 0
     for m in raw.get("matches", []):
-        a, b = id_map.get(m.get("a_id", "")), id_map.get(m.get("b_id", ""))
-        if a is None or b is None:
+        a_id, b_id = m.get("a_id", ""), m.get("b_id", "")
+        # Both ids must exist and come from different lists: a judge occasionally pairs two items
+        # of the same list (e.g. A3 with A7), which is not a cross-list match.
+        if not (a_id in id_map and b_id in id_map and a_id[:1] != b_id[:1] and {a_id[:1], b_id[:1]} == {"A", "B"}):
             invalid += 1
             continue
+        if a_id[:1] == "B":
+            a_id, b_id = b_id, a_id
+        a, b = id_map[a_id], id_map[b_id]
         s1, s2 = (b, a) if blinded["swapped"] else (a, b)
         out.append({"side1_id": s1, "side2_id": s2, "label": m["label"],
                     "score": int(m["score"]), "reason": m.get("reason", "")})
     return out, invalid
+
+
+def valid_matches(d: dict[str, Any]) -> tuple[list[dict[str, Any]], int]:
+    """Keep stored matches whose ids sit on the right sides; older runs could store
+    within-list pairs before unblind_matches checked for them."""
+    s1, s2 = set(d["side1_ids"]), set(d["side2_ids"])
+    keep = [m for m in d["matches"] if m["side1_id"] in s1 and m["side2_id"] in s2]
+    return keep, len(d["matches"]) - len(keep)
 
 
 def covered_ids(matches: list[dict[str, Any]], side: str, rule: str) -> set[str]:
@@ -692,6 +705,9 @@ def summary_markdown(s: dict[str, Any]) -> str:
                               hh[rule]["both_directions_pooled_pct"]) if hh else "not run")
             out.append("| " + " | ".join(cells) + " |")
         out += ["", "Counts are pooled over papers (unique issues with at least one qualifying match, over all issues).", ""]
+        if j.get("invalid_matches_dropped"):
+            out += [f"{j['invalid_matches_dropped']} returned match(es) paired two items from the same list and "
+                    "were dropped as invalid.", ""]
         if "real" in agg:
             out += ["Per-paper rates, real pairings, score ≥ 30:", "",
                     "| Paper | Human issues covered | Model issues overlapping |", "|---|---|---|"]
@@ -766,12 +782,15 @@ def stage_summarize(args: argparse.Namespace, run_dir: pathlib.Path) -> int:
         if not jdir.is_dir():
             continue
         rows = []
+        invalid = 0
         for f in sorted(jdir.glob("*.json")):
             if f.name.endswith(".failed.json"):
                 continue
             d = json.loads(f.read_text())
             if "pairing" not in d:
                 continue
+            d["matches"], dropped = valid_matches(d)
+            invalid += dropped
             row = {"id": d["pairing"]["id"], "kind": d["pairing"]["kind"], "paper": d["pairing"]["paper"],
                    "n_side1": len(d["side1_ids"]), "n_side2": len(d["side2_ids"]), "n_matches": len(d["matches"])}
             for rule in RULES:
@@ -821,7 +840,8 @@ def stage_summarize(args: argparse.Namespace, run_dir: pathlib.Path) -> int:
                 cov = sum(items[i] for i in ids)
                 by_imp.setdefault(rule, {})[level] = {"n": len(ids), "covered": cov, "pct": rate(cov, len(ids))}
         summary["judges"][jdir.name] = {"pairings": rows, "aggregate": agg,
-                                        "real_human_coverage_by_importance": by_imp}
+                                        "real_human_coverage_by_importance": by_imp,
+                                        "invalid_matches_dropped": invalid}
 
     # Judge agreement on real pairings: is each issue counted as covered?
     names = sorted(per_item)
@@ -865,6 +885,14 @@ def stage_summarize(args: argparse.Namespace, run_dir: pathlib.Path) -> int:
         summary["model_issues"][paper] = {"n": len(s["model"] or []), "source": s["model_source"]}
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False))
     (run_dir / "summary.md").write_text(summary_markdown(summary))
+    # Keep the human audit page's data current (results/match_audit/audit_data.json).
+    try:
+        import match_audit
+
+        written = match_audit.write_export(match_audit.build_export())
+        print("match audit data:", "updated" if written else "unchanged")
+    except Exception as e:  # noqa: BLE001 - the summary itself must not fail on this
+        print(f"note: match audit export failed: {e}")
     print(json.dumps({k: summary[k] for k in ("extraction", "cost") if k in summary}, indent=1)[:1500])
     for name, j in summary["judges"].items():
         print(f"\n== judge: {name} ==")

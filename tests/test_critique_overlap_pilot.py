@@ -109,6 +109,27 @@ class Blinding(unittest.TestCase):
             self.assertEqual((matches[0]["side1_id"], matches[0]["side2_id"]), (h, m))
 
 
+class WithinListMatches(unittest.TestCase):
+    def test_same_list_pairs_are_dropped(self):
+        s1 = [{"id": "P::E1::H01", "text": "h1"}, {"id": "P::E1::H02", "text": "h2"}]
+        s2 = [{"id": "P::M01", "text": "m1"}]
+        bl = pilot.blind_lists("real::P", s1, s2)
+        raw = {"matches": [{"a_id": "A1", "b_id": "A2", "label": "partial", "score": 60, "reason": ""},
+                           {"a_id": "B1", "b_id": "B2", "label": "partial", "score": 60, "reason": ""},
+                           {"a_id": "B1", "b_id": "A1", "label": "exact", "score": 90, "reason": "reversed"}]}
+        matches, invalid = pilot.unblind_matches(raw, bl)
+        self.assertEqual(invalid, 2)
+        self.assertEqual(len(matches), 1)
+        self.assertIn(matches[0]["side1_id"], {"P::E1::H01", "P::E1::H02"})
+        self.assertEqual(matches[0]["side2_id"], "P::M01")
+
+    def test_stored_invalid_matches_filtered(self):
+        d = {"side1_ids": ["h1", "h2"], "side2_ids": ["m1"],
+             "matches": [{"side1_id": "h1", "side2_id": "m1"}, {"side1_id": "h2", "side2_id": "h1"}]}
+        keep, dropped = pilot.valid_matches(d)
+        self.assertEqual((len(keep), dropped), (1, 1))
+
+
 class Metrics(unittest.TestCase):
     MATCHES = [
         {"side1_id": "h1", "side2_id": "m1", "label": "exact", "score": 90},

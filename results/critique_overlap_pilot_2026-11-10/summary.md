@@ -46,6 +46,8 @@ Human issues the model also raised, by the weight the evaluator gave them (score
 
 Counts are pooled over papers (unique issues with at least one qualifying match, over all issues).
 
+2 returned match(es) paired two items from the same list and were dropped as invalid.
+
 Per-paper rates, real pairings, score ≥ 30:
 
 | Paper | Human issues covered | Model issues overlapping |
