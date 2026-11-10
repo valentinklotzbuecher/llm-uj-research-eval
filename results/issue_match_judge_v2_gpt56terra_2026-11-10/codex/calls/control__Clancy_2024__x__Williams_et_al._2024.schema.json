@@ -1,0 +1,70 @@
+{
+  "type": "object",
+  "properties": {
+    "same_study": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "no",
+        "unclear"
+      ]
+    },
+    "same_study_reason": {
+      "type": "string"
+    },
+    "pairs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "a_id": {
+            "type": "string"
+          },
+          "b_id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "same_concern",
+              "same_concern_different_scope",
+              "same_target_different_problem",
+              "same_topic_only"
+            ]
+          },
+          "broader_side": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "neither"
+            ]
+          },
+          "confidence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "a_id",
+          "b_id",
+          "category",
+          "broader_side",
+          "confidence",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "same_study",
+    "same_study_reason",
+    "pairs"
+  ],
+  "additionalProperties": false
+}

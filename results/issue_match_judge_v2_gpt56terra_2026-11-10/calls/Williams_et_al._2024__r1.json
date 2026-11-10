@@ -1,0 +1,367 @@
+{
+  "case": {
+    "case_id": "Williams_et_al._2024__r1",
+    "kind": "real",
+    "human_paper": "Williams_et_al._2024",
+    "model_paper": "Williams_et_al._2024",
+    "replicate": 1
+  },
+  "blinding": {
+    "seed": 3876255600,
+    "human_is_a": false,
+    "key": {
+      "A1": "L7",
+      "A2": "L4",
+      "A3": "L1",
+      "A4": "L3",
+      "A5": "L8",
+      "A6": "L2",
+      "A7": "L12",
+      "A8": "L9",
+      "A9": "L5",
+      "A10": "L11",
+      "A11": "L10",
+      "A12": "L6",
+      "B1": "H6",
+      "B2": "H7",
+      "B3": "H1",
+      "B4": "H2",
+      "B5": "H8",
+      "B6": "H4",
+      "B7": "H3",
+      "B8": "H5"
+    }
+  },
+  "status": "ok",
+  "est_cost_usd": 0.0,
+  "model": "gpt-5.6-terra",
+  "stop_reason": "end_turn",
+  "error": null,
+  "parsed": {
+    "same_study": "yes",
+    "same_study_reason": "Both lists discuss a model of natural forest regrowth drawing on Fagan et al.'s regrowth data, estimating roughly 215 Mha of potential area, and making future spatial predictions including for 2030.",
+    "pairs": [
+      {
+        "a_id": "A1",
+        "b_id": "B3",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 88,
+        "reason": "Both concern the timing of input rasters, including NPP and burned area. A1 concerns mixed-resolution inputs being displayed as falsely precise 30 m maps, whereas B3 concerns contemporaneous or post-outcome predictors leaking outcome information and inflating performance."
+      },
+      {
+        "a_id": "A2",
+        "b_id": "B3",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 78,
+        "reason": "Both challenge the reported predictive performance. A2 says balanced accuracy alone omits calibration and threshold trade-offs; B3 says performance may be inflated by predictors affected by regrowth."
+      },
+      {
+        "a_id": "A2",
+        "b_id": "B8",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 84,
+        "reason": "Both critique how model performance is validated. A2 concerns incomplete performance metrics for probabilities and binary targeting, while B8 concerns using historical outcomes to validate a future-prediction task."
+      },
+      {
+        "a_id": "A3",
+        "b_id": "B1",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 93,
+        "reason": "Both challenge the operational definition of natural regrowth. A3 says the height-gain definition misses early or slow regeneration and persistence; B1 says it confounds natural and human-assisted regeneration."
+      },
+      {
+        "a_id": "A3",
+        "b_id": "B6",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 87,
+        "reason": "Both say the outcome definition captures only part of restoration or regrowth. A3 focuses on height thresholds, slow systems, and persistence; B6 focuses on excluding recovery within existing forest pixels."
+      },
+      {
+        "a_id": "A4",
+        "b_id": "B1",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 88,
+        "reason": "Both concern human land management being entangled with the natural-regrowth construct. A4 concerns managed or repeatedly cleared observations in the non-regeneration sample, while B1 concerns human-assisted regeneration entering the positive class."
+      },
+      {
+        "a_id": "A4",
+        "b_id": "B7",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 91,
+        "reason": "Both question interpreting predictions as purely biophysical potential when human land-use conditions matter. A4 identifies this contamination in control sampling; B7 identifies it in the relation between socioeconomic and biophysical predictors and the reduced prediction model."
+      },
+      {
+        "a_id": "A5",
+        "b_id": "B3",
+        "category": "same_concern_different_scope",
+        "broader_side": "B",
+        "confidence": 77,
+        "reason": "Both identify temporally misaligned predictors as a threat to valid prediction and transfer. A5 specifies forest covariates updated through 2018 for 2000–2016 outcomes, while B3 makes the broader leakage argument across several contemporaneous or future predictors."
+      },
+      {
+        "a_id": "A5",
+        "b_id": "B4",
+        "category": "same_concern",
+        "broader_side": "neither",
+        "confidence": 85,
+        "reason": "Both raise the use of outdated or inconsistent Global Forest Change/Watch product versions. A5 emphasizes local incoherence and transfer effects from version and timing mismatch; B4 emphasizes that newer improved datasets are available."
+      },
+      {
+        "a_id": "A6",
+        "b_id": "B2",
+        "category": "same_concern",
+        "broader_side": "neither",
+        "confidence": 76,
+        "reason": "Both identify severe omission error and low producer's accuracy in the upstream Fagan regrowth map. A6 emphasizes false-negative labels and learned geographic bias, while B2 additionally links the data problem to overstatement of available future area."
+      },
+      {
+        "a_id": "A6",
+        "b_id": "B4",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 73,
+        "reason": "Both concern the upstream Global Forest Change/regrowth data used for labels. A6 focuses on acknowledged omission and accuracy failures, whereas B4 focuses on reliance on an older version despite newer releases."
+      },
+      {
+        "a_id": "A8",
+        "b_id": "B7",
+        "category": "same_concern",
+        "broader_side": "neither",
+        "confidence": 98,
+        "reason": "Both argue that removing socioeconomic predictors does not make the resulting map a measure of purely biophysical potential, because biophysical predictors proxy for land use and governance. Both therefore reject the clean biophysical interpretation."
+      },
+      {
+        "a_id": "A9",
+        "b_id": "B3",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 80,
+        "reason": "Both concern optimistic apparent model performance and limited generalization. A9 attributes this to random rather than spatially blocked validation; B3 attributes it to temporally contaminated predictors."
+      },
+      {
+        "a_id": "A9",
+        "b_id": "B5",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 78,
+        "reason": "Both identify missing validation for the model's claimed predictive performance. A9 calls for spatially appropriate validation, while B5 calls for a historical-period hindcast against the Fagan benchmark."
+      },
+      {
+        "a_id": "A9",
+        "b_id": "B8",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 91,
+        "reason": "Both challenge whether the validation assesses genuine predictive performance. A9 concerns spatial dependence under random splits; B8 concerns temporal mismatch between historical validation data and a future-prediction claim."
+      },
+      {
+        "a_id": "A10",
+        "b_id": "B2",
+        "category": "same_concern_different_scope",
+        "broader_side": "A",
+        "confidence": 89,
+        "reason": "Both concern treating mapped potential as realizable additional restoration opportunity. A10 states the broader risk that the map may be misused for offsetting or targeting claims, while B2 gives a specific additionality problem: already-regrown areas are counted as future available area."
+      },
+      {
+        "a_id": "A12",
+        "b_id": "B2",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 75,
+        "reason": "Both question the headline 215 Mha-type area estimate. A12 concerns confidence intervals that omit major uncertainty sources, whereas B2 concerns upward bias from already-regrown areas and errors in the upstream map."
+      },
+      {
+        "a_id": "A12",
+        "b_id": "B5",
+        "category": "same_target_different_problem",
+        "broader_side": "neither",
+        "confidence": 83,
+        "reason": "Both challenge the credibility of the headline expected-regrowth area estimate. A12 concerns underreported uncertainty, while B5 concerns its discrepancy with a historical benchmark and the missing hindcast needed to assess it."
+      }
+    ]
+  },
+  "pairs": [
+    {
+      "human": "H1",
+      "model": "L7",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 88,
+      "reason": "Both concern the timing of input rasters, including NPP and burned area. A1 concerns mixed-resolution inputs being displayed as falsely precise 30 m maps, whereas B3 concerns contemporaneous or post-outcome predictors leaking outcome information and inflating performance."
+    },
+    {
+      "human": "H1",
+      "model": "L4",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 78,
+      "reason": "Both challenge the reported predictive performance. A2 says balanced accuracy alone omits calibration and threshold trade-offs; B3 says performance may be inflated by predictors affected by regrowth."
+    },
+    {
+      "human": "H5",
+      "model": "L4",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 84,
+      "reason": "Both critique how model performance is validated. A2 concerns incomplete performance metrics for probabilities and binary targeting, while B8 concerns using historical outcomes to validate a future-prediction task."
+    },
+    {
+      "human": "H6",
+      "model": "L1",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 93,
+      "reason": "Both challenge the operational definition of natural regrowth. A3 says the height-gain definition misses early or slow regeneration and persistence; B1 says it confounds natural and human-assisted regeneration."
+    },
+    {
+      "human": "H4",
+      "model": "L1",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 87,
+      "reason": "Both say the outcome definition captures only part of restoration or regrowth. A3 focuses on height thresholds, slow systems, and persistence; B6 focuses on excluding recovery within existing forest pixels."
+    },
+    {
+      "human": "H6",
+      "model": "L3",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 88,
+      "reason": "Both concern human land management being entangled with the natural-regrowth construct. A4 concerns managed or repeatedly cleared observations in the non-regeneration sample, while B1 concerns human-assisted regeneration entering the positive class."
+    },
+    {
+      "human": "H3",
+      "model": "L3",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 91,
+      "reason": "Both question interpreting predictions as purely biophysical potential when human land-use conditions matter. A4 identifies this contamination in control sampling; B7 identifies it in the relation between socioeconomic and biophysical predictors and the reduced prediction model."
+    },
+    {
+      "human": "H1",
+      "model": "L8",
+      "category": "same_concern_different_scope",
+      "broader": "human",
+      "confidence": 77,
+      "reason": "Both identify temporally misaligned predictors as a threat to valid prediction and transfer. A5 specifies forest covariates updated through 2018 for 2000–2016 outcomes, while B3 makes the broader leakage argument across several contemporaneous or future predictors."
+    },
+    {
+      "human": "H2",
+      "model": "L8",
+      "category": "same_concern",
+      "broader": "neither",
+      "confidence": 85,
+      "reason": "Both raise the use of outdated or inconsistent Global Forest Change/Watch product versions. A5 emphasizes local incoherence and transfer effects from version and timing mismatch; B4 emphasizes that newer improved datasets are available."
+    },
+    {
+      "human": "H7",
+      "model": "L2",
+      "category": "same_concern",
+      "broader": "neither",
+      "confidence": 76,
+      "reason": "Both identify severe omission error and low producer's accuracy in the upstream Fagan regrowth map. A6 emphasizes false-negative labels and learned geographic bias, while B2 additionally links the data problem to overstatement of available future area."
+    },
+    {
+      "human": "H2",
+      "model": "L2",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 73,
+      "reason": "Both concern the upstream Global Forest Change/regrowth data used for labels. A6 focuses on acknowledged omission and accuracy failures, whereas B4 focuses on reliance on an older version despite newer releases."
+    },
+    {
+      "human": "H3",
+      "model": "L9",
+      "category": "same_concern",
+      "broader": "neither",
+      "confidence": 98,
+      "reason": "Both argue that removing socioeconomic predictors does not make the resulting map a measure of purely biophysical potential, because biophysical predictors proxy for land use and governance. Both therefore reject the clean biophysical interpretation."
+    },
+    {
+      "human": "H1",
+      "model": "L5",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 80,
+      "reason": "Both concern optimistic apparent model performance and limited generalization. A9 attributes this to random rather than spatially blocked validation; B3 attributes it to temporally contaminated predictors."
+    },
+    {
+      "human": "H8",
+      "model": "L5",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 78,
+      "reason": "Both identify missing validation for the model's claimed predictive performance. A9 calls for spatially appropriate validation, while B5 calls for a historical-period hindcast against the Fagan benchmark."
+    },
+    {
+      "human": "H5",
+      "model": "L5",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 91,
+      "reason": "Both challenge whether the validation assesses genuine predictive performance. A9 concerns spatial dependence under random splits; B8 concerns temporal mismatch between historical validation data and a future-prediction claim."
+    },
+    {
+      "human": "H7",
+      "model": "L11",
+      "category": "same_concern_different_scope",
+      "broader": "model",
+      "confidence": 89,
+      "reason": "Both concern treating mapped potential as realizable additional restoration opportunity. A10 states the broader risk that the map may be misused for offsetting or targeting claims, while B2 gives a specific additionality problem: already-regrown areas are counted as future available area."
+    },
+    {
+      "human": "H7",
+      "model": "L6",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 75,
+      "reason": "Both question the headline 215 Mha-type area estimate. A12 concerns confidence intervals that omit major uncertainty sources, whereas B2 concerns upward bias from already-regrown areas and errors in the upstream map."
+    },
+    {
+      "human": "H8",
+      "model": "L6",
+      "category": "same_target_different_problem",
+      "broader": "neither",
+      "confidence": 83,
+      "reason": "Both challenge the credibility of the headline expected-regrowth area estimate. A12 concerns underreported uncertainty, while B5 concerns its discrepancy with a historical benchmark and the missing hindcast needed to assess it."
+    }
+  ],
+  "id_errors": [],
+  "metrics": {
+    "n_human": 8,
+    "n_model": 12,
+    "n_pairs": 18,
+    "strict": {
+      "human_covered": 3,
+      "model_matched": 3,
+      "coverage": 37.5,
+      "overlap": 25.0
+    },
+    "standard": {
+      "human_covered": 4,
+      "model_matched": 4,
+      "coverage": 50.0,
+      "overlap": 33.3
+    },
+    "loose": {
+      "human_covered": 8,
+      "model_matched": 10,
+      "coverage": 100.0,
+      "overlap": 83.3
+    },
+    "category_counts": {
+      "same_concern": 3,
+      "same_concern_different_scope": 2,
+      "same_target_different_problem": 13,
+      "same_topic_only": 0
+    },
+    "human_covered_only_by_broader_model_item": 0
+  }
+}

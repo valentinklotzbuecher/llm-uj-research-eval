@@ -86,6 +86,47 @@ somewhat strict. The answer turns on the "same target, different problem"
 category, which holds 59 of 179 pairs. That category is where human judgement is
 needed.
 
+## Second judge and intervals (added later on 10 Nov)
+
+The same blinded, rewritten inputs (identical shuffles and A/B assignment) were
+judged again by GPT (`gpt-5.6-terra`, high effort, via `codex exec` on the
+ChatGPT subscription; run `issue_match_judge_v2_gpt56terra_2026-11-10`).
+Intervals are 95% cluster-bootstrap intervals over the 12 papers (10,000 draws,
+`scripts/issue_match_bootstrap.py`; output in
+`results/issue_match_judge_v2_gpt56terra_2026-11-10/bootstrap.json`).
+
+| Mean per-paper coverage | Claude Opus 5.5 judge | GPT-5.6 Terra judge |
+|---|---|---|
+| Strict | 27.5% [15.6, 41.4] | 21.6% [12.5, 32.3] |
+| Standard | 44.0% [33.3, 57.4] | 60.5% [51.0, 70.8] |
+| Loose | 64.0% [53.1, 76.3] | 79.8% [71.4, 88.1] |
+| Published judge (GPT-5.2 Pro, unblinded) | 79.9% [68.9, 90.2] | |
+
+- **GPT is more lenient on the same inputs.** At the standard level it covers
+  16.4 points more per paper than Claude [7.4, 25.4]; at the loose level, 15.8
+  [6.7, 25.4]. It rarely denies a match Claude makes: on 54 human items at the
+  standard level, 11 are covered only by GPT and 1 only by Claude (kappa 0.57).
+- **GPT's loose level reproduces the published 80%** (difference −0.1 points
+  [−7.8, 6.1]). The published prompt counted "the same or related concern", which
+  is close to the loose definition, so the published figure is best read as
+  "the same result is criticised, possibly for a different reason".
+- **Controls:** GPT made one false match in 8 control cases (one human issue of
+  24, standard level); Claude made none.
+- **Stability:** GPT's two runs agreed on whether a human issue was covered for
+  44 of 54 items (Claude: 51 of 54).
+
+**On self-preference.** The original judge was GPT-5.2 Pro grading its own
+issues, unblinded. Here the issues are still GPT-written, but rewritten by a
+Claude model so that both lists read alike, and shown blind. GPT still comes out
+more lenient than Claude. That fits either self-preference or a general GPT
+leniency. The five-paper pilot (`results/critique_overlap_pilot_2026-11-10/`)
+separates the two: there the issues were written by Claude Opus 5.5, and the GPT
+judge was again more lenient than the Claude judge (58% against 32% coverage
+under a different rubric). So most of the gap looks like a judge-family
+difference in strictness, not self-preference. Self-preference cannot be ruled
+out, and judging Claude-written issues with a Claude judge, or GPT-written ones
+with GPT, should still be avoided or reported separately.
+
 ## Caveats
 
 - The rewrite step could drop detail or blur differences. Originals and rewrites

@@ -226,13 +226,15 @@ def scrub(text: str) -> str:
     return RESIDUAL_ATTRIBUTION.sub(lambda m: "the critique" if m.group(0)[:1].islower() else "The critique", text)
 
 
-def normalized_papers(client, papers: dict[str, dict[str, Any]], run_dir: pathlib.Path, needed: set[str]) -> dict[str, dict[str, Any]]:
+def normalized_papers(client, papers: dict[str, dict[str, Any]], run_dir: pathlib.Path, needed: set[str],
+                      norm_dir: pathlib.Path | None = None) -> dict[str, dict[str, Any]]:
     """Neutral statements for each needed paper; items with no substantive concern are dropped."""
+    norm_dir = norm_dir or run_dir / "normalized"
     out, scrubbed = {}, []
     for pid in sorted(needed):
         side = {}
         for s in ("human", "model"):
-            rec = normalize_side(client, papers[pid][s], run_dir / "normalized" / f"{pid}__{s}.json")
+            rec = normalize_side(client, papers[pid][s], norm_dir / f"{pid}__{s}.json")
             items = {}
             for k, v in rec["items"].items():
                 if v["no_substantive_concern"] or not v["statement"]:
@@ -372,6 +374,27 @@ def call_judge(client, user_text: str, raw_path: pathlib.Path) -> dict[str, Any]
             "stop_reason": d.get("stop_reason"), "usage": d.get("usage"), "text": text}
 
 
+CODEX_MODEL = "gpt-5.6-terra"
+
+
+def call_judge_codex(user_text: str, case_id: str, run_dir: pathlib.Path) -> dict[str, Any]:
+    """Same prompt and schema through `codex exec` (ChatGPT subscription; no API key)."""
+    import shutil
+
+    import run_concordance_codex as codex
+
+    binary = codex.APP_CODEX if codex.APP_CODEX.exists() else pathlib.Path(shutil.which("codex") or "")
+    try:
+        result, meta = codex.run_codex_call(
+            call_name=case_id, prompt=SYSTEM_PROMPT + "\n\n" + user_text, schema=JUDGE_SCHEMA,
+            model=CODEX_MODEL, effort=EFFORT, run_dir=run_dir / "codex", binary=binary, timeout=1800, force=False)
+    except Exception as e:  # noqa: BLE001 - recorded, not retried by another model
+        return {"error": f"{type(e).__name__}: {e}"}
+    return {"model": CODEX_MODEL, "text": json.dumps(result), "usage": meta.get("usage"),
+            "elapsed_seconds": meta.get("duration_seconds"), "stop_reason": "end_turn",
+            "codex_version": codex.codex_version(binary) if hasattr(codex, "codex_version") else None}
+
+
 def spend(run_dir: pathlib.Path) -> float:
     p = run_dir / "spend_ledger.csv"
     if not p.exists():
@@ -431,6 +454,9 @@ def main() -> int:
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--summarise-only", action="store_true")
     ap.add_argument("--normalize-only", action="store_true", help="Run only the Haiku rewrite step and leak scan")
+    ap.add_argument("--judge", choices=["claude", "codex"], default="claude",
+                    help="claude: Opus 5.5 via API; codex: GPT via `codex exec` (subscription)")
+    ap.add_argument("--normalized-from", help="Reuse the rewritten lists of another run id (identical judge inputs)")
     args = ap.parse_args()
 
     run_dir = ROOT / "results" / args.run_id
@@ -444,8 +470,11 @@ def main() -> int:
         return 0
 
     calls.mkdir(parents=True, exist_ok=True)
+    norm_dir = (ROOT / "results" / args.normalized_from / "normalized") if args.normalized_from else run_dir / "normalized"
     (run_dir / "run_config.json").write_text(json.dumps({
-        "run_id": args.run_id, "model": MODEL, "effort": EFFORT, "prompt_version": PROMPT_VERSION,
+        "run_id": args.run_id, "judge": args.judge, "model": MODEL if args.judge == "claude" else CODEX_MODEL,
+        "effort": EFFORT, "prompt_version": PROMPT_VERSION,
+        "normalized_dir": str(norm_dir.relative_to(ROOT)),
         "system_prompt_sha256": hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
         "source": str(SOURCE.relative_to(ROOT)), "source_sha256": hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
         "excluded_from_real": list(EXCLUDED), "control_shift": CONTROL_SHIFT, "n_cases": len(cases),
@@ -456,7 +485,7 @@ def main() -> int:
     client = None if args.dry_run else make_client()
     if not args.dry_run:
         needed = {c["human_paper"] for c in cases} | {c["model_paper"] for c in cases}
-        papers = normalized_papers(client, papers, run_dir, needed)
+        papers = normalized_papers(client, papers, run_dir, needed, norm_dir)
         leaks = leak_scan(papers)
         (run_dir / "blinding_leak_scan.json").write_text(json.dumps(leaks, indent=2, ensure_ascii=False))
         print(f"normalized {len(needed)} papers; leak-scan hits: {len(leaks)}")
@@ -474,9 +503,12 @@ def main() -> int:
             print(f"budget ${args.budget} reached; stopping")
             break
         print(f"judge {case['case_id']} ...", flush=True)
-        r = call_judge(client, b["user_text"], calls / f"{case['case_id']}.raw_response.json")
+        if args.judge == "codex":
+            r = call_judge_codex(b["user_text"], case["case_id"], run_dir)
+        else:
+            r = call_judge(client, b["user_text"], calls / f"{case['case_id']}.raw_response.json")
         usage = r.get("usage") or {}
-        cost = estimate_cost(usage) if usage else 0.0
+        cost = estimate_cost(usage) if usage and args.judge == "claude" else 0.0  # codex: subscription, unmetered
         status = "error" if "error" in r else "ok"
         parsed = None
         if status == "ok":

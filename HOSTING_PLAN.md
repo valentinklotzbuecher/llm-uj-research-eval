@@ -158,8 +158,11 @@ November 10 2026: the `/working-paper/` copy was refreshed from `d578da9`
 blinded judge). Deploy `6af3370934c3a7ec2e479d4a`, 115 files, 6 stale
 `/working-paper/` files dropped; the seven historical pages matched their
 `nov9`/`nov9b` states and were unchanged. The historical `results_critiques.html`
-headline block is still pinned to `f690d83`, so it shows only the original
-judge's figures; changing it needs David's OK.
+headline block was then, with David's OK, replaced by the same block from
+`d578da9` (layer `nov10` in `proj_build.py`), with a lead line saying the
+figures are provisional and will be re-checked after the human audit of the
+judge. Deploy `6af3387c30706133a983ab1f` (115 files, one new blob). A to-do to
+re-check both sites is on David's list (due 2026-12-01).
 
 ## URLs to preserve
 

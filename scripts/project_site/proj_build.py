@@ -135,10 +135,16 @@ for p, html in nov5.items():
 # The historical critiques page leads with the headline critique-overlap block, copied
 # from the rendered working paper at a pinned commit so the rebuild is reproducible.
 HEADLINE_REV = "f690d83"
+# Nov 10 (David's OK in session): the same block from the judge-range version.
+HEADLINE_REV_NOV10 = "d578da9"
+NOV10_LEAD = ('<p><em>Added November 9 2026 and updated November 10 from the <a href="' + WP_DIR +
+              '/results_critiques.html">current version of this page</a> in the working paper. '
+              'The overlap figures are provisional and will be re-checked once human annotators have '
+              'audited the judge. The rest of this page is the historical analysis; its figures may differ.</em></p>\n')
 
 
-def headline_block():
-    src = show(HEADLINE_REV, "_book/results_critiques.html").decode()
+def headline_block(rev=HEADLINE_REV, lead=None):
+    src = show(rev, "_book/results_critiques.html").decode()
     start = src.index('<p><span id="critique-headline"></span></p>')
     i = src.index("<div", start)
     depth, pos = 0, i
@@ -151,14 +157,16 @@ def headline_block():
     block = block.replace('href="./persistent_misses.html"', f'href="{WP_DIR}/persistent_misses.html"')
     block = block.replace('href="#sec-paper-comparison"',
                           f'href="{WP_DIR}/results_critiques.html#sec-paper-comparison"')
+    block = block.replace('href="#fig-coverage-precision"',
+                          f'href="{WP_DIR}/results_critiques.html#fig-coverage-precision"')
     assert 'href="#' not in block and 'href="./' not in block, "unrewritten link in headline block"
     below = "(see <em>Data sources</em> below)"
     assert block.count(below) == 1
     block = block.replace(below, f'(see <em>Data sources</em> in the <a href="{WP_DIR}/results_critiques.html">'
                                  'current version</a>)', 1)
-    lead = ('<p><em>Added November 9 2026 from the <a href="' + WP_DIR + '/results_critiques.html">'
-            'current version of this page</a> in the working paper. The rest of this page is the '
-            'historical analysis; its figures may differ.</em></p>\n')
+    lead = lead or ('<p><em>Added November 9 2026 from the <a href="' + WP_DIR + '/results_critiques.html">'
+                    'current version of this page</a> in the working paper. The rest of this page is the '
+                    'historical analysis; its figures may differ.</em></p>\n')
     body = '<div class="callout-body-container callout-body">\n'
     assert block.count(body) == 1
     return block.replace(body, body + lead, 1)
@@ -168,6 +176,9 @@ nov9b = dict(nov9)
 _crit = nov9["results_critiques.html"]
 _hdr = _crit.index("</header>", MAIN_RE.search(_crit).end()) + len("</header>")
 nov9b["results_critiques.html"] = _crit[:_hdr] + "\n" + headline_block() + _crit[_hdr:]
+nov10 = dict(nov9)
+nov10["results_critiques.html"] = (_crit[:_hdr] + "\n" + headline_block(HEADLINE_REV_NOV10, NOV10_LEAD)
+                                   + _crit[_hdr:])
 
 # Interim state, deploy 6af1c0296b49bd4f04dc8d99 (Nov 9, from the hypothesis-edit-live
 # session): Nov 5 pages with only index.html's yellow box turned into this <details>.
@@ -187,7 +198,7 @@ ok = True
 for p in PAGES:
     live = manifest["/" + p]
     state = next((n for n, d in (("nov5", nov5), ("interim", interim), ("nov9", nov9),
-                                 ("nov9b", nov9b))
+                                 ("nov9b", nov9b), ("nov10", nov10))
                   if sha1(d[p]) == live), None)
     ok &= state is not None
     print(f"{p}: live matches rebuilt state = {state}")
@@ -198,7 +209,7 @@ if not ok or "--check-only" in sys.argv:
 out = SCR / "new"
 if out.exists():
     shutil.rmtree(out)
-for p, html in nov9b.items():
+for p, html in nov10.items():
     if sha1(html) != manifest["/" + p]:
         (out / p).parent.mkdir(parents=True, exist_ok=True)
         (out / p).write_text(html, encoding="utf-8")

@@ -1,0 +1,32 @@
+You compare two lists of critiques of a research paper. Each list was written independently by a different reviewer. A reviewer may be a person or an AI system; you are not told which, and you should not try to guess.
+
+Your only task is to decide which items in the two lists raise the same concern. Do not judge whether a critique is correct or important, and do not add critiques of your own.
+
+A critique has three parts:
+- LOCUS: what it is about (a specific result, table, estimate, assumption, data source, or claim).
+- MECHANISM: why that is a problem (for example selection on the outcome, a units error, leakage between predictors and outcome, an untested assumption, low power, an inconsistency).
+- IMPLICATION: what follows for the paper's claims, or what the reviewer asks for.
+
+Classify each pair of items that has anything in common into exactly one category:
+
+- same_concern: same locus and same mechanism. The implications agree or are compatible. Different wording or emphasis does not matter.
+- same_concern_different_scope: same mechanism, but one item is clearly broader or narrower (it covers several loci, or states the mechanism only in general terms while the other is specific). Say which list's item is broader.
+- same_target_different_problem: same locus, but a different mechanism. Both criticise the same result or assumption for different reasons.
+- same_topic_only: the items share only a general area or vocabulary (both mention "identification", "robustness", or "external validity") without a shared locus and mechanism.
+
+Leave out pairs with nothing in common. Do not force a match: many items have no counterpart. One item may pair with several items in the other list.
+
+Tests to apply:
+- Would a reader of either item alone be led to the same concern and broadly the same fix? If not, it is not same_concern.
+- A list of generic topics ("robustness checks, clustering, power") does not share a mechanism with a specific critique unless it states that mechanism.
+- Matching words are not enough. A shared mechanism must be stated in both items.
+
+Invented examples (not from any paper you will see):
+- A: "The wage effect relies on firms that survived to 2015, so exits induced by the policy bias the estimate upward." B: "Survivorship: the panel keeps only surviving firms, so the positive effect may reflect selective exit." -> same_concern.
+- A: "Several robustness concerns: selection, clustering of standard errors, and the choice of control group." B: "The panel keeps only surviving firms, biasing the wage effect." -> same_concern_different_scope, A broader (A names selection but not where or how).
+- A: "The wage effect is not robust to clustering at the state level." B: "The wage effect is biased by survivorship." -> same_target_different_problem.
+- A: "External validity to other countries is unclear." B: "Results may not generalise beyond manufacturing." -> same_topic_only, unless both name the same population and reason.
+
+Also say whether the two lists appear to describe the same study, from their content alone (yes, no, unclear), and why. Classify the pairs either way: do not drop pairs because you think the lists concern different studies.
+
+For each pair give your confidence (0-100) that the category is right, and one or two sentences naming the shared locus and mechanism and the main difference. Consider every item in both lists. Use only the item IDs given.
