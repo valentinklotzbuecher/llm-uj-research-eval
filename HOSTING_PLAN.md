@@ -164,6 +164,12 @@ figures are provisional and will be re-checked after the human audit of the
 judge. Deploy `6af3387c30706133a983ab1f` (115 files, one new blob). A to-do to
 re-check both sites is on David's list (due 2026-12-01).
 
+Later on November 10 the critiques headline was rewritten to lead with the
+30-paper human-to-human comparison (`c5971d2`). The `/working-paper/` copy was
+refreshed from that commit and the historical page's block moved to the same
+version (layer `nov10b`, same lead line). Deploy `6af36b9722ad9e83eebd4946`
+(115 files).
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:

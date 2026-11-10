@@ -179,6 +179,11 @@ nov9b["results_critiques.html"] = _crit[:_hdr] + "\n" + headline_block() + _crit
 nov10 = dict(nov9)
 nov10["results_critiques.html"] = (_crit[:_hdr] + "\n" + headline_block(HEADLINE_REV_NOV10, NOV10_LEAD)
                                    + _crit[_hdr:])
+# Later on Nov 10: the same block from the version that leads with the 30-paper result.
+HEADLINE_REV_NOV10B = "c5971d2"
+nov10b = dict(nov9)
+nov10b["results_critiques.html"] = (_crit[:_hdr] + "\n" + headline_block(HEADLINE_REV_NOV10B, NOV10_LEAD)
+                                    + _crit[_hdr:])
 
 # Interim state, deploy 6af1c0296b49bd4f04dc8d99 (Nov 9, from the hypothesis-edit-live
 # session): Nov 5 pages with only index.html's yellow box turned into this <details>.
@@ -198,7 +203,7 @@ ok = True
 for p in PAGES:
     live = manifest["/" + p]
     state = next((n for n, d in (("nov5", nov5), ("interim", interim), ("nov9", nov9),
-                                 ("nov9b", nov9b), ("nov10", nov10))
+                                 ("nov9b", nov9b), ("nov10", nov10), ("nov10b", nov10b))
                   if sha1(d[p]) == live), None)
     ok &= state is not None
     print(f"{p}: live matches rebuilt state = {state}")
@@ -209,7 +214,7 @@ if not ok or "--check-only" in sys.argv:
 out = SCR / "new"
 if out.exists():
     shutil.rmtree(out)
-for p, html in nov10.items():
+for p, html in nov10b.items():
     if sha1(html) != manifest["/" + p]:
         (out / p).parent.mkdir(parents=True, exist_ok=True)
         (out / p).write_text(html, encoding="utf-8")
