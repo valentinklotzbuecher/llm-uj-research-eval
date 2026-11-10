@@ -153,6 +153,14 @@ historical figures below may differ. Its links point into `/working-paper/`. Thi
 is layer 3b (`nov9b`) in `proj_build.py`; the other six historical pages are
 unchanged. Deploy `6af1d30de5b7ef215f5f75e5` (115 files, one new blob).
 
+November 10 2026: the `/working-paper/` copy was refreshed from `d578da9`
+(critique overlap reported as a judge-dependent range, with the revised
+blinded judge). Deploy `6af3370934c3a7ec2e479d4a`, 115 files, 6 stale
+`/working-paper/` files dropped; the seven historical pages matched their
+`nov9`/`nov9b` states and were unchanged. The historical `results_critiques.html`
+headline block is still pinned to `f690d83`, so it shows only the original
+judge's figures; changing it needs David's OK.
+
 ## URLs to preserve
 
 These have been shared externally and must remain accessible:
