@@ -1,0 +1,35 @@
+{
+  "_about": "Step 5: evidence behind each isitcredible finding (ids from freeze.json; texts kept local in private/). Hand-coded by Claude Code (Opus 5.5) on 2026-11-10 from SYNTHESIS.md, the paper PDF text (data/reviewer2_forest_pilot_2026-09-09/sources/PAPER.txt), the Supplementary Information, and the Nature peer review file. 'Raised by Nature referees' and 'raised by Unjournal evaluators' are taken from the judge results in summary.json, not from this file. Only SYNTHESIS.md was shared: none of the stage reports, scripts or logs it cites (fragility-battery/scripts, logs, version-diff-REPORT.md, data-audit-REPORT.md) is available, so no computational claim can be re-run or checked here.",
+  "fields": {
+    "topic": "short neutral label",
+    "kind": "paper_reading: follows from what the paper or SI states; derived: a calculation from numbers the paper or SI prints; deposit_computation: a new calculation on the deposited rasters; process: about the peer-review history or code availability",
+    "inputs_in_paper": "the figures the finding starts from are printed in the paper or SI (checked by text search)",
+    "backed_by_shared_script_or_log": "a script or log for this finding was shared with us",
+    "touches_headline": "bears on 215 Mha, its CI, the 87.9% accuracy or the 23.4 Gt carbon figure",
+    "caveat": "what limits the finding as stated"
+  },
+  "items": {
+    "ISIT01": {"topic": "class-balanced RF scores summed as expected area, no calibration", "kind": "paper_reading", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "Direction (upward bias) follows from the balanced design; size unknown without a refit at true prevalence. Consistent with persistent_misses.qmd, which reports the same mechanism from the one-shot model and notes no Unjournal evaluation mentions calibration."},
+    "ISIT02": {"topic": "threshold rule changes the total (215 to 263 Mha)", "kind": "paper_reading", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "The 263 Mha sensitivity is the paper's own (Supplementary Table 4), added at a Nature referee's request."},
+    "ISIT03": {"topic": "random hold-out accuracy inflated by spatial autocorrelation", "kind": "derived", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "Uses the paper's own distance-band accuracies (Methods; Extended Data Fig. 4). persistent_misses.qmd makes the same point (75-82% away from training points)."},
+    "ISIT04": {"topic": "low area-weighted producer's accuracy for the regeneration class", "kind": "derived", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "The 31-53% range is not printed; it would come from the SI confusion matrices. The derivation was not shared and is not checked here."},
+    "ISIT05": {"topic": "CI treats autocorrelated validation pixels as independent", "kind": "paper_reading", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "Mechanism argued, not measured. A Nature referee objected to the same interval for a different reason (training-label accuracy)."},
+    "ISIT06": {"topic": "threshold sweep on deposited product vs stated CI", "kind": "deposit_computation", "inputs_in_paper": false, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "A threshold sweep measures sensitivity to a definition of 'area', not sampling uncertainty, so comparing its range with a CI (the '1,000x wider' claim) mixes two quantities; docs/reviewer2_extension.qmd already flags this. Numbers unverified."},
+    "ISIT07": {"topic": "deposited rasters do not reproduce reported areas", "kind": "deposit_computation", "inputs_in_paper": false, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "The SYNTHESIS itself says the deposit is lat/lon and unclipped, with a larger footprint than the analysis domain; pixel-area and domain differences (the projection point a Nature referee raised) may explain the gap. A reproducibility gap, not shown to be an error in the paper. Numbers unverified."},
+    "ISIT08": {"topic": "code by request only, training data not deposited", "kind": "process", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": false,
+               "caveat": "Stated in the paper's code-availability section; both one-shot lists raise it too."},
+    "ISIT09": {"topic": "incomplete training labels contaminate the negative class", "kind": "paper_reading", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "Raised by two Nature referees, which the run had; not independent discovery."},
+    "ISIT10": {"topic": "potential surface largely a forest-proximity buffer", "kind": "paper_reading", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": false,
+               "caveat": "The 98.1%-within-300 m figure is the paper's; the reading of it as near-tautology is an interpretation. Bears on what the map means more than on the totals."},
+    "ISIT11": {"topic": "carbon figure is a maximum, no leakage or additionality", "kind": "paper_reading", "inputs_in_paper": true, "backed_by_shared_script_or_log": false, "touches_headline": true,
+               "caveat": "Raised by a Nature referee, which the run had."}
+  }
+}
