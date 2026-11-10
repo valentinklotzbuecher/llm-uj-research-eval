@@ -101,5 +101,36 @@ class Export(unittest.TestCase):
             self.assertEqual((len(focal[0]["papers"]), n_h, n_m), (12, 63, 142))
 
 
+class AuditSample(unittest.TestCase):
+    FULL = {
+        "id": "run_x", "description": "d.",
+        "judges": [{"id": "codex", "label": "G"}, {"id": "sonnet", "label": "C"}],
+        "papers": [{
+            "paper_id": "P",
+            "human_issues": [{"id": f"P::E1::H{i:02d}", "text": "h"} for i in range(1, 7)],
+            "model_issues": [{"id": f"P::M{i:02d}", "text": "m"} for i in range(1, 4)],
+            "judge_matches": {
+                "codex": [{"human_id": "P::E1::H01", "model_id": "P::M01", "score": 80},
+                          {"human_id": "P::E1::H02", "model_id": "P::M02", "score": 50},
+                          {"human_id": "P::E1::H04", "model_id": "P::M03", "score": 20}],
+                "sonnet": [{"human_id": "P::E1::H01", "model_id": "P::M01", "score": 70},
+                           {"human_id": "P::E1::H03", "model_id": "P::M02", "score": 40}],
+            },
+        }],
+    }
+
+    def test_strata_and_determinism(self):
+        quotas = {"both_judges": 5, "gpt_only": 5, "claude_only": 5, "below_threshold": 5, "unmatched_human": 1}
+        a = ma.sample_dataset(self.FULL, quotas)
+        self.assertEqual(a, ma.sample_dataset(self.FULL, quotas))
+        pop = {s["stratum"]: s["population"] for s in a["sample"]["strata"]}
+        self.assertEqual(pop, {"both_judges": 1, "gpt_only": 1, "claude_only": 1, "below_threshold": 1,
+                               "unmatched_human": 2})
+        self.assertEqual(len(a["sample"]["unmatched_human"]), 1)
+        listed = {h["id"] for p in a["papers"] for h in p["human_issues"]}
+        self.assertEqual(len(listed), 5)  # four paired issues plus one unmatched
+        self.assertEqual(len(a["papers"][0]["model_issues"]), 3)
+
+
 if __name__ == "__main__":
     unittest.main()

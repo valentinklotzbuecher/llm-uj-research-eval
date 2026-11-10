@@ -22,8 +22,13 @@ Datasets currently exported:
                              description of each; those descriptions are the
                              issue text, with the full critique as context. The
                              two known mispairings (Benabou, Peterman) are left out.
-  <pilot run id>             every results/critique_overlap_pilot_*/ run: issues
-                             extracted from the published evaluations, two judges.
+  <pilot run id>             every results/critique_overlap_pilot_*/ and
+                             critique_overlap_scaled_*/ run: issues extracted
+                             from the published evaluations, two judges.
+  audit_sample_<run id>      for each scaled run, a fixed stratified sample
+                             (SAMPLE_QUOTAS, seeded hash order) for a first
+                             human check; strata and population sizes are in
+                             the dataset's "sample" field for reweighting.
 
 `score` reads reviewer exports from the audit page (JSON files saved under
 data/human_issue_match_annotations/audit/) and reports, per dataset and judge,
@@ -65,6 +70,15 @@ LEGACY_EXCLUDED = {"Benabou_et_al._2023": "human critique concerns a different p
                    "Peterman_et_al._2025": "human critique concerns a different paper"}
 PUBPUB = "https://unjournal.pubpub.org/pub/"
 SCHEMA_VERSION = 1
+# Where model issues may live for papers a run did not generate itself.
+MODEL_ISSUE_DIRS = [
+    ROOT / "results" / "critique_overlap_pilot_2026-11-10" / "A",
+    ROOT / "results" / "claude_opus_5_5_high_misses_2026-11-04" / "A",
+    ROOT / "results" / "claude_opus_5_5_high_keyissues_expansion_2026-11-10" / "A",
+]
+# Fixed audit sample of the scaled run: pairs per stratum, plus human issues no judge matched.
+SAMPLE_SEED = "match-audit-sample-2026-11-10"
+SAMPLE_QUOTAS = {"both_judges": 12, "gpt_only": 16, "claude_only": 6, "below_threshold": 6, "unmatched_human": 10}
 
 JUDGE_INFO = {
     "gpt52pro": {"label": "GPT-5.2 Pro", "note": "Also wrote the model issues it judged."},
@@ -165,8 +179,7 @@ def pilot_dataset(run_dir: pathlib.Path) -> dict[str, Any] | None:
                                      "importance": it.get("importance", ""), "quote": it.get("quote", ""),
                                      "quote_verified": it.get("quote_verified")})
         model_file = None
-        for cand in (run_dir / "A" / f"{pid}.json",
-                     ROOT / "results" / "claude_opus_5_5_high_misses_2026-11-04" / "A" / f"{pid}.json"):
+        for cand in [run_dir / "A" / f"{pid}.json"] + [d / f"{pid}.json" for d in MODEL_ISSUE_DIRS]:
             if cand.exists():
                 model_file = cand
                 break
@@ -184,17 +197,25 @@ def pilot_dataset(run_dir: pathlib.Path) -> dict[str, Any] | None:
             d["matches"] = [m for m in d["matches"] if m["side1_id"] in s1 and m["side2_id"] in s2]
             jm[j] = [{"human_id": m["side1_id"], "model_id": m["side2_id"], "score": int(m["score"]),
                       "label": m.get("label", ""), "reason": m.get("reason", "")} for m in d["matches"]]
+        title = p.get("research_title", "")
+        if all("slug" in ev for ev in p["evaluations"]):
+            links = [{"label": f"Evaluation {ev['label'][1:]}", "url": PUBPUB + ev["slug"]} for ev in p["evaluations"]]
+        else:  # the scaled run records hashed document refs, not slugs
+            links = [{"label": "Search Unjournal", "url": "https://unjournal.pubpub.org/search?q="
+                      + (title or pid).replace(" ", "%20")}]
         papers.append({
             "paper_id": pid,
-            "title": p.get("research_title", ""),
-            "links": [{"label": f"Evaluation {ev['label'][1:]}", "url": PUBPUB + ev["slug"]} for ev in p["evaluations"]],
+            "title": title,
+            "links": links,
             "human_issues": human_issues,
             "model_issues": model_issues,
             "judge_matches": jm,
         })
+    scaled = run_dir.name.startswith("critique_overlap_scaled_")
+    kind = f"All {len(papers)} eligible papers" if scaled else "Pilot"
     return {
         "id": run_dir.name,
-        "title": f"Pilot ({run_dir.name.rsplit('_', 1)[-1]}): Opus 5.5 issues vs issues from the published evaluations",
+        "title": f"{kind} ({run_dir.name.rsplit('_', 1)[-1]}): Opus 5.5 issues vs issues from the published evaluations",
         "description": "Human issues were extracted blind from each published evaluation (one list per evaluator). "
                        "Model issues: Claude Opus 5.5 given the PDF only. Both judges saw unlabeled, shuffled lists.",
         "judges": [{"id": j, **JUDGE_INFO.get(j, {"label": j, "note": ""})} for j in judges],
@@ -202,11 +223,91 @@ def pilot_dataset(run_dir: pathlib.Path) -> dict[str, Any] | None:
     }
 
 
+def _rank(key: str) -> str:
+    return hashlib.sha256(f"{SAMPLE_SEED}|{key}".encode()).hexdigest()
+
+
+def pair_stratum(scores: dict[str, int | None], threshold: int = 30) -> str:
+    calls = {j: (s is not None and s >= threshold) for j, s in scores.items()}
+    gpt, claude = calls.get("codex", False), calls.get("sonnet", False)
+    if gpt and claude:
+        return "both_judges"
+    if gpt:
+        return "gpt_only"
+    if claude:
+        return "claude_only"
+    return "below_threshold"
+
+
+def sample_dataset(full: dict[str, Any], quotas: dict[str, int] = SAMPLE_QUOTAS) -> dict[str, Any]:
+    """A fixed, stratified sample of one two-judge dataset for a first human check.
+
+    Pairs are grouped by which judges propose them at score >= 30; human issues that no judge
+    paired with anything form a separate stratum, which the page shows as "misses". Within each
+    stratum items are ordered by a seeded hash, so the sample does not depend on any verdict.
+    Each stratum's population size is recorded, so rates can be reweighted to the full dataset.
+    """
+    pairs: dict[str, list[tuple[str, str, str]]] = {s: [] for s in quotas if s != "unmatched_human"}
+    unmatched: list[tuple[str, str]] = []
+    for p in full["papers"]:
+        best: dict[tuple[str, str], dict[str, int]] = {}
+        for j, ms in p["judge_matches"].items():
+            for m in ms:
+                k = (m["human_id"], m["model_id"])
+                best.setdefault(k, {})[j] = max(best.get(k, {}).get(j, -1), m["score"])
+        for (h, mo), sc in best.items():
+            s = pair_stratum({j["id"]: sc.get(j["id"]) for j in full["judges"]})
+            pairs[s].append((p["paper_id"], h, mo))
+        touched = {h for h, _ in best}
+        unmatched += [(p["paper_id"], h["id"]) for h in p["human_issues"] if h["id"] not in touched]
+    chosen_pairs: dict[str, list[tuple[str, str, str]]] = {}
+    strata = []
+    for s, items in pairs.items():
+        pick = sorted(items, key=lambda t: _rank(t[1] + "|" + t[2]))[:quotas[s]]
+        chosen_pairs[s] = pick
+        strata.append({"stratum": s, "population": len(items), "sampled": len(pick)})
+    pick_u = sorted(unmatched, key=lambda t: _rank(t[1]))[:quotas.get("unmatched_human", 0)]
+    strata.append({"stratum": "unmatched_human", "population": len(unmatched), "sampled": len(pick_u)})
+
+    keep_pairs = {(h, m) for v in chosen_pairs.values() for _, h, m in v}
+    keep_h = {h for h, _ in keep_pairs} | {h for _, h in pick_u}
+    papers = []
+    for p in full["papers"]:
+        hs = [h for h in p["human_issues"] if h["id"] in keep_h]
+        if not hs:
+            continue
+        jm = {j: [m for m in ms if (m["human_id"], m["model_id"]) in keep_pairs] for j, ms in p["judge_matches"].items()}
+        papers.append({**p, "human_issues": hs, "judge_matches": jm})
+    n_pairs = len(keep_pairs)
+    return {
+        "id": f"audit_sample_{full['id']}",
+        "title": f"Audit sample: {n_pairs} judged pairs and {len(pick_u)} unmatched human issues "
+                 f"from {full['id']}",
+        "description": "A fixed sample for a first check of the judges, drawn without looking at any verdict. "
+                       "Pairs are stratified by which judges propose them at score 30 or above (both; GPT only; "
+                       "Claude only; neither, though a judge returned a lower score); the 'Unmatched human issues' "
+                       "filter shows issues no judge paired with anything. Only sampled human issues are listed, "
+                       "so issue numbers differ from the full dataset; every model issue is listed, but only "
+                       "sampled pairs show as judge proposals. "
+                       + full["description"],
+        "judges": full["judges"],
+        "sample": {"source_dataset": full["id"], "seed": SAMPLE_SEED, "threshold": 30, "strata": strata,
+                   "pairs": [{"stratum": s, "paper_id": pid, "human_id": h, "model_id": m}
+                             for s, v in chosen_pairs.items() for pid, h, m in v],
+                   "unmatched_human": [{"paper_id": pid, "human_id": h} for pid, h in pick_u]},
+        "papers": papers,
+    }
+
+
 def build_export() -> dict[str, Any]:
     datasets = []
-    for run_dir in sorted((ROOT / "results").glob("critique_overlap_pilot_*"), reverse=True):
+    runs = sorted((ROOT / "results").glob("critique_overlap_scaled_*"), reverse=True) + \
+        sorted((ROOT / "results").glob("critique_overlap_pilot_*"), reverse=True)
+    for run_dir in runs:
         ds = pilot_dataset(run_dir)
         if ds:
+            if run_dir.name.startswith("critique_overlap_scaled_") and len(ds["judges"]) > 1:
+                datasets.append(sample_dataset(ds))
             datasets.append(ds)
     focal = focal_dataset()
     if focal:
